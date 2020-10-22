@@ -12,11 +12,11 @@
 
 from molmod.units import *
 from molmod.constants import *
-from molmod.io.xyz import XYZReader
 
-from ..tools import integrate, integrate2d, format_scientific
+from ..tools import integrate, integrate2d, format_scientific, free_energy_from_histogram_with_error
 
 import matplotlib.pyplot as pp
+import matplotlib.cm as cm
 from matplotlib import gridspec, rc
 from matplotlib.colors import LogNorm
 from matplotlib.ticker import LogLocator
@@ -167,15 +167,18 @@ class BaseFreeEnergyProfile(object):
         return cls(cvs, fs, temp, cv_unit=cv_unit, f_unit=f_unit)
 
     @classmethod
-    def from_trajectory_histogram(cls, fn, CV, temp, cv_bins=None, n_bins=100, cv_unit='au', f_unit='kjmol', cv_label='CV'):
+    def from_trajectory_histogram(cls, cv_data, temp, cv_bins=None, n_bins=100, stride=1, nblocks=1, fn_plot=None, cv_unit='au', f_unit='kjmol', cv_label='CV'):
         '''
             Derive a free energy profile in term of the given CV from the
             histogram of a molecular trajectory.
 
             **Arguments**
 
-                fn          trajectory file name
-                CV          Collective Variable instance
+                cv_data     a numpy array containig the CV values along the
+                            trajectory. This array can be computed from an
+                            XYZ trajectory file using the <trajectory_xyz_to_CV>
+                            routine in the thermolib.tools module.
+                            
                 temp        temperature of the trajectory
 
             **Optional Arguments**
@@ -187,27 +190,81 @@ class BaseFreeEnergyProfile(object):
                 n_bins      The number of bins used between min and max if
                             cv_bins is not specified.
 
+                stride      If stride is larger than 1, not the entire trajectory
+                            is used to construct the histogram. Instead, samples 
+                            are taken every <stride> frames. In this way, we hope
+                            to minimize correlations.
+                
+                nblocks     If nblocks is larger than 1, divide the entire trajectory
+                            in a number of blocks equal to nblocks and construct a
+                            profile (with error estimate) on each block. 
+                
+                fn_plot     If a file name is given, a plot will be made of the
+                            resulting probability histogram and corresponding free 
+                            energy with error estimates as obtained from Bayesian 
+                            error propagation and Gamma distributions. The error bars 
+                            represent 95% confidence intervals (i.e. 2 sigma).
+                
                 cv_unit     CV unit for plotting
 
                 cv_label    CV label in plots
 
                 f_unit      free energy unit for plotting
         '''
-        cv_data = []
-        xyz = XYZReader(fn)
-        for title, coords in xyz:
-            cv = CV.compute(coords, deriv=False)
-            cv_data.append(cv)
-        del xyz
-        cv_data = np.array(cv_data)
+        cv_data = cv_data[::stride]
         if cv_bins is None:
             start, end, num = min(cv_data), max(cv_data), n_bins
             delta = (end-start)/(num-1)
             cv_bins = np.arange(start, end+delta, delta)
-        hist, bin_edges = np.histogram(cv_data, cv_bins, density=True)
-        cvs = 0.5*(bin_edges[:-1]+bin_edges[1:]) # bin centers
-        fs = -boltzmann*temp*np.log(hist)
-        return cls(cvs, fs, temp, cv_unit=cv_unit, f_unit=f_unit, cv_label=cv_label)
+        cvs, ps, plower, pupper, fs, flower, fupper = free_energy_from_histogram_with_error(cv_data, cv_bins, temp)
+        flower -= min(fs)
+        fupper -= min(fs)
+        fs -= min(fs)
+        fep = cls(cvs.copy(), fs.copy(), temp, cv_unit=cv_unit, f_unit=f_unit, cv_label=cv_label)
+        if fn_plot is not None:
+            pp.clf()
+            fig, axs = pp.subplots(nrows=1+int(nblocks>1), ncols=2, squeeze=False)
+            #make free energy plot
+            axs[0,0].plot(cvs/parse_unit(cv_unit), ps, linewidth=1, color='b')
+            axs[0,0].fill_between(cvs/parse_unit(cv_unit), plower, pupper, color='0.7')
+            axs[0,1].plot(cvs/parse_unit(cv_unit), fs/parse_unit(f_unit), linewidth=1, color='b')
+            axs[0,1].fill_between(cvs/parse_unit(cv_unit), flower/parse_unit(f_unit), fupper/parse_unit(f_unit), color='0.7')
+            #decorate
+            axs[0,0].set_xlabel('%s [%s]' %(cv_label, cv_unit), fontsize=14)
+            axs[0,0].set_ylabel('P [-]', fontsize=14)
+            axs[0,0].set_title('Probability profile', fontsize=14)
+            axs[0,0].set_xlim([min(cvs/parse_unit(cv_unit)), max(cvs/parse_unit(cv_unit))])
+            axs[0,1].set_xlabel('%s [%s]' %(cv_label, cv_unit), fontsize=14)
+            axs[0,1].set_ylabel('F [%s]' %f_unit, fontsize=14)
+            axs[0,1].set_title('Free energy profile', fontsize=14)
+            axs[0,1].set_xlim([min(cvs/parse_unit(cv_unit)), max(cvs/parse_unit(cv_unit))])
+            axs[0,1].set_ylim([-1, np.ceil(max(fs/kjmol)/10)*10])
+            if nblocks>1:
+                blocksize = len(cv_data)//nblocks
+                cmap = cm.get_cmap('tab10')
+                for iblock in range(nblocks):
+                    block = cv_data[iblock*blocksize:(iblock+1)*blocksize]
+                    cvs, ps, plower, pupper, fs, flower, fupper = free_energy_from_histogram_with_error(block, cv_bins, temp)
+                    flower -= min(fs[~np.isnan(fs)])
+                    fupper -= min(fs[~np.isnan(fs)])
+                    fs -= min(fs[~np.isnan(fs)])
+                    axs[1,0].plot(cvs/parse_unit(cv_unit), ps, linewidth=2, color=cmap(iblock), label='Block %i' %iblock)
+                    axs[1,0].fill_between(cvs/parse_unit(cv_unit), plower, pupper, color=cmap(iblock, alpha=0.2))
+                    axs[1,1].plot(cvs/parse_unit(cv_unit), fs/parse_unit(f_unit), linewidth=2, color=cmap(iblock), label='Block %i' %iblock)
+                    axs[1,1].fill_between(cvs/parse_unit(cv_unit), flower/parse_unit(f_unit), fupper/parse_unit(f_unit), color=cmap(iblock, alpha=0.2))
+                #decorate
+                axs[1,0].legend(loc='best')
+                axs[1,0].set_xlabel('%s [%s]' %(cv_label, cv_unit), fontsize=14)
+                axs[1,0].set_ylabel('P [-]', fontsize=14)
+                axs[1,0].set_xlim([min(cvs/parse_unit(cv_unit)), max(cvs/parse_unit(cv_unit))])
+                axs[1,1].set_xlabel('%s [%s]' %(cv_label, cv_unit), fontsize=14)
+                axs[1,1].set_ylabel('F [%s]' %f_unit, fontsize=14)
+                axs[1,1].set_xlim([min(cvs/parse_unit(cv_unit)), max(cvs/parse_unit(cv_unit))])
+                axs[1,1].set_ylim([-1, np.ceil(max(fs[~np.isnan(fs)+~np.isinf(fs)]/kjmol)/10)*10])
+            #save
+            fig.set_size_inches([16,8*(1+int(nblocks>1))])
+            pp.savefig(fn_plot)
+        return fep
 
     def process_states(self, **kwargs):
         raise NotImplementedError

@@ -13,13 +13,17 @@
 
 from molmod.units import *
 from molmod.constants import *
+from molmod.io.xyz import XYZReader
 
 import numpy as np
 import matplotlib.pyplot as pp
 import sys
 
 
-__all__ = ['integrate', 'integrate2d', 'format_scientific']
+__all__ = [
+    'integrate', 'integrate2d', 'format_scientific',
+    'free_energy_from_histogram_with_error'
+]
 
 def integrate(xs, ys):
     'A simple integration method using the trapezoid rule'
@@ -60,3 +64,44 @@ def format_scientific(x, prec=3, latex=True):
         return r'$%s\cdot 10^{%s}$' %(a,b)
     else:
         return '%s 10^%s' %(a, b)
+
+def free_energy_from_histogram_with_error(data, bins, temp, nsigma=2):
+    '''
+        Construct probability and free energy profile from histogram
+        analysis. Include error estimation based on Bayesian analysis
+        and the Gamma distribution.
+        
+        Upper and lower boundary of an nsigma-confidence interval 
+        will be returned.
+    '''
+    Ntot = len(data)
+    ns, bin_edges = np.histogram(data, bins, density=False)
+    cvs = 0.5*(bin_edges[:-1]+bin_edges[1:]) # bin centers
+    ps = ns/Ntot
+    fs = np.zeros(len(cvs), float)*np.nan
+    fs[ps>0] = -boltzmann*temp*np.log(ps[ps>0])
+    #estimate of upper and lower boundary of 95% confidence interval (i.e. 2 sigma)
+    #for now this assumes Normal distribution (while in reality it is Gamma distributed)
+    #TODO: use Gamma distribution for confidence interval
+    perrors = np.sqrt(ns)/Ntot
+    plower = ps - nsigma*perrors
+    plower[plower<1e-10] = 1e-10
+    pupper = ps + nsigma*perrors
+    pupper[pupper<1e-10] = 1e-10
+    fupper = -boltzmann*temp*np.log(plower)
+    flower = -boltzmann*temp*np.log(pupper)
+    return cvs, ps, plower, pupper, fs, flower, fupper
+
+def trajectory_xyz_to_CV(fns, CV):
+    '''
+        Compute the CV along an XYZ trajectory. The XYZ
+        trajectory is assumed to be composed out of a 
+        (list of) XYZ files.
+    '''
+    cvs = []
+    xyz = XYZReader(fn_xyz)
+    for title, coords in xyz:
+        cv = CV.compute(coords, deriv=False)
+        cvs.append(cv)
+    del xyz
+    return np.array(cvs)
