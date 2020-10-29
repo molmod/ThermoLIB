@@ -1048,7 +1048,7 @@ class FreeEnergySurface2D(object):
 
                 F1(q) = -kT*log( 2*int( e(-beta*F2(x,2*q-x)), x=-inf...+inf) )
 
-                with q = CV2-CV1
+                with q = 0.5*(CV1+CV2)
 
             This projection is implemented by first projecting the probability
             density and afterwards reconstructing the free energy.
