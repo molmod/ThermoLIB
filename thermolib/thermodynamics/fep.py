@@ -26,7 +26,7 @@ rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 rc('text', usetex=True)
 
 #clustering algorithm
-from sklearn.cluster import DBSCAN
+#from sklearn.cluster import DBSCAN
 
 import numpy as np
 
@@ -269,8 +269,16 @@ class BaseFreeEnergyProfile(object):
     def process_states(self, **kwargs):
         raise NotImplementedError
 
-    def set_ref(self, **kwargs):
-        raise NotImplementedError
+    def set_ref(self, ref='min'):
+        '''
+            Set the energy reference to ref, which should be one of
+
+                * m, min                        the global minimum
+        '''
+        if ref.lower() in ['m', 'min']:
+            self.fs -= self.fs[~np.isnan(self.fs)].min()
+        else:
+            raise IOError('Invalid REF specification, recieved %s and should be min' %ref)
 
     def set_microstates(self, **kwargs):
         raise NotImplementedError
@@ -365,7 +373,7 @@ class BaseFreeEnergyProfile(object):
             print('  Z [-] = ', Z)
             print('  P [-] = ', P*100)
         return mean, std, Z, F
-
+    
     def plot(self, fn_png, micro_marker='s', micro_color='r', micro_size='4', macro_linestyle='-', macro_color='b'):
         '''
             Plot the free energy profile
@@ -558,7 +566,7 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
         elif ref.lower() in ['m', 'min']:
             self.fs -= self.fs[~np.isnan(self.fs)].min()
         else:
-            raise IOError('Invalid REF specificatin, recieved %s and should be min, r, ts or p' %ref)
+            raise IOError('Invalid REF specification, recieved %s and should be min, r, ts or p' %ref)
         #Micro and macrostates need to be updated
         if self.ir is not None and self.its is not None and self.ip is not None:
             self.microstates = []
@@ -766,7 +774,7 @@ class FreeEnergySurface2D(object):
         if ref.lower() in ['m', 'min']:
             self.fs -= self.fs[~np.isnan(self.fs)].min()
         else:
-            raise IOError('Invalid REF specificatin, recieved %s and should be min' %ref)
+            raise IOError('Invalid REF specification, recieved %s and should be min' %ref)
 
     def detect_clusters(self, eps=1.5, min_samples=8, metric='euclidean', fn_plot=None, delete_clusters=[-1]):
         '''
