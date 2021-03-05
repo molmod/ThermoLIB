@@ -26,7 +26,7 @@ rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 rc('text', usetex=True)
 
 #clustering algorithm
-#from sklearn.cluster import DBSCAN
+from sklearn.cluster import DBSCAN
 
 import numpy as np
 
@@ -178,7 +178,7 @@ class BaseFreeEnergyProfile(object):
                             trajectory. This array can be computed from an
                             XYZ trajectory file using the <trajectory_xyz_to_CV>
                             routine in the thermolib.tools module.
-                            
+
                 temp        temperature of the trajectory
 
             **Optional Arguments**
@@ -191,20 +191,20 @@ class BaseFreeEnergyProfile(object):
                             cv_bins is not specified.
 
                 stride      If stride is larger than 1, not the entire trajectory
-                            is used to construct the histogram. Instead, samples 
+                            is used to construct the histogram. Instead, samples
                             are taken every <stride> frames. In this way, we hope
                             to minimize correlations.
-                
+
                 nblocks     If nblocks is larger than 1, divide the entire trajectory
                             in a number of blocks equal to nblocks and construct a
-                            profile (with error estimate) on each block. 
-                
+                            profile (with error estimate) on each block.
+
                 fn_plot     If a file name is given, a plot will be made of the
-                            resulting probability histogram and corresponding free 
-                            energy with error estimates as obtained from Bayesian 
-                            error propagation and Gamma distributions. The error bars 
+                            resulting probability histogram and corresponding free
+                            energy with error estimates as obtained from Bayesian
+                            error propagation and Gamma distributions. The error bars
                             represent 95% confidence intervals (i.e. 2 sigma).
-                
+
                 cv_unit     CV unit for plotting
 
                 cv_label    CV label in plots
@@ -373,7 +373,7 @@ class BaseFreeEnergyProfile(object):
             print('  Z [-] = ', Z)
             print('  P [-] = ', P*100)
         return mean, std, Z, F
-    
+
     def plot(self, fn_png, micro_marker='s', micro_color='r', micro_size='4', macro_linestyle='-', macro_color='b'):
         '''
             Plot the free energy profile

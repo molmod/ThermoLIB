@@ -119,50 +119,50 @@ class ConditionalProbability1D1D(object):
 
     def finish(self, fn_plt=None, plot_cvs=None):
         # Normalize conditional probability as well as some additional probability densities
-        for icv, norm in enumerate(self.norms):
-            self.pqs += self.pconds[:,icv]
-            if norm>0:
-                self.pconds[:,icv] /= norm
-            else:
-                assert (self.pconds[:,icv]==0).all(), 'Inconsistency in normalisation of conditional probability'
+        self.pqs = np.sum(self.pconds, axis=1)
+        self.pconds[:, self.norms>0] /= self.norms[self.norms>0]
+        assert (self.pconds[:, self.norms<=0]==0).all(), 'Inconsistency in normalisation of conditional probability'
+
         self.pqs /= np.trapz(self.pqs, x=self.q1s)
         self.pcvs = self.norms.copy()/self.norms.sum()
-        
+
         # Plot if requested
         if fn_plt is not None:
-            raise NotImplementedError("The fn_plot function is not yet implemented for 1D variables")
-            '''
             if plot_cvs is None:
-                raise IOError('If a plot is to be made (as indicated by giving a fn_plot different from None), plot_cvs should be specified as a list of cv values for which the conditional probability will be plotted')
-            pp.clf()
-            if   len(plot_cvs)<=2: nrows,ncols = 1,2
-            elif len(plot_cvs)<=4: nrows,ncols = 2,2
-            elif len(plot_cvs)<=6: nrows,ncols = 2,3
-            elif len(plot_cvs)<=9: nrows,ncols = 3,3
+                pp.clf()
+                contourf = pp.contourf(self.cvs, self.q1s, self.pconds, cmap=pp.get_cmap('rainbow'))
+                pp.xlabel('%s [au]' %self.cv_label, fontsize=16)
+                pp.ylabel('%s [au]' %self.q1_label, fontsize=16)
+                pp.colorbar(contourf)
+                pp.tight_layout()
+                pp.savefig(fn_plt)
+                pp.close()
+
             else:
-                raise ValueError('Requested to plot to much cv values, limit to maximum 9')
-            fig, axs = pp.subplots(nrows=nrows,ncols=ncols, sharex=True, sharey=True)
-            #fig.suptitle(r'Log of conditional probability distribution')
-            for i, cv in enumerate(plot_cvs):
-                icv = int((cv-self.cvmin)/(self.cvmax-self.cvmin)*(self.cvnum-1))
-                iax = i//ncols
-                jax = i%ncols
-                ax = axs[iax,jax]
-                contourf = ax.contourf(self.q1s, self.q2s, self.pconds[:,:,icv], cmap=pp.get_cmap('rainbow'))
-                if iax==nrows-1:
-                    ax.set_xlabel('%s [au]' %self.q1_label, fontsize=16)
-                if jax==0:
-                    ax.set_ylabel('%s [au]' %self.q2_label, fontsize=16)
-                ax.set_title('CV = %.3f au' %(self.cvs[icv]))
-                cbar = pp.colorbar(contourf, ax=ax)
-            #ax1.plot(self.cvs, np.log(self.pcvs)/np.log(10))
-            #ax1.set_xlabel('%s [au]' %self.cv_label)
-            #ax1.set_ylabel(r'Log of probabilty density [au$^{-1}$]')
-            #ax1.set_title('Probability distrubution of old variable in trajectory')
-            fig.set_size_inches([8*ncols,8*nrows])
-            fig.tight_layout()
-            pp.savefig(fn_plt)
-            '''
+                pp.clf()
+                if   len(plot_cvs)<=2: nrows,ncols = 1,2
+                elif len(plot_cvs)<=4: nrows,ncols = 2,2
+                elif len(plot_cvs)<=6: nrows,ncols = 2,3
+                elif len(plot_cvs)<=9: nrows,ncols = 3,3
+                else:
+                    raise ValueError('Requested to plot too much cv values, limited to maximum 9')
+                fig, axs = pp.subplots(nrows=nrows,ncols=ncols, sharex=True, sharey=True)
+                for i, cv in enumerate(plot_cvs):
+                    icv = int((cv-self.cvmin)/(self.cvmax-self.cvmin)*(self.cvnum-1))
+                    iax = i//ncols
+                    jax = i%ncols
+                    ax = axs[iax,jax]
+                    ax.plot(self.q1s, self.pconds[:,icv])
+                    if iax==nrows-1:
+                        ax.set_xlabel('%s [au]' %self.q1_label, fontsize=16)
+                    if jax==0:
+                        ax.set_ylabel('Conditional probability p(%s||%s)' %(self.q1_label,self.cv_label), fontsize=16)
+                    ax.set_title('CV = %.3f au' %(self.cvs[icv]))
+                fig.set_size_inches([8*ncols,8*nrows])
+                fig.tight_layout()
+                pp.savefig(fn_plt)
+                pp.close()
+
 
     def transform(self, fep, cv_unit='au', f_unit='kjmol', cv_label=None):
         '''
@@ -178,10 +178,7 @@ class ConditionalProbability1D1D(object):
         assert (abs(fep.cvs-self.cvs)<1e-6).all(), 'Values of 1D CV in conditional probability not identical to those of 1D FEP'
         if cv_label is None: cv_label = self.q1_label
         # Construct 1D FES
-        ps = np.zeros([self.q1num], float)
-        for icv, fcv in enumerate(fep.fs):
-            if not np.isnan(fcv):
-                ps += self.pconds[:,icv]*np.exp(-fep.beta*fcv)
+        ps = np.sum(self.pconds[:, ~np.isnan(fep.fs)]*np.exp(-fep.beta*fep.fs[~np.isnan(fep.fs)]), axis=1)
         ps /= np.trapz(ps, x=self.q1s)
         fs = np.zeros([self.q1num], float)*np.nan
         fs[ps>0] = -np.log(ps[ps>0])/fep.beta
@@ -308,7 +305,7 @@ class ConditionalProbability1D2D(object):
             elif len(plot_cvs)<=6: nrows,ncols = 2,3
             elif len(plot_cvs)<=9: nrows,ncols = 3,3
             else:
-                raise ValueError('Requested to plot to much cv values, limit to maximum 9')
+                raise ValueError('Requested to plot too much cv values, limited to maximum 9')
             fig, axs = pp.subplots(nrows=nrows,ncols=ncols, sharex=True, sharey=True)
             #fig.suptitle(r'Log of conditional probability distribution')
             for i, cv in enumerate(plot_cvs):
@@ -330,6 +327,7 @@ class ConditionalProbability1D2D(object):
             fig.set_size_inches([8*ncols,8*nrows])
             fig.tight_layout()
             pp.savefig(fn_plt)
+            pp.close()
 
     def transform(self, fep, cv1_unit='au', cv2_unit='au', f_unit='kjmol', label1=None, label2=None):
         '''
