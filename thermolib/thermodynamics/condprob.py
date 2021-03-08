@@ -100,22 +100,8 @@ class ConditionalProbability1D1D(object):
         for fn in fns:
             print('  Reading data from %s' %fn)
             data = np.loadtxt(fn)
-            for row in data:
-                q1i, cvi = row[col_q1], row[col_cv]
-                if not self.cvmin<=cvi<=self.cvmax:
-                    #print("Found frame with cv(=%.6f) beyond range of current FEP (=[%.6f,%.6f]), skipping" %(cvi, self.cvmin, self.cvmax))
-                    continue
-                else:
-                    icv = int((cvi-self.cvmin)/(self.cvmax-self.cvmin)*(self.cvnum-1))
-                    assert self.cvs[icv]<=cvi<=self.cvs[icv+1], "Inconsistency detected in cvs: for cv=%.6f we found icv=%i, however: cvs[%i]=%.6f and cvs[%i]=%.6f" %(cvi,icv,icv,self.cvs[icv],icv+1,self.cvs[icv+1])
-                if not self.q1min<=q1i<=self.q1max:
-                    raise ValueError("Found frame with q1 beyond given bounds")
-                else:
-                    iq1 = int((q1i-self.q1min)/(self.q1max-self.q1min)*(self.q1num-1))
-                    if q1i-self.q1s[iq1]<-1e-6 or 1e-6<q1i-self.q1s[iq1+1]:
-                        raise AssertionError("Inconsistency detected in q1 values: assigned index %i to value %.6f but q1s[%i]=%.6f and q1s[%i]=%.6f" %(iq1,q1i,iq1,self.q1s[iq1],iq1+1,self.q1s[iq1+1]))
-                self.pconds[iq1,icv] += 1
-                self.norms[icv] += 1
+            self.pconds[:-1, :-1] += np.histogram2d(data[:, col_q1], data[:, col_cv], bins=(self.q1s, self.cvs))[0]
+            self.norms[:-1] += np.histogram(data[:, col_cv], bins=self.cvs)[0]
 
     def finish(self, fn_plt=None, plot_cvs=None):
         # Normalize conditional probability as well as some additional probability densities
