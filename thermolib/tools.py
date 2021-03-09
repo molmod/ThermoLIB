@@ -70,8 +70,8 @@ def free_energy_from_histogram_with_error(data, bins, temp, nsigma=2):
         Construct probability and free energy profile from histogram
         analysis. Include error estimation based on Bayesian analysis
         and the Gamma distribution.
-        
-        Upper and lower boundary of an nsigma-confidence interval 
+
+        Upper and lower boundary of an nsigma-confidence interval
         will be returned.
     '''
     Ntot = len(data)
@@ -95,7 +95,7 @@ def free_energy_from_histogram_with_error(data, bins, temp, nsigma=2):
 def trajectory_xyz_to_CV(fns, CV):
     '''
         Compute the CV along an XYZ trajectory. The XYZ
-        trajectory is assumed to be composed out of a 
+        trajectory is assumed to be composed out of a
         (list of) XYZ files.
     '''
     cvs = []
