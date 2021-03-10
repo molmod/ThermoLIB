@@ -40,7 +40,6 @@ def test_transform1D1D_linear(plot=False):
     y = np.arange(-3.5, 3.51, 0.01)
     cond_prob = ConditionalProbability1D1D(y, x)
     cond_prob.process_trajectory_cvs('test_colvar', col_q1=0, col_cv=1)
-    cond_prob.finish()
 
     fes_y = cond_prob.transform(fes, cv_label='y')
     fes_y.set_ref(ref='min')
@@ -78,7 +77,6 @@ def test_transform1D1D_nonlinear(plot=False):
     y = np.arange(-3.3, 3.31, 0.02)
     cond_prob = ConditionalProbability1D1D(y, x)
     cond_prob.process_trajectory_cvs('test_colvar', col_q1=0, col_cv=1)
-    cond_prob.finish()
 
     fes_y = cond_prob.transform(fes, cv_label='y')
     fes_y.set_ref(ref='min')

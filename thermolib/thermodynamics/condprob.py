@@ -56,11 +56,7 @@ class ConditionalProbability1D1D(object):
             Compute the conditional probability p(q1|cv) (and norm for final
             normalisation) by processing a series of XYZ trajectory files. The
             final probability is estimated as the average over all given files.
-            These files may also contain data from biased simulations as long
-            as the bias is constant over the simulation. For example, data from
-            Umbrella Sampling is OK, while data from metadynamica itself is not.
-            Data obtained from a regular MD with the final MTD profile as bias
-            is OK.
+            These files may also contain data from biased simulations.
         '''
         if not isinstance(fns, list): fns = [fns]
         for fn in fns:
@@ -82,18 +78,18 @@ class ConditionalProbability1D1D(object):
                 self.pconds[iq1,icv] += 1
                 self.norms[icv] += 1
 
+        self.__finish()
+
     def process_trajectory_cvs(self, fns, col_q1=1, col_cv=2):
         '''
-            Routine to update conditional probability p(q1|cv) (and norm for
-            final normalisation) by processing a series of CV trajectory file.
+            Compute the conditional probability p(q1|cv) (and norm for final
+            normalisation) by processing a series of CV trajectory files.
             Each CV trajectory file contains rows of the form
 
                 time q1 cv
 
             If the trajectory file contains this data in a different order, it
-            can be accounted for using the col_xx keyword arguments. Similar
-            constraints apply to these CV trajectory files as specified in the
-            routine ´´process_trajectory_xyz´´.
+            can be accounted for using the col_xx keyword arguments.
         '''
         if not isinstance(fns, list): fns = [fns]
         print('Constructing conditional probability...')
@@ -103,7 +99,9 @@ class ConditionalProbability1D1D(object):
             self.pconds[:-1, :-1] += np.histogram2d(data[:, col_q1], data[:, col_cv], bins=(self.q1s, self.cvs))[0]
             self.norms[:-1] += np.histogram(data[:, col_cv], bins=self.cvs)[0]
 
-    def finish(self, fn_plt=None, plot_cvs=None):
+        self.__finish()
+
+    def __finish(self):
         # Normalize conditional probability as well as some additional probability densities
         self.pqs = np.sum(self.pconds, axis=1)
         self.pconds[:, self.norms>0] /= self.norms[self.norms>0]
@@ -112,7 +110,7 @@ class ConditionalProbability1D1D(object):
         self.pqs /= np.trapz(self.pqs, x=self.q1s)
         self.pcvs = self.norms.copy()/self.norms.sum()
 
-        # Plot if requested
+    def plot(self, fn_plt=None, plot_cvs=None):
         if fn_plt is not None:
             if plot_cvs is None:
                 pp.clf()
@@ -149,13 +147,12 @@ class ConditionalProbability1D1D(object):
                 pp.savefig(fn_plt)
                 pp.close()
 
-
     def transform(self, fep, cv_unit='au', f_unit='kjmol', cv_label=None):
         '''
-            Transform the provided 1D FEP to a different 1D FES using the current
+            Transform the provided 1D FES to a different 1D FES using the current
             conditional probability according to the formula
 
-                FES(q1) = -kT*log(P(q1))
+                FES(q1) = -kT*ln(P(q1))
 
                 P(q1) = int(condprob(q1|cv)*exp(-beta*F(cv), cv)
         '''
