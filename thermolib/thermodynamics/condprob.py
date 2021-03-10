@@ -161,7 +161,7 @@ class ConditionalProbability1D1D(object):
         assert (abs(fep.cvs-self.cvs)<1e-6).all(), 'Values of 1D CV in conditional probability not identical to those of 1D FEP'
         if cv_label is None: cv_label = self.q1_label
         # Construct 1D FES
-        ps = np.sum(self.pconds[:, ~np.isnan(fep.fs)]*np.exp(-fep.beta*fep.fs[~np.isnan(fep.fs)]), axis=1)
+        ps = np.trapz(self.pconds[:, ~np.isnan(fep.fs)]*np.exp(-fep.beta*fep.fs[~np.isnan(fep.fs)]), x=self.cvs[~np.isnan(fep.fs)])
         ps /= np.trapz(ps, x=self.q1s)
         fs = np.zeros([self.q1num], float)*np.nan
         fs[ps>0] = -np.log(ps[ps>0])/fep.beta
