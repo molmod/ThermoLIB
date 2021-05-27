@@ -32,7 +32,7 @@ import numpy as np
 
 import sys
 
-__all__ = ['BaseFreeEnergyProfile', 'SimpleFreeEnergyProfile']
+__all__ = ['BaseFreeEnergyProfile', 'SimpleFreeEnergyProfile', 'FreeEnergySurface2D']
 
 class BaseFreeEnergyProfile(object):
     def __init__(self, cv, f, temp, cv_unit='au', f_unit='kjmol', cv_label='CV'):
@@ -201,9 +201,10 @@ class BaseFreeEnergyProfile(object):
                 
                 fn_plot     If a file name is given, a plot will be made of the
                             resulting probability histogram and corresponding free 
-                            energy with error estimates as obtained from Bayesian 
-                            error propagation and Gamma distributions. The error bars 
-                            represent 95% confidence intervals (i.e. 2 sigma).
+                            energy with error estimates as obtained from the asymptotic 
+                            normality of the maximum likelihood estimator giving the 
+                            histogram. The error bars represent 95% confidence intervals 
+                            (i.e. 2 sigma).
                 
                 cv_unit     CV unit for plotting
 
@@ -260,7 +261,8 @@ class BaseFreeEnergyProfile(object):
                 axs[1,1].set_xlabel('%s [%s]' %(cv_label, cv_unit), fontsize=14)
                 axs[1,1].set_ylabel('F [%s]' %f_unit, fontsize=14)
                 axs[1,1].set_xlim([min(cvs/parse_unit(cv_unit)), max(cvs/parse_unit(cv_unit))])
-                axs[1,1].set_ylim([-1, np.ceil(max(fs[~np.isnan(fs)+~np.isinf(fs)]/kjmol)/10)*10])
+                mask = ~np.isnan(fs)*~np.isinf(fs)
+                axs[1,1].set_ylim([-1, np.ceil(max(fs[mask]/kjmol)/10)*10])
             #save
             fig.set_size_inches([16,8*(1+int(nblocks>1))])
             pp.savefig(fn_plot)

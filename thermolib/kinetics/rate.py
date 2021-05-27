@@ -17,7 +17,7 @@ from molmod.io.xyz import XYZReader, XYZFile
 from molmod.minimizer import check_delta
 from molmod.unit_cells import UnitCell
 
-from scipy.optimize import curve_fit
+from ..tools import blav
 
 import numpy as np
 import sys, os
@@ -97,86 +97,70 @@ class BaseRateFactor(object):
         self.A_err = np.nan
         return self.A
 
-    def result_blav(self, blocksizes=np.arange(5,505,5), fn_plot=None, verbose=True):
-        'Compute rate factor and estimate error with block averaging'
-        Tsigmas       = np.zeros(len(blocksizes), float)
-        Tsigma_errors = np.zeros(len(blocksizes), float)
-        Nsigmas       = np.zeros(len(blocksizes), float)
-        Nsigma_errors = np.zeros(len(blocksizes), float)
-        for i, blocksize in enumerate(blocksizes):
-            nblocks = len(self.Ts)//blocksize
-            Ts = np.zeros(nblocks, float)
-            Ns = np.zeros(nblocks, float)
-            for iblock in range(nblocks):
-                Ts[iblock] = self.Ts[iblock*blocksize:(iblock+1)*blocksize].mean()
-                Ns[iblock] = self.Ns[iblock*blocksize:(iblock+1)*blocksize].mean()
-            Tsigmas[i] = Ts.std(ddof=0)/np.sqrt(nblocks-1)
-            Nsigmas[i] = Ns.std(ddof=0)/np.sqrt(nblocks-1)
-            Tsigma_errors[i] = Tsigmas[i]/np.sqrt(2*(nblocks-1)) #the error on the estimate of the standard deviation of the mean, see 10.1063/1.457480
-            Nsigma_errors[i] = Nsigmas[i]/np.sqrt(2*(nblocks-1)) #the error on the estimate of the standard deviation of the mean, see 10.1063/1.457480
-        #fit standard deviations
-        def function(x, A, B):
-            return A*2/np.pi*np.arctan(B*x)
-        def fit(xs, ys):
-            ##linear fit towards A+B/x
-            #dm = np.ones([len(xs), 2], float)
-            #dm[:,1] = 1/xs
-            #sol, res, rank, svals = np.linalg.lstsq(dm, ys, rcond=1e-6)
-            #Non linear fit towards  A*2/pi*arctan(B*x)
-            sol, cov = curve_fit(function, xs, ys)
-            return sol
-        Tsigma_lim, Tsigma_factor = fit(blocksizes, Tsigmas)
-        Nsigma_lim, Nsigma_factor = fit(blocksizes, Nsigmas)
-        #make plot
-        if fn_plot is not None:
-            pp.clf()
-            fig, axs = pp.subplots(nrows=2,ncols=2)
-            #T
-            axs[0,0].plot(np.arange(len(self.Ts)), self.Ts/(1e12/second), 'bo', markersize=1)
-            axs[0,0].axhline(y=self.Ts.mean()/(1e12/second), color='b', linestyle='--', linewidth=1)
-            axs[0,1].errorbar(blocksizes, Tsigmas/(1e12/second), yerr=Tsigma_errors/(1e12/second), color='b', linestyle='none', marker='o', markersize=1)
-            axs[0,1].plot(blocksizes, function(blocksizes,Tsigma_lim,Tsigma_factor)/(1e12/second), color='r', linestyle='-', linewidth=1)
-            axs[0,1].axhline(y=Tsigma_lim*np.sign(Tsigma_factor)/(1e12/second), color='k', linestyle='--', linewidth=1)
-            axs[0,0].set_title('Samples of T [1e12/s]', fontsize=12)
-            axs[0,1].set_title('Error on the estimate of the mean of T [1e12/s]', fontsize=12)
-            #N
-            axs[1,0].plot(np.arange(len(self.Ns)), self.Ns/1e-2, 'bo', markersize=1)
-            axs[1,0].axhline(y=self.Ns.mean()/1e-2, color='b', linestyle='--', linewidth=1)
-            axs[1,1].errorbar(blocksizes, Nsigmas/1e-2, yerr=Nsigma_errors/1e-2, color='b', linestyle='none', marker='o', markersize=1)
-            axs[1,1].plot(blocksizes, function(blocksizes,Nsigma_lim,Nsigma_factor)/1e-2, color='r', linestyle='-', linewidth=1)
-            axs[1,1].axhline(y=Nsigma_lim*np.sign(Nsigma_factor)/1e-2, color='k', linestyle='--', linewidth=1)
-            axs[1,0].set_title('Samples of N [1e-2]', fontsize=12)
-            axs[1,1].set_title('Error on the estimate of the mean of N [1e-2]', fontsize=12)
-            axs[1,0].set_xlabel('Sample number [-]', fontsize=12)
-            axs[1,1].set_xlabel('Block size [-]', fontsize=12)
-            #fig.tight_layout()
-            fig.set_size_inches([12,12])
-            pp.savefig(fn_plot, dpi=300)
-        self.T, self.T_err = self.Ts.mean(), Tsigma_lim*np.sign(Tsigma_factor)
-        self.N, self.N_err = self.Ns.mean(), Nsigma_lim*np.sign(Nsigma_factor)
+    def result_blav_alternative(self, blocksizes=None, fitrange=[0,-1], plot=True, verbose=True, plot_auto_correlation_range=None):
+        'Compute rate factor A=T/N through estimates of T and N separately and estimate error with block averaging'
+        if blocksizes is None:
+            blocksizes = np.arange(1,len(self.Ts)//2+1,1)
+        if plot:
+            fn_T = 'blav_rate_T.png'
+            fn_N = 'blav_rate_N.png'
+        print('Computing value and error of A=<T>/<N> using block averaging')
+        print('Applying blockaveraging on T samples')
+        self.T, self.T_err, Tcorrtime = blav(self.Ts, blocksizes=blocksizes, fitrange=fitrange, fn_plot=fn_T, unit='1e12/s', plot_auto_correlation_range=plot_auto_correlation_range)
+        print('Applying blockaveraging on N samples')
+        self.N, self.N_err, Ncorrtime = blav(self.Ns, blocksizes=blocksizes, fitrange=fitrange, fn_plot=fn_N, unit='1', plot_auto_correlation_range=plot_auto_correlation_range)
         self.A, self.A_err = self.T/self.N, abs(self.T/self.N)*np.sqrt((self.T_err/self.T)**2+(self.N_err/self.N)**2)
         if verbose:
-            print('  T = %.3e +- %.3e %s/s' %(self.T/(parse_unit(self.CV_unit)/second), self.T_err/(parse_unit(self.CV_unit)/second), self.CV_unit))
-            print('  N = %.3e +- %.3e au' %(self.N, self.N_err))
+            print('Rate factor with block averaging:')
+            print('---------------------------------')
+            print('  T = %.3e +- %.3e %s/s (int. autocorr. time = %.3f timesteps)' %(self.T/(parse_unit(self.CV_unit)/second), self.T_err/(parse_unit(self.CV_unit)/second), self.CV_unit, Tcorrtime))
+            print('  N = %.3e +- %.3e au   (int. autocorr. time = %.3f timesteps)' %(self.N, self.N_err, Ncorrtime))
             print('')
             print('  Resulting A=T/N (error propagation: dA=|T/N|*sqrt((dT/T)**2+(dN/N)**2)')
             print('  A = %.3e +- %.3e %s/s' %(self.A/(parse_unit(self.CV_unit)/second), self.A_err/(parse_unit(self.CV_unit)/second), self.CV_unit))
+            print()
         return self.A, self.A_err
 
-    def result_bootstrapping(self, nboot):
+    def result_blav(self, blocksizes=None, fitrange=[0,-1], plot=True, verbose=True, plot_auto_correlation_range=None):
+        'Compute rate factor A directly'
+        mask = self.Ns>0
+        As = self.Ts[mask]
+        print('Number of samples in TS = ', len(As))
+        if blocksizes is None:
+            blocksizes = np.arange(1,len(As)//2+1,1)
+        if plot:
+            fn_A = 'blav_rate_A.png'
+        self.A, self.A_err, Acorrtime = blav(As, blocksizes=blocksizes, fitrange=fitrange, fn_plot=fn_A, unit='1e12/s', plot_auto_correlation_range=plot_auto_correlation_range)
+        if verbose:
+            print('Rate factor directly with block averaging:')
+            print('---------------------------------')
+            print('  A = %.3e +- %.3e %s/s (%i samples, int. autocorr. time = %.3f timesteps)' %(self.A/(parse_unit(self.CV_unit)/second), self.A_err/(parse_unit(self.CV_unit)/second), self.CV_unit, len(As), Acorrtime))
+            print()
+        return self.A, self.A_err
+    
+    def result_bootstrapping(self, nboot, verbose=True):
         'Compute rate factor and estimate error with bootstrapping'
         Ts = []
         Ns = []
         for iboot in range(nboot):
             indices = np.random.random_integers(0, high=len(self.Ts)-1, size=len(self.Ts))
             T = self.Ts[indices].mean()
+            Ts.append(T)
+            indices = np.random.random_integers(0, high=len(self.Ns)-1, size=len(self.Ns))
             N = self.Ns[indices].mean()
-            if N>0:
-                Ts.append(T)
-                Ns.append(N)
-        self.T, self.T_err = np.array(Ts).mean(), np.array(Ts).std()/np.sqrt(nboot)
-        self.N, self.N_err = np.array(Ns).mean(), np.array(Ns).std()/np.sqrt(nboot)
+            Ns.append(N)
+        self.T, self.T_err = np.array(Ts).mean(), np.array(Ts).std()
+        self.N, self.N_err = np.array(Ns).mean(), np.array(Ns).std()
         self.A, self.A_err = self.T/self.N, abs(self.T/self.N)*np.sqrt((self.T_err/self.T)**2+(self.N_err/self.N)**2)
+        if verbose:
+            print('Rate factor with bootstrapping (nboot=%i):' %nboot)
+            print('------------------------------------------')
+            print('  T = %.3e +- %.3e %s/s' %(T/(parse_unit(self.CV_unit)/second), T_err/(parse_unit(self.CV_unit)/second), self.CV_unit))
+            print('  N = %.3e +- %.3e au' %(N,N_err))
+            print('')
+            print('  Resulting A=T/N (error propagation: dA=|T/N|*sqrt((dT/T)**2+(dN/N)**2)')
+            print('  A = %.3e +- %.3e %s/s' %(A/(parse_unit(self.CV_unit)/second), A_err/(parse_unit(self.CV_unit)/second), self.CV_unit))
+            print()
         return self.A, self.A_err
 
     def results_overview(self):
@@ -191,25 +175,9 @@ class BaseRateFactor(object):
         print('  A =  %.3e %s/s' %(A/(parse_unit(self.CV_unit)/second), self.CV_unit))
         print()
         T, N, A, T_err, N_err, A_err = self.result_blav()
-        A_blav, A_blav_err = A, A_err
-        print('With block averaging:')
-        print('---------------------')
-        print('  T = %.3e +- %.3e %s/s' %(T/(parse_unit(self.CV_unit)/second), T_err/(parse_unit(self.CV_unit)/second), self.CV_unit))
-        print('  N = %.3e +- %.3e au' %(N, N_err))
-        print('')
-        print('  Resulting A=T/N (error propagation: dA=|T/N|*sqrt((dT/T)**2+(dN/N)**2)')
-        print('  A = %.3e +- %.3e %s/s' %(A/(parse_unit(self.CV_unit)/second), A_err/(parse_unit(self.CV_unit)/second), self.CV_unit))
-        print()
         nboot = 100
         T, N, A, T_err, N_err, A_err = self.result_bootstrapping(nboot)
-        print('With bootstrapping (nboot=%i):' %nboot)
-        print('---------------------------------')
-        print('  T = %.3e +- %.3e %s/s' %(T/(parse_unit(self.CV_unit)/second), T_err/(parse_unit(self.CV_unit)/second), self.CV_unit))
-        print('  N = %.3e +- %.3e au' %(N,N_err))
-        print('')
-        print('  Resulting A=T/N (error propagation: dA=|T/N|*sqrt((dT/T)**2+(dN/N)**2)')
-        print('  A = %.3e +- %.3e %s/s' %(A/(parse_unit(self.CV_unit)/second), A_err/(parse_unit(self.CV_unit)/second), self.CV_unit))
-        print()
+
 
 
 
