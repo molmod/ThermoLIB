@@ -105,7 +105,7 @@ def trajectory_xyz_to_CV(fns, CV):
     del xyz
     return np.array(cvs)
 
-def blav(data, blocksizes=None, fitrange=[0,-1], fn_plot=None, unit='au', plot_auto_correlation_range=np.arange(0,501,1)):
+def blav(data, blocksizes=None, fitrange=[0,-1], exponent=1, fn_plot=None, unit='au', plot_auto_correlation_range=np.arange(0,501,1)):
     'Routine to implement block averaging'
     if blocksizes is None:
         blocksizes = np.arange(1,len(data)+1,1)
@@ -123,13 +123,26 @@ def blav(data, blocksizes=None, fitrange=[0,-1], fn_plot=None, unit='au', plot_a
         #sufficiently large block size)
         errors[i] = sigmas[i]/np.sqrt(nblocks)
     #fit standard deviations
-    def function(blocksize, a, b):
-        ##arctan function
-        #return a*2/np.pi*np.arctan(b*blocksize)            
-        #fit which corresponds to fitting tau=1+(t0-1)/blocksize for integrated correlation time, 
-        #resulting in err*blocksize/(blocksize+t0-1) fit for errors in which err represents the 
-        #true error and t0 the correlation time for the original time series (blocksize=1)
-        return a*blocksize/(blocksize+b-1)
+    def function(blocksize, TE, t0):            
+        """
+        A function for fitting the naive error estimate of the sample average
+        (see thermolib theory documentation for meaning) based on the following
+        model for the integrated correlation time of the block averages to 
+        the model
+        
+           tau = 1 + (t0-1)/blocksize**n
+        
+        As a result, the naive error estimate becomes
+        
+            error = TE*blocksize**n/(blocksize**n+t0-1) 
+        
+        in which TE represents the true error, t0 the correlation time for the 
+        original time series (blocksize=1) and n the exponential rate with which
+        the block average integrated correlation time decreases as function of
+        block size.
+        """
+        n=exponent
+        return TE*blocksize**n/(blocksize**n+t0-1)
     def fit(blocksizes, xs):
         sol, cov = curve_fit(function, blocksizes[fitrange[0]:fitrange[1]], xs[fitrange[0]:fitrange[1]])
         return sol

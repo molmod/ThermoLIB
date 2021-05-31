@@ -97,7 +97,7 @@ class BaseRateFactor(object):
         self.A_err = np.nan
         return self.A
 
-    def result_blav_alternative(self, blocksizes=None, fitrange=[0,-1], plot=True, verbose=True, plot_auto_correlation_range=None):
+    def result_blav_alternative(self, blocksizes=None, fitrange=[0,-1], exponent=1, plot=True, verbose=True, plot_auto_correlation_range=None):
         'Compute rate factor A=T/N through estimates of T and N separately and estimate error with block averaging'
         if blocksizes is None:
             blocksizes = np.arange(1,len(self.Ts)//2+1,1)
@@ -106,22 +106,22 @@ class BaseRateFactor(object):
             fn_N = 'blav_rate_N.png'
         print('Computing value and error of A=<T>/<N> using block averaging')
         print('Applying blockaveraging on T samples')
-        self.T, self.T_err, Tcorrtime = blav(self.Ts, blocksizes=blocksizes, fitrange=fitrange, fn_plot=fn_T, unit='1e12/s', plot_auto_correlation_range=plot_auto_correlation_range)
+        self.T, self.T_err, Tcorrtime = blav(self.Ts, blocksizes=blocksizes, fitrange=fitrange, exponent=exponent, fn_plot=fn_T, unit='1e12/s', plot_auto_correlation_range=plot_auto_correlation_range)
         print('Applying blockaveraging on N samples')
-        self.N, self.N_err, Ncorrtime = blav(self.Ns, blocksizes=blocksizes, fitrange=fitrange, fn_plot=fn_N, unit='1', plot_auto_correlation_range=plot_auto_correlation_range)
+        self.N, self.N_err, Ncorrtime = blav(self.Ns, blocksizes=blocksizes, fitrange=fitrange, exponent=exponent, fn_plot=fn_N, unit='1', plot_auto_correlation_range=plot_auto_correlation_range)
         self.A, self.A_err = self.T/self.N, abs(self.T/self.N)*np.sqrt((self.T_err/self.T)**2+(self.N_err/self.N)**2)
         if verbose:
             print('Rate factor with block averaging:')
             print('---------------------------------')
-            print('  T = %.3e +- %.3e %s/s (int. autocorr. time = %.3f timesteps)' %(self.T/(parse_unit(self.CV_unit)/second), self.T_err/(parse_unit(self.CV_unit)/second), self.CV_unit, Tcorrtime))
-            print('  N = %.3e +- %.3e au   (int. autocorr. time = %.3f timesteps)' %(self.N, self.N_err, Ncorrtime))
+            print('  T = %.3e +- %.3e %s/s (int. autocorr. time = %.3f timesteps, exponent = %.3f)' %(self.T/(parse_unit(self.CV_unit)/second), self.T_err/(parse_unit(self.CV_unit)/second), self.CV_unit, Tcorrtime, exponent))
+            print('  N = %.3e +- %.3e au   (int. autocorr. time = %.3f timesteps, exponent = %.3f)' %(self.N, self.N_err, Ncorrtime, exponent))
             print('')
             print('  Resulting A=T/N (error propagation: dA=|T/N|*sqrt((dT/T)**2+(dN/N)**2)')
             print('  A = %.3e +- %.3e %s/s' %(self.A/(parse_unit(self.CV_unit)/second), self.A_err/(parse_unit(self.CV_unit)/second), self.CV_unit))
             print()
         return self.A, self.A_err
 
-    def result_blav(self, blocksizes=None, fitrange=[0,-1], plot=True, verbose=True, plot_auto_correlation_range=None):
+    def result_blav(self, blocksizes=None, fitrange=[0,-1], exponent=1, plot=True, verbose=True, plot_auto_correlation_range=None):
         'Compute rate factor A directly'
         mask = self.Ns>0
         As = self.Ts[mask]
@@ -130,11 +130,11 @@ class BaseRateFactor(object):
             blocksizes = np.arange(1,len(As)//2+1,1)
         if plot:
             fn_A = 'blav_rate_A.png'
-        self.A, self.A_err, Acorrtime = blav(As, blocksizes=blocksizes, fitrange=fitrange, fn_plot=fn_A, unit='1e12/s', plot_auto_correlation_range=plot_auto_correlation_range)
+        self.A, self.A_err, Acorrtime = blav(As, blocksizes=blocksizes, fitrange=fitrange, exponent=exponent, fn_plot=fn_A, unit='1e12/s', plot_auto_correlation_range=plot_auto_correlation_range)
         if verbose:
             print('Rate factor directly with block averaging:')
             print('---------------------------------')
-            print('  A = %.3e +- %.3e %s/s (%i samples, int. autocorr. time = %.3f timesteps)' %(self.A/(parse_unit(self.CV_unit)/second), self.A_err/(parse_unit(self.CV_unit)/second), self.CV_unit, len(As), Acorrtime))
+            print('  A = %.3e +- %.3e %s/s (%i samples, int. autocorr. time = %.3f timesteps, exponent = %.3f)' %(self.A/(parse_unit(self.CV_unit)/second), self.A_err/(parse_unit(self.CV_unit)/second), self.CV_unit, len(As), Acorrtime, exponent))
             print()
         return self.A, self.A_err
     
