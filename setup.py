@@ -34,5 +34,7 @@ setup(
         'Topic :: Science/Engineering :: Molecular Science'
     ],
     install_requires=['numpy>=1.0',
-                      'importlib_resources; python_version < "3.7"'],
+                      'scikit-learn>=0.24.2',
+                      'matplotlib',
+                      'molmod']
 )
