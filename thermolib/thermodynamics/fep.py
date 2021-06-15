@@ -266,6 +266,13 @@ class BaseFreeEnergyProfile(object):
             pp.savefig(fn_plot)
         return fep
 
+    def savetxt(self, fn_txt):
+        '''
+            Save the free energy profile as txt file
+        '''
+        header = '%s [%s]\tFree energy [%s]' %(self.cv_label, self.cv_unit, self.f_unit)
+        np.savetxt(fn_txt, np.vstack((self.cvs/parse_unit(self.cv_unit), self.fs/parse_unit(self.f_unit))).T, header=header)
+
     def process_states(self, **kwargs):
         raise NotImplementedError
 
