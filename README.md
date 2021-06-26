@@ -1,6 +1,6 @@
 # ThermoLIB
 
-ThermoLIB is a library for the application of Statistical Physics, Thermodynamics and/or kinetic theory to molecular simulations. The library consists of several sub modules.
+ThermoLIB is a library for the application of Statistical Physics, Thermodynamics and/or kinetic theory to molecular simulations. The library consists of several sub modules. Documentation on installation and usage can be found at https://github.ugent.be/pages/lvduyfhu/ThermoLIB/.
 
 ## Submodules
 
