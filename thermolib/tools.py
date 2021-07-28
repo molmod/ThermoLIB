@@ -23,11 +23,19 @@ import sys
 
 __all__ = [
     'integrate', 'integrate2d', 'format_scientific',
-    'free_energy_from_histogram_with_error'
+    'free_energy_from_histogram_with_error', 
+    'trajectory_xyz_to_CV', 'blav', 'read_wham_input'
 ]
 
 def integrate(xs, ys):
-    'A simple integration method using the trapezoid rule'
+    '''A simple integration method using the trapezoid rule
+
+    :param xs: array containing function argument values on grid
+    :type xs: np.ndarray
+
+    :param ys: array containing function values on grid
+    :type ys: np.ndarray
+    '''
     assert len(xs)==len(ys)
     result = 0.0
     for i in range(len(xs)-1):
@@ -38,13 +46,25 @@ def integrate(xs, ys):
     return result
 
 def integrate2d(z,x=None,y=None,dx=1.,dy=1.):
-    ''' Integrates a regularly spaced 2D grid using the composite trapezium rule.
-    IN:
-       z : 2D array
-       x : (optional) grid values for x (1D array)
-       y : (optional) grid values for y (1D array)
-       dx: if x is not supplied, set it to the x grid interval
-       dy: if y is not supplied, set it to the x grid interval
+    '''Integrates a regularly spaced 2D grid using the composite trapezium rule.
+
+    :param z: 2 dimensional array containing the function values
+    :type z: np.ndarray(flt)
+
+    :param x: 1D array containing the first function argument values, is used to determine grid spacing of first function argument. If not given, optional argument dx is used to define the grid spacing. Defaults to None
+    :type x: np.ndarray(flt), optional
+
+    :param y: 1D array containing the second function argument values, is used to determine grid spacing of second function argument. If not given, optional argument dy is used to define the grid spacing. Defaults to None
+    :type y: np.ndarray(flt), optional
+
+    :param dx: grid spacing for first function argument. If not given, argument is used to determine grid spacing. Defaults to 1.
+    :type dx: float, optional
+
+    :param dy: grid spacing for second function argument. If not given, argument is used to determine grid spacing. Defaults to 1.
+    :type dy: float, optional
+
+    :return: integral value
+    :rtype: float
     '''
     if x is not None:
         dx = (x[-1]-x[0])/(np.shape(x)[0]-1)
@@ -54,7 +74,6 @@ def integrate2d(z,x=None,y=None,dx=1.,dy=1.):
     s2 = np.sum(z[1:-1,0]) + np.sum(z[1:-1,-1]) + np.sum(z[0,1:-1]) + np.sum(z[-1,1:-1])
     s3 = np.sum(z[1:-1,1:-1])
     return 0.25*dx*dy*(s1 + 2*s2 + 4*s3)
-
 
 def format_scientific(x, prec=3, latex=True):
     if np.isnan(x):
@@ -67,13 +86,29 @@ def format_scientific(x, prec=3, latex=True):
         return '%s 10^%s' %(a, b)
 
 def free_energy_from_histogram_with_error(data, bins, temp, nsigma=2):
-    '''
-        Construct probability and free energy profile from histogram
-        analysis. Include error estimation based on the asymptotic
-        normality of the maximum likelihood estimator.
-        
-        Upper and lower boundary of an nsigma-confidence interval 
-        will be returned.
+    '''Construct probability and free energy profile from histogram analysis. Include error estimation based on the asymptotic normality of the maximum likelihood estimator. Upper and lower boundary of an n-sigma confidence interval will be returned.
+
+    :param data: data array representing the cv values along a simulation trajectory
+    :type data: np.ndarray
+
+    :param bins: array representing the edges of the bins for which a histogram will be constructed
+    :type bins: np.ndarray
+
+    :param temp: the temperature at which the input data array was generated. This is required for transforming probability histogram to free energy profile.
+    :type temp: float
+
+    :param nsigma: define how large the error interval should be in terms of sigma, eg. nsigma of 2 means a 2-sigma error bar (corresponding to 95% confidence interval) will be returned. Defaults to 2
+    :type nsigma: int, optional
+
+    :return: cvs, ps, plower, pupper, fs, flower, fupper
+
+        *  **cvs** (*np.ndarray*) -- array containing the cv grid points
+        *  **ps** (*np.ndarray*) -- array containing the coresponding probability density profile
+        *  **plower** (*np.ndarray*) -- array containing the lower limit of the error bar on the ps values
+        *  **pupper** (*np.ndarray*) -- array containing the upper limit of the error bar on the ps values
+        *  **fs** (*np.ndarray*) -- array containing the coresponding free energy profile 
+        *  **flower** (*np.ndarray*) -- array containing the lower limit of the error bar on the fs values
+        *  **fupper** (*np.ndarray*) -- array containing the upper limit of the error bar on the fs values
     '''
     Ntot = len(data)
     ns, bin_edges = np.histogram(data, bins, density=False)
@@ -92,21 +127,78 @@ def free_energy_from_histogram_with_error(data, bins, temp, nsigma=2):
     return cvs, ps, plower, pupper, fs, flower, fupper
 
 def trajectory_xyz_to_CV(fns, CV):
-    '''
-        Compute the CV along an XYZ trajectory. The XYZ
-        trajectory is assumed to be composed out of a 
-        (list of) XYZ files.
+    '''Compute the CV along an XYZ trajectory. The XYZ trajectory is assumed to be composed out of a (list of subsequent) XYZ files.
+
+    :param fns: (list of) names of XYZ trajectory file(s) containing the xyz coordinates of the system
+    :type fns: str or list(str)
+
+    :param CV: collective variable defining how to compute the collective variable along the trajectory
+    :type CV: one from thermolib.thermodynamics.cv.__all__
+
+    :return: array containing the CV value along the trajectory
+    :rtype: np.ndarray(flt)
     '''
     cvs = []
-    xyz = XYZReader(fn_xyz)
-    for title, coords in xyz:
-        cv = CV.compute(coords, deriv=False)
-        cvs.append(cv)
-    del xyz
+    for fn in fns:
+        xyz = XYZReader(fn)
+        for title, coords in xyz:
+            cv = CV.compute(coords, deriv=False)
+            cvs.append(cv)
+        del xyz
     return np.array(cvs)
 
-def blav(data, blocksizes=None, fitrange=[0,-1], exponent=1, fn_plot=None, unit='au', plot_auto_correlation_range=np.arange(0,501,1)):
-    'Routine to implement block averaging'
+def blav(data, blocksizes=None, fitrange=[0,-1], exponent=1, fn_plot=None, unit='au', plot_ac=False, ac_range=None, acft_plot_range=None):
+    '''Routine to implement block averaging. This allows to estimate the sample error on correlated data by fitting a model function towards to the naive (i.e. as if uncorrelated) sample error on the block averages as function of the blocksize. This model function is based on the following model for the integrated correlation time :math:`\\tau` between the block averages:
+
+    .. math::
+
+        \\begin{aligned}
+            \\tau = 1 + \\frac{t_0-1}{B^n}
+        \\end{aligned}
+        
+    As a result, the model for the naive error estimate on the block averages becomes
+        
+    .. math::
+
+        \\begin{aligned}
+            error = TE\\cdot\\frac{B^n}{B^n+t_0-1}
+        \\end{aligned}
+    
+    in which :math:`B` represents the block size, :math:`TE` the true error, :math:`t_0` the correlation time for the original time series (:math:`B=1`) and :math:`n` the exponential rate with which the block average integrated correlation time decreases as function of block size.
+
+    :param data: 1D array representing the data to be analyzed
+    :type data: np.ndarray
+    
+    :param blocksizes: array of block sizes, defaults to np.arange(1,len(data)+1,1)
+    :type blocksizes: np.ndarray, optional
+
+    :param fitrange: range of blocksizes to which fit will be performed, defaults to [0,-1]
+    :type fitrange: list, optional
+
+    :param exponent: the exponent of the blocksize in the models for the auto correlation time and correlated sample error, defaults to 1
+    :type exponent: int, optional
+
+    :param fn_plot: file name to which to write the plot. No plot is made if set to None. Defaults to None
+    :type fn_plot: str, optional
+
+    :param unit: unit in which to plot the data, defaults to 'au'
+    :type unit: str, optional
+
+    :param plot_ac: indicate whether or not to compute and plot the auto correlation function as well (might take some time), defaults to False
+    :type plot_ac: bool, optional
+
+    :param ac_range: the range for which to plot the auto correlation function, only relevant if ``plot_ac`` is set to True, defaults to np.arange(0,501,1)
+    :type ac_range: np.ndarray, optional
+
+    :param acft_plot_range: the range for which to plot the fourier transform of the auto correlation function, only relevant if ``plot_ac`` is set to True, defaults to entire freq range
+    :type acft_plot_range: np.ndarray, optional
+
+    :return: mean, error, corrtime
+
+    *  **mean** (*float*) -- the sample mean
+    *  **error** (*foat*) -- the error on the sample mean
+    *  **corrtime** (*float*) -- the correlation time (in units of the timestep) of the original sample data 
+    '''
     if blocksizes is None:
         blocksizes = np.arange(1,len(data)+1,1)
     sigmas = np.zeros(len(blocksizes), float)
@@ -124,23 +216,6 @@ def blav(data, blocksizes=None, fitrange=[0,-1], exponent=1, fn_plot=None, unit=
         errors[i] = sigmas[i]/np.sqrt(nblocks)
     #fit standard deviations
     def function(blocksize, TE, t0):            
-        """
-        A function for fitting the naive error estimate of the sample average
-        (see thermolib theory documentation for meaning) based on the following
-        model for the integrated correlation time of the block averages to 
-        the model
-        
-           tau = 1 + (t0-1)/blocksize**n
-        
-        As a result, the naive error estimate becomes
-        
-            error = TE*blocksize**n/(blocksize**n+t0-1) 
-        
-        in which TE represents the true error, t0 the correlation time for the 
-        original time series (blocksize=1) and n the exponential rate with which
-        the block average integrated correlation time decreases as function of
-        block size.
-        """
         n=exponent
         return TE*blocksize**n/(blocksize**n+t0-1)
     def fit(blocksizes, xs):
@@ -150,36 +225,172 @@ def blav(data, blocksizes=None, fitrange=[0,-1], exponent=1, fn_plot=None, unit=
     #make plot
     if fn_plot is not None:
         pp.clf()
-        if plot_auto_correlation_range is not None:
-            fig, axs = pp.subplots(nrows=1,ncols=3)
-            iplotblav = 2
-            nplots = 3
+        if plot_ac:
+            fig, axs = pp.subplots(nrows=2,ncols=2, squeeze=False)
+            nrows = 2
         else:
-            fig, axs = pp.subplots(nrows=1,ncols=2)
-            iplotblav = 1
-            nplots = 2
-        axs[0].plot(data/parse_unit(unit), 'bo', markersize=1)
-        axs[0].axhline(y=data.mean()/parse_unit(unit), color='b', linestyle='--', linewidth=1)
-        axs[0].set_title('Samples [%s]' %unit, fontsize=12)
+            fig, axs = pp.subplots(nrows=1,ncols=2, squeeze=False)
+            nrows = 1
+        axs[0,0].plot(data/parse_unit(unit), 'bo', markersize=1)
+        axs[0,0].axhline(y=data.mean()/parse_unit(unit), color='b', linestyle='--', linewidth=1)
+        axs[0,0].set_title('Samples', fontsize=12)
+        axs[0,0].set_xlabel('Time [timestep]')
+        axs[0,0].set_ylabel('Sample [%s]' %unit)
         
-        if plot_auto_correlation_range is not None:
+        if plot_ac:
+            if ac_range is None:
+                ac_range = np.arange(0,501,1)
             N = len(data)
             mu = data.mean()
             sigma = data.std(ddof=1)
-            ac = np.zeros(len(plot_auto_correlation_range))
-            for k in plot_auto_correlation_range:
+            ac = np.zeros(len(ac_range))
+            for k in ac_range:
                 ac[k] = ((data[0:N-k]-mu)*(data[k:N]-mu)).sum()/((N-k)*sigma**2)
-            axs[1].plot(ac)
-            axs[1].axhline(y=0, color='k', linestyle='--')
-            axs[1].set_ylim(-1,1)
+            axs[1,0].plot(ac)
+            axs[1,0].axhline(y=0, color='k', linestyle='--')
+            axs[1,0].set_ylim(-1.05,1.05)
+            axs[1,0].set_title('Auto correlation function')
+            axs[1,0].set_xlabel('Time [timestep]')
+            axs[1,0].set_ylabel('Amplitude [-]')
+            #fourier transform of ac
+            acft = np.fft.rfft(ac).real
+            if len(ac)%2==0:
+                n = len(ac)/2+1
+            else:
+                n = len(ac+1)/2
+            freqs = np.arange(0,n)*2*np.pi/len(ac)
+            axs[1,1].plot(freqs, (acft)**2, color='b')
+            axs[1,1].set_title('Power spectrum of auto correlation')
+            axs[1,1].set_xlabel('Frequency [1/timestep]')
+            axs[1,1].set_ylabel('Amplitude [-]')
+            if acft_plot_range is not None:
+                axs[1,1].set_xlim(acft_plot_range)
             
-        axs[iplotblav].plot(blocksizes, errors/parse_unit(unit), color='b', linestyle='none', marker='o', markersize=1)
-        axs[iplotblav].plot(blocksizes, function(blocksizes,error,corrtime)/parse_unit(unit), color='r', linestyle='-', linewidth=1)
-        axs[iplotblav].axhline(y=error/parse_unit(unit), color='k', linestyle='--', linewidth=1)
-        axs[iplotblav].set_title('Error of the estimate on the sample mean [%s]' %unit, fontsize=12)
-        
-        fig.set_size_inches([6*nplots,8])
+        axs[0,1].plot(blocksizes, errors/parse_unit(unit), color='b', linestyle='none', marker='o', markersize=1)
+        axs[0,1].plot(blocksizes, function(blocksizes,error,corrtime)/parse_unit(unit), color='r', linestyle='-', linewidth=1)
+        axs[0,1].axhline(y=error/parse_unit(unit), color='k', linestyle='--', linewidth=1)
+        axs[0,1].set_title('Error of the estimate on the sample mean', fontsize=12)
+        axs[0,1].set_xlabel('Block size [timestep]')
+        axs[0,1].set_ylabel('Error [%s]' %unit)
+
+        fig.set_size_inches([12,6*nrows])
         pp.show()
         pp.savefig(fn_plot, dpi=300)
     return blavs.mean(), error, corrtime
 
+def bias_parabola(kappa, q0):
+    '''
+        Harmonic bias potential for use in WHAM reconstruction of the free energy profile from Umbrella Sampling simulations.
+
+        :param kappa: the force constant of the parabola
+        :type kappa: float
+
+        :param q0: the center of the parabola
+        :type q0: float
+    '''
+    def V(q):
+        return 0.5*kappa*(q-q0)**2
+    return V
+
+def bias_polynomial_with_parabola(taylor_coeffs, kappa, q0):
+    def poly(q):
+
+        return Vp(q)
+    def Vh(q):
+        return 0.5*kappa*(q-q0)**2
+    
+    sum = lambda q: Vp(q)+Vh(q)
+    return sum
+
+def read_wham_input(fn, kappa_unit='kjmol', q0_unit='au', start=0, end=-1, stride=1, bias_potential='parabola', verbose=False):
+    '''
+        Read the input for a WHAM reconstruction of the free energy profile from a set of Umbrella Sampling simulations. The file specified by fn should have the following format:
+
+        .. code-block:: python
+
+            T = XXXK
+            NAME1 Q01 KAPPA1
+            NAME2 Q02 KAPPA2
+            NAME3 Q03 KAPPA3
+            ...
+
+        where the first line specifies the temperature and the subsequent lines define the bias potential for each simulation as a parabola centered around ``Q0i`` and with force constant ``KAPPAi`` (the units used in this file can be specified the keyword arguments ``kappa_unit`` and ``q0_unit``). For each bias with name ``NAMEi`` defined in this file, there should be a trajectory file in the same directory with the name ``colvar_NAMEi.dat`` containing the trajectory of the relevant collective variable during the biased simulation. This trajectory file should in term be formatted as outputted by PLUMED:
+
+        .. code-block:: python
+
+            time_1 cv_value_1
+            time_2 cv_value_2
+            time_3 cv_value_3
+            ...
+        
+        where the cv values again have a unit that can be specified by the keyword argument ``q0_unit``.
+
+        :param fn: file name of the wham input file
+        :type fn: str
+
+        :param kappa_unit: unit used to express kappa in the wham input file, defaults to 'kjmol'
+        :type kappa_unit: str, optional
+
+        :param q0_unit: unit used to express q0 in the wham input file as well as the cv values in the trajectory files, defaults to 'au'
+        :type q0_unit: str, optional
+        
+        :param stride: defines the sub sampling applied to the trajectory data to deal with correlations. For example a stride of 10 means only taking 1 in 10 samples and throw away 90% of the data. Defaults to 1 (i.e. no sub sampling).
+        :type stride: int, optional
+
+        :param start: defines the start point from which to take samples into account. This can be usefull for eliminating equilibration times as well as for taking various subsamples trajectories from the original data each starting at different timesteps. Defaults to 0.
+        :type start: int, optional
+
+        :param end: defines the end point to which to take samples into account. This can be usefull when it is desired to cut the original trajectory into blocks. Defaults to -1.
+        :type end: int, optional
+
+        :param bias_potential: mathematical form of the bias potential used, allowed values are
+
+            * **parabola/harmonic** -- harmonic bias of the form 0.5*kappa*(q-q0)**2
+
+        defaults to parabola
+
+        :type bias_potantial: str, optional
+
+        :param verbose: increases verbosity if set to True, defaults to False
+        :type verbose: bool, optional
+        
+        :raises ValueError: when a line in the wham input file cannot be interpreted
+
+        :return: temp, biasses, trajectories:
+
+            * **temp** (float) -- temperature at which the simulations were performed
+            * **biasses** (list of callables) -- list of bias potentials (defined as callable functions) for all Umbrella Sampling simulations
+            * **trajectories** (list of np.ndarrays) -- list of trajectory data arrays containing the CV trajectory for all Umbrella Sampling simulations
+        
+    '''
+    temp = None
+    biasses = []
+    trajectories = []
+    root = '/'.join(fn.split('/')[:-1])
+    with open(fn, 'r') as f:
+        iline = -1
+        for line in f.readlines():
+            iline += 1
+            line = line.rstrip('\n')
+            if line.startswith('T'):
+                temp = float(line.split('=')[1].rstrip('K'))
+                if verbose:
+                    print('Temperature set at %f' %temp)
+            elif line.startswith('U') and bias_potential.lower() in ['parabola', 'harmonic']:
+                words = line.split()
+                name = words[0]
+                q0 = float(words[1])*parse_unit(q0_unit)
+                kappa = float(words[2])*parse_unit(kappa_unit)
+                biasses.append(bias_parabola(kappa,q0))
+                if verbose:
+                    print('Added bias potential nr. %i (Parabola with kappa = %.3f %s , q0 = %.3e %s)' %(len(biasses), kappa/parse_unit(kappa_unit), kappa_unit, q0/parse_unit(q0_unit), q0_unit))
+                fn_traj = '%s/colvar_%s.dat' %(root,name)
+                data = np.loadtxt(fn_traj)
+                trajectories.append(data[start:end:stride,1])
+                if verbose:
+                    print('Read corresponding trajectory data from %s' %fn_traj)
+            elif bias_potential.lower() not in ['parabola', 'harmonic']:
+                    raise ValueError('Bias potential definition %s not supported, see documentation for allowed values.')
+            else:
+                raise ValueError('Could not process line %i in %s: %s' %(iline, fn, line))
+    return temp, biasses, trajectories

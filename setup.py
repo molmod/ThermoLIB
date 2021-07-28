@@ -36,5 +36,6 @@ setup(
     install_requires=['numpy>=1.0',
                       'scikit-learn>=0.24.2',
                       'matplotlib',
-                      'molmod']
+                      'molmod',
+                      ]
 )

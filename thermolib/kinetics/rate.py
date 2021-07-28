@@ -25,33 +25,31 @@ import matplotlib.pyplot as pp
 
 class BaseRateFactor(object):
     '''
-        Class to compute the prefactor A required for the computation of
-        the rate constant of the process of crossing a transition state:
+        Class to compute the prefactor A required for the computation of the rate constant of the process of crossing a transition state:
 
-            k = A * exp(-beta*F_TS)/int(exp(-beta*F(q)),q=-inf...q_TS)
+        .. math::
+
+            k = A\cdot\frac{\exp(-\beta\cdot F_{TS})}{\int_{-\infty}^{q_{TS}}\exp(-\beta\cdot F(q))dq}
     '''
     def __init__(self, fn_xyz, CV, CV_TS_lims, temp, CV_unit='au'):
         '''
-            fn_xyz         filename of the trajectory from which the rate
-                           factor will be computed.
+            :param fn_xyz: filename of the trajectory from which the rate factor will be computed.
+            :type fn_xyz: str
 
-            CV             a function that computes the value (and gradient) of
-                           the collective variable
+            :param CV: a function that computes the value (and gradient) of the collective variable
+            :type CV: callable
 
-            CV_TS_lims     the lower and upper boundaries for determining
-                           whether a certain frame of the trajectory
-                           corresponds with the transition state (TS). In other
-                           words, the condition CV(R)=CV_TS is replaced by
-                           CV_TS_lims[0]<=CV(R)<=CV_TS_lims[1]
+            :param CV_TS_lims: the lower and upper boundaries for determining whether a certain frame of the trajectory corresponds with the transition state (TS). In other words, the condition CV(R)=CV_TS is replaced by CV_TS_lims[0]<=CV(R)<=CV_TS_lims[1]
+            :type CV_TS_lims: list(float)
+            
+            :param masses: the masses of the atoms (should be consistently indexed as the coords argument parsed to the compute_contribution routine).
+            :type masses: np.ndarray(float)
 
-            masses         the masses of the atoms (should be consistently
-                           indexed as the coords argument parsed to the
-                           compute_contribution routine.
+            :param temp: temperature
+            :type temp: float
 
-            temp           temperature
-
-            CV_unit        the unit for printing the collective variable
-
+            :param CV_unit: the unit for printing the collective variable
+            :type CV_unit: str
         '''
 
         self.fn_xyz = fn_xyz
@@ -74,9 +72,9 @@ class BaseRateFactor(object):
         self.T_err = None
         self.A_err = None
 
-    def read_results(self, fn):
+    def read_results(self, fn, T_unit='1/second'):
         data = np.loadtxt(fn)
-        self.Ts = data[:,0]/second
+        self.Ts = data[:,0]*parse_unit(T_unit)
         self.Ns = data[:,1]
 
     def process_trajectory(self, fn_out='rate_data.txt', verbose=False):
@@ -89,6 +87,12 @@ class BaseRateFactor(object):
         raise NotImplementedError
 
     def result_no_statistics(self):
+        mask = self.Ns>0
+        self.A = self.Ts[mask].mean()
+        self.A_err = np.nan
+        return self.A
+    
+    def result_no_statistics_alternative(self):
         self.T = self.Ts.mean()
         self.N = self.Ns.mean()
         self.A = self.T/self.N
@@ -97,6 +101,23 @@ class BaseRateFactor(object):
         self.A_err = np.nan
         return self.A
 
+    def result_blav(self, blocksizes=None, fitrange=[0,-1], exponent=1, plot=True, verbose=True, plot_ac=False, ac_range=None, acft_plot_range=None):
+        'Compute rate factor A directly and estimate its error with block averaging'
+        mask = self.Ns>0
+        As = self.Ts[mask]
+        print('Number of samples = ', len(As))
+        if blocksizes is None:
+            blocksizes = np.arange(1,len(As)//2+1,1)
+        if plot:
+            fn_A = 'blav_rate_A.png'
+        self.A, self.A_err, Acorrtime = blav(As, blocksizes=blocksizes, fitrange=fitrange, exponent=exponent, fn_plot=fn_A, unit='1e12/s', plot_ac=plot_ac, ac_range=ac_range, acft_plot_range=acft_plot_range)
+        if verbose:
+            print('Rate factor directly with block averaging:')
+            print('---------------------------------')
+            print('  A = %.3e +- %.3e %s/s (%i samples, int. autocorr. time = %.3f timesteps, exponent = %.3f)' %(self.A/(parse_unit(self.CV_unit)/second), self.A_err/(parse_unit(self.CV_unit)/second), self.CV_unit, len(As), Acorrtime, exponent))
+            print()
+        return self.A, self.A_err
+    
     def result_blav_alternative(self, blocksizes=None, fitrange=[0,-1], exponent=1, plot=True, verbose=True, plot_auto_correlation_range=None):
         'Compute rate factor A=T/N through estimates of T and N separately and estimate error with block averaging'
         if blocksizes is None:
@@ -120,26 +141,26 @@ class BaseRateFactor(object):
             print('  A = %.3e +- %.3e %s/s' %(self.A/(parse_unit(self.CV_unit)/second), self.A_err/(parse_unit(self.CV_unit)/second), self.CV_unit))
             print()
         return self.A, self.A_err
-
-    def result_blav(self, blocksizes=None, fitrange=[0,-1], exponent=1, plot=True, verbose=True, plot_auto_correlation_range=None):
-        'Compute rate factor A directly'
-        mask = self.Ns>0
-        As = self.Ts[mask]
-        print('Number of samples in TS = ', len(As))
-        if blocksizes is None:
-            blocksizes = np.arange(1,len(As)//2+1,1)
-        if plot:
-            fn_A = 'blav_rate_A.png'
-        self.A, self.A_err, Acorrtime = blav(As, blocksizes=blocksizes, fitrange=fitrange, exponent=exponent, fn_plot=fn_A, unit='1e12/s', plot_auto_correlation_range=plot_auto_correlation_range)
+    
+    def result_bootstrapping(self, nboot, verbose=True):
+        'Compute rate factor A directly and estimate error with bootstrapping'
+        As = []
+        for iboot in range(nboot):
+            mask = self.Ns>0
+            Ts = self.Ts[mask]
+            indices = np.random.random_integers(0, high=len(Ts)-1, size=len(Ts))
+            A = Ts[indices].mean()
+            As.append(A)
+        self.A, self.A_err = np.array(As).mean(), np.array(As).std()
         if verbose:
-            print('Rate factor directly with block averaging:')
-            print('---------------------------------')
-            print('  A = %.3e +- %.3e %s/s (%i samples, int. autocorr. time = %.3f timesteps, exponent = %.3f)' %(self.A/(parse_unit(self.CV_unit)/second), self.A_err/(parse_unit(self.CV_unit)/second), self.CV_unit, len(As), Acorrtime, exponent))
+            print('Rate factor with bootstrapping (nboot=%i):' %nboot)
+            print('------------------------------------------')
+            print('  A = %.3e +- %.3e %s/s' %(self.A/(parse_unit(self.CV_unit)/second), self.A_err/(parse_unit(self.CV_unit)/second), self.CV_unit))
             print()
         return self.A, self.A_err
     
-    def result_bootstrapping(self, nboot, verbose=True):
-        'Compute rate factor and estimate error with bootstrapping'
+    def result_bootstrapping_alternative(self, nboot, verbose=True):
+        'Compute rate factor A=T/N through estimates of T and N separately and estimate error with bootstrapping'
         Ts = []
         Ns = []
         for iboot in range(nboot):

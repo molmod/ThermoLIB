@@ -25,62 +25,46 @@ rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 #rc('font',**{'family':'serif','serif':['Palatino']})
 rc('text', usetex=True)
 
-#clustering algorithm
-from sklearn.cluster import DBSCAN
+from sklearn.cluster import DBSCAN #clustering algorithm
 
 import numpy as np
 
 import sys
 
-__all__ = ['BaseFreeEnergyProfile', 'SimpleFreeEnergyProfile', 'FreeEnergySurface2D']
+__all__ = ['BaseFreeEnergyProfile', 'SimpleFreeEnergyProfile', 'FreeEnergySurface2D', 'plot_feps']
 
 class BaseFreeEnergyProfile(object):
-    def __init__(self, cv, f, temp, cv_unit='au', f_unit='kjmol', cv_label='CV'):
-        '''
-            Class to define a free energy profile as function of a certain
-            collective variable (CV).
+    '''
+        Base class to define a free energy profile F(q) (stored in self.fs) as function of a certain collective variable (CV) denoted by q (stored in self.cvs).
 
-            The corresponding probability density
-            can also be extracted:
+        :param cv: the collective variable values
+        :type cv: np.ndarray
 
-                p(cv) = exp(-beta*F(cv))/Z
+        :param f: the free energy values
+        :type f: np.ndarray
 
-                with
+        :param temp: the temperature at which the free energy is constructed
+        :type temp: float
 
-                Z = int(exp(-beta*F(cv)), cv=-inf...+inf)
+        :param flower: the lower limit of the error bar on the free energy values
+        :type flower: np.ndarray
 
-            Finally, one can also extract the partition function and free
-            energy of a certain macrostate defined by its range in the cv. This
-            partition function is normalized like a probability density.
+        :param fupper: the upper limit of the error bar on the free energy values
+        :type fupper: np.ndarray
 
-                Z_A = int(exp(-beta*F(cv)), cv in A)/Z
-                    = int(p(cv), cv in A)/Z
-
-                F_A = -kT*log(Z_A)
-
-            **Arguments**
-
-            cv
-                numpy array representing the collective variable axis
-
-            f
-                numpy array representing the free energy axis
-
-            temp
-                the temperature at which the free energy is constructed
-
-            **Optional Arguments**
-
-            cv_unit
-                the units for printing of CV values
-
-            f_unit
-                the units for printing of free energy values
-        '''
-        assert len(cv)==len(f), "cv and f array should be of same length"
-        self.cvs = cv.copy()
-        self.fs = f.copy()
+        :param cv_unit: the units for printing of CV values. Units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_.
+        :type cv_unit: str, default=au
+            
+        :param f_unit: the units for printing of free energy values. Units are defined using `the molmod routine molmod.units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_.
+        :type f_unit: str, default=kjmol
+    '''
+    def __init__(self, cvs, fs, temp, fupper=None, flower=None, cv_unit='au', f_unit='kjmol', cv_label='CV'):
+        assert len(cvs)==len(fs), "cvs and fs array should be of same length"
+        self.cvs = cvs.copy()
+        self.fs = fs.copy()
         self.T = temp
+        self.fupper = fupper
+        self.flower = flower
         self.cv_unit = cv_unit
         self.f_unit = f_unit
         self.cv_label = cv_label
@@ -96,44 +80,37 @@ class BaseFreeEnergyProfile(object):
     @classmethod
     def from_txt(cls, fn, temp, cvcol=0, fcol=1, cv_unit='au', f_unit='kjmol', cvrange=None, delimiter=None, reverse=False, cut_constant=False):
         '''
-            Read the free energy profile as function of a collective variable
-            from a txt file.
+            Read the free energy profile as function of a collective variable from a txt file.
 
-            **Arguments**
+            :param fn: the name of the txt file containing the data
+            :type fn: str
 
-            fn
-                the name of the txt file containing the data
+            :param temp: the temperature at which the free energy is constructed
+            :type temp: float
 
-            temp
-                the temperature at which the free energy is constructed
+            :param cvcol: the column in which the collective variable is stored
+            :type cvcol: int, default=0
 
-            **Optional Arguments**
+            :param fcol: the column in which the free energy is stored.
+            :type fcol: int, default=1
 
-            cvcol
-                the column in which the collective variable is stored
+            :param cv_unit: the units in which the CV are stored. Units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_. 
+            :type cv_unit: str or float, default=au
 
-            fcol
-                the column in which the free energy is stored
+            :param f_unit: the units in which the free energy are stored. Units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_
+            :type f_unit: str or float, default=kjmol
 
-            cv_unit
-                the units in which the CV are stored [default=atomic units]
+            :param cvrange: only read free energy for CVs in the given range
+            :type cvrange: tuple or list, default=None
+            
+            :param delimiter: The delimiter used in the txt input file to separate columns. The default is set to None, corresponding to the default of `the numpy.loadtxt routine <https://numpy.org/doc/1.20/reference/generated/numpy.loadtxt.html>`_ (i.e. whitespace).
+            :type delimiter: str, default=None
+            
+            :param reverse: if set to True, reverse the X axis (usefull to make sure reactant is on the left)
+            :type reverse: bool, default=False
 
-            f_unit
-                the units in which the free energy are stored [default=kjmol]
-
-            cvrange
-                a tuple/list [CVmin,CVmax], only read free energy for CVs in the
-                given range.
-
-            reverse
-                if set to True, reverse the X axis (usefull to make sure
-                reactant is on the left)
-
-            cut_constant
-                if set to True, the data points at the start and end of the
-                data array that are constant will be cut. Usefull to cut out
-                unsampled areas for large and small CV values.
-
+            :param cut_constant: if set to True, the data points at the start and end of the data array that are constant will be cut. Usefull to cut out unsampled areas for large and small CV values. 
+            :type cut_constant: bool, default=False
         '''
         #TODO: deal with inf values in input file
 
@@ -167,112 +144,108 @@ class BaseFreeEnergyProfile(object):
         return cls(cvs, fs, temp, cv_unit=cv_unit, f_unit=f_unit)
 
     @classmethod
-    def from_trajectory_histogram(cls, cv_data, temp, cv_bins=None, n_bins=100, stride=1, nblocks=1, fn_plot=None, cv_unit='au', f_unit='kjmol', cv_label='CV'):
+    def from_histogram(cls, histogram, temp):
         '''
-            Derive a free energy profile in term of the given CV from the
-            histogram of a molecular trajectory.
+            Use the estimated probability histogram to construct the corresponding free energy profile at the given temperature.
+        
+            :param histogram: histogram from which the free energy profile is computed
+            :type histogram: histogram.Histogram1D
 
-            **Arguments**
+            :param temp: the temperature at which the histogram input data was simulated
+            :type temp: float
 
-                cv_data     a numpy array containig the CV values along the
-                            trajectory. This array can be computed from an
-                            XYZ trajectory file using the <trajectory_xyz_to_CV>
-                            routine in the thermolib.tools module.
-                            
-                temp        temperature of the trajectory
-
-            **Optional Arguments**
-
-                cv_bins     CV bin edges for histogram construction. If not
-                            given a histogram with n_bins between min and max
-                            will be constructed.
-
-                n_bins      The number of bins used between min and max if
-                            cv_bins is not specified.
-
-                stride      If stride is larger than 1, not the entire trajectory
-                            is used to construct the histogram. Instead, samples 
-                            are taken every <stride> frames. In this way, we hope
-                            to minimize correlations.
-                
-                nblocks     If nblocks is larger than 1, divide the entire trajectory
-                            in a number of blocks equal to nblocks and construct a
-                            profile (with error estimate) on each block. 
-                
-                fn_plot     If a file name is given, a plot will be made of the
-                            resulting probability histogram and corresponding free 
-                            energy with error estimates as obtained from the asymptotic 
-                            normality of the maximum likelihood estimator giving the 
-                            histogram. The error bars represent 95% confidence intervals 
-                            (i.e. 2 sigma).
-                
-                cv_unit     CV unit for plotting
-
-                cv_label    CV label in plots
-
-                f_unit      free energy unit for plotting
+            :return: free energy profile corresponding to the estimated probability histogram
+            :rtype: cls
         '''
-        cv_data = cv_data[::stride]
-        if cv_bins is None:
-            start, end, num = min(cv_data), max(cv_data), n_bins
-            delta = (end-start)/(num-1)
-            cv_bins = np.arange(start, end+delta, delta)
-        cvs, ps, plower, pupper, fs, flower, fupper = free_energy_from_histogram_with_error(cv_data, cv_bins, temp)
-        flower -= min(fs)
-        fupper -= min(fs)
-        fs -= min(fs)
-        fep = cls(cvs.copy(), fs.copy(), temp, cv_unit=cv_unit, f_unit=f_unit, cv_label=cv_label)
-        if fn_plot is not None:
-            pp.clf()
-            fig, axs = pp.subplots(nrows=1+int(nblocks>1), ncols=2, squeeze=False)
-            #make free energy plot
-            axs[0,0].plot(cvs/parse_unit(cv_unit), ps, linewidth=1, color='b')
-            axs[0,0].fill_between(cvs/parse_unit(cv_unit), plower, pupper, color='0.7')
-            axs[0,1].plot(cvs/parse_unit(cv_unit), fs/parse_unit(f_unit), linewidth=1, color='b')
-            axs[0,1].fill_between(cvs/parse_unit(cv_unit), flower/parse_unit(f_unit), fupper/parse_unit(f_unit), color='0.7')
-            #decorate
-            axs[0,0].set_xlabel('%s [%s]' %(cv_label, cv_unit), fontsize=14)
-            axs[0,0].set_ylabel('P [-]', fontsize=14)
-            axs[0,0].set_title('Probability profile', fontsize=14)
-            axs[0,0].set_xlim([min(cvs/parse_unit(cv_unit)), max(cvs/parse_unit(cv_unit))])
-            axs[0,1].set_xlabel('%s [%s]' %(cv_label, cv_unit), fontsize=14)
-            axs[0,1].set_ylabel('F [%s]' %f_unit, fontsize=14)
-            axs[0,1].set_title('Free energy profile', fontsize=14)
-            axs[0,1].set_xlim([min(cvs/parse_unit(cv_unit)), max(cvs/parse_unit(cv_unit))])
-            axs[0,1].set_ylim([-1, np.ceil(max(fs/kjmol)/10)*10])
-            if nblocks>1:
-                blocksize = len(cv_data)//nblocks
-                cmap = cm.get_cmap('tab10')
-                for iblock in range(nblocks):
-                    block = cv_data[iblock*blocksize:(iblock+1)*blocksize]
-                    cvs, ps, plower, pupper, fs, flower, fupper = free_energy_from_histogram_with_error(block, cv_bins, temp)
-                    flower -= min(fs[~np.isnan(fs)])
-                    fupper -= min(fs[~np.isnan(fs)])
-                    fs -= min(fs[~np.isnan(fs)])
-                    axs[1,0].plot(cvs/parse_unit(cv_unit), ps, linewidth=2, color=cmap(iblock), label='Block %i' %iblock)
-                    axs[1,0].fill_between(cvs/parse_unit(cv_unit), plower, pupper, color=cmap(iblock, alpha=0.2))
-                    axs[1,1].plot(cvs/parse_unit(cv_unit), fs/parse_unit(f_unit), linewidth=2, color=cmap(iblock), label='Block %i' %iblock)
-                    axs[1,1].fill_between(cvs/parse_unit(cv_unit), flower/parse_unit(f_unit), fupper/parse_unit(f_unit), color=cmap(iblock, alpha=0.2))
-                #decorate
-                axs[1,0].legend(loc='best')
-                axs[1,0].set_xlabel('%s [%s]' %(cv_label, cv_unit), fontsize=14)
-                axs[1,0].set_ylabel('P [-]', fontsize=14)
-                axs[1,0].set_xlim([min(cvs/parse_unit(cv_unit)), max(cvs/parse_unit(cv_unit))])
-                axs[1,1].set_xlabel('%s [%s]' %(cv_label, cv_unit), fontsize=14)
-                axs[1,1].set_ylabel('F [%s]' %f_unit, fontsize=14)
-                axs[1,1].set_xlim([min(cvs/parse_unit(cv_unit)), max(cvs/parse_unit(cv_unit))])
-                mask = ~np.isnan(fs)*~np.isinf(fs)
-                axs[1,1].set_ylim([-1, np.ceil(max(fs[mask]/kjmol)/10)*10])
-            #save
-            fig.set_size_inches([16,8*(1+int(nblocks>1))])
-            pp.savefig(fn_plot)
-        return fep
+        fupper = None
+        flower = None
+        fs = np.zeros(len(histogram.ps))*np.nan
+        fs[histogram.ps>0] = -boltzmann*temp*np.log(histogram.ps[histogram.ps>0])
+        if histogram.pupper is not None and histogram.plower is not None:
+            fupper = np.zeros(len(histogram.ps))*np.nan
+            flower = np.zeros(len(histogram.ps))*np.nan
+            fupper[histogram.plower>0] = -boltzmann*temp*np.log(histogram.plower[histogram.plower>0])
+            flower[histogram.pupper>0] = -boltzmann*temp*np.log(histogram.pupper[histogram.pupper>0])
+        return cls(histogram.cvs, fs, temp, fupper=fupper, flower=flower, cv_unit=histogram.cv_unit, cv_label=histogram.cv_label)
+
+    @classmethod
+    def from_average(cls, feps, error_estimate=None, nsigma=2):
+        '''
+			Start from a set of free energy profiles and compute and return the averaged free energy profile. If error_estimate is set to 'std', an error on the freee energy profile will be computed from the standard deviation within the set of profiles. 
+
+			:param feps: set of free energy profiles to be averaged
+			:type histograms: list(BaseFreeEnergyProfile)
+
+			:param error_estimate: indicate if and how to perform error analysis. One of following options is available:
+			
+				*  **std** -- compute error from the standard deviation within the set of profiles.
+				*  **None** -- do not estimate the error.
+			
+			Defaults to None, i.e. no error estimate.
+			:type error_estimate: str, optional
+
+			:param nsigma: only relevant when error estimation is turned on (i.e. when keyword ``error_estimate`` is not None), this option defines how large the error interval should be in terms of the standard deviation sigma. A ``nsigma=2`` implies a 2-sigma error bar (corresponding to 95% confidence interval) will be returned. Defaults to 2
+			:type nsigma: int, optional
+
+			:return: averages free energy profile
+			:rtype: identical as the mother class of the current routine
+		'''
+        #sanity checks
+        cv_unit, cv_label, f_unit = None, None, None
+        cvs, temp = None, None
+        for fep in feps:
+            if temp is None:
+                temp = fep.T
+            else:
+                assert temp==fep.T, 'Cannot average histograms corresponding to non-identical temperatures.'
+            if cvs is None:
+                cvs = fep.cvs.copy()
+            else:
+                assert (abs(cvs-fep.cvs)<1e-12*np.abs(cvs.mean())).all(), 'Cannot average the histograms as they do not have consistent CV grids'
+            if cv_unit is None:
+                cv_unit = fep.cv_unit
+            else:
+                assert cv_unit==fep.cv_unit, 'Inconsistent CV unit definition in histograms (%s!=%s)' %(cv_unit,fep.cv_unit)
+            if f_unit is None:
+                f_unit = fep.f_unit
+            elif f_unit!=fep.f_unit:
+                print('Inconsistent free energy unit definition in free energy profile, using the unit of the first profile (%s)' %(f_unit))
+            if cv_label is None:
+                cv_label = fep.cv_label
+            else:
+                assert cv_label==fep.cv_label, 'Inconsistent CV label definition in histograms (%s!=%s)' %(cv_label,fep.cv_label)
+        #collect free energy value
+        fss = np.array([fep.fs for fep in feps])
+        #average histograms
+        fs = fss.mean(axis=0)
+        #compute error if requested
+        flower, fupper = None, None
+        if error_estimate is not None and error_estimate.lower() in ['std']:
+            ferr = fss.std(axis=0,ddof=1)
+            flower = fs - nsigma*ferr
+            fupper = fs + nsigma*ferr
+        return cls(cvs, fs, temp, flower=flower, fupper=fupper, cv_unit=cv_unit, cv_label=cv_label)
 
     def process_states(self, **kwargs):
         raise NotImplementedError
 
-    def set_ref(self, **kwargs):
-        raise NotImplementedError
+    def set_ref(self, ref='min'):
+        '''
+            Set the energy reference of the free energy profile.
+
+            :param ref: the choice for the energy reference, currently only 'min' or 'm' is implemented resulting in setting the reference to the minimum in the free energy profile. Defaults to 'min'
+            :type ref: str
+        
+            :raises IOError: invalid value for keyword argument ref is given. See doc above for choices.
+        '''
+        if ref.lower() in ['m', 'min']:
+            fmin = self.fs[~np.isnan(self.fs)].min()
+            self.fs -= fmin
+            if self.fupper is not None and self.flower is not None:
+                self.flower -= fmin
+                self.fupper -= fmin
+        else:
+            raise IOError('Invalid REF specification, recieved %s and should be min, r, ts or p' %ref)
 
     def set_microstates(self, **kwargs):
         raise NotImplementedError
@@ -282,10 +255,19 @@ class BaseFreeEnergyProfile(object):
 
     def compute_probdens(self):
         '''
-            Compute the probability density profile associated with the
-            free energy profile
+            Compute the probability density profile associated with the free energy profile:
+        
+            .. math::
 
-                p(q) = exp(-beta*F(q))/int(exp(-beta*F(q)))
+                p(q) = \\frac{1}{q_0Z}\\exp\\left(-\\beta F(q)\\right)
+
+            with
+
+            .. math::
+        
+                Z = \\frac{1}{q_0}\\int_{-\\infty}^{+\\infty}\\exp\\left(-\\beta F(q)\\right)dq
+
+            Herein, :math:`q_0` represents an arbitrary constant to account for the fact that the partition function should in principle be dimensionless. However, it can be chosen freely and has no impact on the final free energy profile (appart from meaningless a vertical shift). Therefore, in this implementation it is chosen as :math:`q_0=1`.
         '''
         mask = ~np.isnan(self.fs)
         self.ps = np.zeros(self.fs.shape)
@@ -294,36 +276,32 @@ class BaseFreeEnergyProfile(object):
 
     def macrostate(self, cvrange=None, indexes=None, verbose=False):
         '''
-            Return the contribution to the partition function corresponding to
-            the macrostate in the given range of cvs.
+            Return the contribution to the partition function and free energy corresponding to the macrostate in the given range of cvs. This contribution is computed as follows. 
 
-            **Arguments**
+            .. math::
 
-            cvrange
-                the range of the collective variable defining the macrostate.
-                Either cvrange or indices should be defined.
+                \\begin{aligned}
+                    Z_A &= \\frac{1}{q_0}\\int_A \\exp\\left(-\\beta F(q)\\right)dq \\\\
 
-            indexes
-                the indexes of the collective variable defining the macrostate.
-                Either cvrange or indices should be defined.
+                        &= Z\\cdot\\int_A p(q)dq \\\\
 
+                    F_A &= -k_B T\\log{Z_A}
+                \\end{aligned}
 
-            **Returns**
+            :param cvrange: the range of the collective variable defining the macrostate. Either cvrange or indices should be defined, defaults to None
+            :type cvrange: np.ndarray, optional
 
-            mean
-                the expected (=mean) value of the collective variable in the
-                macrostate
+            :param indexes: the indexes of the collective variable defining the macrostate. Either cvrange or indices should be defined, defaults to None
+            :type indexes: list, optional
 
-            std
-                the thermal fluctuation (=standard deviation) of the CV in the
-                macrostate
+            :param verbose: set to true to turn on verbosity, defaults to False
+            :type verbose: bool, optional
 
-            Z
-                the contribution of the macrostate to the partition function
-
-            F
-                the free energy of the given macrostate
-
+            :return: 
+                *  **mean** (float) - the expected (=mean) value of the collective variable in the macrostate
+                *  **std** (float) - the thermal fluctuation (=standard deviation) of the CV in the macrostate
+                *  **Z** (float) - the contribution of the macrostate to the partition function
+                *  **F** (float) - the free energy of the given macrostate
         '''
         if verbose: print('Processing macrostate(indices=%s, cvrange=%s)' %(indexes, cvrange))
         if indexes is None:
@@ -368,31 +346,42 @@ class BaseFreeEnergyProfile(object):
             print('  P [-] = ', P*100)
         return mean, std, Z, F
 
-    def plot(self, fn_png, micro_marker='s', micro_color='r', micro_size='4', macro_linestyle='-', macro_color='b'):
+    def plot(self, fn, flim=None):
         '''
-            Plot the free energy profile
+            Make a plot of the free energy profile.
+
+            :param fn: Name of the file of the figure. Supported file formats are determined by the supported formats of the `matplotlib.pyplot.savefig routine <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html>`_
+            :type fn: str
         '''
         pp.clf()
         fig, axs = pp.subplots(nrows=1, ncols=1)
         axs = [axs]
         #make free energy plot
         axs[0].plot(self.cvs/parse_unit(self.cv_unit), self.fs/parse_unit(self.f_unit), linewidth=1, color='0.2')
+        if self.flower is not None and self.fupper is not None:
+            axs[0].fill_between(self.cvs/parse_unit(self.cv_unit), self.flower/parse_unit(self.f_unit), self.fupper/parse_unit(self.f_unit), alpha=0.33)
         #decorate
         axs[0].set_xlabel('%s [%s]' %(self.cv_label, self.cv_unit))
         axs[0].set_ylabel('F [%s]' %self.f_unit)
         axs[0].set_title('Free energy profile')
-        axs[0].set_xlim([min(self.cvs), max(self.cvs)])
+        axs[0].set_xlim([min(self.cvs/parse_unit(self.cv_unit)), max(self.cvs/parse_unit(self.cv_unit))])
+        if flim is not None:
+            axs[0].set_ylim([0, flim/parse_unit(self.f_unit)])
         #save
         fig.set_size_inches([len(axs)*8,8])
-        pp.savefig(fn_png)
+        pp.savefig(fn)
         return
 
-    def crop(self, cvrange=None, return_new_fes=False):
-        '''
-            Crop the free energy profile to the limits given by cvrange. If
-            return_new_fes is set to false, a copy of the cropped profile
-            will be returns, otherwise the current profile will be cropped
-            and overwritten.
+    def crop(self, cvrange, return_new_fes=False):
+        '''Crop the free energy profile to the limits given by cvrange and throw away cropped data. If return_new_fes is set to false, a copy of the cropped profile will be returns, otherwise the current profile will be cropped and overwritten.
+
+        :param cvrange: the range of the collective variable defining the new range to which the FEP will be cropped.
+        :type cvrange: tuple
+        
+        :param return_new_fes: If set to False, the cropped data will be written to the current instance (overwritting the original data). If set to True, a new instance will be initialized with the cropped data, defaults to False
+        :type return_new_fes: bool, optional
+        
+        :return: an instance of the current class if the keyword argument `return_new_fes` is set to True. Otherwise, None is returned.
         '''
         #cut off some unwanted regions
         cvs = self.cvs.copy()
@@ -412,20 +401,18 @@ class BaseFreeEnergyProfile(object):
             self.compute_probdens()
 
     def recollect(self, new_cvs, fn_plt=None, return_new_fes=False):
-        '''
-            Redefine the CV array to the new given array. For each interval of
-            new CV values, collect all old f values that fall in this new
-            interval and average out. As such, this routine can be used to
-            filter out noise on a given free energy profile by means of
-            averaging.
+        '''Redefine the CV array to the new given array. For each interval of new CV values, collect all old free energy values for which the corresponding CV value falls in this new interval and average out. As such, this routine can be used to filter out noise on a given free energy profile by means of averaging.
 
-            **Arguments**
-
-            new_cvs     Array of new CV values
-
-            **Optional Arguments**
-
-            fn_plot     File name for comparison plot of old and new profile.
+        :param new_cvs:  Array of new CV values
+        :type new_cvs: np.ndarray
+        
+        :param fn_plt: File name for comparison plot of old and new profile., defaults to None
+        :type fn_plt: str, optional
+        
+        :param return_new_fes: If set to False, the recollected data will be written to the current instance (overwritting the original data). If set to True, a new instance will be initialized with the recollected data., defaults to False
+        :type return_new_fes: bool, optional
+        
+        :return: Returns an instance of the current class if the keyword argument `return_new_fes` is set to True. Otherwise, None is returned.
         '''
         assert new_cvs[0]<=self.cvs[0], 'First value of new cvs should be lower or equal to first value of original cvs, otherwise data will be lost. If you really want to delete data, use crop first.'
         assert self.cvs[-1]<=new_cvs[-1], 'Last value of new cvs should be greater or equal to last value of original cvs, otherwise data will be lost. If you really want to delete data, use crop first.'
@@ -477,11 +464,12 @@ class BaseFreeEnergyProfile(object):
             self.compute_probdens()
 
 
-
 class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
-    '''
-        Free Energy Profile consisting of single reactant, transition state
-        and product state.
+    '''Class implementing a 1D FEP representing a simple bi-stable profile with 2 minima representing the reactant and process states and 1 local maximum representing the transition state. 
+        
+    As such, this class offers all features of the parent class :meth:`BaseFreeEnergyProfile` as well as the additional feature to automatically identify the micro/macrostates corresponding to reactant state, transition state and product state (the :meth:`process_states` routine). 
+        
+    See :meth:`BaseFreeEnergyProfile` for constructor arguments and documentation.
     '''
     def __init__(self, cvs, fs, temp, cv_unit='au', f_unit='kjmol', cv_label='CV'):
         BaseFreeEnergyProfile.__init__(self, cvs, fs, temp, cv_unit=cv_unit, f_unit=f_unit, cv_label=cv_label)
@@ -490,24 +478,29 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
         self.ip  = None
 
     def process_states(self, ts_range=[-np.inf,np.inf], verbose=False):
-        '''
-            Routine to find the reactant (R), transition state (TS) and product
-            state (P) through application of the ``_find_R_TS_P'' routine and
-            add the corresponding micro and macrostates. These will afterwards
-            be shown on the free energy plot using the ``plot'' routine.
+        '''Routine to find the reactant (R), transition state (TS) and product state (P) through application of the :meth:`_find_R_TS_P` routine and add the corresponding micro and macrostates. These will afterwards be shown on the free energy plot using the :meth:`plot` routine.
+
+        :param ts_range: range for the cv in which to look for the transition state as a local maximum, defaults to [-np.inf,np.inf]
+        :type ts_range: list, optional
+
+        :param verbose: set to True to increase verbosity, defaults to False
+        :type verbose: bool, optional
         '''
         self._find_R_TS_P(ts_range=ts_range)
-        self.add_microstates([self.ir, self.its, self.ip])
-        self.add_macrostates([-np.inf, self.cvs[self.its], np.inf], verbose=verbose)
+        self.set_microstates([self.ir, self.its, self.ip])
+        self.set_macrostates([-np.inf, self.cvs[self.its], np.inf], verbose=verbose)
 
     def _find_R_TS_P(self, ts_range=[-np.inf,np.inf]):
-        '''
-            Routine to find
+        '''Internal routine called by :meth:`process_states` to find:
+        
+        *  the transition state (TS) as the local maximum within the given ts_range
+        *  the reactant (R) as local minimum left of TS
+        *  the product (P) as local minimum right of TS
 
-            * the transition state (TS) as the local maximum within the given
-              TS_RANGE (which is by default [-inf,inf])
-            * the reactant (R) as local minimum left of TS
-            * the product (P) as local minimum right of TS
+        :param ts_range: range for the cv in which to look for the transition state as a local maximum, defaults to [-np.inf,np.inf]
+        :type ts_range: list, optional
+
+        :raises ValueError: the transition state cannot be found in the range defined by ts_range.
         '''
         self.ir  = None
         self.its = None
@@ -536,17 +529,19 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
                     self.ip = i
 
     def set_ref(self, ref='min'):
-        '''
-            Set the energy reference to ref, which should be one of
+        '''Set the energy reference of the free energy profile.
 
-                * m, min                        the global minimum
-                * r, reactant                   the reactant minimum
-                * ts, trans_state, transition   the transition state maximum
-                * p, product                    the product minimum
+        :param ref: the choice for the energy reference, should be one of:
 
-            The options r, ts and p are only available if the reactant,
-            transition state and product have already been found by the routine
-            find_states.
+            *  *m* or *min* for the global minimum
+            *  *r* or *reactant* for the reactant minimum       
+            *  *ts*, *trans_state* or *transition* for the transition state maximum
+            *  *p* or *product* for the product minimum
+
+            The options r, ts and p are only available if the reactant, transition state and product have already been found by the routine find_states, defaults to 'min'
+        :type ref: str
+        
+        :raises IOError: invalid value for keyword argument ref is given. See doc above for choices.
         '''
         if ref.lower() in ['r', 'reactant']:
             assert self.ir is not None, 'Reactant state not defined yet, did you already apply the find_states routine?'
@@ -560,27 +555,60 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
         elif ref.lower() in ['m', 'min']:
             self.fs -= self.fs[~np.isnan(self.fs)].min()
         else:
-            raise IOError('Invalid REF specificatin, recieved %s and should be min, r, ts or p' %ref)
+            raise IOError('Invalid REF specification, recieved %s and should be min, r, ts or p' %ref)
         #Micro and macrostates need to be updated
         if self.ir is not None and self.its is not None and self.ip is not None:
             self.microstates = []
             self.macrostates = []
-            self.add_microstates([self.ir, self.its, self.ip])
-            self.add_macrostates([-np.inf, self.cvs[self.its], np.inf])
+            self.set_microstates([self.ir, self.its, self.ip])
+            self.set_macrostates([-np.inf, self.cvs[self.its], np.inf])
 
-    def add_microstates(self, indices):
+    def set_microstates(self, indices):
+        '''Routine to define microstates, i.e. points on the 1D FEP. This routine is called by :meth:`process_states` to add the microstates found by the latter. These microstates will be visualized as points with corresponding free energy value on a plot made by the :meth:`plot` routine.
+
+        :param indices: list of indices corresponding to the index of the microstates in the self.cvs and self.fs arrays 
+        :type indices: list(int)
+        '''
         for index in indices:
             if index is not None:
                 self.microstates.append([index, self.cvs[index], self.fs[index]])
 
-    def add_macrostates(self, cvs, verbose=False):
+    def set_macrostates(self, cvs, verbose=False):
+        '''Routine to define macrostates, i.e. regions on the 1D FEP. This routine is called by :meth:`process_states` to add the macrostates found by the latter. These macrostates will be visualized as horizontal linesegments on a plot made by the :meth:`plot` routine with free energy contributions as computed by the :meth:`macrostate` routine.
+
+        :param cvs: list of integers giving defining the index of the boundaries between subsequent macrostates.
+        :type cvs: list(int)
+
+        :param verbose: set to True to increase verbosity, defaults to False
+        :type verbose: bool, optional
+        '''
         for i in range(len(cvs)-1):
             self.macrostates.append(self.macrostate(cvrange=cvs[i:i+2], verbose=verbose))
 
-    def plot(self, fn_png, rate=None, micro_marker='s', micro_color='r', micro_size='4', macro_linestyle='-', macro_color='b'):
+    def plot(self, fn, rate=None, micro_marker='s', micro_color='r', micro_size='4', macro_linestyle='-', macro_color='b'):
         '''
-            Plot the free energy profile as well as the microstates and
-            macrostates identified earlier.
+            Plot the free energy profile including visualization of the microstates (markers) and macrostates (lines) defined by :meth:`set_microstates` and :meth:`set_macrostates` respectively
+
+            :param fn: file name of the resulting plot, the extension of the file name will determine the format (png or pdf)
+            :type fn: str
+
+            :param rate: rate factor instance from :mod:`thermolib.kinetics` module which will allow to include indication of reaction rate and phenomenological free energy barriers, defaults to None
+            :type rate: thermolib.kinetics.rate.RateFactorEquilibrium or thermolib.kinetics.rate.RateFactorAlternative, optional
+
+            :param micro_marker: matplotlib marker style for indicating microstates, defaults to 's'
+            :type micro_marker: str, optional
+
+            :param micro_color: matplotlib marker color for indicating microstates, defaults to 'r'
+            :type micro_color: str, optional
+
+            :param micro_size: matplotlib marker size for indicating microstates, defaults to '4'
+            :type micro_size: str, optional
+
+            :param macro_linestyle: matplotlib line style for indicating macrostates, defaults to '-'
+            :type macro_linestyle: str, optional
+
+            :param macro_color: matplotlib line color for indicating macrostates, defaults to 'b'
+            :type macro_color: str, optional
         '''
         pp.clf()
         fig = pp.gcf()
@@ -597,7 +625,7 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
             axs[0].text((self.cvs[self.its]+0.01*cv_width)/parse_unit(self.cv_unit), 0, '%.3f' %(self.cvs[self.its]/parse_unit(self.cv_unit)), color='k', fontsize=12)
             #plot lines for the limits defining the TS region
             if rate is not None:
-                axs[0].fill_betweenx([ylower, max(self.fs)/kjmol], x1=rate.CV_TS_lims[0]/parse_unit(self.cv_unit), x2=rate.CV_TS_lims[1]/parse_unit(self.cv_unit), alpha=0.3, color='k')
+                axs[0].fill_betweenx([ylower, max(self.fs)/kjmol], x1=rate.CV_TS_lims[0]/parse_unit(self.cv_unit), x2=rate.CV_TS_lims[1]/parse_unit(self.cv_unit), alpha=0.33, color='k')
         #plot microstates
         for i, cv, f in self.microstates:
             axs[0].plot(cv/parse_unit(self.cv_unit), f/parse_unit(self.f_unit), linestyle='none', marker=micro_marker, color=micro_color, markersize=micro_size)
@@ -644,12 +672,41 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
             fig.text(0.65, 0.14, r'$\Delta F_{B}  = %.3f\ \ $ kJ.mol$^{-1}$' %(dF_backward/kjmol), fontsize=16)
         #save
         fig.set_size_inches([12,8])
-        pp.savefig(fn_png)
+        pp.savefig(fn)
         return
 
 
 class FreeEnergySurface2D(object):
     def __init__(self, cv1s, cv2s, fs, temp, cv1_unit='au', cv2_unit='au', f_unit='kjmol', cv1_label='CV1', cv2_label='CV2'):
+        '''Class implementing a 2D free energy surface F(cv1,cv2) (stored in self.fs) as function of two collective variables (CV) denoted by cv1 (stored in self.cv1s) and cv2 (stored in self.cv2s).
+
+        :param cv1s: array containing the values for the first collective variable CV1
+        :type cv1s: np.ndarray
+
+        :param cv2s: array the values for the second collective variable CV2
+        :type cv2s: np.ndarray
+
+        :param fs: 2D array containing the free energy values corresponding to the given values of CV1 and CV2 
+        :type fs: np.ndarray
+
+        :param temp: temperature at which the free energy is given
+        :type temp: float
+
+        :param cv1_unit: unit in which the input array cv1 is given (units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_), defaults to 'au'
+        :type cv1_unit: str, optional
+
+        :param cv2_unit: unit in which the input array cv2 is given (units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_), defaults to 'au'
+        :type cv2_unit: str, optional
+
+        :param f_unit: unit in which the input array f is given (units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_), defaults to 'kjmol'
+        :type f_unit: str, optional
+
+        :param cv1_label: label for CV1 axis on plots, defaults to 'CV1'
+        :type cv1_label: str, optional
+
+        :param cv2_label: label for CV2 axis on plots, defaults to 'CV2'
+        :type cv2_label: str, optional
+        '''
         self.cv1s = cv1s.copy()
         self.cv2s = cv2s.copy()
         self.fs   = fs.copy()
@@ -667,6 +724,11 @@ class FreeEnergySurface2D(object):
     beta = property(_beta)
 
     def copy(self):
+        '''Make and return a copy of the current FreeEnergySurface2D instance.
+
+        :return: a copy of the current instance
+        :rtype: FreeEnergySurface2D
+        '''
         fes = FreeEnergySurface2D(
             self.cv1s.copy(), self.cv2s.copy(), self.fs.copy(), self.T,
             self.cv1_unit, self.cv2_unit, self.f_unit,
@@ -676,52 +738,49 @@ class FreeEnergySurface2D(object):
 
     @classmethod
     def from_txt(cls, fn, temp, cv1_col=0, cv2_col=1, f_col=2, cv1_unit='au', cv2_unit='au', f_unit='kjmol', cv1_label='CV1', cv2_label='CV2', cv1_range=None, cv2_range=None, delimiter=None):
-        '''
-            Read the free energy profile as function of a collective variable
-            from a txt file.
+        '''Read the free energy surface on a 2D grid as function of two collective variables from a txt file. 
 
-            **Arguments**
+        :param fn: the name of the txt file containing the data
+        :type fn: str
 
-            fn
-                the name of the txt file containing the data
+        :param temp: the temperature at which the free energy is constructed
+        :type temp: float
 
-            temp
-                the temperature at which the free energy is constructed
+        :param cv1_col: the column in which the first collective variable is stored, defaults to 0
+        :type cv1_col: int, optional
 
-            **Optional Arguments**
+        :param cv2_col: the column in which the second collective variable is stored, defaults to 1
+        :type cv2_col: int, optional
 
-            cv1_col
+        :param f_col: the column in which the free energy is stored, defaults to 2
+        :type f_col: int, optional
 
-                the column in which the first collective variable is stored
+        :param cv1_unit: the unit in which the first CV values are stored, defaults to 'au'
+        :type cv1_unit: str, optional
 
-            cv2_col
-                the column in which the second collective variable is stored
+        :param cv2_unit: the unit in which the second CV values are stored, defaults to 'au'
+        :type cv2_unit: str, optional
 
-            f_col
-                the column in which the free energy is stored
+        :param f_unit: the unit in which the free energy values are stored, defaults to 'kjmol'
+        :type f_unit: str, optional
 
-            cv1_label
-                the label of CV1 for labels in plots
+        :param cv1_label: the label for the CV1 axis in plots, defaults to 'CV1'
+        :type cv1_label: str, optional
 
-            cv2_label
-                the label of CV2 for labels in plots
+        :param cv2_label: the label for the CV2 axis in plots, defaults to 'CV2'
+        :type cv2_label: str, optional
 
-            cv1_unit
-                the units in which the first CV are stored [default=atomic units]
+        :param cv1_range: [CVmin,CVmax] indicating to only read free energy for which the first CV in the given range, defaults to None
+        :type cv1_range: tuple/list, optional
 
-            cv2_unit
-                the units in which the second CV are stored [default=atomic units]
+        :param cv2_range: [CVmin,CVmax] indicating to only read free energy for which the second CV in the given range, defaults to None
+        :type cv2_range: tuple/list, optional
 
-            f_unit
-                the units in which the free energy are stored [default=kjmol]
+        :param delimiter: [description], defaults to None
+        :type delimiter: [type], optional
 
-            cv1_range
-                a tuple/list [CVmin,CVmax], only read free energy for which the
-                first CV in the given range.
-
-            cv2_range
-                a tuple/list [CVmin,CVmax], only read free energy for which the
-                second CV in the given range.
+        :return: 2D free energy surface
+        :rtype: FreeEnergySurface2D
         '''
         data = np.loadtxt(fn, delimiter=delimiter, dtype=float)
         cv1s = data[:,cv1_col]*parse_unit(cv1_unit)
@@ -749,21 +808,23 @@ class FreeEnergySurface2D(object):
         return cls(cv1s, cv2s, fs, temp, cv1_label=cv1_label, cv2_label=cv2_label)
 
     def compute_probdens(self):
-        '''
-            Compute the probability density profile associated with the
-            free energy profile
+        '''Compute the probability density profile associated with the free energy profile as given below and store internally in `self.ps`
 
-                p(q) = exp(-beta*F(q))/int(exp(-beta*F(q)))
+        .. math::
+
+                p(q) = \\frac{\\exp\\left(-\\beta F(q)\\right)}{\\int_{-\\infty}^{+\\infty}\\exp\\left(-\\beta F(q)\\right)dq}
         '''
         self.ps = np.exp(-self.beta*self.fs)
         self.ps[np.isnan(self.ps)] = 0.0
         self.ps /= integrate2d(self.ps, x=self.cv1s, y=self.cv2s)
 
     def set_ref(self, ref='min'):
-        '''
-            Set the energy reference to ref, which should be one of
+        '''Set the energy reference of the free energy surface.
 
-                * m, min                        the global minimum
+        :param ref: the choice for the energy reference. Currently only one possibility is implemented, i.e. *m* or *min* for the global minimum. Defaults to 'min'.
+        :type ref: str
+        
+        :raises IOError: invalid value for keyword argument ref is given. See doc above for choices.
         '''
         if ref.lower() in ['m', 'min']:
             self.fs -= self.fs[~np.isnan(self.fs)].min()
@@ -771,34 +832,28 @@ class FreeEnergySurface2D(object):
             raise IOError('Invalid REF specificatin, recieved %s and should be min' %ref)
 
     def detect_clusters(self, eps=1.5, min_samples=8, metric='euclidean', fn_plot=None, delete_clusters=[-1]):
-        '''
-            Routine to apply the DBSCAN clustering algoritm to the (CV1,CV2)
-            grid points that correspond to finite free energies (i.e. not nan
-            or inf) to detect clusters of neighboring points.
+        '''Routine to apply `the DBSCAN clustering algoritm as implemented in the Scikit Learn package <https://scikit-learn.org/stable/modules/generated/sklearn.cluster.DBSCAN.html>`_ to the (CV1,CV2) grid points that correspond to finite free energies (i.e. not nan or inf) to detect clusters of neighboring points.
 
-            The DBSCAN algorithm first identifies the core samples,there exist
-            MIN_SAMPLES other samples within a distance of EPS, which are
-            defined as neighbors of the core sample. Next, the data is divided
-            into clusters based on these core samples.
+        The DBSCAN algorithm first identifies the core samples, there exist ``min_samples`` other samples within a distance of ``eps``, which are defined as neighbors of the core sample. Next, the data is divided into clusters based on these core samples. A cluster is defined a set of core samples that can be built by recursively taking a core sample, finding all of its neighbors that are core samples, finding all of their neighbors that are core samples, and so on. A cluster also has a set of non-core samples, which are samples that are neighbors of a core sample in the cluster but are not themselves core samples. Intuitively, these samples are on the fringes of a cluster. Each cluster is given an integer as label.
 
-            A cluster is defined a set of core samples that can be built by
-            recursively taking a core sample, finding all of its neighbors that
-            are core samples, finding all of their neighbors that are core
-            samples, and so on. A cluster also has a set of non-core samples,
-            which are samples that are neighbors of a core sample in the cluster
-            but are not themselves core samples. Intuitively, these samples are
-            on the fringes of a cluster. Each cluster is given an integer as
-            label.
+        Any sample that is not a core sample, and is at least ``eps`` in distance from any core sample, is considered an outlier by the algorithm and is what we here consider an isolated point/region. These points get the cluster label of -1.
 
-            Any sample that is not a core sample, and is at least eps in
-            distance from any core sample, is considered an outlier by the
-            algorithm and is what we here consider an isolated point/region.
-            These points get the cluster label of -1.
+        Finally, all data points belonging to a cluster with label specified in ``delete_clusters`` will have theire free energy set to nan. A safe choice here is to just delete isolated regions, i.e. the point in cluster with label -1 (which is the default).
 
-            Finally, all data points belonging to a cluster with label specified
-            in DELETE_CLUSTERS will have theire free energy set to nan. A safe
-            choice here is to just delete isolated regions, i.e. the point in
-            cluster with label -1 (which is the default).
+        :param eps: DBSCAN parameter representing maximum distance between two samples for them to be considered neighbors (for more, see `DBSCAN documentation <https://scikit-learn.org/stable/modules/generated/sklearn.cluster.DBSCAN.html>`_), defaults to 1.5
+        :type eps: float, optional
+
+        :param min_samples: DBSCAN parameter representing the number of samples in a neighborhood for a point to be considered a core point (for more, see `DBSCAN documentation <https://scikit-learn.org/stable/modules/generated/sklearn.cluster.DBSCAN.html>`_), defaults to 8
+        :type min_samples: int, optional
+
+        :param metric: DBSCAN parameter representing the metric used when calculating distance (for more, see `DBSCAN documentation <https://scikit-learn.org/stable/modules/generated/sklearn.cluster.DBSCAN.html>`_), defaults to 'euclidean'
+        :type metric: str or callable, optional
+
+        :param fn_plot: if specified, a plot will be made (and written to ``fn_plot``) visualizing the resulting clusters, defaults to None
+        :type fn_plot: str, optional
+
+        :param delete_clusters: list of cluster names whos members will be deleted from the free energy surface data, defaults to [-1] meaning only isolated points (not belonging to a cluster) will be deleted.
+        :type delete_clusters: list, optional
         '''
         #collect data
         data = []
@@ -849,12 +904,18 @@ class FreeEnergySurface2D(object):
             self.compute_probdens()
 
     def crop(self, cv1range=None, cv2range=None, return_new_fes=False):
-        '''
-            Crop the free energy surface by removing all data for which either
-            cv1 is beyond the range defined in CV1RANGE or cv2 is beyond the
-            range defined in CV1RANGE. Furthermore, if RETURN_NEW_FES is set to
-            False, the cropping will be performed on the existing instance,
-            otherwise a copy will be returned.
+        '''Crop the free energy surface by removing all data for which either cv1 or cv2 is beyond a given range.
+        
+        :param cv1range: range of cv1 that will remain after cropping, defaults to None
+        :type cv1range: [type], optional
+
+        :param cv2range: range of cv2 that will remain after cropping, defaults to None
+        :type cv2range: [type], optional
+
+        :param return_new_fes: if set to false, the cropping process will be applied on the existing instance, otherwise a copy will be returned, defaults to False
+        :type return_new_fes: bool, optional
+
+        :return: None or new instance of :class:`FreeEnergySurface2D` representing cropped FES, depending on ``return_new_fes``
         '''
         #cut off some unwanted regions
         cv1s = self.cv1s.copy()
@@ -883,22 +944,28 @@ class FreeEnergySurface2D(object):
             self.compute_probdens()
 
     def rotate(self, interpolate=True):
-        '''
-            Transform the free energy profile in terms of the following two
-            new collective variables:
+        '''Transform the free energy profile in terms of the following two new collective variables:
 
-                u = 0.5*(cv1+cv2)
-                v = (cv2-)cv1)
+        .. math::
 
-            This transformation represents a simple rotation (and mirroring).
-            From probability theory we easily find the transformation formula:
+            \\begin{aligned}
+                u &= \\frac{CV_1+CV_2}{2} \\\\
+                v &= CV_2 - CV_1
+            \\end{aligned}
 
-                Ft(u,v) = F(u-0.5*v,u+0.5*v)
+        This transformation represents a simple rotation (and mirroring). From probability theory we find the transformation formula:
 
-            The uniform (u,v)-grid introduces new grid points in between the
-            original (cv1,cv2) grid points. If interpolate is True, the free
-            energy for these points is interpolated if all four neighbors
-            have defined (i.e. not nan) free energies.
+        .. math::
+
+            F_\\text{rot}(u,v) = F\\left(u-\\frac{v}{2}, u+\\frac{v}{2}\\right))
+
+        The uniform (u,v)-grid introduces new grid points in between the original (cv1,cv2) grid points. If interpolate is True, the free energy for these points is interpolated if all four neighbors have defined (i.e. not nan) free energies.
+
+        :param interpolate: if set to true, interpolate undefined grid points (arrising due to rotation) between neighbors, defaults to True
+        :type interpolate: bool, optional
+
+        :return: rotated free energy surface
+        :rtype: FreeEnergySurface2D
         '''
         #First make unique list of us and vs
         print('Making unique arrays for u=0.5*(cv1+cv2) and v=cv2-cv1')
@@ -965,18 +1032,19 @@ class FreeEnergySurface2D(object):
         return FreeEnergySurface2D(vs, us, fs, self.T, cv1_unit=v_unit, cv2_unit=u_unit, f_unit='kjmol', cv1_label='CV2-CV1', cv2_label='0.5*(CV1+CV2)')
 
     def project_difference(self, sign=1):
-        '''
-            Construct a 1D free energy profile representing the projection of
-            the 2D FES onto the difference of collective variables:
+        '''Construct a 1D free energy profile representing the projection of the 2D FES onto the difference of collective variables:
 
-                F1(q) = -kT*log( int( e(-beta*F2(x,x+q)), x=-inf...+inf) )
+        .. math::
 
-                with q = CV2-CV1
+            F1(q) = -k_B T \\log\\left( \\int_{-\\infty}^{+\\infty} e^{-\\beta F2(x,x+q)}dx \\right)
 
-            This projection is implemented by first projecting the probability
-            density and afterwards reconstructing the free energy.
+        with :math:`q=CV2-CV1`. This projection is implemented by first projecting the probability density and afterwards reconstructing the free energy.
 
-            If sign is set to -1, the projection is done on q=CV1-CV2 instead.
+        :param sign: If sign is set to 1, the projection is done on q=CV2-CV1, if it is set to -1, projection is done to q=CV1-CV2 instead. Defaults to 1
+        :type sign: int, optional
+
+        :returns: projected 1D free energy profile
+        :rtype: SimpleFreeEnergyProfile
         '''
         #Get the 2D probability density
         if sign==1:
@@ -1043,17 +1111,16 @@ class FreeEnergySurface2D(object):
         return SimpleFreeEnergyProfile(Q, fs, self.T, cv_unit=cv_unit, f_unit='kjmol', cv_label=label)
 
     def project_average(self):
-        '''
-            Construct a 1D free energy profile representing the projection of
-            the 2D FES F2(CV1,CV2) onto the average q=(CV1+CV2)/2 of the
-            collective variables:
+        '''Construct a 1D free energy profile representing the projection of the 2D FES F2(CV1,CV2) onto the average q=(CV1+CV2)/2 of the collective variables:
 
-                F1(q) = -kT*log( 2*int( e(-beta*F2(x,2*q-x)), x=-inf...+inf) )
+        .. math::
+            
+            F1(q) = -k_B T \\log\\left( 2\\int_{-\infty}^{+\infty} e^{-\\beta F2(x,2q-x}dx \\right)
 
-                with q = 0.5*(CV1+CV2)
+        with :math:`q=0.5\\dot(CV1+CV2)`. This projection is implemented by first projecting the probability density and afterwards reconstructing the free energy.
 
-            This projection is implemented by first projecting the probability
-            density and afterwards reconstructing the free energy.
+        :returns: projected 1D free energy profile
+        :rtype: SimpleFreeEnergyProfile
         '''
         x = self.cv1s.copy()
         y = self.cv2s.copy()
@@ -1109,10 +1176,14 @@ class FreeEnergySurface2D(object):
         return SimpleFreeEnergyProfile(Q, fs, self.T, cv_unit=cv_unit, f_unit='kjmol', cv_label='0.5*(CV1+CV2)')
 
     def project_cv1(self):
-        '''
-            Construct a 1D free energy profile representing the projection of
-            the 2D FES F2(CV1,CV2) onto q=CV1. This is implemented by simply
-            integrating CV2 out of P2(CV1,CV2).
+        '''Construct a 1D free energy profile representing the projection of the 2D FES F2(CV1,CV2) onto q=CV1. This is implemented as follows:
+
+         .. math::
+            
+            F1(q) = -k_B T \\log\\left( \\int_{-\infty}^{+\infty} e^{-\\beta F2(q,y}dy \\right)
+
+        :returns: projected 1D free energy profile
+        :rtype: SimpleFreeEnergyProfile
         '''
         cvs = self.cv1s.copy()
         ps = np.zeros(len(cvs), float)*np.nan
@@ -1126,10 +1197,14 @@ class FreeEnergySurface2D(object):
         return SimpleFreeEnergyProfile(cvs, fs, self.T, cv_unit=self.cv1_unit, f_unit='kjmol', cv_label=self.cv1_label)
 
     def project_cv2(self):
-        '''
-            Construct a 1D free energy profile representing the projection of
-            the 2D FES F2(CV1,CV2) onto q=CV2. This is implemented by simply
-            integrating CV1 out of P2(CV1,CV2).
+        '''Construct a 1D free energy profile representing the projection of the 2D FES F2(CV1,CV2) onto q=CV2. This is implemented as follows:
+
+         .. math::
+            
+            F1(q) = -k_B T \\log\\left( \\int_{-\infty}^{+\infty} e^{-\\beta F2(x,q}dx \\right)
+
+        :returns: projected 1D free energy profile
+        :rtype: SimpleFreeEnergyProfile
         '''
         cvs = self.cv2s.copy()
         ps = np.zeros(len(cvs), float)*np.nan
@@ -1142,9 +1217,32 @@ class FreeEnergySurface2D(object):
         return SimpleFreeEnergyProfile(cvs, fs, self.T, cv_unit=self.cv2_unit, f_unit='kjmol', cv_label=self.cv2_label)
 
     def plot(self, fn_png, obs='F', cv1_lims=None, cv2_lims=None, lims=None, ncolors=8, scale='lin'):
-        '''
-            Simple routine to make a 2D contour plot of either the free energy F
-            or probability distribution P as specified in OBS.
+        '''Simple routine to make a 2D contour plot of either the free energy F or probability distribution P as specified in ``obs``.
+
+        :param fn_png: File name to write the plot to. The extension determines the format (PNG or PDF).
+        :type fn_png: str
+
+        :param obs: Specification which observable should be plotted, should be 'F' for free energy or 'P' for probability. Defaults to 'F'
+        :type obs: str, optional, choices=('F','P')
+
+        :param cv1_lims: range defining the plot limits of CV1, defaults to None
+        :type cv1_lims: tupple/list, optional
+
+        :param cv2_lims: range defining the plot limits of CV1, defaults to None
+        :type cv2_lims: tupple/list, optional
+
+        :param lims: range defining the plot limits for the observable, defaults to None
+        :type lims: tupple/list, optional
+
+        :param ncolors: number of different colors included in contour plot, defaults to 8
+        :type ncolors: int, optional
+
+        :param scale: scal for the observable, should be 'lin' for linear or 'log' for logarithmic. Ddefaults to 'lin'
+        :type scale: str, optional, choices=('lin', 'log')
+
+        :raises IOError: if invalid observable is given, see doc above for possible choices.
+
+        :raises IOError: if invalid scale is given, see doc above for possible choices.
         '''
         pp.clf()
         if obs.lower() in ['f', 'free energy']:
@@ -1179,3 +1277,104 @@ class FreeEnergySurface2D(object):
         fig = pp.gcf()
         fig.set_size_inches([12,8])
         pp.savefig(fn_png)
+
+
+def plot_feps(fn, feps, temp=None, labels=None, flim=None, colors=None, linestyles=None, linewidths=None):
+    '''
+        Make a plot to compare multiple free energy profiles
+
+        :param fn: file name to write the figure to, the extension determines the format (PNG or PDF).
+        :type fn: str
+
+        :param feps: list of free energy profiles to plot
+        :type feps: list(BaseFreeEnergyProfile)
+
+        :param temp: if temp is defined, an additional pane will be added to the plot containing the corresponding histograms at the specified temperature. Defaults to None.
+        :type temp: float, optional
+        
+        :param labels: list of labels for the legend, one for each histogram. Defaults to None
+        :type labels: list(str), optional
+
+        :param flim: upper limit of the free energy axis in plots. Defaults to None
+        :type flim: float, optional
+
+        :param colors: List of matplotlib color definitions for each entry in histograms. If an entry is None, a color will be chosen internally. Defaults to None, implying all colors are chosen internally.
+		:type colors: List(str), optional
+
+		:param linestyles: List of matplotlib line style definitions for each entry in histograms. If an entry is None, the default line style of '-' will be chosen . Defaults to None, implying all line styles are set to the default of '-'.
+		:type linestyles: List(str), optional
+
+		:param linewidths: List of matplotlib line width definitions for each entry in histograms. If an entry is None, the default line width of 1 will be chosen. Defaults to None, implying all line widths are set to the default of 2.
+		:type linewidths: List(str), optional
+    '''
+    if temp is not None:
+        from .histogram import Histogram1D
+    #initialize
+    linewidth_default = 2
+    linestyle_default = '-'
+    nfeps = len(feps)
+    pp.clf()
+    if temp is None:
+        fig, axs = pp.subplots(nrows=1, ncols=1, squeeze=False)
+    else:
+        fig, axs = pp.subplots(nrows=1, ncols=2, squeeze=False)
+    cmap = cm.get_cmap('tab10')
+    cv_unit, funit = feps[0].cv_unit, feps[0].f_unit
+    cv_label = feps[0].cv_label
+    fmax = -np.inf
+    #add free energy plots and possibly probability histograms
+    for ifep, fep in enumerate(feps):
+        label = 'FEP %i' %ifep
+        if labels is not None:
+            label = labels[ifep]
+        #set color, linestyles, ...
+        color = None
+        if colors is not None:
+            color = colors[ifep]
+        if color is None:
+            color = cmap(ifep)
+        linewidth = None
+        if linewidths is not None:
+            linewidth = linewidths[ifep]
+        if linewidth is None:
+            linewidth = linewidth_default
+        linestyle = None
+        if linestyles is not None:
+            linestyle = linestyles[ifep]
+        if linestyle is None:
+            linestyle = linestyle_default
+        #plot free energy
+        fmax = max(fmax, np.ceil(max(fep.fs[~np.isnan(fep.fs)]/kjmol)/10)*10)
+        axs[0,0].plot(fep.cvs/parse_unit(cv_unit), fep.fs/parse_unit(funit), linewidth=linewidth, linestyle=linestyle, color=color, label=label)
+        if fep.flower is not None and fep.fupper is not None:
+            axs[0,0].fill_between(fep.cvs/parse_unit(cv_unit), fep.flower/parse_unit(funit), fep.fupper/parse_unit(funit), color=cmap(ifep, alpha=0.33))
+        #histogram if requested
+        if temp is not None:
+            hist = Histogram1D.from_fep(fep, temp)
+            axs[0,1].plot(hist.cvs/parse_unit(cv_unit), hist.ps, linewidth=linewidth, color=color, linestyle=linestyle, label=label)
+            if hist.plower is not None and hist.pupper is not None:
+                axs[0,1].fill_between(hist.cvs/parse_unit(cv_unit), hist.plower, hist.pupper, color=color, alpha=0.33)
+    #decorate
+    cv_range = [min(feps[0].cvs/parse_unit(cv_unit)), max(feps[0].cvs/parse_unit(cv_unit))]
+    axs[0,0].set_xlabel('%s [%s]' %(cv_label, cv_unit), fontsize=14)
+    axs[0,0].set_ylabel('F [%s]' %funit, fontsize=14)
+    axs[0,0].set_title('Free energy profile', fontsize=14)
+    axs[0,0].set_xlim(cv_range)
+    if flim is None:
+        if not np.isinf(fmax):
+            axs[0,0].set_ylim([-1,fmax])
+    else:
+        axs[0,0].set_ylim([-1,flim/parse_unit(funit)])
+    axs[0,0].legend(loc='best')
+    if temp is not None:
+        axs[0,1].set_xlabel('%s [%s]' %(cv_label, cv_unit), fontsize=14)
+        axs[0,1].set_ylabel('P [-]', fontsize=14)
+        axs[0,1].set_title('Probability histogram', fontsize=14)
+        axs[0,1].set_xlim(cv_range)
+        axs[0,1].legend(loc='best')
+    #save
+    if temp is not None:
+        fig.set_size_inches([16,8])
+    else:
+        fig.set_size_inches([8,8])
+    pp.savefig(fn)

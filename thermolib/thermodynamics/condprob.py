@@ -31,11 +31,64 @@ import sys
 
 __all__ = ['ConditionalProbability1D2D']
 
+class ConditionalProbability1D1D(object):
+    '''
+        Routine to store and compute conditional probabilities of the form
+
+        .. math::
+            
+            p\left(q|cv\right)
+        
+    '''
+    def __init__(self, qs, cvs, q_label='Q', cv_label='CV'):
+        #TODO
+        raise NotImplementedError
+    
+    def process_trajectory_xyz(self, fns, Q, CV):
+        '''
+            Compute the conditional probability p(q|cv) (and norm for final normalisation) by processing a series of XYZ trajectory files. The final probability is estimated as the average over all given files. These files may also contain data from biased simulations as long as the bias is constant over the simulation. For example, data from Umbrella Sampling is OK, while data from metadynamica itself is not. Data obtained from a regular MD with the final MTD profile as bias is OK.
+
+            Warning: after all trajectories have been processes, you need to manually call the finish routine!
+        '''
+        #TODO
+        raise NotImplementedError
+
+    def process_trajectory_cvs(self, fns, col_q=1, col_cv=2):
+        '''
+            Routine to update conditional probability p(q|cv) (and norm for final normalisation) by processing a series of CV trajectory file. Each CV trajectory file contains rows of the form
+
+                time q cv
+
+            If the trajectory file contains this data in a different order, it can be accounted for using the col_xx keyword arguments. Similar constraints apply to these CV trajectory files as specified in the routine ´´process_trajectory_xyz´´.
+
+            Warning: after all trajectories have been processes, you need to manually call the finish routine!
+        '''
+        #TODO
+        raise NotImplementedError
+    
+    def finish(self, fn_plt=None, plot_cvs=None):
+        #TODO
+        raise NotImplementedError
+    
+    def transform(self, fep, cv_unit='au', f_unit='kjmol', label=None):
+        '''
+            Transform the provided 1D FEP (in terms of q) to a 1D FES (in terms of CV) using the current conditional probability according to the formula
+
+                FES(q) = -kT*log(P(q))
+
+                P(q) = int( condprob(q|cv)*exp(-beta*F(cv), cv)
+        '''
+        #TODO
+        raise NotImplementedError
+        
+
 class ConditionalProbability1D2D(object):
     '''
         Routine to store and compute conditional probabilities of the form
 
-            p(q1,q2|cv)
+        .. math::
+            
+            p\left(q_1,q_2|cv\right)
     '''
     def __init__(self, q1s, q2s, cvs, q1_label='Q1', q2_label='Q2', cv_label='CV'):
         self.q1s = q1s.copy()
@@ -102,6 +155,8 @@ class ConditionalProbability1D2D(object):
             can be accounted for using the col_xx keyword arguments. Similar
             constraints apply to these CV trajectory files as specified in the
             routine ´´process_trajectory_xyz´´.
+
+            Warning: after all trajectories have been processes, you need to manually call the finish routine!
         '''
         if not isinstance(fns, list): fns = [fns]
         print('Constructing conditional probability...')
