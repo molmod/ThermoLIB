@@ -1,0 +1,496 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# Copyright (C) 2012 - 2019 Louis Vanduyfhuys <Louis.Vanduyfhuys@UGent.be>
+# Center for Molecular Modeling (CMM), Ghent University, Ghent, Belgium;
+# all rights reserved unless otherwise stated.
+#
+# This file is part of a library developed by Louis Vanduyfhuys at
+# the Center for Molecular Modeling under supervision of prof. Veronique
+# Van Speybroeck. Usage of this package should be authorized by prof. Van
+# Van Speybroeck.
+
+from matplotlib.colors import Normalize
+from molmod.units import *
+from molmod.constants import *
+
+import matplotlib.pyplot as pp
+import matplotlib.cm as cm
+import numpy as np
+
+from thermolib.thermodynamics.fep import BaseFreeEnergyProfile
+from thermolib.tools import integrate
+
+__all__ = ['Histogram1D', 'plot_histograms']
+
+class Histogram1D(object):
+	def __init__(self, cvs, ps, plower=None, pupper=None, cv_unit='au', cv_label='CV'):
+		'''
+			Class to implement the estimation of a probability histogram in terms of a collective variable from a trajectory series corresponding to that collective variable.
+
+			:param cvs: array corresponding the collective variable grid points
+			:type data: np.ndarray
+
+			:param ps: array corresponding to the histogram probability values at the grid points
+			:type bins: np.ndarray
+
+			:param plower: lower bound of the error on the probability histogram values, defaults to None
+			:type do_error: np.ndarray, optional
+
+			:param pupper: upper bound of the error on the probability histogram values, defaults to None
+			:type pupper: np.ndarray, optional
+
+			:param cv_unit: the unit in which cv will be plotted/printed, defaults to 'au'
+			:type cv_unit: str, optional
+
+			:param cv_label: the label of the cv that will be used on plots, defaults to 'CV'
+			:type cv_label: str, optional
+		'''
+		self.cvs = cvs.copy()
+		self.ps = ps.copy()
+		self.plower = plower
+		self.pupper = pupper
+		self.cv_unit = cv_unit
+		self.cv_label = cv_label
+
+	@classmethod
+	def from_average(cls, histograms, error_estimate=None, nsigma=2):
+		'''
+			Start from a set of histograms and compute and return the averaged histogram. If error_estimate is set to 'std', an error on the histogram will be computed from the standard deviation within the set of histograms.
+
+			:param histograms: set of histrograms to be averaged
+			:type histograms: list(Histogram1D)
+
+			:param error_estimate: indicate if and how to perform error analysis. One of following options is available:
+			
+				*  **std** -- compute error from the standard deviation within the set of histograms.
+				*  **None** -- do not estimate the error.
+			
+			Defaults to None, i.e. no error estimate.
+			:type error_estimate: str, optional
+
+			:param nsigma: only relevant when error estimation is turned on (i.e. when keyword ``error_estimate`` is not None), this option defines how large the error interval should be in terms of the standard deviation sigma. A ``nsigma=2`` implies a 2-sigma error bar (corresponding to 95% confidence interval) will be returned. Defaults to 2
+			:type nsigma: int, optional
+
+			:return: averages histogram
+			:rtype: Histrogram1D
+		'''
+		#sanity checks
+		cv_unit, cv_label = None, None
+		cvs = None
+		for hist in histograms:
+			if cvs is None:
+				cvs = hist.cvs.copy()
+			else:
+				assert (abs(cvs-hist.cvs)<1e-12*np.abs(cvs.mean())).all(), 'Cannot average the histograms as they do not have consistent CV grids'
+			if cv_unit is None:
+				cv_unit = hist.cv_unit
+			else:
+				assert cv_unit==hist.cv_unit, 'Inconsistent CV unit definition in histograms'
+			if cv_label is None:
+				cv_label = hist.cv_label
+			else:
+				assert cv_label==hist.cv_label, 'Inconsistent CV label definition in histograms'
+		#collect probability distributions
+		pss = np.array([hist.ps for hist in histograms])
+		#average histograms
+		ps = pss.mean(axis=0)
+		#compute error if requested
+		plower, pupper = None, None
+		if error_estimate is not None and error_estimate.lower() in ['std']:
+			perr = pss.std(axis=0,ddof=1)
+			plower = ps - nsigma*perr
+			plower[plower<0] = 0.0
+			pupper = ps + nsigma*perr
+		return cls(cvs, ps, plower=plower, pupper=pupper, cv_unit=cv_unit, cv_label=cv_label)
+
+	@classmethod
+	def from_single_trajectory(cls, data, bins, error_estimate=None, nsigma=2, cv_unit='au', cv_label='CV'):
+		'''
+			Routine to estimate of a probability histogram in terms of a collective variable from a trajectory series corresponding to that collective variable.
+
+			:param data: array corresponding to the trajectory series of the collective variable
+			:type data: np.ndarray
+
+			:param bins: array representing the edges of the bins for which a histogram will be constructed. This argument is parsed to `the numpy.histogram routine <https://numpy.org/doc/stable/reference/generated/numpy.histogram.html>`_. Hence, more information on its meaning and allowed values can be found there.
+			:type bins: np.ndarray
+
+			:param error_estimate: indicate if and how to perform error analysis. One of following options is available:
+			
+				*  **mle_p** -- compute error through the asymptotic normality of the maximum likelihood estimator for the probability itself. WARNING: due to positivity constraint of the probability, this only works for low variance. Otherwise the standard error interval for the normal distribution (i.e. mle +- n*sigma) might give rise to negative lower error bars.
+				*  **mle_f** -- compute error through the asymptotic normality of the maximum likelihood estimator for -log(p) (hence for the beta-scaled free energy). This estimation does not suffor from the same WARNING as for ``mle_p``. Furthermore, in case of low variance, the error estimation using ``mle_f`` and ``mle_p`` are consistent (i.e. one can be computed from the other using f=-log(p)).
+				*  **None** -- do not estimate the error.
+			
+			Defaults to None, i.e. no error estimate.
+			:type error_estimate: str, optional
+
+			:param nsigma: only relevant when error estimation is turned on (i.e. when keyword ``error_estimate`` is not None), this option defines how large the error interval should be in terms of the standard deviation sigma. A ``nsigma=2`` implies a 2-sigma error bar (corresponding to 95% confidence interval) will be returned. Defaults to 2
+			:type nsigma: int, optional
+
+			:param plower_lim: if a probability is lower than this value, cap it to this value instead. This is to prevent numerical errors when taking the logarithm upon computing the corresponding free energy. Defaults to 1e-10
+			:type plower_lim: float, optional
+
+			:param cv_unit: the unit in which cv will be plotted/printed, defaults to 'au'
+			:type cv_unit: str, optional
+
+			:param cv_label: the label of the cv that will be used on plots, defaults to 'CV'
+			:type cv_label: str, optional
+		'''
+		#initialization
+		cvs = None
+		ps = None
+		Ntot = len(data)
+		#generate histogram using numpy.histogram routine
+		ns, bin_edges = np.histogram(data, bins=bins, density=False)
+		cvs = 0.5*(bin_edges[:-1]+bin_edges[1:]) # bin centers
+		ps = ns/Ntot
+		#estimate of upper and lower boundary of n-sigma confidence interval
+		plower = None
+		pupper = None
+		if error_estimate=='mle_p':
+			perrors = np.sqrt(ps*(1-ps)/Ntot)
+			plower = ps - nsigma*perrors
+			plower[plower<0] = 0.0
+			pupper = ps + nsigma*perrors
+		elif error_estimate=='mle_f':
+			#we first compute the error bar interval on f=-log(p) and then transform it to one on p itself.
+			fs, ferrors = np.zeros(len(ps))*np.nan, np.zeros(len(ps))*np.nan
+			fs[ps>0] = -np.log(ps[ps>0])
+			ferrors[ps>0] = np.sqrt((np.exp(fs[ps>0])-1)/Ntot)
+			fupper  = fs + nsigma*ferrors
+			flower  = fs - nsigma*ferrors
+			pupper, plower = np.zeros(len(ps))*np.nan, np.zeros(len(ps))*np.nan
+			pupper[ps>0] = np.exp(-flower[ps>0])
+			plower[ps>0] = np.exp(-fupper[ps>0])
+			pupper[np.isinf(pupper)] = np.nan
+		elif error_estimate is not None:
+			raise ValueError('Invalid value for error_estimate argument, received %s. Check documentation for allowed values.' %error_estimate)
+		return cls(cvs, ps, plower=plower, pupper=pupper, cv_unit=cv_unit, cv_label=cv_label)
+
+	@classmethod
+	def from_wham(cls, bins, trajectories, biasses, temp, error_estimate=None, nsigma=2, plower_lim=1e-60, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, verbose=False, cv_unit='au', cv_label='CV'):
+		'''
+			Routine that implements the Weighted Histogram Analysis Method (WHAM) for reconstructing the overall probability histogram from a series of biased molecular simulations.
+
+			:param bins: number of bins for the CV grid or array representing the bin edges for th CV grid.
+			:type bins: int or np.ndarray(float)
+
+			:param trajectories: list or array of numpy arrays containing the CV trajectory data for each simulation. Alternatively, a list of PLUMED file names containing the trajectory data can be specified as well. The arguments trajectories and biasses should be of the same length.
+			:type trajectories: list(np.ndarray)/np.ndarray(np.ndarray)
+
+			:param biasses: list of callables, each representing a function to compute the bias at a given value of the collective variable. The arguments trajectories and biasses should be of the same length.
+			:type biasses: list(callable)
+
+			:param temp: the temperature at which all simulations were performed
+			:type temp: float
+
+			:param error_estimate: indicate if and how to perform error analysis. One of following options is available:
+			
+				*  **mle_p** -- compute error through the asymptotic normality of the maximum likelihood estimator for the probability itself. WARNING: due to positivity constraint of the probability, this only works for high probability and low variance. Otherwise the standard error interval for the normal distribution (i.e. mle +- n*sigma) might give rise to negative lower error bars.
+				*  **mle_f** -- compute error through the asymptotic normality of the maximum likelihood estimator for -log(p) (hence for the beta-scaled free energy). This estimation does not suffor from the same WARNING as for ``mle_p``. Furthermore, in case of high probability and low variance, the error estimation using ``mle_f`` and ``mle_p`` are consistent (i.e. one can be computed from the other using f=-log(p)).
+				*  **None** -- do not estimate the error.
+			
+			Defaults to None, i.e. no error estimate.
+			:type error_estimate: str, optional
+
+			:param nsigma: only relevant when error estimation is turned on (i.e. when keyword ``error_estimate`` is not None), this option defines how large the error interval should be in terms of the standard deviation sigma. A ``nsigma=2`` implies a 2-sigma error bar (corresponding to 95% confidence interval) will be returned. Defaults to 2
+			:type nsigma: int, optional
+
+			:param plower_lim: if a probability is lower than this value, cap it to this value instead. This is to prevent numerical errors when taking the logarithm upon computing the corresponding free energy. Defaults to 1e-10
+			:type plower_lim: float, optional
+			
+			:param bias_subgrid_num: the number of grid points for the sub-grid used to compute the integrated boltzmann factor of the bias in each CV bin.
+			:type bias_subgrid_num: optional, defaults to 20
+
+			:param Nscf: the maximum number of steps in the self-consistent loop to solve the WHAM equations
+			:type Nscf: int, defaults to 100
+
+			:param convergence: convergence criterium for the WHAM self consistent solver. The SCF loop will stop whenever the integrated absolute difference between consecutive probability densities is less then the specified value.
+			:type convergence: float, defaults to 1e-4
+
+			:param verbose: set to True to turn on more verbosity during the self consistent solution cycles of the WHAM equations, defaults to False.
+			:type verbose: bool, optional
+
+			:param cv_unit: the unit in which cv will be plotted/printed, defaults to 'au'
+			:type cv_unit: str, optional
+
+			:param cv_label: the label of the cv that will be used on plots, defaults to 'CV'
+			:type cv_label: str, optional
+
+			:return: probability histogram
+			:rtype: Histogram1D
+		'''
+		#checks and initialization
+		assert len(biasses)==len(trajectories), 'The arguments trajectories and biasses should be of the same length.'
+		beta = 1/(boltzmann*temp)
+		Nsims = len(biasses)
+		#Prerocess trajectory argument: load files if file names are given instead of raw data, determine and store the number of simulation steps in each simulation:
+		Nis = []
+		data = []
+		for i, trajectory in enumerate(trajectories):
+			if isinstance(trajectory, str):
+				trajectory = np.loadtxt(trajectory)[:,1] #first column is the time, second column is the CV
+			Nis.append(len(trajectory))
+			data.append(trajectory)
+		if len(data)>0:
+			trajectory = data
+		Nis = np.array(Nis)
+		#Preprocess the bins argument and redefine it to represent the bin_edges. We need to do this beforehand to make sure that when calling the numpy.histogram routine with this bins argument, each histogram will have a consistent bin_edges array and hence consistent histogram.
+		if isinstance(bins, int):
+			raise NotImplementedError
+			cv_min = None #TODO
+			cv_max = None #TODO
+			cv_delta = (cv_max-cv_min)/bins #this 
+			bins = np.arange(cv_min, cv_max+cv_delta, cv_delta)			
+		bin_centers = 0.5*(bins[:-1]+bins[1:])
+		deltas = bins[1:]-bins[:-1]
+		grid_non_uniformity = deltas.std()/deltas.mean()
+		assert grid_non_uniformity<1e-6, 'CV grid defined by bins argument should be of uniform spacing!'
+		delta =deltas.mean()
+		Ngrid = len(bin_centers)
+		#generate the individual histograms using numpy.histogram
+		Hs = np.zeros([Nsims, Ngrid])
+		for i, data in enumerate(trajectories):
+			ns, edges = np.histogram(data, bins, density=False)
+			assert (bins==edges).all()
+			Hs[i,:] = ns.copy()
+		#compute the boltzmann factors of the biases in each grid interval
+		#b_ik = 1/delta*int(exp(-beta*W_i(q)), q=Q_k-delta/2...Q_k+delta/2)
+		bs = np.zeros([Nsims, Ngrid])
+		for i, bias in enumerate(biasses):
+			for k, center in enumerate(bin_centers):
+				subdelta = delta/bias_subgrid_num
+				subgrid = np.arange(center-delta/2, center+delta/2 + subdelta, subdelta)
+				bs[i,k] = integrate(subgrid, np.exp(-beta*bias(subgrid)))/delta
+		#some init printing
+		if verbose:
+			print('Initialization:')
+			print('  Number of simulations = ', Nsims)
+			for i, Ni in enumerate(Nis):
+				print('    simulation %i has %i steps' %(i,Ni))
+			print('  Number of CV grid points = ', Ngrid)
+			print('')
+			print('Starting WHAM SCF loop:')
+		#self consistent loop to solve the WHAM equations
+		as_old = np.ones(Ngrid)/Ngrid #initialize probability density array (which should sum to 1)
+		nominator = Hs.sum(axis=0) #precomputable factor in WHAM update equations
+		for iscf in range(Nscf):
+			#compute new normalization factors
+			fs = np.zeros(Nsims)
+			for i in range(Nsims):
+				fs[i] = 1.0/np.dot(bs[i,:],as_old)
+			#compute new probabilities
+			as_new = as_old.copy()
+			for k in range(Ngrid):
+				denominator = sum([Nis[i]*fs[i]*bs[i,k] for i in range(Nsims)])
+				as_new[k] = nominator[k]/denominator			
+			as_new /= as_new.sum() #enforce normalization
+			#check convergence
+			integrated_diff = np.abs(as_new-as_old).sum()
+			if verbose:
+				max = as_new.max()
+				imax = np.where(as_new==max)[0]
+				#min = as_new.min()
+				#imin = np.where(as_new==min)[0]
+				print('cycle %i/%i' %(iscf+1,Nscf))
+				print('  norm prob. dens. [au] = %.3e' %as_new.sum())
+				print('  max prob. dens.  [au] = %.3e' %max)
+				print('  cv for max       [%s] = ' %cv_unit, bin_centers[imax]/parse_unit(cv_unit))
+				#print('  min prob. dens.  [au] = %.3e' %min)
+				#print('  cv for min       [%s] = ' %cv_unit, bin_centers[imin]/parse_unit(cv_unit))
+				print('  Integr. Diff.    [au] = %.3e' %integrated_diff)
+				print('')
+			if integrated_diff<convergence:
+				print('WHAM SCF Converged!')
+				break
+			else:
+				if iscf==Nscf-1:
+					print('WARNING: could not converge WHAM equations to convergence of %.3e in %i steps!' %(convergence, Nscf))
+			as_old = as_new.copy()
+		cvs = bin_centers.copy()
+		ps = as_new.copy()
+		#compute final normalization factors
+		for i in range(Nsims):
+				fs[i] = 1.0/np.dot(bs[i,:],as_new)
+		plower = None
+		pupper = None
+		if error_estimate in ['mle_p']:
+			#construct the extended Fisher information matrix as the weighted sum of the indivual Fisher matrices of each simulation separately
+			I = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])
+			for i in range(Nsims):
+				Ii = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])
+				for k in range(Ngrid):
+					#avoid singularity at ps[k]=0, this should be investigated
+					if ps[k]>plower_lim:
+						Ii[k,k] = fs[i]*bs[i,k]/ps[k]
+					else:
+						Ii[k,k] = fs[i]*bs[i,k]/plower_lim
+					Ii[k,Ngrid+i] = bs[i,k]
+					Ii[Ngrid+i,k] = bs[i,k]
+					Ii[k,Ngrid+Nsims+i] = fs[i]*bs[i,k]
+					Ii[Ngrid+Nsims+i,k] = fs[i]*bs[i,k]
+					Ii[k,-1] = 1
+					Ii[-1,k] = 1
+				Ii[Ngrid+i,Ngrid+i] = 1/fs[i]**2
+				Ii[Ngrid+i,Ngrid+Nsims+i] = 1/fs[i]
+				Ii[Ngrid+Nsims+i,Ngrid+i] = 1/fs[i]
+				I += Nis[i]*Ii
+			#the covariance matrix is now simply the inverse of the total Fisher matrix
+			sigma = np.linalg.inv(I)
+			#the error bar on the probability of bin k is now simply the (k,k)-diagonal element of sigma
+			perr = np.sqrt(np.diagonal(sigma)[:Ngrid])
+			plower = ps - nsigma*perr
+			plower[plower<0] = 0.0
+			pupper = ps + nsigma*perr
+		elif error_estimate is not None and error_estimate not in ["None"]:
+			raise ValueError('Received invalid value for keyword argument error_estimate, got %s. See documentation for valid choices.' %error_estimate)
+		return cls(cvs, ps, plower=plower, pupper=pupper)
+
+	@classmethod
+	def from_fep(cls, fep, temp):
+		'''
+			Use the given free energy profile to construct the corresponding probability histogram at the given temperature.
+
+			:param fep: free energy profile from which the probability histogram is computed
+			:type fep: fep.BaseFreeEnergyProfile/fep.SimpleFreeEnergyProfile
+
+			:param temp: the temperature at which the histogram input data was simulated
+			:type temp: float
+
+			:return: probability histogram corresponding to the given free energy profile
+			:rtype: Histogram1D
+		'''
+		pupper = None
+		plower = None
+		ps = np.zeros(len(fep.fs))
+		beta = 1.0/(boltzmann*temp)
+		ps = np.exp(-beta*fep.fs)
+		ps /= ps[~np.isnan(ps)].sum()
+		if fep.fupper is not None and fep.flower is not None:
+			pupper = np.zeros(len(fep.fs))
+			plower = np.zeros(len(fep.fs))
+			pupper = np.exp(-beta*fep.flower)
+			plower = np.exp(-beta*fep.fupper)
+			pupper /= pupper[~np.isnan(pupper)].sum()
+			plower /= plower[~np.isnan(plower)].sum()
+		return cls(fep.cvs, ps, pupper=pupper, plower=plower, cv_unit=fep.cv_unit, cv_label=fep.cv_label)
+
+	def plot(self, fn, temp=None, flim=None):
+		'''
+			Make a plot of the probability histogram and possible the corresponding free energy (if the argument ``temp`` is specified).
+
+			:param fn: file name of the resulting plot
+			:type fn: str
+
+			:param temp: the temperature for conversion of histogram to free energy profile. Specifying this number will add a free energy plot. Defaults to None
+			:type temp: float, optional
+
+			:param flim: upper limit of the free energy axis in plots. Defaults to None
+			:type flim: float, optional
+		'''
+		plot_histograms(fn, [self], temp=temp, flim=flim)
+
+
+def plot_histograms(fn, histograms, temp=None, labels=None, flim=None, colors=None, linestyles=None, linewidths=None, set_ref='min'):
+	'''
+		Make a plot to compare multiple probability histograms and possible the corresponding free energy (if the argument ``temp`` is specified).
+
+		:param fn: file name to write the figure to, the extension determines the format (PNG or PDF).
+		:type fn: str
+
+		:param histograms: list of histrograms to plot
+		:type histograms: list(Histogram1D)
+
+		:param temp: if defined, the free energy profile corresponding to each histogram will be computed and plotted with its corresponding temperature. If a single float is given, all histograms are assumed to be at the same temperature, if a list or array of floats is given, each entry is assumed to be the temperature of the corresponding entry in the input list of histograms. Defaults to None
+		:type temp: float/list(float)/np.ndarray, optional
+
+		:param labels: list of labels for the legend, one for each histogram. Defaults to None
+		:type labels: list(str), optional
+
+		:param flim: upper limit of the free energy axis in plots. Defaults to None
+		:type flim: float, optional
+
+		:param colors: List of matplotlib color definitions for each entry in histograms. If an entry is None, a color will be chosen internally. Defaults to None, implying all colors are chosen internally.
+		:type colors: List(str), optional
+
+		:param linestyles: List of matplotlib line style definitions for each entry in histograms. If an entry is None, the default line style of '-' will be chosen . Defaults to None, implying all line styles are set to the default of '-'.
+		:type linestyles: List(str), optional
+
+		:param linewidths: List of matplotlib line width definitions for each entry in histograms. If an entry is None, the default line width of 1 will be chosen. Defaults to None, implying all line widths are set to the default of 2.
+		:type linewidths: List(str), optional
+
+		:param set_ref: set the reference of each corresponding free energy profile, see documentation of the set_ref routine of the free energy profile class for more information on the allowed values. Defaults to min, implying each profile is shifted vertically untill the minimum value equals zero.
+		:type set_ref: str, optional
+	'''
+	#initialize
+	linewidth_default = 2
+	linestyle_default = '-'
+	nhist = len(histograms)
+	pp.clf()
+	if temp is None:
+		fig, axs = pp.subplots(nrows=1, ncols=1, squeeze=False)
+	else:
+		fig, axs = pp.subplots(nrows=1, ncols=2, squeeze=False)
+	cmap = cm.get_cmap('tab10')
+	cv_unit = histograms[0].cv_unit
+	cv_label = histograms[0].cv_label
+	fmax = -np.inf
+	#add probability histogram and possible free energy plots	
+	for ihist, hist in enumerate(histograms):
+		#set label
+		label = 'Histogram %i' %ihist
+		if labels is not None:
+			label = labels[ihist]
+		#set color, linestyles, ...
+		color = None
+		if colors is not None:
+			color = colors[ihist]
+		if color is None:
+			color = cmap(ihist)
+		linewidth = None
+		if linewidths is not None:
+			linewidth = linewidths[ihist]
+		if linewidth is None:
+			linewidth = linewidth_default
+		linestyle = None
+		if linestyles is not None:
+			linestyle = linestyles[ihist]
+		if linestyle is None:
+			linestyle = linestyle_default
+		#plot probability
+		axs[0,0].plot(hist.cvs/parse_unit(cv_unit), hist.ps, linewidth=linewidth, color=color, linestyle=linestyle, label=label)
+		if hist.plower is not None and hist.pupper is not None:
+			axs[0,0].fill_between(hist.cvs/parse_unit(cv_unit), hist.plower, hist.pupper, color=color, alpha=0.33)
+		#free energy if requested
+		if temp is not None:
+			fep = BaseFreeEnergyProfile.from_histogram(hist, temp)
+			if set_ref is not None:
+				fep.set_ref(ref='min')
+			fmax = max(fmax, np.ceil(max(fep.fs[~np.isnan(fep.fs)]/kjmol)/10)*10)
+			funit = fep.f_unit
+			axs[0,1].plot(fep.cvs/parse_unit(cv_unit), fep.fs/parse_unit(funit), linewidth=linewidth, color=color, linestyle=linestyle, label=label)
+			if fep.flower is not None and fep.fupper is not None:
+				axs[0,1].fill_between(fep.cvs/parse_unit(cv_unit), fep.flower/parse_unit(funit), fep.fupper/parse_unit(funit), color=color, alpha=0.33)
+	#decorate
+	cv_range = [min(histograms[0].cvs/parse_unit(cv_unit)), max(histograms[0].cvs/parse_unit(cv_unit))]
+	axs[0,0].set_xlabel('%s [%s]' %(cv_label, cv_unit), fontsize=14)
+	axs[0,0].set_ylabel('P [-]', fontsize=14)
+	axs[0,0].set_title('Probability histogram', fontsize=14)
+	axs[0,0].set_xlim(cv_range)
+	axs[0,0].legend(loc='best')
+	if temp is not None:
+		axs[0,1].set_xlabel('%s [%s]' %(cv_label, cv_unit), fontsize=14)
+		axs[0,1].set_ylabel('F [%s]' %funit, fontsize=14)
+		axs[0,1].set_title('Free energy profile', fontsize=14)
+		axs[0,1].set_xlim(cv_range)
+		if flim is None:
+			axs[0,1].set_ylim([-1,fmax])
+		else:
+			axs[0,1].set_ylim([-1,flim/parse_unit(funit)])
+		axs[0,1].legend(loc='best')
+	#save
+	if temp is not None:
+		fig.set_size_inches([16,8])
+	else:
+		fig.set_size_inches([8,8])
+	pp.savefig(fn)
