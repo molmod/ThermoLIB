@@ -311,20 +311,18 @@ class Histogram1D(object):
 		ps = as_new.copy()
 		#compute final normalization factors
 		for i in range(Nsims):
-				fs[i] = 1.0/np.dot(bs[i,:],as_new)
+			fs[i] = 1.0/np.dot(bs[i,:],as_new)
 		plower = None
 		pupper = None
 		if error_estimate in ['mle_p']:
-			#construct the extended Fisher information matrix as the weighted sum of the indivual Fisher matrices of each simulation separately
+			#construct the extended Fisher information matrix corresponding to histogram counts directly as the weighted sum of the indivual Fisher matrices of each simulation separately.
 			I = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])
 			for i in range(Nsims):
 				Ii = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])
 				for k in range(Ngrid):
-					#avoid singularity at ps[k]=0, this should be investigated
-					if ps[k]>plower_lim:
+					#avoid singularity at ps[k]=0, this is an inherint isssue to mle_p not present in the mle_f error estimation
+					if ps[k]>0:
 						Ii[k,k] = fs[i]*bs[i,k]/ps[k]
-					else:
-						Ii[k,k] = fs[i]*bs[i,k]/plower_lim
 					Ii[k,Ngrid+i] = bs[i,k]
 					Ii[Ngrid+i,k] = bs[i,k]
 					Ii[k,Ngrid+Nsims+i] = fs[i]*bs[i,k]
@@ -335,13 +333,57 @@ class Histogram1D(object):
 				Ii[Ngrid+i,Ngrid+Nsims+i] = 1/fs[i]
 				Ii[Ngrid+Nsims+i,Ngrid+i] = 1/fs[i]
 				I += Nis[i]*Ii
-			#the covariance matrix is now simply the inverse of the total Fisher matrix
-			sigma = np.linalg.inv(I)
+			#the covariance matrix is now simply the inverse of the total Fisher matrix. However, for histogram bins with count 0 (and hence probability 0), we cannot estimate the corresponding error. This can be seen above as ps[k]=0 gives an divergence. Therefore, we define a mask corresponding to only non-zero probabilities and define and inverted the masked information matrix
+			mask = np.ones([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1], dtype=bool)
+			for k in range(Ngrid):
+				if ps[k]==0:
+					mask[k,:] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
+					mask[:,k] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
+			Nmask2 = len(I[mask])
+			assert abs(int(np.sqrt(Nmask2))-np.sqrt(Nmask2))==0
+			Nmask = int(np.sqrt(Nmask2))
+			Imask = I[mask].reshape([Nmask,Nmask])
+			sigma = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])*np.nan
+			sigma[mask] = np.linalg.inv(Imask).reshape([Nmask2])
 			#the error bar on the probability of bin k is now simply the (k,k)-diagonal element of sigma
 			perr = np.sqrt(np.diagonal(sigma)[:Ngrid])
 			plower = ps - nsigma*perr
 			plower[plower<0] = 0.0
 			pupper = ps + nsigma*perr
+		elif error_estimate in ['mle_f']:
+			#construct the extended Fisher information matrix corresponding to minus the logarithm of the histogram counts (which are related to the free energy values) as the weighted sum of the indivual Fisher matrices of each simulation separately
+			I = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])
+			for i in range(Nsims):
+				Ii = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])
+				for k in range(Ngrid):
+					#note that ps=exp(-gs) where gs are the degrees of freedom in the mle_f method (minus logarithm of the histogram counts)
+					Ii[k,k] = ps[k]*fs[i]*bs[i,k]
+					Ii[k,Ngrid+i] = -ps[k]*bs[i,k]
+					Ii[Ngrid+i,k] = -ps[k]*bs[i,k]
+					Ii[k,Ngrid+Nsims+i] = -fs[i]*ps[k]*bs[i,k]
+					Ii[Ngrid+Nsims+i,k] = -fs[i]*ps[k]*bs[i,k]
+					Ii[k,-1] = -ps[k]
+					Ii[-1,k] = -ps[k]
+				Ii[Ngrid+i,Ngrid+i] = 1/fs[i]**2
+				Ii[Ngrid+i,Ngrid+Nsims+i] = 1/fs[i]
+				Ii[Ngrid+Nsims+i,Ngrid+i] = 1/fs[i]
+				I += Nis[i]*Ii
+			#the covariance matrix is now simply the inverse of the total Fisher matrix. However, for histogram bins with count 0 (and hence probability 0), we cannot estimate the corresponding error. This can be seen above as ps[k]=0 gives an divergence. Therefore, we define a mask corresponding to only non-zero probabilities and define and inverted the masked information matrix
+			mask = np.ones([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1], dtype=bool)
+			for k in range(Ngrid):
+				if ps[k]==0:
+					mask[k,:] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
+					mask[:,k] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
+			Nmask2 = len(I[mask])
+			assert abs(int(np.sqrt(Nmask2))-np.sqrt(Nmask2))==0
+			Nmask = int(np.sqrt(Nmask2))
+			Imask = I[mask].reshape([Nmask,Nmask])
+			sigma = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])*np.nan
+			sigma[mask] = np.linalg.inv(Imask).reshape([Nmask2])
+			#the error bar on the g-value (i.e. minus logarithm of the probability) of bin k is now simply the (k,k)-diagonal element of sigma
+			gerr = np.sqrt(np.diagonal(sigma)[:Ngrid])
+			plower = ps*np.exp(-nsigma*gerr)
+			pupper = ps*np.exp(nsigma*gerr)
 		elif error_estimate is not None and error_estimate not in ["None"]:
 			raise ValueError('Received invalid value for keyword argument error_estimate, got %s. See documentation for valid choices.' %error_estimate)
 		return cls(cvs, ps, plower=plower, pupper=pupper)
@@ -458,9 +500,9 @@ def plot_histograms(fn, histograms, temp=None, labels=None, flim=None, colors=No
 		if linestyle is None:
 			linestyle = linestyle_default
 		#plot probability
-		axs[0,0].plot(hist.cvs/parse_unit(cv_unit), hist.ps, linewidth=linewidth, color=color, linestyle=linestyle, label=label)
+		axs[0,0].plot(hist.cvs/parse_unit(cv_unit), hist.ps/max(hist.ps), linewidth=linewidth, color=color, linestyle=linestyle, label=label)
 		if hist.plower is not None and hist.pupper is not None:
-			axs[0,0].fill_between(hist.cvs/parse_unit(cv_unit), hist.plower, hist.pupper, color=color, alpha=0.33)
+			axs[0,0].fill_between(hist.cvs/parse_unit(cv_unit), hist.plower/max(hist.ps), hist.pupper/max(hist.ps), color=color, alpha=0.33)
 		#free energy if requested
 		if temp is not None:
 			fep = BaseFreeEnergyProfile.from_histogram(hist, temp)
@@ -474,7 +516,7 @@ def plot_histograms(fn, histograms, temp=None, labels=None, flim=None, colors=No
 	#decorate
 	cv_range = [min(histograms[0].cvs/parse_unit(cv_unit)), max(histograms[0].cvs/parse_unit(cv_unit))]
 	axs[0,0].set_xlabel('%s [%s]' %(cv_label, cv_unit), fontsize=14)
-	axs[0,0].set_ylabel('P [-]', fontsize=14)
+	axs[0,0].set_ylabel('Relative probability [-]', fontsize=14)
 	axs[0,0].set_title('Probability histogram', fontsize=14)
 	axs[0,0].set_xlim(cv_range)
 	axs[0,0].legend(loc='best')

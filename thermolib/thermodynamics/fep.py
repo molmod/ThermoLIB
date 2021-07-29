@@ -1351,9 +1351,9 @@ def plot_feps(fn, feps, temp=None, labels=None, flim=None, colors=None, linestyl
         #histogram if requested
         if temp is not None:
             hist = Histogram1D.from_fep(fep, temp)
-            axs[0,1].plot(hist.cvs/parse_unit(cv_unit), hist.ps, linewidth=linewidth, color=color, linestyle=linestyle, label=label)
+            axs[0,1].plot(hist.cvs/parse_unit(cv_unit), hist.ps/max(hist.ps), linewidth=linewidth, color=color, linestyle=linestyle, label=label)
             if hist.plower is not None and hist.pupper is not None:
-                axs[0,1].fill_between(hist.cvs/parse_unit(cv_unit), hist.plower, hist.pupper, color=color, alpha=0.33)
+                axs[0,1].fill_between(hist.cvs/parse_unit(cv_unit), hist.plower/max(hist.ps), hist.pupper/max(hist.ps), color=color, alpha=0.33)
     #decorate
     cv_range = [min(feps[0].cvs/parse_unit(cv_unit)), max(feps[0].cvs/parse_unit(cv_unit))]
     axs[0,0].set_xlabel('%s [%s]' %(cv_label, cv_unit), fontsize=14)
@@ -1368,7 +1368,7 @@ def plot_feps(fn, feps, temp=None, labels=None, flim=None, colors=None, linestyl
     axs[0,0].legend(loc='best')
     if temp is not None:
         axs[0,1].set_xlabel('%s [%s]' %(cv_label, cv_unit), fontsize=14)
-        axs[0,1].set_ylabel('P [-]', fontsize=14)
+        axs[0,1].set_ylabel('Relative probability [-]', fontsize=14)
         axs[0,1].set_title('Probability histogram', fontsize=14)
         axs[0,1].set_xlim(cv_range)
         axs[0,1].legend(loc='best')
