@@ -617,6 +617,8 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
         axs = [ax]
         #make free energy plot
         axs[0].plot(self.cvs/parse_unit(self.cv_unit), self.fs/parse_unit(self.f_unit), linewidth=1, color='0.2')
+        if self.flower is not None and self.fupper is not None:
+            axs[0].fill_between(self.cvs/parse_unit(self.cv_unit), self.flower/parse_unit(self.f_unit), self.fupper/parse_unit(self.f_unit), alpha=0.33)
         #plot vline for transition state if defined
         cv_width = max(self.cvs)-min(self.cvs)
         ylower = -1+min([state[3]/kjmol for state in self.macrostates]+[0])
@@ -832,28 +834,29 @@ class FreeEnergySurface2D(object):
             raise IOError('Invalid REF specificatin, recieved %s and should be min' %ref)
 
     def detect_clusters(self, eps=1.5, min_samples=8, metric='euclidean', fn_plot=None, delete_clusters=[-1]):
-        '''Routine to apply `the DBSCAN clustering algoritm as implemented in the Scikit Learn package <https://scikit-learn.org/stable/modules/generated/sklearn.cluster.DBSCAN.html>`_ to the (CV1,CV2) grid points that correspond to finite free energies (i.e. not nan or inf) to detect clusters of neighboring points.
+        '''
+            Routine to apply `the DBSCAN clustering algoritm as implemented in the Scikit Learn package <https://scikit-learn.org/stable/modules/generated/sklearn.cluster.DBSCAN.html>`_ to the (CV1,CV2) grid points that correspond to finite free energies (i.e. not nan or inf) to detect clusters of neighboring points.
 
-        The DBSCAN algorithm first identifies the core samples, there exist ``min_samples`` other samples within a distance of ``eps``, which are defined as neighbors of the core sample. Next, the data is divided into clusters based on these core samples. A cluster is defined a set of core samples that can be built by recursively taking a core sample, finding all of its neighbors that are core samples, finding all of their neighbors that are core samples, and so on. A cluster also has a set of non-core samples, which are samples that are neighbors of a core sample in the cluster but are not themselves core samples. Intuitively, these samples are on the fringes of a cluster. Each cluster is given an integer as label.
+            The DBSCAN algorithm first identifies the core samples, defined as samples for which at least ``min_samples`` other samples are within a distance of ``eps``. Next, the data is divided into clusters based on these core samples. A cluster is defined as a set of core samples that can be built by recursively taking a core sample, finding all of its neighbors that are core samples, finding all of their neighbors that are core samples, and so on. A cluster also has a set of non-core samples, which are samples that are neighbors of a core sample in the cluster but are not themselves core samples. Intuitively, these samples are on the fringes of a cluster. Each cluster is given an integer as label.
 
-        Any sample that is not a core sample, and is at least ``eps`` in distance from any core sample, is considered an outlier by the algorithm and is what we here consider an isolated point/region. These points get the cluster label of -1.
+            Any sample that is not a core sample, and is at least ``eps`` in distance from any core sample, is considered an outlier by the algorithm and is what we here consider an isolated point/region. These points get the cluster label of -1.
 
-        Finally, all data points belonging to a cluster with label specified in ``delete_clusters`` will have theire free energy set to nan. A safe choice here is to just delete isolated regions, i.e. the point in cluster with label -1 (which is the default).
+            Finally, all data points belonging to a cluster with label specified in ``delete_clusters`` will have theire free energy set to nan. A safe choice here is to just delete isolated regions, i.e. the point in cluster with label -1 (which is the default).
 
-        :param eps: DBSCAN parameter representing maximum distance between two samples for them to be considered neighbors (for more, see `DBSCAN documentation <https://scikit-learn.org/stable/modules/generated/sklearn.cluster.DBSCAN.html>`_), defaults to 1.5
-        :type eps: float, optional
+            :param eps: DBSCAN parameter representing maximum distance between two samples for them to be considered neighbors (for more, see `DBSCAN documentation <https://scikit-learn.org/stable/modules/generated/sklearn.cluster.DBSCAN.html>`_), defaults to 1.5
+            :type eps: float, optional
 
-        :param min_samples: DBSCAN parameter representing the number of samples in a neighborhood for a point to be considered a core point (for more, see `DBSCAN documentation <https://scikit-learn.org/stable/modules/generated/sklearn.cluster.DBSCAN.html>`_), defaults to 8
-        :type min_samples: int, optional
+            :param min_samples: DBSCAN parameter representing the number of samples in a neighborhood for a point to be considered a core point (for more, see `DBSCAN documentation <https://scikit-learn.org/stable/modules/generated/sklearn.cluster.DBSCAN.html>`_), defaults to 8
+            :type min_samples: int, optional
 
-        :param metric: DBSCAN parameter representing the metric used when calculating distance (for more, see `DBSCAN documentation <https://scikit-learn.org/stable/modules/generated/sklearn.cluster.DBSCAN.html>`_), defaults to 'euclidean'
-        :type metric: str or callable, optional
+            :param metric: DBSCAN parameter representing the metric used when calculating distance (for more, see `DBSCAN documentation <https://scikit-learn.org/stable/modules/generated/sklearn.cluster.DBSCAN.html>`_), defaults to 'euclidean'
+            :type metric: str or callable, optional
 
-        :param fn_plot: if specified, a plot will be made (and written to ``fn_plot``) visualizing the resulting clusters, defaults to None
-        :type fn_plot: str, optional
+            :param fn_plot: if specified, a plot will be made (and written to ``fn_plot``) visualizing the resulting clusters, defaults to None
+            :type fn_plot: str, optional
 
-        :param delete_clusters: list of cluster names whos members will be deleted from the free energy surface data, defaults to [-1] meaning only isolated points (not belonging to a cluster) will be deleted.
-        :type delete_clusters: list, optional
+            :param delete_clusters: list of cluster names whos members will be deleted from the free energy surface data, defaults to [-1] meaning only isolated points (not belonging to a cluster) will be deleted.
+            :type delete_clusters: list, optional
         '''
         #collect data
         data = []
@@ -904,18 +907,19 @@ class FreeEnergySurface2D(object):
             self.compute_probdens()
 
     def crop(self, cv1range=None, cv2range=None, return_new_fes=False):
-        '''Crop the free energy surface by removing all data for which either cv1 or cv2 is beyond a given range.
-        
-        :param cv1range: range of cv1 that will remain after cropping, defaults to None
-        :type cv1range: [type], optional
+        '''
+            Crop the free energy surface by removing all data for which either cv1 or cv2 is beyond a given range.
+            
+            :param cv1range: range of cv1 that will remain after cropping, defaults to None
+            :type cv1range: [type], optional
 
-        :param cv2range: range of cv2 that will remain after cropping, defaults to None
-        :type cv2range: [type], optional
+            :param cv2range: range of cv2 that will remain after cropping, defaults to None
+            :type cv2range: [type], optional
 
-        :param return_new_fes: if set to false, the cropping process will be applied on the existing instance, otherwise a copy will be returned, defaults to False
-        :type return_new_fes: bool, optional
+            :param return_new_fes: if set to false, the cropping process will be applied on the existing instance, otherwise a copy will be returned, defaults to False
+            :type return_new_fes: bool, optional
 
-        :return: None or new instance of :class:`FreeEnergySurface2D` representing cropped FES, depending on ``return_new_fes``
+            :return: None or new instance of :class:`FreeEnergySurface2D` representing cropped FES, depending on ``return_new_fes``
         '''
         #cut off some unwanted regions
         cv1s = self.cv1s.copy()
@@ -944,28 +948,29 @@ class FreeEnergySurface2D(object):
             self.compute_probdens()
 
     def rotate(self, interpolate=True):
-        '''Transform the free energy profile in terms of the following two new collective variables:
+        '''
+            Transform the free energy profile in terms of the following two new collective variables:
 
-        .. math::
+            .. math::
 
-            \\begin{aligned}
-                u &= \\frac{CV_1+CV_2}{2} \\\\
-                v &= CV_2 - CV_1
-            \\end{aligned}
+                \\begin{aligned}
+                    u &= \\frac{CV_1+CV_2}{2} \\\\
+                    v &= CV_2 - CV_1
+                \\end{aligned}
 
-        This transformation represents a simple rotation (and mirroring). From probability theory we find the transformation formula:
+            This transformation represents a simple rotation (and mirroring). From probability theory we find the transformation formula:
 
-        .. math::
+            .. math::
 
-            F_\\text{rot}(u,v) = F\\left(u-\\frac{v}{2}, u+\\frac{v}{2}\\right))
+                F_\\text{rot}(u,v) = F\\left(u-\\frac{v}{2}, u+\\frac{v}{2}\\right))
 
-        The uniform (u,v)-grid introduces new grid points in between the original (cv1,cv2) grid points. If interpolate is True, the free energy for these points is interpolated if all four neighbors have defined (i.e. not nan) free energies.
+            The uniform (u,v)-grid introduces new grid points in between the original (cv1,cv2) grid points. If interpolate is True, the free energy for these points is interpolated if all four neighbors have defined (i.e. not nan) free energies.
 
-        :param interpolate: if set to true, interpolate undefined grid points (arrising due to rotation) between neighbors, defaults to True
-        :type interpolate: bool, optional
+            :param interpolate: if set to true, interpolate undefined grid points (arrising due to rotation) between neighbors, defaults to True
+            :type interpolate: bool, optional
 
-        :return: rotated free energy surface
-        :rtype: FreeEnergySurface2D
+            :return: rotated free energy surface
+            :rtype: FreeEnergySurface2D
         '''
         #First make unique list of us and vs
         print('Making unique arrays for u=0.5*(cv1+cv2) and v=cv2-cv1')
@@ -1032,19 +1037,20 @@ class FreeEnergySurface2D(object):
         return FreeEnergySurface2D(vs, us, fs, self.T, cv1_unit=v_unit, cv2_unit=u_unit, f_unit='kjmol', cv1_label='CV2-CV1', cv2_label='0.5*(CV1+CV2)')
 
     def project_difference(self, sign=1):
-        '''Construct a 1D free energy profile representing the projection of the 2D FES onto the difference of collective variables:
+        '''
+            Construct a 1D free energy profile representing the projection of the 2D FES onto the difference of collective variables:
 
-        .. math::
+            .. math::
 
-            F1(q) = -k_B T \\log\\left( \\int_{-\\infty}^{+\\infty} e^{-\\beta F2(x,x+q)}dx \\right)
+                F1(q) = -k_B T \\log\\left( \\int_{-\\infty}^{+\\infty} e^{-\\beta F2(x,x+q)}dx \\right)
 
-        with :math:`q=CV2-CV1`. This projection is implemented by first projecting the probability density and afterwards reconstructing the free energy.
+            with :math:`q=CV2-CV1`. This projection is implemented by first projecting the probability density and afterwards reconstructing the free energy.
 
-        :param sign: If sign is set to 1, the projection is done on q=CV2-CV1, if it is set to -1, projection is done to q=CV1-CV2 instead. Defaults to 1
-        :type sign: int, optional
+            :param sign: If sign is set to 1, the projection is done on q=CV2-CV1, if it is set to -1, projection is done to q=CV1-CV2 instead. Defaults to 1
+            :type sign: int, optional
 
-        :returns: projected 1D free energy profile
-        :rtype: SimpleFreeEnergyProfile
+            :returns: projected 1D free energy profile
+            :rtype: SimpleFreeEnergyProfile
         '''
         #Get the 2D probability density
         if sign==1:
@@ -1111,16 +1117,17 @@ class FreeEnergySurface2D(object):
         return SimpleFreeEnergyProfile(Q, fs, self.T, cv_unit=cv_unit, f_unit='kjmol', cv_label=label)
 
     def project_average(self):
-        '''Construct a 1D free energy profile representing the projection of the 2D FES F2(CV1,CV2) onto the average q=(CV1+CV2)/2 of the collective variables:
+        '''
+            Construct a 1D free energy profile representing the projection of the 2D FES F2(CV1,CV2) onto the average q=(CV1+CV2)/2 of the collective variables:
 
-        .. math::
-            
-            F1(q) = -k_B T \\log\\left( 2\\int_{-\infty}^{+\infty} e^{-\\beta F2(x,2q-x}dx \\right)
+            .. math::
+                
+                F1(q) = -k_B T \\log\\left( 2\\int_{-\infty}^{+\infty} e^{-\\beta F2(x,2q-x}dx \\right)
 
-        with :math:`q=0.5\\dot(CV1+CV2)`. This projection is implemented by first projecting the probability density and afterwards reconstructing the free energy.
+            with :math:`q=0.5\\dot(CV1+CV2)`. This projection is implemented by first projecting the probability density and afterwards reconstructing the free energy.
 
-        :returns: projected 1D free energy profile
-        :rtype: SimpleFreeEnergyProfile
+            :returns: projected 1D free energy profile
+            :rtype: SimpleFreeEnergyProfile
         '''
         x = self.cv1s.copy()
         y = self.cv2s.copy()
@@ -1176,14 +1183,15 @@ class FreeEnergySurface2D(object):
         return SimpleFreeEnergyProfile(Q, fs, self.T, cv_unit=cv_unit, f_unit='kjmol', cv_label='0.5*(CV1+CV2)')
 
     def project_cv1(self):
-        '''Construct a 1D free energy profile representing the projection of the 2D FES F2(CV1,CV2) onto q=CV1. This is implemented as follows:
+        '''
+            Construct a 1D free energy profile representing the projection of the 2D FES F2(CV1,CV2) onto q=CV1. This is implemented as follows:
 
-         .. math::
-            
-            F1(q) = -k_B T \\log\\left( \\int_{-\infty}^{+\infty} e^{-\\beta F2(q,y}dy \\right)
+            .. math::
+                
+                F1(q) = -k_B T \\log\\left( \\int_{-\infty}^{+\infty} e^{-\\beta F2(q,y}dy \\right)
 
-        :returns: projected 1D free energy profile
-        :rtype: SimpleFreeEnergyProfile
+            :returns: projected 1D free energy profile
+            :rtype: SimpleFreeEnergyProfile
         '''
         cvs = self.cv1s.copy()
         ps = np.zeros(len(cvs), float)*np.nan
@@ -1197,14 +1205,15 @@ class FreeEnergySurface2D(object):
         return SimpleFreeEnergyProfile(cvs, fs, self.T, cv_unit=self.cv1_unit, f_unit='kjmol', cv_label=self.cv1_label)
 
     def project_cv2(self):
-        '''Construct a 1D free energy profile representing the projection of the 2D FES F2(CV1,CV2) onto q=CV2. This is implemented as follows:
+        '''
+            Construct a 1D free energy profile representing the projection of the 2D FES F2(CV1,CV2) onto q=CV2. This is implemented as follows:
 
-         .. math::
-            
-            F1(q) = -k_B T \\log\\left( \\int_{-\infty}^{+\infty} e^{-\\beta F2(x,q}dx \\right)
+            .. math::
+                
+                F1(q) = -k_B T \\log\\left( \\int_{-\infty}^{+\infty} e^{-\\beta F2(x,q}dx \\right)
 
-        :returns: projected 1D free energy profile
-        :rtype: SimpleFreeEnergyProfile
+            :returns: projected 1D free energy profile
+            :rtype: SimpleFreeEnergyProfile
         '''
         cvs = self.cv2s.copy()
         ps = np.zeros(len(cvs), float)*np.nan
@@ -1217,32 +1226,33 @@ class FreeEnergySurface2D(object):
         return SimpleFreeEnergyProfile(cvs, fs, self.T, cv_unit=self.cv2_unit, f_unit='kjmol', cv_label=self.cv2_label)
 
     def plot(self, fn_png, obs='F', cv1_lims=None, cv2_lims=None, lims=None, ncolors=8, scale='lin'):
-        '''Simple routine to make a 2D contour plot of either the free energy F or probability distribution P as specified in ``obs``.
+        '''
+            Simple routine to make a 2D contour plot of either the free energy F or probability distribution P as specified in ``obs``.
 
-        :param fn_png: File name to write the plot to. The extension determines the format (PNG or PDF).
-        :type fn_png: str
+            :param fn_png: File name to write the plot to. The extension determines the format (PNG or PDF).
+            :type fn_png: str
 
-        :param obs: Specification which observable should be plotted, should be 'F' for free energy or 'P' for probability. Defaults to 'F'
-        :type obs: str, optional, choices=('F','P')
+            :param obs: Specification which observable should be plotted, should be 'F' for free energy or 'P' for probability. Defaults to 'F'
+            :type obs: str, optional, choices=('F','P')
 
-        :param cv1_lims: range defining the plot limits of CV1, defaults to None
-        :type cv1_lims: tupple/list, optional
+            :param cv1_lims: range defining the plot limits of CV1, defaults to None
+            :type cv1_lims: tupple/list, optional
 
-        :param cv2_lims: range defining the plot limits of CV1, defaults to None
-        :type cv2_lims: tupple/list, optional
+            :param cv2_lims: range defining the plot limits of CV1, defaults to None
+            :type cv2_lims: tupple/list, optional
 
-        :param lims: range defining the plot limits for the observable, defaults to None
-        :type lims: tupple/list, optional
+            :param lims: range defining the plot limits for the observable, defaults to None
+            :type lims: tupple/list, optional
 
-        :param ncolors: number of different colors included in contour plot, defaults to 8
-        :type ncolors: int, optional
+            :param ncolors: number of different colors included in contour plot, defaults to 8
+            :type ncolors: int, optional
 
-        :param scale: scal for the observable, should be 'lin' for linear or 'log' for logarithmic. Ddefaults to 'lin'
-        :type scale: str, optional, choices=('lin', 'log')
+            :param scale: scal for the observable, should be 'lin' for linear or 'log' for logarithmic. Ddefaults to 'lin'
+            :type scale: str, optional, choices=('lin', 'log')
 
-        :raises IOError: if invalid observable is given, see doc above for possible choices.
+            :raises IOError: if invalid observable is given, see doc above for possible choices.
 
-        :raises IOError: if invalid scale is given, see doc above for possible choices.
+            :raises IOError: if invalid scale is given, see doc above for possible choices.
         '''
         pp.clf()
         if obs.lower() in ['f', 'free energy']:
