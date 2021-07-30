@@ -12,6 +12,14 @@ Module for reading, transforming and manipulating free energy profiles. Function
 
 Module for computing the rate factor required in transition state theory required to compute the reaction rate constant. This factor is related to the time derivative of the collective variable in the transition state.
 
+## Dependencies
+
+* numpy
+* scipy
+* molmod
+* sklearn
+* matplotlib
+
 ## Terms of use
 
 ThermoLIB is developed by Louis Vanduyfhuys at the Center for Molecular Modeling under supervision of prof. Veronique Van Speybroeck. Usage of this package should be authorized by prof. Van Van Speybroeck.

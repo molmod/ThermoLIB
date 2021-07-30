@@ -226,6 +226,13 @@ class BaseFreeEnergyProfile(object):
             fupper = fs + nsigma*ferr
         return cls(cvs, fs, temp, flower=flower, fupper=fupper, cv_unit=cv_unit, cv_label=cv_label)
 
+    def savetxt(self, fn_txt):
+        '''
+            Save the free energy profile as txt file
+        '''
+        header = '%s [%s]\tFree energy [%s]' %(self.cv_label, self.cv_unit, self.f_unit)
+        np.savetxt(fn_txt, np.vstack((self.cvs/parse_unit(self.cv_unit), self.fs/parse_unit(self.f_unit))).T, header=header)
+
     def process_states(self, **kwargs):
         raise NotImplementedError
 
@@ -831,7 +838,7 @@ class FreeEnergySurface2D(object):
         if ref.lower() in ['m', 'min']:
             self.fs -= self.fs[~np.isnan(self.fs)].min()
         else:
-            raise IOError('Invalid REF specificatin, recieved %s and should be min' %ref)
+            raise IOError('Invalid REF specification, recieved %s and should be min' %ref)
 
     def detect_clusters(self, eps=1.5, min_samples=8, metric='euclidean', fn_plot=None, delete_clusters=[-1]):
         '''

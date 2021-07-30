@@ -29,57 +29,145 @@ import numpy as np
 
 import sys
 
-__all__ = ['ConditionalProbability1D2D']
+__all__ = ['ConditionalProbability1D1D', 'ConditionalProbability1D2D']
+
 
 class ConditionalProbability1D1D(object):
     '''
         Routine to store and compute conditional probabilities of the form
 
-        .. math::
-            
-            p\left(q|cv\right)
-        
+            p(q1|cv)
     '''
-    def __init__(self, qs, cvs, q_label='Q', cv_label='CV'):
-        #TODO
-        raise NotImplementedError
-    
-    def process_trajectory_xyz(self, fns, Q, CV):
+    def __init__(self, q1s, cvs, q1_label='Q', cv_label='CV'):
+        self.q1s = q1s.copy()
+        self.cvs = cvs.copy()
+        self.q1_label = q1_label
+        self.cv_label = cv_label
+        # Some initialization
+        self.q1min, self.q1max, self.q1num = min(q1s), max(q1s), len(q1s)
+        self.cvmin, self.cvmax, self.cvnum = min(cvs), max(cvs), len(cvs)
+        self.pconds = np.zeros([self.q1num, self.cvnum])
+        self.norms = np.zeros(self.cvnum)
+        self.pqs = np.zeros(self.q1num)
+        self.pcvs = np.zeros(self.cvnum)
+
+    def process_trajectory_xyz(self, fns, Q1, CV, finish=True):
         '''
-            Compute the conditional probability p(q|cv) (and norm for final normalisation) by processing a series of XYZ trajectory files. The final probability is estimated as the average over all given files. These files may also contain data from biased simulations as long as the bias is constant over the simulation. For example, data from Umbrella Sampling is OK, while data from metadynamica itself is not. Data obtained from a regular MD with the final MTD profile as bias is OK.
-
-            Warning: after all trajectories have been processes, you need to manually call the finish routine!
+            Compute the conditional probability p(q1|cv) (and norm for final
+            normalisation) by processing a series of XYZ trajectory files. The
+            final probability is estimated as the average over all given files.
+            These files may also contain data from biased simulations.
         '''
-        #TODO
-        raise NotImplementedError
+        print('Constructing/updating conditional probability with input from XYZ trajectory files ...')
+        if not isinstance(fns, list): fns = [fns]
+        for fn in fns:
+            xyz = XYZReader(fn)
+            for title, coords in xyz:
+                cvi = CV.compute(coords, deriv=False)
+                if not self.cvmin<=cvi<=self.cvmax:
+                    print("Found frame with cv beyond range of current FEP")
+                    continue
+                else:
+                    icv = int((cvi-self.cvmin)/(self.cvmax-self.cvmin)*(self.cvnum-1))
+                    assert self.cvs[icv]<=cvi<=self.cvs[icv+1], "Inconsistency detected in cvs"
+                q1i = Q1.compute(coords, deriv=False)
+                if not self.q1min<=q1i<=self.q1max:
+                    raise ValueError("Found frame with q1 beyond given bounds, aborting")
+                else:
+                    iq1 = int((q1i-self.q1min)/(self.q1max-self.q1min)*(self.q1num-1))
+                    assert self.q1s[iq1]<=q1i<=self.q1s[iq1+1], "Inconsistency detected in q1s"
+                self.pconds[iq1,icv] += 1
+                self.norms[icv] += 1
+        if finish:
+            self.finish()
 
-    def process_trajectory_cvs(self, fns, col_q=1, col_cv=2):
+    def process_trajectory_cvs(self, fns, col_q1=1, col_cv=2, finish=True):
         '''
-            Routine to update conditional probability p(q|cv) (and norm for final normalisation) by processing a series of CV trajectory file. Each CV trajectory file contains rows of the form
+            Compute the conditional probability p(q1|cv) (and norm for final
+            normalisation) by processing a series of CV trajectory files.
+            Each CV trajectory file contains rows of the form
 
-                time q cv
+                time q1 cv
 
-            If the trajectory file contains this data in a different order, it can be accounted for using the col_xx keyword arguments. Similar constraints apply to these CV trajectory files as specified in the routine ´´process_trajectory_xyz´´.
-
-            Warning: after all trajectories have been processes, you need to manually call the finish routine!
+            If the trajectory file contains this data in a different order, it
+            can be accounted for using the col_xx keyword arguments.
         '''
-        #TODO
-        raise NotImplementedError
-    
-    def finish(self, fn_plt=None, plot_cvs=None):
-        #TODO
-        raise NotImplementedError
-    
-    def transform(self, fep, cv_unit='au', f_unit='kjmol', label=None):
-        '''
-            Transform the provided 1D FEP (in terms of q) to a 1D FES (in terms of CV) using the current conditional probability according to the formula
+        if not isinstance(fns, list): fns = [fns]
+        print('Constructing/updating conditional probability with input from CV trajectory files ...')
+        for fn in fns:
+            print('  Reading data from %s' %fn)
+            data = np.loadtxt(fn)
+            self.pconds[:-1, :-1] += np.histogram2d(data[:, col_q1], data[:, col_cv], bins=(self.q1s, self.cvs))[0]
+            self.norms[:-1] += np.histogram(data[:, col_cv], bins=self.cvs)[0]
+        if finish:
+            self.finish()
 
-                FES(q) = -kT*log(P(q))
+    def finish(self):
+        # Normalize conditional probability as well as some additional probability densities
+        self.pqs = np.sum(self.pconds, axis=1)
+        self.pconds[:, self.norms>0] /= self.norms[self.norms>0]
+        assert (self.pconds[:, self.norms<=0]==0).all(), 'Inconsistency in normalisation of conditional probability'
 
-                P(q) = int( condprob(q|cv)*exp(-beta*F(cv), cv)
+        self.pqs /= np.trapz(self.pqs, x=self.q1s)
+        self.pcvs = self.norms.copy()/self.norms.sum()
+
+    def plot(self, fn_plt=None, plot_cvs=None):
+        if fn_plt is not None:
+            if plot_cvs is None:
+                pp.clf()
+                contourf = pp.contourf(self.cvs, self.q1s, self.pconds, cmap=pp.get_cmap('rainbow'))
+                pp.xlabel('%s [au]' %self.cv_label, fontsize=16)
+                pp.ylabel('%s [au]' %self.q1_label, fontsize=16)
+                pp.colorbar(contourf)
+                pp.tight_layout()
+                pp.savefig(fn_plt)
+                pp.close()
+
+            else:
+                pp.clf()
+                if   len(plot_cvs)<=2: nrows,ncols = 1,2
+                elif len(plot_cvs)<=4: nrows,ncols = 2,2
+                elif len(plot_cvs)<=6: nrows,ncols = 2,3
+                elif len(plot_cvs)<=9: nrows,ncols = 3,3
+                else:
+                    raise ValueError('Requested to plot too much cv values, limited to maximum 9')
+                fig, axs = pp.subplots(nrows=nrows,ncols=ncols, sharex=True, sharey=True)
+                for i, cv in enumerate(plot_cvs):
+                    icv = int((cv-self.cvmin)/(self.cvmax-self.cvmin)*(self.cvnum-1))
+                    iax = i//ncols
+                    jax = i%ncols
+                    ax = axs[iax,jax]
+                    ax.plot(self.q1s, self.pconds[:,icv])
+                    if iax==nrows-1:
+                        ax.set_xlabel('%s [au]' %self.q1_label, fontsize=16)
+                    if jax==0:
+                        ax.set_ylabel('Conditional probability p(%s||%s)' %(self.q1_label,self.cv_label), fontsize=16)
+                    ax.set_title('CV = %.3f au' %(self.cvs[icv]))
+                fig.set_size_inches([8*ncols,8*nrows])
+                fig.tight_layout()
+                pp.savefig(fn_plt)
+                pp.close()
+
+    def transform(self, fep, cv_unit='au', f_unit='kjmol', cv_label=None):
         '''
-        #TODO
-        raise NotImplementedError
+            Transform the provided 1D FES to a different 1D FES using the current
+            conditional probability according to the formula
+
+                FES(q1) = -kT*ln(P(q1))
+
+                P(q1) = int(condprob(q1|cv)*exp(-beta*F(cv), cv)
+        '''
+        assert isinstance(fep, BaseFreeEnergyProfile), 'Input argument should be instance of BaseFreeEnergyProfile, instead received %s' %fep.__class__.__name__
+        assert len(fep.cvs)==len(self.cvs), 'Dimension of 1D CV in conditional probability inconsistent with 1D FEP'
+        assert (abs(fep.cvs-self.cvs)<1e-6).all(), 'Values of 1D CV in conditional probability not identical to those of 1D FEP'
+        if cv_label is None: cv_label = self.q1_label
+        # Construct 1D FES
+        ps = np.trapz(self.pconds[:, ~np.isnan(fep.fs)]*np.exp(-fep.beta*fep.fs[~np.isnan(fep.fs)]), x=self.cvs[~np.isnan(fep.fs)])
+        ps /= np.trapz(ps, x=self.q1s)
+        fs = np.zeros([self.q1num], float)*np.nan
+        fs[ps>0] = -np.log(ps[ps>0])/fep.beta
+        return BaseFreeEnergyProfile(self.q1s, fs, fep.T, cv_unit=cv_unit, f_unit=f_unit, cv_label=cv_label)
+
         
 
 class ConditionalProbability1D2D(object):
@@ -206,7 +294,7 @@ class ConditionalProbability1D2D(object):
             elif len(plot_cvs)<=6: nrows,ncols = 2,3
             elif len(plot_cvs)<=9: nrows,ncols = 3,3
             else:
-                raise ValueError('Requested to plot to much cv values, limit to maximum 9')
+                raise ValueError('Requested to plot too much cv values, limited to maximum 9')
             fig, axs = pp.subplots(nrows=nrows,ncols=ncols, sharex=True, sharey=True)
             #fig.suptitle(r'Log of conditional probability distribution')
             for i, cv in enumerate(plot_cvs):
@@ -228,6 +316,7 @@ class ConditionalProbability1D2D(object):
             fig.set_size_inches([8*ncols,8*nrows])
             fig.tight_layout()
             pp.savefig(fn_plt)
+            pp.close()
 
     def transform(self, fep, cv1_unit='au', cv2_unit='au', f_unit='kjmol', label1=None, label2=None):
         '''
@@ -236,7 +325,7 @@ class ConditionalProbability1D2D(object):
 
                 FES(q1,q2) = -kT*log(P(q1,q2))
 
-                P(q1,q2) = int( condprob(q1,q2|cv)*exp(-beta*F(cv), cv)
+                P(q1,q2) = int(condprob(q1,q2|cv)*exp(-beta*F(cv), cv)
         '''
         assert isinstance(fep, BaseFreeEnergyProfile), 'Input argument should be instance of BaseFreeEnergyProfile, instead received %s' %fep.__class__.__name__
         assert len(fep.cvs)==len(self.cvs), 'Dimension of 1D CV in conditional probability inconsistent with 1D FEP'
