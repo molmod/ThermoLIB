@@ -371,7 +371,7 @@ def read_wham_input(fn, kappa_unit='kjmol', q0_unit='au', start=0, end=-1, strid
         iline = -1
         for line in f.readlines():
             iline += 1
-            line = line.rstrip('\n')
+            line = line.rstrip('\n').rstrip('\x00')
             if line.startswith('T'):
                 temp = float(line.split('=')[1].rstrip('K'))
                 if verbose:
@@ -391,6 +391,6 @@ def read_wham_input(fn, kappa_unit='kjmol', q0_unit='au', start=0, end=-1, strid
                     print('Read corresponding trajectory data from %s' %fn_traj)
             elif bias_potential.lower() not in ['parabola', 'harmonic']:
                     raise ValueError('Bias potential definition %s not supported, see documentation for allowed values.')
-            else:
+            elif len(line.split())>0:
                 raise ValueError('Could not process line %i in %s: %s' %(iline, fn, line))
     return temp, biasses, trajectories
