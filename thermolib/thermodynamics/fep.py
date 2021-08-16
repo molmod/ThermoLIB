@@ -478,8 +478,8 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
         
     See :meth:`BaseFreeEnergyProfile` for constructor arguments and documentation.
     '''
-    def __init__(self, cvs, fs, temp, cv_unit='au', f_unit='kjmol', cv_label='CV'):
-        BaseFreeEnergyProfile.__init__(self, cvs, fs, temp, cv_unit=cv_unit, f_unit=f_unit, cv_label=cv_label)
+    def __init__(self, cvs, fs, temp, fupper=None, flower=None, cv_unit='au', f_unit='kjmol', cv_label='CV'):
+        BaseFreeEnergyProfile.__init__(self, cvs, fs, temp, fupper=fupper, flower=flower, cv_unit=cv_unit, f_unit=f_unit, cv_label=cv_label)
         self.ir  = None
         self.its = None
         self.ip  = None

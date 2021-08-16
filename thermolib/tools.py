@@ -148,56 +148,57 @@ def trajectory_xyz_to_CV(fns, CV):
     return np.array(cvs)
 
 def blav(data, blocksizes=None, fitrange=[0,-1], exponent=1, fn_plot=None, unit='au', plot_ac=False, ac_range=None, acft_plot_range=None):
-    '''Routine to implement block averaging. This allows to estimate the sample error on correlated data by fitting a model function towards to the naive (i.e. as if uncorrelated) sample error on the block averages as function of the blocksize. This model function is based on the following model for the integrated correlation time :math:`\\tau` between the block averages:
+    '''
+        Routine to implement block averaging. This allows to estimate the sample error on correlated data by fitting a model function towards to the naive (i.e. as if uncorrelated) sample error on the block averages as function of the blocksize. This model function is based on the following model for the integrated correlation time :math:`\\tau` between the block averages:
 
-    .. math::
+        .. math::
 
-        \\begin{aligned}
-            \\tau = 1 + \\frac{t_0-1}{B^n}
-        \\end{aligned}
+            \\begin{aligned}
+                \\tau = 1 + \\frac{t_0-1}{B^n}
+            \\end{aligned}
+            
+        As a result, the model for the naive error estimate on the block averages becomes
+            
+        .. math::
+
+            \\begin{aligned}
+                error = TE\\cdot\\frac{B^n}{B^n+t_0-1}
+            \\end{aligned}
         
-    As a result, the model for the naive error estimate on the block averages becomes
+        in which :math:`B` represents the block size, :math:`TE` the true error, :math:`t_0` the correlation time for the original time series (:math:`B=1`) and :math:`n` the exponential rate with which the block average integrated correlation time decreases as function of block size.
+
+        :param data: 1D array representing the data to be analyzed
+        :type data: np.ndarray
         
-    .. math::
+        :param blocksizes: array of block sizes, defaults to np.arange(1,len(data)+1,1)
+        :type blocksizes: np.ndarray, optional
 
-        \\begin{aligned}
-            error = TE\\cdot\\frac{B^n}{B^n+t_0-1}
-        \\end{aligned}
-    
-    in which :math:`B` represents the block size, :math:`TE` the true error, :math:`t_0` the correlation time for the original time series (:math:`B=1`) and :math:`n` the exponential rate with which the block average integrated correlation time decreases as function of block size.
+        :param fitrange: range of blocksizes to which fit will be performed, defaults to [0,-1]
+        :type fitrange: list, optional
 
-    :param data: 1D array representing the data to be analyzed
-    :type data: np.ndarray
-    
-    :param blocksizes: array of block sizes, defaults to np.arange(1,len(data)+1,1)
-    :type blocksizes: np.ndarray, optional
+        :param exponent: the exponent of the blocksize in the models for the auto correlation time and correlated sample error, defaults to 1
+        :type exponent: int, optional
 
-    :param fitrange: range of blocksizes to which fit will be performed, defaults to [0,-1]
-    :type fitrange: list, optional
+        :param fn_plot: file name to which to write the plot. No plot is made if set to None. Defaults to None
+        :type fn_plot: str, optional
 
-    :param exponent: the exponent of the blocksize in the models for the auto correlation time and correlated sample error, defaults to 1
-    :type exponent: int, optional
+        :param unit: unit in which to plot the data, defaults to 'au'
+        :type unit: str, optional
 
-    :param fn_plot: file name to which to write the plot. No plot is made if set to None. Defaults to None
-    :type fn_plot: str, optional
+        :param plot_ac: indicate whether or not to compute and plot the auto correlation function as well (might take some time), defaults to False
+        :type plot_ac: bool, optional
 
-    :param unit: unit in which to plot the data, defaults to 'au'
-    :type unit: str, optional
+        :param ac_range: the range for which to plot the auto correlation function, only relevant if ``plot_ac`` is set to True, defaults to np.arange(0,501,1)
+        :type ac_range: np.ndarray, optional
 
-    :param plot_ac: indicate whether or not to compute and plot the auto correlation function as well (might take some time), defaults to False
-    :type plot_ac: bool, optional
+        :param acft_plot_range: the range for which to plot the fourier transform of the auto correlation function, only relevant if ``plot_ac`` is set to True, defaults to entire freq range
+        :type acft_plot_range: np.ndarray, optional
 
-    :param ac_range: the range for which to plot the auto correlation function, only relevant if ``plot_ac`` is set to True, defaults to np.arange(0,501,1)
-    :type ac_range: np.ndarray, optional
+        :return: mean, error, corrtime
 
-    :param acft_plot_range: the range for which to plot the fourier transform of the auto correlation function, only relevant if ``plot_ac`` is set to True, defaults to entire freq range
-    :type acft_plot_range: np.ndarray, optional
-
-    :return: mean, error, corrtime
-
-    *  **mean** (*float*) -- the sample mean
-    *  **error** (*foat*) -- the error on the sample mean
-    *  **corrtime** (*float*) -- the correlation time (in units of the timestep) of the original sample data 
+        *  **mean** (*float*) -- the sample mean
+        *  **error** (*foat*) -- the error on the sample mean
+        *  **corrtime** (*float*) -- the correlation time (in units of the timestep) of the original sample data 
     '''
     if blocksizes is None:
         blocksizes = np.arange(1,len(data)+1,1)
