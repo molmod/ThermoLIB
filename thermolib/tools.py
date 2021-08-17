@@ -28,13 +28,14 @@ __all__ = [
 ]
 
 def integrate(xs, ys):
-    '''A simple integration method using the trapezoid rule
+    '''
+        A simple integration method using the trapezoid rule
 
-    :param xs: array containing function argument values on grid
-    :type xs: np.ndarray
+        :param xs: array containing function argument values on grid
+        :type xs: np.ndarray
 
-    :param ys: array containing function values on grid
-    :type ys: np.ndarray
+        :param ys: array containing function values on grid
+        :type ys: np.ndarray
     '''
     assert len(xs)==len(ys)
     result = 0.0
@@ -46,25 +47,26 @@ def integrate(xs, ys):
     return result
 
 def integrate2d(z,x=None,y=None,dx=1.,dy=1.):
-    '''Integrates a regularly spaced 2D grid using the composite trapezium rule.
+    '''
+        Integrates a regularly spaced 2D grid using the composite trapezium rule.
 
-    :param z: 2 dimensional array containing the function values
-    :type z: np.ndarray(flt)
+        :param z: 2 dimensional array containing the function values
+        :type z: np.ndarray(flt)
 
-    :param x: 1D array containing the first function argument values, is used to determine grid spacing of first function argument. If not given, optional argument dx is used to define the grid spacing. Defaults to None
-    :type x: np.ndarray(flt), optional
+        :param x: 1D array containing the first function argument values, is used to determine grid spacing of first function argument. If not given, optional argument dx is used to define the grid spacing. Defaults to None
+        :type x: np.ndarray(flt), optional
 
-    :param y: 1D array containing the second function argument values, is used to determine grid spacing of second function argument. If not given, optional argument dy is used to define the grid spacing. Defaults to None
-    :type y: np.ndarray(flt), optional
+        :param y: 1D array containing the second function argument values, is used to determine grid spacing of second function argument. If not given, optional argument dy is used to define the grid spacing. Defaults to None
+        :type y: np.ndarray(flt), optional
 
-    :param dx: grid spacing for first function argument. If not given, argument is used to determine grid spacing. Defaults to 1.
-    :type dx: float, optional
+        :param dx: grid spacing for first function argument. If not given, argument is used to determine grid spacing. Defaults to 1.
+        :type dx: float, optional
 
-    :param dy: grid spacing for second function argument. If not given, argument is used to determine grid spacing. Defaults to 1.
-    :type dy: float, optional
+        :param dy: grid spacing for second function argument. If not given, argument is used to determine grid spacing. Defaults to 1.
+        :type dy: float, optional
 
-    :return: integral value
-    :rtype: float
+        :return: integral value
+        :rtype: float
     '''
     if x is not None:
         dx = (x[-1]-x[0])/(np.shape(x)[0]-1)
@@ -86,29 +88,30 @@ def format_scientific(x, prec=3, latex=True):
         return '%s 10^%s' %(a, b)
 
 def free_energy_from_histogram_with_error(data, bins, temp, nsigma=2):
-    '''Construct probability and free energy profile from histogram analysis. Include error estimation based on the asymptotic normality of the maximum likelihood estimator. Upper and lower boundary of an n-sigma confidence interval will be returned.
+    '''
+        Construct probability and free energy profile from histogram analysis. Include error estimation based on the asymptotic normality of the maximum likelihood estimator. Upper and lower boundary of an n-sigma confidence interval will be returned.
 
-    :param data: data array representing the cv values along a simulation trajectory
-    :type data: np.ndarray
+        :param data: data array representing the cv values along a simulation trajectory
+        :type data: np.ndarray
 
-    :param bins: array representing the edges of the bins for which a histogram will be constructed
-    :type bins: np.ndarray
+        :param bins: array representing the edges of the bins for which a histogram will be constructed
+        :type bins: np.ndarray
 
-    :param temp: the temperature at which the input data array was generated. This is required for transforming probability histogram to free energy profile.
-    :type temp: float
+        :param temp: the temperature at which the input data array was generated. This is required for transforming probability histogram to free energy profile.
+        :type temp: float
 
-    :param nsigma: define how large the error interval should be in terms of sigma, eg. nsigma of 2 means a 2-sigma error bar (corresponding to 95% confidence interval) will be returned. Defaults to 2
-    :type nsigma: int, optional
+        :param nsigma: define how large the error interval should be in terms of sigma, eg. nsigma of 2 means a 2-sigma error bar (corresponding to 95% confidence interval) will be returned. Defaults to 2
+        :type nsigma: int, optional
 
-    :return: cvs, ps, plower, pupper, fs, flower, fupper
+        :return: cvs, ps, plower, pupper, fs, flower, fupper
 
-        *  **cvs** (*np.ndarray*) -- array containing the cv grid points
-        *  **ps** (*np.ndarray*) -- array containing the coresponding probability density profile
-        *  **plower** (*np.ndarray*) -- array containing the lower limit of the error bar on the ps values
-        *  **pupper** (*np.ndarray*) -- array containing the upper limit of the error bar on the ps values
-        *  **fs** (*np.ndarray*) -- array containing the coresponding free energy profile 
-        *  **flower** (*np.ndarray*) -- array containing the lower limit of the error bar on the fs values
-        *  **fupper** (*np.ndarray*) -- array containing the upper limit of the error bar on the fs values
+            *  **cvs** (*np.ndarray*) -- array containing the cv grid points
+            *  **ps** (*np.ndarray*) -- array containing the coresponding probability density profile
+            *  **plower** (*np.ndarray*) -- array containing the lower limit of the error bar on the ps values
+            *  **pupper** (*np.ndarray*) -- array containing the upper limit of the error bar on the ps values
+            *  **fs** (*np.ndarray*) -- array containing the coresponding free energy profile 
+            *  **flower** (*np.ndarray*) -- array containing the lower limit of the error bar on the fs values
+            *  **fupper** (*np.ndarray*) -- array containing the upper limit of the error bar on the fs values
     '''
     Ntot = len(data)
     ns, bin_edges = np.histogram(data, bins, density=False)
@@ -127,16 +130,17 @@ def free_energy_from_histogram_with_error(data, bins, temp, nsigma=2):
     return cvs, ps, plower, pupper, fs, flower, fupper
 
 def trajectory_xyz_to_CV(fns, CV):
-    '''Compute the CV along an XYZ trajectory. The XYZ trajectory is assumed to be composed out of a (list of subsequent) XYZ files.
+    '''
+        Compute the CV along an XYZ trajectory. The XYZ trajectory is assumed to be composed out of a (list of subsequent) XYZ files.
 
-    :param fns: (list of) names of XYZ trajectory file(s) containing the xyz coordinates of the system
-    :type fns: str or list(str)
+        :param fns: (list of) names of XYZ trajectory file(s) containing the xyz coordinates of the system
+        :type fns: str or list(str)
 
-    :param CV: collective variable defining how to compute the collective variable along the trajectory
-    :type CV: one from thermolib.thermodynamics.cv.__all__
+        :param CV: collective variable defining how to compute the collective variable along the trajectory
+        :type CV: one from thermolib.thermodynamics.cv.__all__
 
-    :return: array containing the CV value along the trajectory
-    :rtype: np.ndarray(flt)
+        :return: array containing the CV value along the trajectory
+        :rtype: np.ndarray(flt)
     '''
     cvs = []
     for fn in fns:
@@ -148,56 +152,57 @@ def trajectory_xyz_to_CV(fns, CV):
     return np.array(cvs)
 
 def blav(data, blocksizes=None, fitrange=[0,-1], exponent=1, fn_plot=None, unit='au', plot_ac=False, ac_range=None, acft_plot_range=None):
-    '''Routine to implement block averaging. This allows to estimate the sample error on correlated data by fitting a model function towards to the naive (i.e. as if uncorrelated) sample error on the block averages as function of the blocksize. This model function is based on the following model for the integrated correlation time :math:`\\tau` between the block averages:
+    '''
+        Routine to implement block averaging. This allows to estimate the sample error on correlated data by fitting a model function towards to the naive (i.e. as if uncorrelated) sample error on the block averages as function of the blocksize. This model function is based on the following model for the integrated correlation time :math:`\\tau` between the block averages:
 
-    .. math::
+        .. math::
 
-        \\begin{aligned}
-            \\tau = 1 + \\frac{t_0-1}{B^n}
-        \\end{aligned}
+            \\begin{aligned}
+                \\tau = 1 + \\frac{t_0-1}{B^n}
+            \\end{aligned}
+            
+        As a result, the model for the naive error estimate on the block averages becomes
+            
+        .. math::
+
+            \\begin{aligned}
+                error = TE\\cdot\\frac{B^n}{B^n+t_0-1}
+            \\end{aligned}
         
-    As a result, the model for the naive error estimate on the block averages becomes
+        in which :math:`B` represents the block size, :math:`TE` the true error, :math:`t_0` the correlation time for the original time series (:math:`B=1`) and :math:`n` the exponential rate with which the block average integrated correlation time decreases as function of block size.
+
+        :param data: 1D array representing the data to be analyzed
+        :type data: np.ndarray
         
-    .. math::
+        :param blocksizes: array of block sizes, defaults to np.arange(1,len(data)+1,1)
+        :type blocksizes: np.ndarray, optional
 
-        \\begin{aligned}
-            error = TE\\cdot\\frac{B^n}{B^n+t_0-1}
-        \\end{aligned}
-    
-    in which :math:`B` represents the block size, :math:`TE` the true error, :math:`t_0` the correlation time for the original time series (:math:`B=1`) and :math:`n` the exponential rate with which the block average integrated correlation time decreases as function of block size.
+        :param fitrange: range of blocksizes to which fit will be performed, defaults to [0,-1]
+        :type fitrange: list, optional
 
-    :param data: 1D array representing the data to be analyzed
-    :type data: np.ndarray
-    
-    :param blocksizes: array of block sizes, defaults to np.arange(1,len(data)+1,1)
-    :type blocksizes: np.ndarray, optional
+        :param exponent: the exponent of the blocksize in the models for the auto correlation time and correlated sample error, defaults to 1
+        :type exponent: int, optional
 
-    :param fitrange: range of blocksizes to which fit will be performed, defaults to [0,-1]
-    :type fitrange: list, optional
+        :param fn_plot: file name to which to write the plot. No plot is made if set to None. Defaults to None
+        :type fn_plot: str, optional
 
-    :param exponent: the exponent of the blocksize in the models for the auto correlation time and correlated sample error, defaults to 1
-    :type exponent: int, optional
+        :param unit: unit in which to plot the data, defaults to 'au'
+        :type unit: str, optional
 
-    :param fn_plot: file name to which to write the plot. No plot is made if set to None. Defaults to None
-    :type fn_plot: str, optional
+        :param plot_ac: indicate whether or not to compute and plot the auto correlation function as well (might take some time), defaults to False
+        :type plot_ac: bool, optional
 
-    :param unit: unit in which to plot the data, defaults to 'au'
-    :type unit: str, optional
+        :param ac_range: the range for which to plot the auto correlation function, only relevant if ``plot_ac`` is set to True, defaults to np.arange(0,501,1)
+        :type ac_range: np.ndarray, optional
 
-    :param plot_ac: indicate whether or not to compute and plot the auto correlation function as well (might take some time), defaults to False
-    :type plot_ac: bool, optional
+        :param acft_plot_range: the range for which to plot the fourier transform of the auto correlation function, only relevant if ``plot_ac`` is set to True, defaults to entire freq range
+        :type acft_plot_range: np.ndarray, optional
 
-    :param ac_range: the range for which to plot the auto correlation function, only relevant if ``plot_ac`` is set to True, defaults to np.arange(0,501,1)
-    :type ac_range: np.ndarray, optional
+        :return: mean, error, corrtime
 
-    :param acft_plot_range: the range for which to plot the fourier transform of the auto correlation function, only relevant if ``plot_ac`` is set to True, defaults to entire freq range
-    :type acft_plot_range: np.ndarray, optional
-
-    :return: mean, error, corrtime
-
-    *  **mean** (*float*) -- the sample mean
-    *  **error** (*foat*) -- the error on the sample mean
-    *  **corrtime** (*float*) -- the correlation time (in units of the timestep) of the original sample data 
+        *  **mean** (*float*) -- the sample mean
+        *  **error** (*foat*) -- the error on the sample mean
+        *  **corrtime** (*float*) -- the correlation time (in units of the timestep) of the original sample data 
     '''
     if blocksizes is None:
         blocksizes = np.arange(1,len(data)+1,1)
@@ -361,7 +366,6 @@ def read_wham_input(fn, kappa_unit='kjmol', q0_unit='au', start=0, end=-1, strid
             * **temp** (float) -- temperature at which the simulations were performed
             * **biasses** (list of callables) -- list of bias potentials (defined as callable functions) for all Umbrella Sampling simulations
             * **trajectories** (list of np.ndarrays) -- list of trajectory data arrays containing the CV trajectory for all Umbrella Sampling simulations
-        
     '''
     temp = None
     biasses = []
