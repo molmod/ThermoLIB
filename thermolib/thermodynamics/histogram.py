@@ -600,14 +600,18 @@ class Histogram2D(object):
 		return cls(cv1s, cv2s, ps, plower=plower, pupper=pupper, cv1_unit=cv1_unit, cv2_unit=cv2_unit, cv1_label=cv1_label, cv2_label=cv2_label)
 
 	@classmethod
-	def from_wham(cls, bins, trajectories, biasses, temp, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, verbose=False, cv1_unit='au', cv2_unit='au', cv1_label='CV1', cv2_label='CV2'):
+	def from_wham(cls, bins, trajectories, biasses, temp, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, verbose=False, cv1_unit='au', cv2_unit='au', cv1_label='CV1', cv2_label='CV2', plot_biases=False):
 		'''
 			Routine that implements the Weighted Histogram Analysis Method (WHAM) for reconstructing the overall 2D probability histogram from a series of biased molecular simulations in terms of two collective variables CV1 and CV2.
 
 			:param data: 2D array corresponding to the trajectory series of the two collective variables. The first column is assumed to correspond to the first collective variable, the second column to the second CV.
 			:type data: np.ndarray([N,2])
 
-			:param bins: array representing the edges of the bins for which a histogram will be constructed. This argument is parsed to `the numpy.histogram2d routine <https://numpy.org/doc/stable/reference/generated/numpy.histogram.html>`_. Hence, more information on its meaning and allowed values can be found there.
+			:param bins: list of the form [bins1, bins2] where bins1 and bins2 are numpy arrays each representing the bin edges of their corresponding CV for which a histogram will be constructed. For example the following definition:
+
+				[np.arange(-1,1.05,0.05), np.arange(0,5.1,0.1)]
+
+			will result in a 2D histogram with bins of width 0.05 between -1 and 1 for CV1 and bins of width 0.1 between 0 and 5 for CV2.
 			:type bins: np.ndarray
 
 			:param trajectories: list or array of 2D numpy arrays containing the [CV1,CV2] trajectory data for each simulation. Alternatively, a list of PLUMED file names containing the trajectory data can be specified as well. The arguments trajectories and biasses should be of the same length.
@@ -655,16 +659,31 @@ class Histogram2D(object):
 			:param cv2_label: the label of the first collective variable that will be used on plots, defaults to 'CV2'
 			:type cv2_label: str, optional
 
+			:param plot_biases: if set to True, a 2D plot of the boltzmann factor of the bias integrated over each bin will be made. Defaults to False.
+			:type plot_biases: bool, optional.
+
 			:return: 2D probability histogram
 			:rtype: Histogram2D
 		'''
+		if verbose:
+			print('Initialization')
+			print('--------------')
+		
 		#checks and initialization
 		assert len(biasses)==len(trajectories), 'The arguments trajectories and biasses should be of the same length.'
 		beta = 1/(boltzmann*temp)
 		Nsims = len(biasses)
-		if isinstance(bias_subgrid_num,int):
+		if isinstance(bias_subgrid_num, int):
 			bias_subgrid_num = [bias_subgrid_num, bias_subgrid_num]
-		#Prerocess trajectory argument: load files if file names are given instead of raw data, determine and store the number of simulation steps in each simulation:
+		else:
+			assert isinstance(bias_subgrid_num,list) or isinstance(bias_subgrid_num,np.ndarray), 'bias_subgrid_num argument should be an integer or a list of two integers'
+			assert len(bias_subgrid_num)==2, 'bias_subgrid_num argument should be an integer or a list of two integers'
+			assert isinstance(bias_subgrid_num[0],int), 'bias_subgrid_num argument should be an integer or a list of two integers'
+			assert isinstance(bias_subgrid_num[1],int), 'bias_subgrid_num argument should be an integer or a list of two integers'
+		
+		#Preprocess trajectory argument: load files if file names are given instead of raw data, determine and store the number of simulation steps in each simulation:
+		if verbose:
+			print('processing trajectories ...')
 		Nis = []
 		data = []
 		for i, trajectory in enumerate(trajectories):
@@ -672,46 +691,38 @@ class Histogram2D(object):
 				trajectory = np.loadtxt(trajectory)[:,1:3] #first column is the time, second column is the CV1, third column is the CV2
 			Nis.append(len(trajectory))
 			data.append(trajectory)
-		data = np.array(data)
-		if len(data)>0:
-			trajectory = data
 		Nis = np.array(Nis)
+		
 		#Preprocess the bins argument and redefine it to represent the bin_edges. We need to do this beforehand to make sure that when calling the numpy.histogram routine with this bins argument, each histogram will have a consistent bin_edges array and hence consistent histogram.
-		if isinstance(bins, int) or ((isinstance(bins, list) or isinstance(bins,np.ndarray)) and len(bins)==2 and isinstance(bins[0],int) and isinstance(bins[1],int)):
-			raise NotImplementedError
-			cv1_min = None #TODO
-			cv1_max = None #TODO
-			cv2_min = None #TODO
-			cv2_max = None #TODO
-			if isinstance(bins, int):
-				cv1_delta = (cv1_max-cv1_min)/bins
-				cv2_delta = (cv2_max-cv2_min)/bins
-			else:
-				cv1_delta = (cv1_max-cv1_min)/bins[0]
-				cv2_delta = (cv2_max-cv2_min)/bins[1]
-			bins = [np.arange(cv1_min, cv1_max+cv1_delta, cv1_delta), np.arange(cv2_min, cv2_max+cv2_delta, cv2_delta)]
-		elif not len(bins)==2:
-			print("Assuming bins argument specifies a single bin argument which needs to be used for both CVs")
-			bins = [bins, bin]
-		else:
-			raise ValueError('Cannot interpret value of bins argument')
-		bin_centers1, bin_centers2 = 0.5*(bins[0][:-1]+bins[0][1:]), 0.5*(bins[0][:-1]+bins[0][1:])
+		if verbose:
+			print('processing bins ...')
+		assert isinstance(bins,list), "Bins argument should be a list of 2 numpy arrays with the corresponding bin edges. Current definition is not a list, but an object of type %s." %bins.__class__.__name__
+		assert len(bins)==2, "Bins argument should be a list of 2 numpy arrays with the corresponding bin edges. Current list definition does not have two elements, but %i." %(len(bins))
+		assert isinstance(bins[0],np.ndarray), "Bins argument should be a list of 2 numpy arrays with the corresponding bin edges. The first element in the current definition is not a numpy array but an object of type %s" %bins[0].__class__.__name__
+		assert isinstance(bins[1],np.ndarray), "Bins argument should be a list of 2 numpy arrays with the corresponding bin edges. The second element in the current definition is not a numpy array but an object of type %s" %bins[1].__class__.__name__
+		bin_centers1, bin_centers2 = 0.5*(bins[0][:-1]+bins[0][1:]), 0.5*(bins[1][:-1]+bins[1][1:])
 		deltas1, deltas2 = bins[0][1:]-bins[0][:-1], bins[1][1:]-bins[1][:-1]
 		grid_non_uniformity1, grid_non_uniformity2 = deltas1.std()/deltas1.mean(), deltas2.std()/deltas2.mean()
-		assert grid_non_uniformity1<1e-6, 'CV1 grid defined by bins argument should be of uniform spacing!'
-		assert grid_non_uniformity2<1e-6, 'CV2 grid defined by bins argument should be of uniform spacing!'
+		assert grid_non_uniformity1<1e-6, 'CV1 grid defined by bins argument should be of uniform spacing! Non-uniform grids not implemented.'
+		assert grid_non_uniformity2<1e-6, 'CV2 grid defined by bins argument should be of uniform spacing! Non-uniform grids not implemented.'
 		delta1, delta2 = deltas1.mean(), deltas2.mean()
 		Ngrid1, Ngrid2 = len(bin_centers1), len(bin_centers2)
 		Ngrid = Ngrid1*Ngrid2
+		
 		#generate the individual histograms using numpy.histogram
+		if verbose:
+			print('generating individual histograms for each biased simulation ...')
 		Hs = np.zeros([Nsims, Ngrid1, Ngrid2])
-		for i, data in enumerate(trajectories):
-			ns, edges1, edges2 = np.histogram(data[i,:,0], data[i,:,1], bins, density=False)
+		for i, traj in enumerate(data):
+			ns, edges1, edges2 = np.histogram2d(traj[:,0], traj[:,1], bins, density=False)
 			assert (bins[0]==edges1).all()
 			assert (bins[1]==edges2).all()
 			Hs[i,:,:] = ns.copy()
+		
 		#compute the boltzmann factors of the biases in each grid interval
 		#b_ikl = 1/(delta1*delta2)*int(exp(-beta*W_i(q1,q2)), q1=Q_k-delta1/2...Q_k+delta1/2, q2=Q_l-delta2/2...Q_l+delta2/2)
+		if verbose:
+			print('computing bias on grid ...')
 		bs = np.zeros([Nsims, Ngrid1, Ngrid2])
 		for i, bias in enumerate(biasses):
 			for k, center1 in enumerate(bin_centers1):
@@ -720,29 +731,34 @@ class Histogram2D(object):
 				for l, center2 in enumerate(bin_centers2):
 					subdelta2 = delta2/bias_subgrid_num[1]
 					subgrid2 = np.arange(center2-delta2/2, center2+delta2/2 + subdelta2, subdelta2)
-					CV1, CV2 = np.meshgrid(subgrid1, subgrid2)
-					Ws = np.exp(-beta*bias(CV1,CV2))/(delta1*delta2)
-					bs[i,k,l] = integrate2d(Ws, dx=subdelta1, dy=subdelta2)
+					CV1, CV2 = np.meshgrid(subgrid1, subgrid2, indexing='ij')
+					Ws = np.exp(-beta*bias(CV1,CV2))
+					bs[i,k,l] = integrate2d(Ws, dx=subdelta1, dy=subdelta2)/(delta1*delta2)
+			if plot_biases:
+				bias.plot('bias_%i.png' %i, bin_centers1, bin_centers2)
+		
 		#some init printing
 		if verbose:
-			print('Setup:')
-			print('  Number of simulations = ', Nsims)
+			print('')
+			print('WHAM setup')
+			print('----------')
+			print('Number of simulations = ', Nsims)
 			for i, Ni in enumerate(Nis):
 				print('    simulation %i has %i steps' %(i,Ni))
-			print('  CV1 grid [%s]: start = %.3f    end = %.3f    delta = %.3f    N = %i' %(cv1_unit, min(bins[0])/parse_unit(cv1_unit), max(bins[0])/parse_unit(cv1_unit), Ngrid1))
-			print('  CV2 grid [%s]: start = %.3f    end = %.3f    delta = %.3f    N = %i' %(cv2_unit, min(bins[1])/parse_unit(cv2_unit), max(bins[1])/parse_unit(cv2_unit), Ngrid2))
+			print('CV1 grid [%s]: start = %.3f    end = %.3f    delta = %.3f    N = %i' %(cv1_unit, bins[0].min()/parse_unit(cv1_unit), bins[0].max()/parse_unit(cv1_unit), delta1/parse_unit(cv1_unit), Ngrid1))
+			print('CV2 grid [%s]: start = %.3f    end = %.3f    delta = %.3f    N = %i' %(cv2_unit, bins[1].min()/parse_unit(cv2_unit), bins[1].max()/parse_unit(cv2_unit), delta2/parse_unit(cv2_unit), Ngrid2))
 			print('')
 			print('Starting WHAM SCF loop:')
+			print('-----------------------')
+		
 		#self consistent loop to solve the WHAM equations
 		as_old = np.ones([Ngrid1,Ngrid2])/Ngrid #initialize probability density array (which should sum to 1)
 		nominator = Hs.sum(axis=0) #precomputable factor in WHAM update equations
 		for iscf in range(Nscf):
 			#compute new normalization factors
-			fs = np.zeros(Nsims)
-			for i in range(Nsims):
-				fs[i] = 1.0/np.einsum('ijk,jk->i', bs, as_old)
+			fs = 1.0/np.einsum('ikl,kl->i', bs, as_old)
 			#compute new probabilities
-			as_new = as_old.copy()
+			as_new = np.zeros(as_old.shape)
 			for k in range(Ngrid1):
 				for l in range(Ngrid2):
 					denominator = sum([Nis[i]*fs[i]*bs[i,k,l] for i in range(Nsims)])
@@ -756,7 +772,7 @@ class Histogram2D(object):
 				print('cycle %i/%i' %(iscf+1,Nscf))
 				print('  norm prob. dens. = %.3e au' %as_new.sum())
 				print('  max prob. dens.  = %.3e au' %max)
-				print('  cv1,cv2 for max  = %.3e %s , %.3f %s' %(bin_centers1[kmax]/parse_unit(cv1_unit), cv1_unit, bin_centers2[lmax]/parse_unit(cv2_unit), cv2_unit)
+				print('  cv1,cv2 for max  = %.3e %s , %.3f %s' %(bin_centers1[kmax]/parse_unit(cv1_unit), cv1_unit, bin_centers2[lmax]/parse_unit(cv2_unit), cv2_unit))
 				print('  Integr. Diff.    = %.3e au' %integrated_diff)
 				print('')
 			if integrated_diff<convergence:
@@ -766,15 +782,18 @@ class Histogram2D(object):
 				if iscf==Nscf-1:
 					print('WARNING: could not converge WHAM equations to convergence of %.3e in %i steps!' %(convergence, Nscf))
 			as_old = as_new.copy()
-		cvs = bin_centers.copy()
+		
+		#finalization
+		cv1s = bin_centers1.copy()
+		cv2s = bin_centers2.copy()
 		ps = as_new.copy()
-		#compute final normalization factors
-		for i in range(Nsims):
-			fs[i] = 1.0/np.einsum('ijk,jk->i', bs, as_new)
+		fs = 1.0/np.einsum('ikl,kl->i', bs, as_new)
 		plower = None
 		pupper = None
+		
+		#error estimation
 		if error_estimate in ['mle_p']:
-			#construct the extended Fisher information matrix corresponding to histogram counts directly as the weighted sum of the indivual Fisher matrices of each simulation separately. This is very similar as in the 1D case. However, we first have to flatten the CV1,CV2 2D grid to a 1D CV12 grid. This is achieved with the flatten function. Deflattening of the CV12 grid to a 2D CV1,CV2 grid is achieved with the deflatten function. Using the flatten function, the ps array is flattened and a conventional Fisher matrix can be constructed and inverted. Afterwards the covariance matrix is deflattened using the deflatten function to arrive to a multidimensional matrix giving (co)variances on the 2D probability array.
+			#construct the extended Fisher information matrix corresponding to histogram counts directly as the weighted sum of the indivual Fisher matrices of each simulation separately. This is very similar as in the 1D case. However, we first have to flatten the CV1,CV2 2D grid to a 1D CV12 grid. This is achieved with the flatten function (which flattens a 2D index to a 1D index). Deflattening of the CV12 grid to a 2D CV1,CV2 grid is achieved with the deflatten function (which deflattens a 1D index to a 2D index). Using the flatten function, the ps array is flattened and a conventional Fisher matrix can be constructed and inverted. Afterwards the covariance matrix is deflattened using the deflatten function to arrive to a multidimensional matrix giving (co)variances on the 2D probability array.
 			def flatten(k,l):
 				return Ngrid2*k+l
 			def deflatten(K):
@@ -799,7 +818,7 @@ class Histogram2D(object):
 				Ii[Ngrid+i, Ngrid+Nsims+i] = 1/fs[i]
 				Ii[Ngrid+Nsims+i, Ngrid+i] = 1/fs[i]
 				I += Nis[i]*Ii
-			#the covariance matrix is now simply the inverse of the total Fisher matrix. However, for histogram bins with count 0 (and hence probability 0), we cannot estimate the corresponding error. This can be seen above as ps[k]=0 introduces a divergence. Therefore, we define a mask corresponding to only non-zero probabilities and define and inverte the masked information matrix
+			#the covariance matrix is now simply the inverse of the total Fisher matrix. However, for histogram bins with count 0 (and hence probability 0), we cannot estimate the corresponding error. This can be seen above as ps[k]=0 introduces a divergence. Therefore, we define a mask corresponding to only non-zero probabilities and define and invert the masked information matrix
 			mask = np.ones([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1], dtype=bool)
 			for k in range(Ngrid1):
 				for l in range(Ngrid2):
@@ -808,12 +827,12 @@ class Histogram2D(object):
 						mask[K,:] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
 						mask[:,K] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
 			Nmask2 = len(I[mask])
-			assert abs(int(np.sqrt(Nmask2))-np.sqrt(Nmask2))==0
+			assert abs(int(np.sqrt(Nmask2))-np.sqrt(Nmask2))==0 #consistency check, sqrt(Nmask2) should be integer valued
 			Nmask = int(np.sqrt(Nmask2))
 			Imask = I[mask].reshape([Nmask,Nmask])
 			sigma = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])*np.nan
 			sigma[mask] = np.linalg.inv(Imask).reshape([Nmask2])
-			#the error bar on the probability of bin k is now simply the [K,K]-diagonal element of sigma (with [K,K] corresponding to deflattend [(k,l),(k,l)])
+			#the error bar on the probability of bin (k,l) is now simply the [K,K]-diagonal element of sigma (with [K,K] corresponding to deflattend [(k,l),(k,l)])
 			perr = np.zeros([Ngrid1,Ngrid2])
 			for K in range(Ngrid):
 				k, l = deflatten(K)
@@ -861,7 +880,12 @@ class Histogram2D(object):
 			pupper = ps*np.exp(nsigma*gerr)
 		elif error_estimate is not None and error_estimate not in ["None"]:
 			raise ValueError('Received invalid value for keyword argument error_estimate, got %s. See documentation for valid choices.' %error_estimate)
-		return cls(cvs, ps, plower=plower, pupper=pupper)
+		
+		#For consistency with how FreeEnergySurface2D is implemented, ps (and plower, pupper) need to be transposed
+		ps = ps.T
+		if plower is not None: plower = plower.T
+		if pupper is not None: pupper = pupper.T
+		return cls(cv1s, cv2s, ps, plower=plower, pupper=pupper)
 
 	@classmethod
 	def from_fes(cls, fes, temp):
@@ -983,7 +1007,7 @@ def plot_histograms(fn, histograms, temp=None, labels=None, flim=None, colors=No
 		if temp is not None:
 			fep = BaseFreeEnergyProfile.from_histogram(hist, temp)
 			if set_ref is not None:
-				fep.set_ref(ref='min')
+				fep.set_ref(ref=set_ref)
 			fmax = max(fmax, np.ceil(max(fep.fs[~np.isnan(fep.fs)]/kjmol)/10)*10)
 			funit = fep.f_unit
 			axs[0,1].plot(fep.cvs/parse_unit(cv_unit), fep.fs/parse_unit(funit), linewidth=linewidth, color=color, linestyle=linestyle, label=label)

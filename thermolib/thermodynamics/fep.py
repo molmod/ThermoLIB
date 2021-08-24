@@ -13,7 +13,7 @@
 from molmod.units import *
 from molmod.constants import *
 
-from ..tools import integrate, integrate2d, format_scientific, free_energy_from_histogram_with_error
+from thermolib.tools import integrate, integrate2d, format_scientific
 
 import matplotlib.pyplot as pp
 import matplotlib.cm as cm
@@ -380,15 +380,16 @@ class BaseFreeEnergyProfile(object):
         return
 
     def crop(self, cvrange, return_new_fes=False):
-        '''Crop the free energy profile to the limits given by cvrange and throw away cropped data. If return_new_fes is set to false, a copy of the cropped profile will be returns, otherwise the current profile will be cropped and overwritten.
+        '''
+            Crop the free energy profile to the limits given by cvrange and throw away cropped data. If return_new_fes is set to false, a copy of the cropped profile will be returns, otherwise the current profile will be cropped and overwritten.
 
-        :param cvrange: the range of the collective variable defining the new range to which the FEP will be cropped.
-        :type cvrange: tuple
-        
-        :param return_new_fes: If set to False, the cropped data will be written to the current instance (overwritting the original data). If set to True, a new instance will be initialized with the cropped data, defaults to False
-        :type return_new_fes: bool, optional
-        
-        :return: an instance of the current class if the keyword argument `return_new_fes` is set to True. Otherwise, None is returned.
+            :param cvrange: the range of the collective variable defining the new range to which the FEP will be cropped.
+            :type cvrange: tuple
+            
+            :param return_new_fes: If set to False, the cropped data will be written to the current instance (overwritting the original data). If set to True, a new instance will be initialized with the cropped data, defaults to False
+            :type return_new_fes: bool, optional
+            
+            :return: an instance of the current class if the keyword argument `return_new_fes` is set to True. Otherwise, None is returned.
         '''
         #cut off some unwanted regions
         cvs = self.cvs.copy()
@@ -408,18 +409,19 @@ class BaseFreeEnergyProfile(object):
             self.compute_probdens()
 
     def recollect(self, new_cvs, fn_plt=None, return_new_fes=False):
-        '''Redefine the CV array to the new given array. For each interval of new CV values, collect all old free energy values for which the corresponding CV value falls in this new interval and average out. As such, this routine can be used to filter out noise on a given free energy profile by means of averaging.
+        '''
+            Redefine the CV array to the new given array. For each interval of new CV values, collect all old free energy values for which the corresponding CV value falls in this new interval and average out. As such, this routine can be used to filter out noise on a given free energy profile by means of averaging.
 
-        :param new_cvs:  Array of new CV values
-        :type new_cvs: np.ndarray
-        
-        :param fn_plt: File name for comparison plot of old and new profile., defaults to None
-        :type fn_plt: str, optional
-        
-        :param return_new_fes: If set to False, the recollected data will be written to the current instance (overwritting the original data). If set to True, a new instance will be initialized with the recollected data., defaults to False
-        :type return_new_fes: bool, optional
-        
-        :return: Returns an instance of the current class if the keyword argument `return_new_fes` is set to True. Otherwise, None is returned.
+            :param new_cvs:  Array of new CV values
+            :type new_cvs: np.ndarray
+            
+            :param fn_plt: File name for comparison plot of old and new profile., defaults to None
+            :type fn_plt: str, optional
+            
+            :param return_new_fes: If set to False, the recollected data will be written to the current instance (overwritting the original data). If set to True, a new instance will be initialized with the recollected data., defaults to False
+            :type return_new_fes: bool, optional
+            
+            :return: Returns an instance of the current class if the keyword argument `return_new_fes` is set to True. Otherwise, None is returned.
         '''
         assert new_cvs[0]<=self.cvs[0], 'First value of new cvs should be lower or equal to first value of original cvs, otherwise data will be lost. If you really want to delete data, use crop first.'
         assert self.cvs[-1]<=new_cvs[-1], 'Last value of new cvs should be greater or equal to last value of original cvs, otherwise data will be lost. If you really want to delete data, use crop first.'
@@ -439,11 +441,12 @@ class BaseFreeEnergyProfile(object):
                 upper = 0.5*(new_cvs[inew]+new_cvs[inew+1])
             while iold<len(self.cvs) and lower<=self.cvs[iold]<upper:
                 #print('  cvs_old[%i]=%.3f added to current data'%(iold,self.cvs[iold]))
-                data.append(self.fs[iold])
+                if not np.isnan(self.fs[iold]):
+                    data.append(self.fs[iold])
                 iold += 1
             #print('  no further old cvs found')
             if len(data)>0:
-                new_fs[inew] = sum(data)/len(data)
+                new_fs[inew] = -np.log(sum(np.exp(-self.beta*np.array(data))))/self.beta #sum(data)/len(data)
                 #print('  ==> averaged previous data=',data,' to f=%.3f' %(new_fs[inew]/kjmol))
             if iold>=len(self.cvs):
                 #print('reached end of old cvs, breaking')
@@ -468,6 +471,8 @@ class BaseFreeEnergyProfile(object):
         else:
             self.cvs = new_cvs[~np.isnan(new_fs)].copy()
             self.fs = new_fs[~np.isnan(new_fs)].copy()
+            #print(new_fs/kjmol)
+            #print(self.fs/kjmol)
             self.compute_probdens()
 
 
@@ -686,7 +691,7 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
 
 
 class FreeEnergySurface2D(object):
-    def __init__(self, cv1s, cv2s, fs, temp, cv1_unit='au', cv2_unit='au', f_unit='kjmol', cv1_label='CV1', cv2_label='CV2'):
+    def __init__(self, cv1s, cv2s, fs, temp, fupper=None, flower=None, cv1_unit='au', cv2_unit='au', f_unit='kjmol', cv1_label='CV1', cv2_label='CV2'):
         '''Class implementing a 2D free energy surface F(cv1,cv2) (stored in self.fs) as function of two collective variables (CV) denoted by cv1 (stored in self.cv1s) and cv2 (stored in self.cv2s).
 
         :param cv1s: array containing the values for the first collective variable CV1
@@ -700,6 +705,12 @@ class FreeEnergySurface2D(object):
 
         :param temp: temperature at which the free energy is given
         :type temp: float
+
+        :param fupper: upper value of error bar on free energy
+        :type fupper: np.ndarray
+
+        :param flower: lower value of error bar on free energy
+        :type flower: np.ndarray
 
         :param cv1_unit: unit in which the input array cv1 is given (units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_), defaults to 'au'
         :type cv1_unit: str, optional
@@ -746,50 +757,51 @@ class FreeEnergySurface2D(object):
         return fes
 
     @classmethod
-    def from_txt(cls, fn, temp, cv1_col=0, cv2_col=1, f_col=2, cv1_unit='au', cv2_unit='au', f_unit='kjmol', cv1_label='CV1', cv2_label='CV2', cv1_range=None, cv2_range=None, delimiter=None):
-        '''Read the free energy surface on a 2D grid as function of two collective variables from a txt file. 
+    def from_txt(cls, fn, temp, cv1_col=0, cv2_col=1, f_col=2, cv1_unit='au', cv2_unit='au', f_unit='kjmol', cv1_label='CV1', cv2_label='CV2', cv1_range=None, cv2_range=None, delimiter=None, verbose=False):
+        '''
+            Read the free energy surface on a 2D grid as function of two collective variables from a txt file. 
 
-        :param fn: the name of the txt file containing the data
-        :type fn: str
+            :param fn: the name of the txt file containing the data
+            :type fn: str
 
-        :param temp: the temperature at which the free energy is constructed
-        :type temp: float
+            :param temp: the temperature at which the free energy is constructed
+            :type temp: float
 
-        :param cv1_col: the column in which the first collective variable is stored, defaults to 0
-        :type cv1_col: int, optional
+            :param cv1_col: the column in which the first collective variable is stored, defaults to 0
+            :type cv1_col: int, optional
 
-        :param cv2_col: the column in which the second collective variable is stored, defaults to 1
-        :type cv2_col: int, optional
+            :param cv2_col: the column in which the second collective variable is stored, defaults to 1
+            :type cv2_col: int, optional
 
-        :param f_col: the column in which the free energy is stored, defaults to 2
-        :type f_col: int, optional
+            :param f_col: the column in which the free energy is stored, defaults to 2
+            :type f_col: int, optional
 
-        :param cv1_unit: the unit in which the first CV values are stored, defaults to 'au'
-        :type cv1_unit: str, optional
+            :param cv1_unit: the unit in which the first CV values are stored, defaults to 'au'
+            :type cv1_unit: str, optional
 
-        :param cv2_unit: the unit in which the second CV values are stored, defaults to 'au'
-        :type cv2_unit: str, optional
+            :param cv2_unit: the unit in which the second CV values are stored, defaults to 'au'
+            :type cv2_unit: str, optional
 
-        :param f_unit: the unit in which the free energy values are stored, defaults to 'kjmol'
-        :type f_unit: str, optional
+            :param f_unit: the unit in which the free energy values are stored, defaults to 'kjmol'
+            :type f_unit: str, optional
 
-        :param cv1_label: the label for the CV1 axis in plots, defaults to 'CV1'
-        :type cv1_label: str, optional
+            :param cv1_label: the label for the CV1 axis in plots, defaults to 'CV1'
+            :type cv1_label: str, optional
 
-        :param cv2_label: the label for the CV2 axis in plots, defaults to 'CV2'
-        :type cv2_label: str, optional
+            :param cv2_label: the label for the CV2 axis in plots, defaults to 'CV2'
+            :type cv2_label: str, optional
 
-        :param cv1_range: [CVmin,CVmax] indicating to only read free energy for which the first CV in the given range, defaults to None
-        :type cv1_range: tuple/list, optional
+            :param cv1_range: [CVmin,CVmax] indicating to only read free energy for which the first CV in the given range, defaults to None
+            :type cv1_range: tuple/list, optional
 
-        :param cv2_range: [CVmin,CVmax] indicating to only read free energy for which the second CV in the given range, defaults to None
-        :type cv2_range: tuple/list, optional
+            :param cv2_range: [CVmin,CVmax] indicating to only read free energy for which the second CV in the given range, defaults to None
+            :type cv2_range: tuple/list, optional
 
-        :param delimiter: [description], defaults to None
-        :type delimiter: [type], optional
+            :param delimiter: [description], defaults to None
+            :type delimiter: [type], optional
 
-        :return: 2D free energy surface
-        :rtype: FreeEnergySurface2D
+            :return: 2D free energy surface
+            :rtype: FreeEnergySurface2D
         '''
         data = np.loadtxt(fn, delimiter=delimiter, dtype=float)
         cv1s = data[:,cv1_col]*parse_unit(cv1_unit)
@@ -814,7 +826,39 @@ class FreeEnergySurface2D(object):
         cv1s = cv1us.copy()
         cv2s = cv2us.copy()
         fs = fus.copy()
+        if verbose:
+            print('CV grid specification')
+            print('---------------------')
+            cv1_min, cv1_max, cv1_delta, cv1_num = cv1s.min(), cv1s.max(), (cv1s[1:]-cv1s[:-1]).mean(), len(cv1s)
+            cv2_min, cv2_max, cv2_delta, cv2_num = cv2s.min(), cv2s.max(), (cv2s[1:]-cv2s[:-1]).mean(), len(cv2s)
+            print('CV1 grid [%s]: start = %.3e    end = %.3e    delta = %.3e    N = %i' %(cv1_unit, cv1_min/parse_unit(cv1_unit), cv1_max/parse_unit(cv1_unit), cv1_delta/parse_unit(cv1_unit), cv1_num))
+            print('CV2 grid [%s]: start = %.3e    end = %.3e    delta = %.3e    N = %i' %(cv2_unit, cv2_min/parse_unit(cv2_unit), cv2_max/parse_unit(cv2_unit), cv2_delta/parse_unit(cv2_unit), cv2_num))
         return cls(cv1s, cv2s, fs, temp, cv1_label=cv1_label, cv2_label=cv2_label)
+
+    @classmethod
+    def from_histogram(cls, histogram, temp):
+        '''
+            Use the estimated 2D probability histogram to construct the corresponding 2D free energy surface at the given temperature.
+        
+            :param histogram: histogram from which the free energy profile is computed
+            :type histogram: histogram.Histogram2D
+
+            :param temp: the temperature at which the histogram input data was simulated
+            :type temp: float
+
+            :return: free energy profile corresponding to the estimated probability histogram
+            :rtype: cls
+        '''
+        fupper = None
+        flower = None
+        fs = np.zeros(histogram.ps.shape)*np.nan
+        fs[histogram.ps>0] = -boltzmann*temp*np.log(histogram.ps[histogram.ps>0])
+        if histogram.pupper is not None and histogram.plower is not None:
+            fupper = np.zeros(histogram.ps.shape)*np.nan
+            flower = np.zeros(histogram.ps.shape)*np.nan
+            fupper[histogram.plower>0] = -boltzmann*temp*np.log(histogram.plower[histogram.plower>0])
+            flower[histogram.pupper>0] = -boltzmann*temp*np.log(histogram.pupper[histogram.pupper>0])
+        return cls(histogram.cv1s, histogram.cv2s, fs, temp, fupper=fupper, flower=flower, cv1_unit=histogram.cv1_unit, cv2_unit=histogram.cv2_unit, cv1_label=histogram.cv1_label, cv2_label=histogram.cv2_label)
 
     def compute_probdens(self):
         '''Compute the probability density profile associated with the free energy profile as given below and store internally in `self.ps`
@@ -1271,6 +1315,8 @@ class FreeEnergySurface2D(object):
         else:
             raise IOError('Recieved invalid observable. Should be f, free energy, p or probability but got %s' %obs)
         plot_kwargs = {}
+        if lims is None:
+            lims = [min(obs[~np.isnan(obs)]), max(obs[~np.isnan(obs)])]
         if lims is not None:
             if scale.lower() in ['lin', 'linear']:
                 plot_kwargs['levels'] = np.linspace(lims[0], lims[1], ncolors+1)

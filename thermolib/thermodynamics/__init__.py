@@ -14,3 +14,4 @@ from .fep import *
 from .condprob import *
 from .cv import *
 from .histogram import *
+from .bias import *
