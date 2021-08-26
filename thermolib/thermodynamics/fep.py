@@ -254,9 +254,10 @@ class BaseFreeEnergyProfile(object):
         if ref.lower() in ['m', 'min']:
             fmin = self.fs[~np.isnan(self.fs)].min()
             self.fs -= fmin
-            if self.fupper is not None and self.flower is not None:
-                self.flower -= fmin
+            if self.fupper is not None:
                 self.fupper -= fmin
+            if self.flower is not None:
+                self.flower -= fmin
         else:
             raise IOError('Invalid REF specification, recieved %s and should be min, r, ts or p' %ref)
 
@@ -556,19 +557,25 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
         
         :raises IOError: invalid value for keyword argument ref is given. See doc above for choices.
         '''
+        fref = 0.0
         if ref.lower() in ['r', 'reactant']:
             assert self.ir is not None, 'Reactant state not defined yet, did you already apply the find_states routine?'
-            self.fs -= self.fs[self.ir]
+            fref = self.fs[self.ir]
         elif ref.lower() in ['p', 'product']:
             assert self.ip is not None, 'Product state not defined yet, did you already apply the find_states routine?'
-            self.fs -= self.fs[self.ip]
+            fref = self.fs[self.ip]
         elif ref.lower() in ['ts', 'trans_state', 'transition']:
             assert self.its is not None, 'Transition state not defined yet, did you already apply the find_states routine?'
-            self.fs -= self.fs[self.its]
+            fref = self.fs[self.its]
         elif ref.lower() in ['m', 'min']:
-            self.fs -= self.fs[~np.isnan(self.fs)].min()
+            fref = self.fs[~np.isnan(self.fs)].min()
         else:
             raise IOError('Invalid REF specification, recieved %s and should be min, r, ts or p' %ref)
+        self.fs -= fref
+        if self.fupper is not None:
+            self.fupper -= fref
+        if self.flower is not None:
+            self.flower -= fref
         #Micro and macrostates need to be updated
         if self.ir is not None and self.its is not None and self.ip is not None:
             self.microstates = []
