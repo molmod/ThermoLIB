@@ -118,42 +118,41 @@ class ConditionalProbability1D1D(object):
         self.pcvs = self.norms.copy()/self.norms.sum()
         self._finished = True
 
-    def plot(self, fn_plt=None, plot_cvs=None):
-        if fn_plt is not None:
-            if plot_cvs is None:
-                pp.clf()
-                contourf = pp.contourf(self.cvs, self.q1s, self.pconds, cmap=pp.get_cmap('rainbow'))
-                pp.xlabel('%s [au]' %self.cv_label, fontsize=16)
-                pp.ylabel('%s [au]' %self.q1_label, fontsize=16)
-                pp.colorbar(contourf)
-                pp.tight_layout()
-                pp.savefig(fn_plt)
-                pp.close()
+    def plot(self, fn='condprob.png', cvs=None):
+        if cvs is None:
+            pp.clf()
+            contourf = pp.contourf(self.cvs, self.q1s, self.pconds, cmap=pp.get_cmap('rainbow'))
+            pp.xlabel('%s [au]' %self.cv_label, fontsize=16)
+            pp.ylabel('%s [au]' %self.q1_label, fontsize=16)
+            pp.colorbar(contourf)
+            pp.tight_layout()
+            pp.savefig(fn)
+            pp.close()
 
+        else:
+            pp.clf()
+            if   len(cvs)<=2: nrows,ncols = 1,2
+            elif len(cvs)<=4: nrows,ncols = 2,2
+            elif len(cvs)<=6: nrows,ncols = 2,3
+            elif len(cvs)<=9: nrows,ncols = 3,3
             else:
-                pp.clf()
-                if   len(plot_cvs)<=2: nrows,ncols = 1,2
-                elif len(plot_cvs)<=4: nrows,ncols = 2,2
-                elif len(plot_cvs)<=6: nrows,ncols = 2,3
-                elif len(plot_cvs)<=9: nrows,ncols = 3,3
-                else:
-                    raise ValueError('Requested to plot too much cv values, limited to maximum 9')
-                fig, axs = pp.subplots(nrows=nrows,ncols=ncols, sharex=True, sharey=True)
-                for i, cv in enumerate(plot_cvs):
-                    icv = int((cv-self.cvmin)/(self.cvmax-self.cvmin)*(self.cvnum-1))
-                    iax = i//ncols
-                    jax = i%ncols
-                    ax = axs[iax,jax]
-                    ax.plot(self.q1s, self.pconds[:,icv])
-                    if iax==nrows-1:
-                        ax.set_xlabel('%s [au]' %self.q1_label, fontsize=16)
-                    if jax==0:
-                        ax.set_ylabel('Conditional probability p(%s||%s)' %(self.q1_label,self.cv_label), fontsize=16)
-                    ax.set_title('CV = %.3f au' %(self.cvs[icv]))
-                fig.set_size_inches([8*ncols,8*nrows])
-                fig.tight_layout()
-                pp.savefig(fn_plt)
-                pp.close()
+                raise ValueError('Requested to plot too much cv values, limited to maximum 9')
+            fig, axs = pp.subplots(nrows=nrows,ncols=ncols, sharex=True, sharey=True)
+            for i, cv in enumerate(cvs):
+                icv = int((cv-self.cvmin)/(self.cvmax-self.cvmin)*(self.cvnum-1))
+                iax = i//ncols
+                jax = i%ncols
+                ax = axs[iax,jax]
+                ax.plot(self.q1s, self.pconds[:,icv])
+                if iax==nrows-1:
+                    ax.set_xlabel('%s [au]' %self.q1_label, fontsize=16)
+                if jax==0:
+                    ax.set_ylabel('Conditional probability p(%s||%s)' %(self.q1_label,self.cv_label), fontsize=16)
+                ax.set_title('CV = %.3f au' %(self.cvs[icv]))
+            fig.set_size_inches([8*ncols,8*nrows])
+            fig.tight_layout()
+            pp.savefig(fn)
+            pp.close()
 
     def transform(self, fep, cv_unit='au', f_unit='kjmol', cv_label=None):
         '''
@@ -291,7 +290,7 @@ class ConditionalProbability1D2D(object):
         if finish:            
             self.finish()
 
-    def finish(self, fn_plt=None, plot_cvs=None):
+    def finish(self):
         if self._finished:
             raise RuntimeError("Current conditional probability has already been finished.")
         # normalize conditional probability as well as some additional probability densities
@@ -304,39 +303,37 @@ class ConditionalProbability1D2D(object):
         self.pqs /= integrate2d(self.pqs, x=self.q1s, y=self.q2s)
         self.pcvs = self.norms.copy()/self.norms.sum()
         self._finished = True
-        # plot if requested
-        if fn_plt is not None:
-            if plot_cvs is None:
-                raise IOError('If a plot is to be made (as indicated by giving a fn_plot different from None), plot_cvs should be specified as a list of cv values for which the conditional probability will be plotted')
-            pp.clf()
-            if   len(plot_cvs)<=2: nrows,ncols = 1,2
-            elif len(plot_cvs)<=4: nrows,ncols = 2,2
-            elif len(plot_cvs)<=6: nrows,ncols = 2,3
-            elif len(plot_cvs)<=9: nrows,ncols = 3,3
-            else:
-                raise ValueError('Requested to plot too much cv values, limited to maximum 9')
-            fig, axs = pp.subplots(nrows=nrows,ncols=ncols, sharex=True, sharey=True)
-            #fig.suptitle(r'Log of conditional probability distribution')
-            for i, cv in enumerate(plot_cvs):
-                icv = int((cv-self.cvmin)/(self.cvmax-self.cvmin)*(self.cvnum-1))
-                iax = i//ncols
-                jax = i%ncols
-                ax = axs[iax,jax]
-                contourf = ax.contourf(self.q1s, self.q2s, self.pconds[:,:,icv], cmap=pp.get_cmap('rainbow'))
-                if iax==nrows-1:
-                    ax.set_xlabel('%s [au]' %self.q1_label, fontsize=16)
-                if jax==0:
-                    ax.set_ylabel('%s [au]' %self.q2_label, fontsize=16)
-                ax.set_title('CV = %.3f au' %(self.cvs[icv]))
-                cbar = pp.colorbar(contourf, ax=ax)
-            #ax1.plot(self.cvs, np.log(self.pcvs)/np.log(10))
-            #ax1.set_xlabel('%s [au]' %self.cv_label)
-            #ax1.set_ylabel(r'Log of probabilty density [au$^{-1}$]')
-            #ax1.set_title('Probability distrubution of old variable in trajectory')
-            fig.set_size_inches([8*ncols,8*nrows])
-            fig.tight_layout()
-            pp.savefig(fn_plt)
-            pp.close()
+
+    def plot(self, cvs, fn='condprob.png'):
+        pp.clf()
+        if   len(cvs)<=2: nrows,ncols = 1,2
+        elif len(cvs)<=4: nrows,ncols = 2,2
+        elif len(cvs)<=6: nrows,ncols = 2,3
+        elif len(cvs)<=9: nrows,ncols = 3,3
+        else:
+            raise ValueError('Requested to plot too much cv values, limited to maximum 9')
+        fig, axs = pp.subplots(nrows=nrows,ncols=ncols, sharex=True, sharey=True)
+        #fig.suptitle(r'Log of conditional probability distribution')
+        for i, cv in enumerate(cvs):
+            icv = int((cv-self.cvmin)/(self.cvmax-self.cvmin)*(self.cvnum-1))
+            iax = i//ncols
+            jax = i%ncols
+            ax = axs[iax,jax]
+            contourf = ax.contourf(self.q1s, self.q2s, self.pconds[:,:,icv], cmap=pp.get_cmap('rainbow'))
+            if iax==nrows-1:
+                ax.set_xlabel('%s [au]' %self.q1_label, fontsize=16)
+            if jax==0:
+                ax.set_ylabel('%s [au]' %self.q2_label, fontsize=16)
+            ax.set_title('CV = %.3f au' %(self.cvs[icv]))
+            cbar = pp.colorbar(contourf, ax=ax)
+        #ax1.plot(self.cvs, np.log(self.pcvs)/np.log(10))
+        #ax1.set_xlabel('%s [au]' %self.cv_label)
+        #ax1.set_ylabel(r'Log of probabilty density [au$^{-1}$]')
+        #ax1.set_title('Probability distrubution of old variable in trajectory')
+        fig.set_size_inches([8*ncols,8*nrows])
+        fig.tight_layout()
+        pp.savefig(fn)
+        pp.close()
 
     def transform(self, fep, cv1_unit='au', cv2_unit='au', f_unit='kjmol', label1=None, label2=None):
         '''
