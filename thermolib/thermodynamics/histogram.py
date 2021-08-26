@@ -600,7 +600,7 @@ class Histogram2D(object):
 		return cls(cv1s, cv2s, ps, plower=plower, pupper=pupper, cv1_unit=cv1_unit, cv2_unit=cv2_unit, cv1_label=cv1_label, cv2_label=cv2_label)
 
 	@classmethod
-	def from_wham(cls, bins, trajectories, biasses, temp, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, verbose=False, cv1_unit='au', cv2_unit='au', cv1_label='CV1', cv2_label='CV2', plot_biases=False):
+	def from_wham(cls, bins, trajectories, biasses, temp, pinit=None, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, verbose=False, cv1_unit='au', cv2_unit='au', cv1_label='CV1', cv2_label='CV2', plot_biases=False):
 		'''
 			Routine that implements the Weighted Histogram Analysis Method (WHAM) for reconstructing the overall 2D probability histogram from a series of biased molecular simulations in terms of two collective variables CV1 and CV2.
 
@@ -623,6 +623,9 @@ class Histogram2D(object):
 			:param temp: the temperature at which all simulations were performed
 			:type temp: float
 
+			:param pinit: initial guess for the probability density. If None is given, a uniform distribution is used as initial guess.
+			:type pinit: np.ndarray, optional, default=None
+			
 			:param error_estimate: indicate if and how to perform error analysis. One of following options is available:
 			
 				*  **mle_p** -- compute error through the asymptotic normality of the maximum likelihood estimator for the probability itself. WARNING: due to positivity constraint of the probability, this only works for high probability and low variance. Otherwise the standard error interval for the normal distribution (i.e. mle +- n*sigma) might give rise to negative lower error bars.
@@ -752,7 +755,13 @@ class Histogram2D(object):
 			print('-----------------------')
 		
 		#self consistent loop to solve the WHAM equations
-		as_old = np.ones([Ngrid1,Ngrid2])/Ngrid #initialize probability density array (which should sum to 1)
+		##initialize probability density array (which should sum to 1)
+		if pinit is None:
+			as_old = np.ones([Ngrid1,Ngrid2])/Ngrid
+		else:
+			assert pinit.shape[0]==Ngrid1, 'Specified initial guess should be of shape (%i,%i), got (%i,%i)' %(Ngrid1,Ngrid2,pinit.shape[0],pinit.shape[1])
+			assert pinit.shape[1]==Ngrid2, 'Specified initial guess should be of shape (%i,%i), got (%i,%i)' %(Ngrid1,Ngrid2,pinit.shape[0],pinit.shape[1])
+			as_old = pinit.copy()/pinit.sum()
 		nominator = Hs.sum(axis=0) #precomputable factor in WHAM update equations
 		for iscf in range(Nscf):
 			#compute new normalization factors

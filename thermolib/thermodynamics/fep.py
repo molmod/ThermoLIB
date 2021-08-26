@@ -692,44 +692,53 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
 
 class FreeEnergySurface2D(object):
     def __init__(self, cv1s, cv2s, fs, temp, fupper=None, flower=None, cv1_unit='au', cv2_unit='au', f_unit='kjmol', cv1_label='CV1', cv2_label='CV2'):
-        '''Class implementing a 2D free energy surface F(cv1,cv2) (stored in self.fs) as function of two collective variables (CV) denoted by cv1 (stored in self.cv1s) and cv2 (stored in self.cv2s).
+        '''
+            Class implementing a 2D free energy surface F(cv1,cv2) (stored in self.fs) as function of two collective variables (CV) denoted by cv1 (stored in self.cv1s) and cv2 (stored in self.cv2s).
 
-        :param cv1s: array containing the values for the first collective variable CV1
-        :type cv1s: np.ndarray
+            :param cv1s: array containing the values for the first collective variable CV1
+            :type cv1s: np.ndarray
 
-        :param cv2s: array the values for the second collective variable CV2
-        :type cv2s: np.ndarray
+            :param cv2s: array the values for the second collective variable CV2
+            :type cv2s: np.ndarray
 
-        :param fs: 2D array containing the free energy values corresponding to the given values of CV1 and CV2 
-        :type fs: np.ndarray
+            :param fs: 2D array containing the free energy values corresponding to the given values of CV1 and CV2 
+            :type fs: np.ndarray
 
-        :param temp: temperature at which the free energy is given
-        :type temp: float
+            :param temp: temperature at which the free energy is given
+            :type temp: float
 
-        :param fupper: upper value of error bar on free energy
-        :type fupper: np.ndarray
+            :param fupper: upper value of error bar on free energy
+            :type fupper: np.ndarray
 
-        :param flower: lower value of error bar on free energy
-        :type flower: np.ndarray
+            :param flower: lower value of error bar on free energy
+            :type flower: np.ndarray
 
-        :param cv1_unit: unit in which the input array cv1 is given (units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_), defaults to 'au'
-        :type cv1_unit: str, optional
+            :param cv1_unit: unit in which the input array cv1 is given (units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_), defaults to 'au'
+            :type cv1_unit: str, optional
 
-        :param cv2_unit: unit in which the input array cv2 is given (units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_), defaults to 'au'
-        :type cv2_unit: str, optional
+            :param cv2_unit: unit in which the input array cv2 is given (units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_), defaults to 'au'
+            :type cv2_unit: str, optional
 
-        :param f_unit: unit in which the input array f is given (units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_), defaults to 'kjmol'
-        :type f_unit: str, optional
+            :param f_unit: unit in which the input array f is given (units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_), defaults to 'kjmol'
+            :type f_unit: str, optional
 
-        :param cv1_label: label for CV1 axis on plots, defaults to 'CV1'
-        :type cv1_label: str, optional
+            :param cv1_label: label for CV1 axis on plots, defaults to 'CV1'
+            :type cv1_label: str, optional
 
-        :param cv2_label: label for CV2 axis on plots, defaults to 'CV2'
-        :type cv2_label: str, optional
+            :param cv2_label: label for CV2 axis on plots, defaults to 'CV2'
+            :type cv2_label: str, optional
         '''
         self.cv1s = cv1s.copy()
         self.cv2s = cv2s.copy()
         self.fs   = fs.copy()
+        if fupper is not None:
+            self.fupper = fupper.copy()
+        else:
+            self.fupper = None
+        if flower is not None:
+            self.flower = flower.copy()
+        else:
+            self.flower = None
         self.T = temp
         self.cv1_unit = cv1_unit
         self.cv2_unit = cv2_unit
@@ -744,15 +753,20 @@ class FreeEnergySurface2D(object):
     beta = property(_beta)
 
     def copy(self):
-        '''Make and return a copy of the current FreeEnergySurface2D instance.
-
-        :return: a copy of the current instance
-        :rtype: FreeEnergySurface2D
         '''
+            Make and return a copy of the current FreeEnergySurface2D instance.
+
+            :return: a copy of the current instance
+            :rtype: FreeEnergySurface2D
+        '''
+        fupper, flower = None, None
+        if self.fupper is not None:
+            fupper = self.fupper.copy()
+        if self.flower is not None:
+            flower = self.flower.copy()
         fes = FreeEnergySurface2D(
-            self.cv1s.copy(), self.cv2s.copy(), self.fs.copy(), self.T,
-            self.cv1_unit, self.cv2_unit, self.f_unit,
-            self.cv1_label, self.cv2_label
+            self.cv1s.copy(), self.cv2s.copy(), self.fs.copy(), self.T, fupper=fupper, flower=flower, 
+            cv1_unit=self.cv1_unit, cv2_unit=self.cv2_unit, f_unit=self.f_unit, cv1_label=self.cv1_label, cv2_label=self.cv2_label
         )
         return fes
 
@@ -861,23 +875,25 @@ class FreeEnergySurface2D(object):
         return cls(histogram.cv1s, histogram.cv2s, fs, temp, fupper=fupper, flower=flower, cv1_unit=histogram.cv1_unit, cv2_unit=histogram.cv2_unit, cv1_label=histogram.cv1_label, cv2_label=histogram.cv2_label)
 
     def compute_probdens(self):
-        '''Compute the probability density profile associated with the free energy profile as given below and store internally in `self.ps`
+        '''
+            Compute the probability density profile associated with the free energy profile as given below and store internally in `self.ps`
 
-        .. math::
+            .. math::
 
-                p(q) = \\frac{\\exp\\left(-\\beta F(q)\\right)}{\\int_{-\\infty}^{+\\infty}\\exp\\left(-\\beta F(q)\\right)dq}
+                    p(q) = \\frac{\\exp\\left(-\\beta F(q)\\right)}{\\int_{-\\infty}^{+\\infty}\\exp\\left(-\\beta F(q)\\right)dq}
         '''
         self.ps = np.exp(-self.beta*self.fs)
         self.ps[np.isnan(self.ps)] = 0.0
         self.ps /= integrate2d(self.ps, x=self.cv1s, y=self.cv2s)
 
     def set_ref(self, ref='min'):
-        '''Set the energy reference of the free energy surface.
+        '''
+            Set the energy reference of the free energy surface.
 
-        :param ref: the choice for the energy reference. Currently only one possibility is implemented, i.e. *m* or *min* for the global minimum. Defaults to 'min'.
-        :type ref: str
-        
-        :raises IOError: invalid value for keyword argument ref is given. See doc above for choices.
+            :param ref: the choice for the energy reference. Currently only one possibility is implemented, i.e. *m* or *min* for the global minimum. Defaults to 'min'.
+            :type ref: str
+            
+            :raises IOError: invalid value for keyword argument ref is given. See doc above for choices.
         '''
         if ref.lower() in ['m', 'min']:
             self.fs -= self.fs[~np.isnan(self.fs)].min()
@@ -1342,7 +1358,7 @@ class FreeEnergySurface2D(object):
         pp.savefig(fn_png)
 
 
-def plot_feps(fn, feps, temp=None, labels=None, flim=None, colors=None, linestyles=None, linewidths=None):
+def plot_feps(fn, feps, temp=None, labels=None, flims=None, colors=None, linestyles=None, linewidths=None):
     '''
         Make a plot to compare multiple free energy profiles
 
@@ -1358,8 +1374,8 @@ def plot_feps(fn, feps, temp=None, labels=None, flim=None, colors=None, linestyl
         :param labels: list of labels for the legend, one for each histogram. Defaults to None
         :type labels: list(str), optional
 
-        :param flim: upper limit of the free energy axis in plots. Defaults to None
-        :type flim: float, optional
+        :param flims: [lower,upper] limits of the free energy axis in plots. Defaults to None
+        :type flims: list/np.ndarray, optional
 
         :param colors: List of matplotlib color definitions for each entry in histograms. If an entry is None, a color will be chosen internally. Defaults to None, implying all colors are chosen internally.
 		:type colors: List(str), optional
@@ -1423,11 +1439,11 @@ def plot_feps(fn, feps, temp=None, labels=None, flim=None, colors=None, linestyl
     axs[0,0].set_ylabel('F [%s]' %funit, fontsize=14)
     axs[0,0].set_title('Free energy profile', fontsize=14)
     axs[0,0].set_xlim(cv_range)
-    if flim is None:
+    if flims is None:
         if not np.isinf(fmax):
             axs[0,0].set_ylim([-1,fmax])
     else:
-        axs[0,0].set_ylim([-1,flim/parse_unit(funit)])
+        axs[0,0].set_ylim(flims)
     axs[0,0].legend(loc='best')
     if temp is not None:
         axs[0,1].set_xlabel('%s [%s]' %(cv_label, cv_unit), fontsize=14)

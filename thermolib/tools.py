@@ -367,7 +367,9 @@ def read_wham_input(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1,
         for line in f.readlines():
             iline += 1
             line = line.rstrip('\n')
-            if line.startswith('T'):
+            if line.startswith('#'):
+                continue
+            elif line.startswith('T'):
                 temp = float(line.split('=')[1].rstrip('K'))
                 if verbose:
                     print('Temperature set at %f' %temp)
@@ -488,7 +490,9 @@ def read_wham_input_2D(fn, path_template_colvar_fns='%s', kappa1_unit='kjmol', k
             iline += 1
             line = line.rstrip('\n')
             words = line.split()
-            if line.startswith('T'):
+            if line.startswith('#'):
+                continue
+            elif line.startswith('T'):
                 temp = float(line.split('=')[1].rstrip('K'))
                 if verbose:
                     print('Temperature set at %f' %temp)
