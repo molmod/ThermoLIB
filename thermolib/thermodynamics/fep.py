@@ -63,8 +63,14 @@ class BaseFreeEnergyProfile(object):
         self.cvs = cvs.copy()
         self.fs = fs.copy()
         self.T = temp
-        self.fupper = fupper
-        self.flower = flower
+        if fupper is not None:
+            self.fupper = fupper.copy()
+        else:
+            self.fupper = None
+        if flower is not None:
+            self.flower = flower.copy()
+        else:
+            self.flower = None
         self.cv_unit = cv_unit
         self.f_unit = f_unit
         self.cv_label = cv_label
@@ -478,8 +484,8 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
         
     See :meth:`BaseFreeEnergyProfile` for constructor arguments and documentation.
     '''
-    def __init__(self, cvs, fs, temp, cv_unit='au', f_unit='kjmol', cv_label='CV'):
-        BaseFreeEnergyProfile.__init__(self, cvs, fs, temp, cv_unit=cv_unit, f_unit=f_unit, cv_label=cv_label)
+    def __init__(self, cvs, fs, temp, fupper=None, flower=None, cv_unit='au', f_unit='kjmol', cv_label='CV'):
+        BaseFreeEnergyProfile.__init__(self, cvs, fs, temp, fupper=fupper, flower=flower, cv_unit=cv_unit, f_unit=f_unit, cv_label=cv_label)
         self.ir  = None
         self.its = None
         self.ip  = None
