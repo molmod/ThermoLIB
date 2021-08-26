@@ -50,6 +50,7 @@ class ConditionalProbability1D1D(object):
         self.norms = np.zeros(self.cvnum)
         self.pqs = np.zeros(self.q1num)
         self.pcvs = np.zeros(self.cvnum)
+        self._finished = False
 
     def process_trajectory_xyz(self, fns, Q1, CV, finish=True):
         '''
@@ -58,6 +59,8 @@ class ConditionalProbability1D1D(object):
             final probability is estimated as the average over all given files.
             These files may also contain data from biased simulations.
         '''
+        if self._finished:
+            raise RuntimeError("Cannot read additional XYZ trajectory because current conditional probability has already been finished.")
         print('Constructing/updating conditional probability with input from XYZ trajectory files ...')
         if not isinstance(fns, list): fns = [fns]
         for fn in fns:
@@ -78,7 +81,7 @@ class ConditionalProbability1D1D(object):
                     assert self.q1s[iq1]<=q1i<=self.q1s[iq1+1], "Inconsistency detected in q1s"
                 self.pconds[iq1,icv] += 1
                 self.norms[icv] += 1
-        if finish:
+        if finish:            
             self.finish()
 
     def process_trajectory_cvs(self, fns, col_q1=1, col_cv=2, finish=True):
@@ -92,6 +95,8 @@ class ConditionalProbability1D1D(object):
             If the trajectory file contains this data in a different order, it
             can be accounted for using the col_xx keyword arguments.
         '''
+        if self._finished:
+            raise RuntimeError("Cannot read additional XYZ trajectory because current conditional probability has already been finished.")
         if not isinstance(fns, list): fns = [fns]
         print('Constructing/updating conditional probability with input from CV trajectory files ...')
         for fn in fns:
@@ -103,13 +108,15 @@ class ConditionalProbability1D1D(object):
             self.finish()
 
     def finish(self):
+        if self._finished:
+            raise RuntimeError("Current conditional probability has already been finished.")
         # Normalize conditional probability as well as some additional probability densities
         self.pqs = np.sum(self.pconds, axis=1)
         self.pconds[:, self.norms>0] /= self.norms[self.norms>0]
         assert (self.pconds[:, self.norms<=0]==0).all(), 'Inconsistency in normalisation of conditional probability'
-
         self.pqs /= np.trapz(self.pqs, x=self.q1s)
         self.pcvs = self.norms.copy()/self.norms.sum()
+        self._finished = True
 
     def plot(self, fn_plt=None, plot_cvs=None):
         if fn_plt is not None:
@@ -157,6 +164,7 @@ class ConditionalProbability1D1D(object):
 
                 P(q1) = int(condprob(q1|cv)*exp(-beta*F(cv), cv)
         '''
+        assert self._finished, "Conditional probability needs to be finished before applying at in transformations."
         assert isinstance(fep, BaseFreeEnergyProfile), 'Input argument should be instance of BaseFreeEnergyProfile, instead received %s' %fep.__class__.__name__
         assert len(fep.cvs)==len(self.cvs), 'Dimension of 1D CV in conditional probability inconsistent with 1D FEP'
         assert (abs(fep.cvs-self.cvs)<1e-6).all(), 'Values of 1D CV in conditional probability not identical to those of 1D FEP'
@@ -193,8 +201,9 @@ class ConditionalProbability1D2D(object):
         self.norms = np.zeros(self.cvnum)
         self.pqs = np.zeros([self.q2num, self.q1num])
         self.pcvs = np.zeros(self.cvnum)
+        self._finished = False
 
-    def process_trajectory_xyz(self, fns, Q1, Q2, CV):
+    def process_trajectory_xyz(self, fns, Q1, Q2, CV, finish=True):
         '''
             Compute the conditional probability p(q1,q2|cv) (and norm for final
             normalisation) by processing a series of XYZ trajectory files. The
@@ -205,6 +214,8 @@ class ConditionalProbability1D2D(object):
             Data obtained from a regular MD with the final MTD profile as bias
             is OK.
         '''
+        if self._finished:
+            raise RuntimeError("Cannot read additional XYZ trajectory because current conditional probability has already been finished.")
         if not isinstance(fns, list): fns = [fns]
         for fn in fns:
             xyz = XYZReader(fn)
@@ -230,8 +241,10 @@ class ConditionalProbability1D2D(object):
                     assert self.q2s[iq2]<=q2i<=self.q2s[iq2+1], "Inconsistency detected in q2s"
                 self.pconds[iq2,iq1,icv] += 1
                 self.norms[icv] += 1
+        if finish:            
+            self.finish()
 
-    def process_trajectory_cvs(self, fns, col_q1=1, col_q2=2, col_cv=3):
+    def process_trajectory_cvs(self, fns, col_q1=1, col_q2=2, col_cv=3, finish=True):
         '''
             Routine to update conditional probability p(q1,q2|cv) (and norm for
             final normalisation) by processing a series of CV trajectory file.
@@ -246,6 +259,8 @@ class ConditionalProbability1D2D(object):
 
             Warning: after all trajectories have been processes, you need to manually call the finish routine!
         '''
+        if self._finished:
+            raise RuntimeError("Cannot read additional XYZ trajectory because current conditional probability has already been finished.")
         if not isinstance(fns, list): fns = [fns]
         print('Constructing conditional probability...')
         for fn in fns:
@@ -273,8 +288,12 @@ class ConditionalProbability1D2D(object):
                         raise AssertionError("Inconsistency detected in q2 values: assigned index %i to value %.6f but q2s[%i]=%.6f and q2s[%i]=%.6f" %(iq2,q2i,iq2,self.q2s[iq2],iq2+1,self.q2s[iq2+1]))
                 self.pconds[iq2,iq1,icv] += 1
                 self.norms[icv] += 1
+        if finish:            
+            self.finish()
 
     def finish(self, fn_plt=None, plot_cvs=None):
+        if self._finished:
+            raise RuntimeError("Current conditional probability has already been finished.")
         # normalize conditional probability as well as some additional probability densities
         for icv, norm in enumerate(self.norms):
             self.pqs += self.pconds[:,:,icv]
@@ -284,6 +303,7 @@ class ConditionalProbability1D2D(object):
                 assert (self.pconds[:,:,icv]==0).all(), 'Inconsistency in normalisation of conditional probability'
         self.pqs /= integrate2d(self.pqs, x=self.q1s, y=self.q2s)
         self.pcvs = self.norms.copy()/self.norms.sum()
+        self._finished = True
         # plot if requested
         if fn_plt is not None:
             if plot_cvs is None:
@@ -327,6 +347,7 @@ class ConditionalProbability1D2D(object):
 
                 P(q1,q2) = int(condprob(q1,q2|cv)*exp(-beta*F(cv), cv)
         '''
+        assert self._finished, "Conditional probability needs to be finished before applying at in transformations."
         assert isinstance(fep, BaseFreeEnergyProfile), 'Input argument should be instance of BaseFreeEnergyProfile, instead received %s' %fep.__class__.__name__
         assert len(fep.cvs)==len(self.cvs), 'Dimension of 1D CV in conditional probability inconsistent with 1D FEP'
         assert (abs(fep.cvs-self.cvs)<1e-6).all(), 'Values of 1D CV in conditional probability not identical to those of 1D FEP'
