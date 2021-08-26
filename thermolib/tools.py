@@ -383,7 +383,10 @@ def read_wham_input(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1,
                 bias = Parabola1D(name, q0, kappa)
                 data = np.loadtxt(fn_traj)
                 biasses.append(bias)
-                trajectories.append(data[start:end:stride,colvar_cv_column_index])
+                if end==-1:
+                    trajectories.append(data[start::stride,colvar_cv_column_index])
+                else:
+                    trajectories.append(data[start:end:stride,colvar_cv_column_index])
                 if verbose:
                     print('Added bias %s' %bias.print())
                     print('Read corresponding trajectory data from %s' %fn_traj)
@@ -505,7 +508,10 @@ def read_wham_input_2D(fn, path_template_colvar_fns='%s', kappa1_unit='kjmol', k
                 bias = Parabola2D(name, q01, q02, kappa1, kappa2)
                 data = np.loadtxt(fn_traj)
                 biasses.append(bias)
-                trajectories.append(data[start:end:stride,1:3]) #COLVAR format: CV1 is second column and CV2 is third column
+                if end==-1:
+                    trajectories.append(data[start::stride,1:3])#COLVAR format: CV1 is second column and CV2 is third column
+                else:
+                    trajectories.append(data[start:end:stride,1:3])#COLVAR format: CV1 is second column and CV2 is third column
                 if verbose:
                     print('  added %s' %bias.print())
                     print('  trajectory read from %s' %fn_traj)
