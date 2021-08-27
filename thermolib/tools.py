@@ -388,8 +388,23 @@ def read_wham_input(fn, kappa_unit='kjmol', q0_unit='au', start=0, end=-1, strid
             elif len(line.split())>0:
                 raise ValueError('Could not process line %i in %s: %s' %(iline, fn, line))
     return temp, biasses, trajectories
-    
-+def bias_polynomial_with_parabola(taylor_coeffs, kappa, q0,poly_unit='kjmol'):
+
+def extract_polynomial_bias_info(fn_plumed='plumed.dat'):
+    #TODO make less error phrone. include check.
+    with open(fn_plumed,'r') as plumed:
+        for line in plumed:
+            idx = line.find('COEFFICIENTS',0)
+            if idx > 0:
+                idx+=13 #13 len of the string
+                idx_end = line.find('POWERS',0)
+                short_line = line[idx:idx_end].rstrip(' ').rstrip(',')
+                split_line = short_line.split(',')
+                poly_coef = [float(i) for i in split_line] #remark that -float is needed to get the resulting fe.
+                break
+
+    return poly_coef
+
+def bias_polynomial_with_parabola(taylor_coeffs, kappa, q0,poly_unit='kjmol'):
     def Vpoly(taylor_coeffs,q):
         V_polynomial = np.polynomial.polynomial.Polynomial(taylor_coeffs)
         return V_polynomial(q)
