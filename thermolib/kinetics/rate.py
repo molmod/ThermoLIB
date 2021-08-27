@@ -64,6 +64,7 @@ class BaseRateFactor(object):
     def read_results(self, fn, A_unit='1/second'):
         data = np.loadtxt(fn)
         self.As = data*parse_unit(A_unit)
+        self._finished = True
 
     def process_trajectory(self, *args, **kwargs):
         raise NotImplementedError

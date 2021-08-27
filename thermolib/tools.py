@@ -380,7 +380,10 @@ def read_wham_input(fn, kappa_unit='kjmol', q0_unit='au', start=0, end=-1, strid
                     print('Added bias potential nr. %i (Parabola with kappa = %.3f %s , q0 = %.3e %s)' %(len(biasses), kappa/parse_unit(kappa_unit), kappa_unit, q0/parse_unit(q0_unit), q0_unit))
                 fn_traj = '%s/colvar_%s.dat' %(root,name)
                 data = np.loadtxt(fn_traj)
-                trajectories.append(data[start:end:stride,1])
+                if end == -1:
+                    trajectories.append(data[start::stride, 1])
+                else:
+                    trajectories.append(data[start:end:stride, 1])
                 if verbose:
                     print('Read corresponding trajectory data from %s' %fn_traj)
             elif bias_potential.lower() not in ['parabola', 'harmonic']:
@@ -516,6 +519,11 @@ def read_wham_input_custom1(fn,temp,fn_plumed=None, kappa_unit='kjmol', q0_unit=
 
             fn_traj = default_cv_directory+fn_U
             data = np.loadtxt(fn_traj)
-            trajectories.append(data[start:end:stride, 1])
+            old: trajectories.append(data[start:end:stride, 1])
+            if end == -1:
+                trajectories.append(data[start::stride, 1])
+            else:
+                trajectories.append(data[start:end:stride, 1])
             if verbose:
                 print('Read corresponding trajectory data from %s' % fn_traj)   
+    return temp, biasses, trajectories
