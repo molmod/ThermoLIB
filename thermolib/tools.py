@@ -407,20 +407,23 @@ def extract_polynomial_bias_info(fn_plumed='plumed.dat'):
 
     return poly_coef
 
-def bias_polynomial_with_parabola(taylor_coeffs, kappa, q0,poly_unit='kjmol'):
+def bias_polynomial_with_parabola(taylor_coeffs, kappa, q0,poly_unit='kjmol',reflect_x=False):
     def Vpoly(taylor_coeffs,q):
         V_polynomial = np.polynomial.polynomial.Polynomial(taylor_coeffs)
         return V_polynomial(q)
 
     def Vh(q):
         return 0.5 * kappa * (q - q0) ** 2
-
-    sum = lambda q: Vpoly(taylor_coeffs,q)*parse_unit(poly_unit) + Vh(q)
+    if reflect_x==True:
+        sign = -1
+    else:
+        sign = 1
+    sum = lambda q: Vpoly(taylor_coeffs,sign*q)*parse_unit(poly_unit) + Vh(sign*q)
     return sum
 
 
 def read_wham_input_custom1(fn,temp,fn_plumed=None, kappa_unit='kjmol', q0_unit='au', start=0, end=-1, stride=1, bias_potential='poly_parabola',plumed_unit='kjmol',default_cv_directory='./',
-                    verbose=False):
+                    verbose=False,reflect_x=False):
     '''
         Read the input for a WHAM reconstruction of the free energy profile from a set of Umbrella Sampling simulations. The file specified by fn should have the following format:
 
@@ -510,7 +513,7 @@ def read_wham_input_custom1(fn,temp,fn_plumed=None, kappa_unit='kjmol', q0_unit=
                     len(biasses), kappa / parse_unit(kappa_unit), kappa_unit, q0 / parse_unit(q0_unit), q0_unit))
             elif bias == 'poly_harm':
                 try:
-                    biasses.append(bias_polynomial_with_parabola(poly_coef,kappa, q0,poly_unit=plumed_unit))
+                    biasses.append(bias_polynomial_with_parabola(poly_coef,kappa, q0,poly_unit=plumed_unit,reflect_x=reflect_x))
                 except:
                     raise ValueError('Could not process line %i in %s: %s' % (iline, fn, line))
                 if verbose:
