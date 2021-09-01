@@ -17,6 +17,7 @@ from molmod.io.xyz import XYZReader
 
 import numpy as np
 from scipy.optimize import curve_fit
+from scipy import interpolate
 import matplotlib.pyplot as pp
 import sys
 
@@ -297,7 +298,17 @@ def bias_parabola(kappa, q0):
         return 0.5*kappa*(q-q0)**2
     return V
 
-def read_wham_input(fn, kappa_unit='kjmol', q0_unit='au', start=0, end=-1, stride=1, bias_potential='parabola', verbose=False):
+def bias_parabola_external(kappa, q0, external, external_unit, scale_external):
+    '''
+        This function adds on top of the harmonic potentials an external potential read from a file, which is spline-interpolated.
+    '''
+    external = np.loadtxt(external).T
+    splint_bias = interpolate.splrep(external[0], external[1])
+
+    sum = lambda q: 0.5*kappa*(q-q0)**2 + interpolate.splev(q, splint_bias, der=0)*scale_external*parse_unit(external_unit)
+    return sum
+
+def read_wham_input(fn, kappa_unit='kjmol', q0_unit='au', start=0, end=-1, stride=1, bias_potential='parabola', verbose=False, external=None, external_unit='kjmol', scale_external=1.0):
     '''
         Read the input for a WHAM reconstruction of the free energy profile from a set of Umbrella Sampling simulations. The file specified by fn should have the following format:
 
@@ -349,6 +360,14 @@ def read_wham_input(fn, kappa_unit='kjmol', q0_unit='au', start=0, end=-1, strid
         :param verbose: increases verbosity if set to True, defaults to False
         :type verbose: bool, optional
         
+        :param external: specifies the filename of an external potential written on a grid and acting on the collective variable, as used with the EXTERNAL keyword in PLUMED.
+		:type external: str, optional
+		
+		:param external_unit: unit used to express the external potential, defaults to 'kjmol'
+		:type external_unit: str, optional
+
+		:param scale_external: scaling factor for the external potential (useful to invert free energy surfaces), default to 1.0
+		:type scale_external: float, optional
         :raises ValueError: when a line in the wham input file cannot be interpreted
 
         :return: temp, biasses, trajectories:
@@ -361,35 +380,67 @@ def read_wham_input(fn, kappa_unit='kjmol', q0_unit='au', start=0, end=-1, strid
     biasses = []
     trajectories = []
     root = '/'.join(fn.split('/')[:-1])
-    with open(fn, 'r') as f:
-        iline = -1
-        for line in f.readlines():
-            iline += 1
-            line = line.rstrip('\n').rstrip('\x00')
-            if line.startswith('T'):
-                temp = float(line.split('=')[1].rstrip('K'))
-                if verbose:
-                    print('Temperature set at %f' %temp)
-            elif line.startswith('U') and bias_potential.lower() in ['parabola', 'harmonic']:
-                words = line.split()
-                name = words[0]
-                q0 = float(words[1])*parse_unit(q0_unit)
-                kappa = float(words[2])*parse_unit(kappa_unit)
-                biasses.append(bias_parabola(kappa,q0))
-                if verbose:
-                    print('Added bias potential nr. %i (Parabola with kappa = %.3f %s , q0 = %.3e %s)' %(len(biasses), kappa/parse_unit(kappa_unit), kappa_unit, q0/parse_unit(q0_unit), q0_unit))
-                fn_traj = '%s/colvar_%s.dat' %(root,name)
-                data = np.loadtxt(fn_traj)
-                if end == -1:
-                    trajectories.append(data[start::stride, 1])
-                else:
-                    trajectories.append(data[start:end:stride, 1])
-                if verbose:
-                    print('Read corresponding trajectory data from %s' %fn_traj)
-            elif bias_potential.lower() not in ['parabola', 'harmonic']:
+    if external == None:
+        with open(fn, 'r') as f:
+            iline = -1
+            for line in f.readlines():
+                iline += 1
+                line = line.rstrip('\n').rstrip('\x00')
+                if line.startswith('T'):
+                    temp = float(line.split('=')[1].rstrip('K'))
+                    if verbose:
+                        print('Temperature set at %f' %temp)
+                elif line.startswith('U') and bias_potential.lower() in ['parabola', 'harmonic']:
+                    words = line.split()
+                    name = words[0]
+                    q0 = float(words[1])*parse_unit(q0_unit)
+                    kappa = float(words[2])*parse_unit(kappa_unit)
+                    biasses.append(bias_parabola(kappa,q0))
+                    if verbose:
+                        print('Added bias potential nr. %i (Parabola with kappa = %.3f %s , q0 = %.3e %s)' %(len(biasses), kappa/parse_unit(kappa_unit), kappa_unit, q0/parse_unit(q0_unit), q0_unit))
+                    fn_traj = '%s/colvar_%s.dat' %(root,name)
+                    data = np.loadtxt(fn_traj)
+                    if end == -1:
+                        trajectories.append(data[start::stride, 1])
+                    else:
+                        trajectories.append(data[start:end:stride, 1])
+                    if verbose:
+                        print('Read corresponding trajectory data from %s' %fn_traj)
+                elif bias_potential.lower() not in ['parabola', 'harmonic']:
                     raise ValueError('Bias potential definition %s not supported, see documentation for allowed values.')
-            elif len(line.split())>0:
-                raise ValueError('Could not process line %i in %s: %s' %(iline, fn, line))
+                elif len(line.split())>0:
+                    raise ValueError('Could not process line %i in %s: %s' %(iline, fn, line))
+    elif isinstance(external, str):
+        with open(fn, 'r') as f:
+            iline = -1
+            for line in f.readlines():
+                iline += 1
+                line = line.rstrip('\n').rstrip('\x00')
+                if line.startswith('T'):
+                    temp = float(line.split('=')[1].rstrip('K'))
+                    if verbose:
+                        print('Temperature set at %f' % temp)
+                elif line.startswith('U') and bias_potential.lower() in ['parabola', 'harmonic']:
+                    words = line.split()
+                    name = words[0]
+                    q0 = float(words[1]) * parse_unit(q0_unit)
+                    kappa = float(words[2]) * parse_unit(kappa_unit)
+                    biasses.append(bias_parabola_external(kappa, q0, external, external_unit, scale_external))
+                    if verbose:
+                        print('Added bias potential nr. %i (Parabola with kappa = %.3f %s , q0 = %.3e %s, plus the specified external bias)' % (
+                        len(biasses), kappa / parse_unit(kappa_unit), kappa_unit, q0 / parse_unit(q0_unit), q0_unit))
+                    fn_traj = '%s/colvar_%s.dat' % (root, name)
+                    data = np.loadtxt(fn_traj)
+                    trajectories.append(data[start:end:stride, 1])
+                    if verbose:
+                        print('Read corresponding trajectory data from %s' % fn_traj)
+                elif bias_potential.lower() not in ['parabola', 'harmonic']:
+                    raise ValueError(
+                        'Bias potential definition %s not supported, see documentation for allowed values.')
+                elif len(line.split()) > 0:
+                    raise ValueError('Could not process line %i in %s: %s' % (iline, fn, line))
+    else:
+        raise TypeError('external should be a file name or None.')
     return temp, biasses, trajectories
 
 def extract_polynomial_bias_info(fn_plumed='plumed.dat'):
