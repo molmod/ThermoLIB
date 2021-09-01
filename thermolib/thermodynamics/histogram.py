@@ -721,6 +721,10 @@ class Histogram2D(object):
 			assert (bins[0]==edges1).all()
 			assert (bins[1]==edges2).all()
 			Hs[i,:,:] = ns.copy()
+			N = ns.sum()
+			if not Nis[i]==N:
+				print('WARNING: Histogram of trajectory %i should have total count of %i (=number of simulation steps), but found %f (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.' %(i,Nis[i],N))
+				Nis[i] = N
 		
 		#compute the boltzmann factors of the biases in each grid interval
 		#b_ikl = 1/(delta1*delta2)*int(exp(-beta*W_i(q1,q2)), q1=Q_k-delta1/2...Q_k+delta1/2, q2=Q_l-delta2/2...Q_l+delta2/2)
