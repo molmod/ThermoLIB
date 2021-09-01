@@ -254,6 +254,10 @@ class Histogram1D(object):
 			ns, edges = np.histogram(data, bins, density=False)
 			assert (bins==edges).all()
 			Hs[i,:] = ns.copy()
+			N = ns.sum()
+			if Nis[i]!=N:
+				print("WARNING: the CV range you specified for the histogram does not cover the entire simulation range in trajectory %i. Simulation samples outside the given CV range were cropped out." %(i))
+				Nis[i] = N
 		#compute the boltzmann factors of the biases in each grid interval
 		#b_ik = 1/delta*int(exp(-beta*W_i(q)), q=Q_k-delta/2...Q_k+delta/2)
 		bs = np.zeros([Nsims, Ngrid])
