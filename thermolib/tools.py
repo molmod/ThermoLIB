@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2012 - 2019 Louis Vanduyfhuys <Louis.Vanduyfhuys@UGent.be>
+# Copyright (C) 2019 - 2021 Louis Vanduyfhuys <Louis.Vanduyfhuys@UGent.be>
 # Center for Molecular Modeling (CMM), Ghent University, Ghent, Belgium;
 # all rights reserved unless otherwise stated.
 #
@@ -355,7 +355,6 @@ def read_wham_input(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1,
             * **temp** (float) -- temperature at which the simulations were performed
             * **biasses** (list of callables) -- list of bias potentials (defined as callable functions) for all Umbrella Sampling simulations
             * **trajectories** (list of np.ndarrays) -- list of trajectory data arrays containing the CV trajectory for all Umbrella Sampling simulations
-        
     '''
     from thermolib.thermodynamics.bias import Parabola1D, bias_dict
     temp = None
@@ -526,4 +525,142 @@ def read_wham_input_2D(fn, path_template_colvar_fns='%s', kappa1_unit='kjmol', k
                 raise ValueError('Could not process line %i in %s: %s' %(iline, fn, line))
     if temp is None:
         print('WARNING: temperature could not be read from %s' %fn)
+    return temp, biasses, trajectories
+
+
+def extract_polynomial_bias_info(fn_plumed='plumed.dat'):
+    #TODO make less error phrone. include check.
+    with open(fn_plumed,'r') as plumed:
+        for line in plumed:
+            idx = line.find('COEFFICIENTS',0)
+            if idx > 0:
+                idx+=13 #13 len of the string
+                idx_end = line.find('POWERS',0)
+                short_line = line[idx:idx_end].rstrip(' ').rstrip(',')
+                split_line = short_line.split(',')
+                poly_coef = [float(i) for i in split_line] #remark that -float is needed to get the resulting fe.
+                break
+    return poly_coef
+
+
+def bias_polynomial_with_parabola(taylor_coeffs, kappa, q0,poly_unit='kjmol',reflect_x=False):
+    def Vpoly(taylor_coeffs,q):
+        V_polynomial = np.polynomial.polynomial.Polynomial(taylor_coeffs)
+        return V_polynomial(q)
+    def Vh(q):
+        return 0.5 * kappa * (q - q0) ** 2
+    if reflect_x==True:
+        sign = -1
+    else:
+        sign = 1
+    sum = lambda q: Vpoly(taylor_coeffs,sign*q)*parse_unit(poly_unit) + Vh(sign*q)
+    return sum
+
+
+def read_wham_input_custom1(fn,temp,fn_plumed=None, kappa_unit='kjmol', q0_unit='au', start=0, end=-1, stride=1, bias_potential='poly_parabola',plumed_unit='kjmol',default_cv_directory='./', verbose=False,reflect_x=False):
+    '''
+        Read the input for a WHAM reconstruction of the free energy profile from a set of Umbrella Sampling simulations. The file specified by fn should have the following format:
+
+        .. code-block:: python
+
+            FILENAME1 Q01 KAPPA1
+            FILENAME2 Q02 KAPPA2
+            FILENAME3 Q03 KAPPA3
+            ...
+
+        where the first line specifies the temperature and the subsequent lines define the bias potential for each simulation as a parabola centered around ``Q0i`` and with force constant ``KAPPAi`` (the units used in this file can be specified the keyword arguments ``kappa_unit`` and ``q0_unit``). For each bias with name ``NAMEi`` defined in this file, there should be a trajectory file in the same directory with the name ``colvar_NAMEi.dat`` containing the trajectory of the relevant collective variable during the biased simulation. This trajectory file should in term be formatted as outputted by PLUMED:
+
+        .. code-block:: python
+
+            time_1 cv_value_1
+            time_2 cv_value_2
+            time_3 cv_value_3
+            ...
+
+        where the cv values again have a unit that can be specified by the keyword argument ``q0_unit``.
+
+        :param fn: file name of the wham input file
+        :type fn: str
+
+        :param kappa_unit: unit used to express kappa in the wham input file, defaults to 'kjmol'
+        :type kappa_unit: str, optional
+
+        :param q0_unit: unit used to express q0 in the wham input file as well as the cv values in the trajectory files, defaults to 'au'
+        :type q0_unit: str, optional
+
+        :param stride: defines the sub sampling applied to the trajectory data to deal with correlations. For example a stride of 10 means only taking 1 in 10 samples and throw away 90% of the data. Defaults to 1 (i.e. no sub sampling).
+        :type stride: int, optional
+
+        :param start: defines the start point from which to take samples into account. This can be usefull for eliminating equilibration times as well as for taking various subsamples trajectories from the original data each starting at different timesteps. Defaults to 0.
+        :type start: int, optional
+
+        :param end: defines the end point to which to take samples into account. This can be usefull when it is desired to cut the original trajectory into blocks. Defaults to -1.
+        :type end: int, optional
+
+        :param bias_potential: mathematical form of the bias potential used, allowed values are
+
+            * **parabola/harmonic** -- harmonic bias of the form 0.5*kappa*(q-q0)**2
+
+        defaults to parabola
+
+        :type bias_potantial: str, optional
+
+        :param verbose: increases verbosity if set to True, defaults to False
+        :type verbose: bool, optional
+
+        :raises ValueError: when a line in the wham input file cannot be interpreted
+
+        :return: temp, biasses, trajectories:
+
+            * **temp** (float) -- temperature at which the simulations were performed
+            * **biasses** (list of callables) -- list of bias potentials (defined as callable functions) for all Umbrella Sampling simulations
+            * **trajectories** (list of np.ndarrays) -- list of trajectory data arrays containing the CV trajectory for all Umbrella Sampling simulations
+
+    '''
+    temp = float(temp)
+    biasses = []
+    trajectories = []
+    if bias_potential.lower() in ['parabola', 'harmonic']:
+        bias = 'harm'
+    elif bias_potential.lower() in ['poly_parabola']:
+        bias = 'poly_harm'
+        poly_coef = extract_polynomial_bias_info(fn_plumed)
+    elif bias_potential.lower() not in ['parabola', 'harmonic','poly_parabola']:
+        raise NotImplementedError('Bias potential definition %s not supported, see documentation for allowed values. One can define a custom bias function in the tools.py file.')
+
+    with open(fn, 'r') as f:
+        iline = -1
+        for line in f.readlines():
+            iline += 1
+            line = line.rstrip('\n')
+            words = line.split()
+            fn_U = words[0]
+            q0 = float(words[1]) * parse_unit(q0_unit)
+            kappa = float(words[2]) * parse_unit(kappa_unit)
+            if bias == 'harm':
+                try:
+                    biasses.append(bias_parabola(kappa, q0))
+                except:
+                    raise ValueError('Could not process line %i in %s: %s' % (iline, fn, line))
+                if verbose:
+                    print('Added bias potential nr. %i (Parabola with kappa = %.3f %s , q0 = %.3e %s)' % (
+                    len(biasses), kappa / parse_unit(kappa_unit), kappa_unit, q0 / parse_unit(q0_unit), q0_unit))
+            elif bias == 'poly_harm':
+                try:
+                    biasses.append(bias_polynomial_with_parabola(poly_coef,kappa, q0,poly_unit=plumed_unit,reflect_x=reflect_x))
+                except:
+                    raise ValueError('Could not process line %i in %s: %s' % (iline, fn, line))
+                if verbose:
+                    print('Added bias potential nr. %i (Parabola with kappa = %.3f %s , q0 = %.3e %s and polynomial with the coefficients specified in the provided plumed file)' % (
+                        len(biasses), kappa / parse_unit(kappa_unit), kappa_unit, q0 / parse_unit(q0_unit), q0_unit))
+
+            fn_traj = default_cv_directory+fn_U
+            data = np.loadtxt(fn_traj)
+            old: trajectories.append(data[start:end:stride, 1])
+            if end == -1:
+                trajectories.append(data[start::stride, 1])
+            else:
+                trajectories.append(data[start:end:stride, 1])
+            if verbose:
+                print('Read corresponding trajectory data from %s' % fn_traj)   
     return temp, biasses, trajectories
