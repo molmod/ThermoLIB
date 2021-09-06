@@ -53,6 +53,15 @@ class Histogram1D(object):
 		self.cv_unit = cv_unit
 		self.cv_label = cv_label
 
+	def copy(self):
+		plower = None
+		if self.plower is not None:
+			plower = self.plower.copy()
+		pupper = None
+		if self.pupper is not None:
+			pupper = self.pupper.copy()
+		return Histogram1D(self.cvs.copy(), self.ps.copy(), plower=plower, pupper=pupper, cv_unit=self.cv_unit, cv_label=self.cv_label)
+
 	@classmethod
 	def from_average(cls, histograms, error_estimate=None, nsigma=2):
 		'''
@@ -266,7 +275,7 @@ class Histogram1D(object):
 			print('  Number of simulations = ', Nsims)
 			for i, Ni in enumerate(Nis):
 				print('    simulation %i has %i steps' %(i,Ni))
-			print('  CV grid [%s]: start = %.3f    end = %.3f    delta = %.3f    N = %i' %(cv_unit, min(bins)/parse_unit(cv_unit), max(bins)/parse_unit(cv_unit), Ngrid))
+			print('  CV grid [%s]: start = %.3f    end = %.3f    delta = %.3f    N = %i' %(cv_unit, bins.min()/parse_unit(cv_unit), bins.max()/parse_unit(cv_unit), delta/parse_unit(cv_unit), Ngrid))
 			print('')
 			print('Starting WHAM SCF loop:')
 		#self consistent loop to solve the WHAM equations
@@ -472,6 +481,18 @@ class Histogram2D(object):
 		self.cv2_unit = cv2_unit
 		self.cv1_label = cv1_label
 		self.cv2_label = cv2_label
+
+	def copy(self):
+		plower = None
+		if self.plower is not None:
+			plower = self.plower.copy()
+		pupper = None
+		if self.pupper is not None:
+			pupper = self.pupper.copy()
+		return Histogram1D(
+			self.cvs1.copy(), self.cvs2.copy(), self.ps.copy(), plower=plower, pupper=pupper, 
+			cv1_unit=self.cv1_unit, cv2_unit=self.cv2_unit, cv1_label=self.cv1_label, cv2_label=self.cv2_label
+		)
 
 	@classmethod
 	def from_average(cls, histograms, error_estimate=None, nsigma=2):
@@ -950,7 +971,7 @@ class Histogram2D(object):
 		raise NotImplementedError
 
 
-def plot_histograms(fn, histograms, temp=None, labels=None, flim=None, colors=None, linestyles=None, linewidths=None, set_ref='min'):
+def plot_histograms(fn, histograms, temp=None, labels=None, flims=None, colors=None, linestyles=None, linewidths=None, set_ref='min'):
 	'''
 		Make a plot to compare multiple probability histograms and possible the corresponding free energy (if the argument ``temp`` is specified).
 
@@ -966,8 +987,8 @@ def plot_histograms(fn, histograms, temp=None, labels=None, flim=None, colors=No
 		:param labels: list of labels for the legend, one for each histogram. Defaults to None
 		:type labels: list(str), optional
 
-		:param flim: upper limit of the free energy axis in plots. Defaults to None
-		:type flim: float, optional
+		:param flims: [lower,upper] limit of the free energy axis in plots. Defaults to None
+		:type flims: float, optional
 
 		:param colors: List of matplotlib color definitions for each entry in histograms. If an entry is None, a color will be chosen internally. Defaults to None, implying all colors are chosen internally.
 		:type colors: List(str), optional
@@ -1042,10 +1063,10 @@ def plot_histograms(fn, histograms, temp=None, labels=None, flim=None, colors=No
 		axs[0,1].set_ylabel('F [%s]' %funit, fontsize=14)
 		axs[0,1].set_title('Free energy profile', fontsize=14)
 		axs[0,1].set_xlim(cv_range)
-		if flim is None:
+		if flims is None:
 			axs[0,1].set_ylim([-1,fmax])
 		else:
-			axs[0,1].set_ylim([-1,flim/parse_unit(funit)])
+			axs[0,1].set_ylim(flims)
 		axs[0,1].legend(loc='best')
 	#save
 	if temp is not None:

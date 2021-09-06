@@ -10,6 +10,7 @@
 # Van Speybroeck. Usage of this package should be authorized by prof. Van
 # Van Speybroeck.
 
+from thermolib.thermodynamics.bias import AddMultiplePotentials1D
 from molmod.units import *
 from molmod.constants import *
 from molmod.io.xyz import XYZReader
@@ -295,7 +296,7 @@ def read_wham_input(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1,
             NAME3 Q3 KAPPA3
             ...
 
-        where the first line specifies the temperature and the subsequent lines define the bias potential for each simulation as a parabola centered around ``Qi`` and with force constant ``KAPPAi`` (the units used in this file can be specified the keyword arguments ``kappa_unit`` and ``q0_unit``). For each bias with name ``NAMEi`` defined in this file, there should be a colvar trajectory file accessible through the path given by the string 'path_template_colvar_fns %(NAMEi)'. For example, if path_template_colvar_fns is defined as 'trajectories/%s/COLVAR' and the wham input file contains the following lines:
+        when a line starts with a T, it is supposed to specify the temperature. If no temperature line is found, a temperature of None will be returned. All other lines define the bias potential for each simulation as a parabola centered around ``Qi`` and with force constant ``KAPPAi`` (the units used in this file can be specified the keyword arguments ``kappa_unit`` and ``q0_unit``). For each bias with name ``NAMEi`` defined in this file, there should be a colvar trajectory file accessible through the path given by the string 'path_template_colvar_fns %(NAMEi)'. For example, if path_template_colvar_fns is defined as 'trajectories/%s/COLVAR' and the wham input file contains the following lines:
 
         .. code-block:: python
 
@@ -366,6 +367,7 @@ def read_wham_input(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1,
         for line in f.readlines():
             iline += 1
             line = line.rstrip('\n')
+            words = line.split()
             if line.startswith('#'):
                 continue
             elif line.startswith('T'):
@@ -373,7 +375,6 @@ def read_wham_input(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1,
                 if verbose:
                     print('Temperature set at %f' %temp)
             elif bias_potential in ['Parabola1D'] and len(words)==3:
-                words = line.split()
                 name = words[0]
                 q0 = float(words[1])*parse_unit(q0_unit)
                 kappa = float(words[2])*parse_unit(kappa_unit)
@@ -411,7 +412,7 @@ def read_wham_input_2D(fn, path_template_colvar_fns='%s', kappa1_unit='kjmol', k
             NAME_3 Q01_3 Q02_3 KAPPA1_3 KAPPA1_3
             ...
 
-        where the first line specifies the temperature and the subsequent lines define the bias potential for each simulation as a parabola centered around (``Q01_i``,``Q02_i``) and with force constants (``KAPPA1_i``,``KAPPA2_i``) (the units used in this file can be specified the keyword arguments ``kappa1_unit``, ``kappa2_unit``, ``q01_unit`` and ``q02_unit``). For each bias with name ``NAME_i`` defined in this file, there should be a colvar trajectory file accessible through the path given by the string 'path_template_colvar_fns %(NAME_i)'. For example, if path_template_colvar_fns is defined as 'trajectories/%s/COLVAR' and the wham input file contains the following lines:
+        when a line starts with a T, it is supposed to specify the temperature. If no temperature line is found, a temperature of None will be returned. All other lines define the bias potential for each simulation as a parabola centered around (``Q01_i``,``Q02_i``) and with force constants (``KAPPA1_i``,``KAPPA2_i``) (the units used in this file can be specified the keyword arguments ``kappa1_unit``, ``kappa2_unit``, ``q01_unit`` and ``q02_unit``). For each bias with name ``NAME_i`` defined in this file, there should be a colvar trajectory file accessible through the path given by the string 'path_template_colvar_fns %(NAME_i)'. For example, if path_template_colvar_fns is defined as 'trajectories/%s/COLVAR' and the wham input file contains the following lines:
 
         .. code-block:: python
 
@@ -617,15 +618,16 @@ def read_wham_input_custom1(fn,temp,fn_plumed=None, kappa_unit='kjmol', q0_unit=
             * **trajectories** (list of np.ndarrays) -- list of trajectory data arrays containing the CV trajectory for all Umbrella Sampling simulations
 
     '''
+    from thermolib.thermodynamics.bias import Parabola1D, Polynomial1D
     temp = float(temp)
     biasses = []
     trajectories = []
-    if bias_potential.lower() in ['parabola', 'harmonic']:
+    if bias_potential.lower() in ['parabola1d', 'harmonic']:
         bias = 'harm'
     elif bias_potential.lower() in ['poly_parabola']:
         bias = 'poly_harm'
         poly_coef = extract_polynomial_bias_info(fn_plumed)
-    elif bias_potential.lower() not in ['parabola', 'harmonic','poly_parabola']:
+    elif bias_potential.lower() not in ['parabola1d', 'harmonic','poly_parabola']:
         raise NotImplementedError('Bias potential definition %s not supported, see documentation for allowed values. One can define a custom bias function in the tools.py file.')
 
     with open(fn, 'r') as f:
@@ -639,7 +641,7 @@ def read_wham_input_custom1(fn,temp,fn_plumed=None, kappa_unit='kjmol', q0_unit=
             kappa = float(words[2]) * parse_unit(kappa_unit)
             if bias == 'harm':
                 try:
-                    biasses.append(bias_parabola(kappa, q0))
+                    biasses.append(Parabola1D(fn_U, kappa, q0))
                 except:
                     raise ValueError('Could not process line %i in %s: %s' % (iline, fn, line))
                 if verbose:
@@ -647,7 +649,10 @@ def read_wham_input_custom1(fn,temp,fn_plumed=None, kappa_unit='kjmol', q0_unit=
                     len(biasses), kappa / parse_unit(kappa_unit), kappa_unit, q0 / parse_unit(q0_unit), q0_unit))
             elif bias == 'poly_harm':
                 try:
-                    biasses.append(bias_polynomial_with_parabola(poly_coef,kappa, q0,poly_unit=plumed_unit,reflect_x=reflect_x))
+                    parabola = Parabola1D('Parabola', kappa, q0, inverse_cv=reflect_x)
+                    poly = Polynomial1D('Polynomial', poly_coef, unit=plumed_unit, inverse_cv=reflect_x)
+                    poly_parabola = AddMultiplePotentials1D(fn_U, [parabola,poly])
+                    biasses.append(poly_parabola)
                 except:
                     raise ValueError('Could not process line %i in %s: %s' % (iline, fn, line))
                 if verbose:
