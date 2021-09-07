@@ -23,7 +23,6 @@ import sys, os
 
 __all__ = [
     'integrate', 'integrate2d', 'format_scientific',
-    'free_energy_from_histogram_with_error', 
     'trajectory_xyz_to_CV', 'blav', 'read_wham_input',
     'read_wham_input_2D'
 ]
@@ -87,48 +86,6 @@ def format_scientific(x, prec=3, latex=True):
         return r'$%s\cdot 10^{%s}$' %(a,b)
     else:
         return '%s 10^%s' %(a, b)
-
-def free_energy_from_histogram_with_error(data, bins, temp, nsigma=2):
-    '''
-        Construct probability and free energy profile from histogram analysis. Include error estimation based on the asymptotic normality of the maximum likelihood estimator. Upper and lower boundary of an n-sigma confidence interval will be returned.
-
-        :param data: data array representing the cv values along a simulation trajectory
-        :type data: np.ndarray
-
-        :param bins: array representing the edges of the bins for which a histogram will be constructed
-        :type bins: np.ndarray
-
-        :param temp: the temperature at which the input data array was generated. This is required for transforming probability histogram to free energy profile.
-        :type temp: float
-
-        :param nsigma: define how large the error interval should be in terms of sigma, eg. nsigma of 2 means a 2-sigma error bar (corresponding to 95% confidence interval) will be returned. Defaults to 2
-        :type nsigma: int, optional
-
-        :return: cvs, ps, plower, pupper, fs, flower, fupper
-
-            *  **cvs** (*np.ndarray*) -- array containing the cv grid points
-            *  **ps** (*np.ndarray*) -- array containing the coresponding probability density profile
-            *  **plower** (*np.ndarray*) -- array containing the lower limit of the error bar on the ps values
-            *  **pupper** (*np.ndarray*) -- array containing the upper limit of the error bar on the ps values
-            *  **fs** (*np.ndarray*) -- array containing the coresponding free energy profile 
-            *  **flower** (*np.ndarray*) -- array containing the lower limit of the error bar on the fs values
-            *  **fupper** (*np.ndarray*) -- array containing the upper limit of the error bar on the fs values
-    '''
-    Ntot = len(data)
-    ns, bin_edges = np.histogram(data, bins, density=False)
-    cvs = 0.5*(bin_edges[:-1]+bin_edges[1:]) # bin centers
-    ps = ns/Ntot
-    fs = np.zeros(len(cvs), float)*np.nan
-    fs[ps>0] = -boltzmann*temp*np.log(ps[ps>0])
-    #estimate of upper and lower boundary of 95% confidence interval (2 sigma, i.e. for nsigma=2)
-    perrors = np.sqrt(ps*(1-ps)/Ntot)
-    plower = ps - nsigma*perrors
-    plower[plower<1e-10] = 1e-10
-    pupper = ps + nsigma*perrors
-    pupper[pupper<1e-10] = 1e-10
-    fupper = -boltzmann*temp*np.log(plower)
-    flower = -boltzmann*temp*np.log(pupper)
-    return cvs, ps, plower, pupper, fs, flower, fupper
 
 def trajectory_xyz_to_CV(fns, CV):
     '''
@@ -528,7 +485,6 @@ def read_wham_input_2D(fn, path_template_colvar_fns='%s', kappa1_unit='kjmol', k
         print('WARNING: temperature could not be read from %s' %fn)
     return temp, biasses, trajectories
 
-
 def extract_polynomial_bias_info(fn_plumed='plumed.dat'):
     #TODO make less error phrone. include check.
     with open(fn_plumed,'r') as plumed:
@@ -542,21 +498,6 @@ def extract_polynomial_bias_info(fn_plumed='plumed.dat'):
                 poly_coef = [float(i) for i in split_line] #remark that -float is needed to get the resulting fe.
                 break
     return poly_coef
-
-
-def bias_polynomial_with_parabola(taylor_coeffs, kappa, q0,poly_unit='kjmol',reflect_x=False):
-    def Vpoly(taylor_coeffs,q):
-        V_polynomial = np.polynomial.polynomial.Polynomial(taylor_coeffs)
-        return V_polynomial(q)
-    def Vh(q):
-        return 0.5 * kappa * (q - q0) ** 2
-    if reflect_x==True:
-        sign = -1
-    else:
-        sign = 1
-    sum = lambda q: Vpoly(taylor_coeffs,sign*q)*parse_unit(poly_unit) + Vh(sign*q)
-    return sum
-
 
 def read_wham_input_custom1(fn,temp,fn_plumed=None, kappa_unit='kjmol', q0_unit='au', start=0, end=-1, stride=1, bias_potential='poly_parabola',plumed_unit='kjmol',default_cv_directory='./', verbose=False,reflect_x=False):
     '''
@@ -669,3 +610,4 @@ def read_wham_input_custom1(fn,temp,fn_plumed=None, kappa_unit='kjmol', q0_unit=
             if verbose:
                 print('Read corresponding trajectory data from %s' % fn_traj)   
     return temp, biasses, trajectories
+
