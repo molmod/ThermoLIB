@@ -316,7 +316,7 @@ def read_wham_input(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1,
             * **biasses** (list of callables) -- list of bias potentials (defined as callable functions) for all Umbrella Sampling simulations
             * **trajectories** (list of np.ndarrays) -- list of trajectory data arrays containing the CV trajectory for all Umbrella Sampling simulations
     '''
-    from thermolib.thermodynamics.bias import BiasPotential1D, Parabola1D, Polynomial1D, AddMultiplePotentials1D
+    from thermolib.thermodynamics.bias import BiasPotential1D, Parabola1D, MultipleBiasses1D
     temp = None
     biasses = []
     trajectories = []
@@ -345,7 +345,7 @@ def read_wham_input(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1,
                     continue
                 bias = Parabola1D(name, q0, kappa)
                 if additional_bias is not None:
-                    bias = AddMultiplePotentials1D('MultipleBias', [bias, additional_bias])
+                    bias = MultipleBiasses1D([bias, additional_bias])
                 data = np.loadtxt(fn_traj)
                 biasses.append(bias)
                 if end==-1:

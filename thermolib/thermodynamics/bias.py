@@ -17,7 +17,7 @@ from scipy import interpolate
 import numpy as np
 import matplotlib.pyplot as pp
 
-__all__ = ['Parabola1D', 'Polynomial1D', 'Parabola2D', 'bias_dict']
+__all__ = ['Parabola1D', 'Polynomial1D', 'PlumedSplinePotential1D', 'MultipleBiasses1D', 'Parabola2D']
 
 class BiasPotential1D(object):
     def __init__(self, name, inverse_cv=False):
@@ -35,8 +35,16 @@ class BiasPotential1D(object):
     def __call__(self, q):
         raise NotImplementedError
     
-    def plot(self, fn):
-        raise NotImplementedError
+    def plot(self, fn, cvs, e_unit='kjmol', cv_unit='au', cv_label='CV1', levels=None):
+        obs = self(cvs)
+        pp.clf()
+        pp.plot(cvs/parse_unit(cv_unit), obs/parse_unit(e_unit))
+        pp.xlabel('%s [%s]' %(cv_label, cv_unit), fontsize=16)
+        pp.ylabel('Energy [%s]' %(e_unit), fontsize=16)
+        pp.title('Bias %s (%s):\n %s' %(self.__class__.__name__, self.name.replace('_','\_'), self.print_pars()), fontsize=14)
+        fig = pp.gcf()
+        fig.set_size_inches([8,8])
+        pp.savefig(fn)
 
 
 class Parabola1D(BiasPotential1D):
@@ -77,8 +85,8 @@ class Polynomial1D(BiasPotential1D):
         return result*parse_unit(self.unit)
 
 
-class ExternalPlumedPotential1D(BiasPotential1D):
-    def __init__(self, name, fn, inverse_cv=False, unit='kjmol', scale=1.0):
+class PlumedSplinePotential1D(BiasPotential1D):
+    def __init__(self, name, fn, inverse_cv=False, unit='au', scale=1.0):
         '''
             A bias potential read from a PLUMED file, which is spline-interpolated.
 
@@ -109,7 +117,7 @@ class ExternalPlumedPotential1D(BiasPotential1D):
         return value*self.scale*parse_unit(self.unit)
 
 
-class AddMultiplePotentials1D(BiasPotential1D):
+class MultipleBiasses1D(BiasPotential1D):
     def __init__(self, biasses, coeffs=None):
         '''
             Add multiple bias potentials together, possibly weighted by the given coefficients. If coefficients is not specified, all potentials are simply added without prefactor.
@@ -198,9 +206,3 @@ class Parabola2D(BiasPotential2D):
     
     def __call__(self, q1, q2):
         return 0.5*self.kappa1*(q1*self.sign_q1-self.q01)**2 + 0.5*self.kappa2*(q2*self.sign_q2-self.q02)**2
-
-bias_dict = {
-    'Parabola1D'  : Parabola1D,
-    'Polynomial1D': Polynomial1D,
-    'Parabola2D'  : Parabola2D,
-}
