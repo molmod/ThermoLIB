@@ -12,6 +12,7 @@
 
 
 from molmod.units import *
+from scipy import interpolate
 
 import numpy as np
 import matplotlib.pyplot as pp
@@ -74,6 +75,39 @@ class Polynomial1D(BiasPotential1D):
         for n, an in enumerate(self.coeffs):
             result += an*(q*self.sign_q)**n
         return result*parse_unit(self.unit)
+
+
+class ExternalPlumedPotential1D(BiasPotential1D):
+    def __init__(self, name, fn, inverse_cv=False, unit='kjmol', scale=1.0):
+        '''
+            A bias potential read from a PLUMED file, which is spline-interpolated.
+
+            :param name: name for the external bias potential
+            :type name: str
+
+            :param fn: specifies the filename of an external potential written on a grid and acting on the collective variable, as used with the EXTERNAL keyword in PLUMED.
+            :type fn: str
+            
+            :param unit: unit used to express the external potential, defaults to 'kjmol'
+            :type unit: str, optional
+
+            :param scale: scaling factor for the external potential (useful to invert free energy surfaces), default to 1.0
+            :type scale: float, optional
+        '''
+        BiasPotential1D.__init__(self, name, inverse_cv=inverse_cv)
+        pars = np.loadtxt(fn).T
+        self.splint = interpolate.splrep(pars[0], pars[1])
+        self.unit = unit
+        self.scale = scale
+    
+    def print_pars(self, **kwargs):
+        #TODO
+        return ''
+
+    def __call__(self, q):
+        value = interpolate.splev(q*self.sign_q, self.splint, der=0)
+        return value*self.scale*parse_unit(self.unit)
+
 
 class AddMultiplePotentials1D(BiasPotential1D):
     def __init__(self, biasses, coeffs=None):

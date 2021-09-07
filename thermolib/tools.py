@@ -10,13 +10,14 @@
 # Van Speybroeck. Usage of this package should be authorized by prof. Van
 # Van Speybroeck.
 
-from thermolib.thermodynamics.bias import AddMultiplePotentials1D
+
 from molmod.units import *
 from molmod.constants import *
 from molmod.io.xyz import XYZReader
 
 import numpy as np
 from scipy.optimize import curve_fit
+from scipy import interpolate
 import matplotlib.pyplot as pp
 import sys, os
 
@@ -241,7 +242,7 @@ def blav(data, blocksizes=None, fitrange=[0,-1], exponent=1, fn_plot=None, unit=
         pp.savefig(fn_plot, dpi=300)
     return blavs.mean(), error, corrtime
 
-def read_wham_input(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1, kappa_unit='kjmol', q0_unit='au', start=0, end=-1, stride=1, bias_potential='Parabola1D', verbose=False):
+def read_wham_input(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1, kappa_unit='kjmol', q0_unit='au', start=0, end=-1, stride=1, bias_potential='Parabola1D', additional_bias=None, verbose=False):
     '''
         Read the input for a WHAM reconstruction of the free energy profile from a set of Umbrella Sampling simulations. The file specified by fn should have the following format:
 
@@ -303,10 +304,11 @@ def read_wham_input(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1,
 
         :type bias_potantial: str, optional
 
+        :param additional_bias: A single additional bias that is added for each simulation on top of the simulation-specific biases. Defaults to None
+        :type additional_bias: BiasPotential1D, optional
+
         :param verbose: increases verbosity if set to True, defaults to False
         :type verbose: bool, optional
-        
-        :raises ValueError: when a line in the wham input file cannot be interpreted
 
         :return: temp, biasses, trajectories:
 
@@ -314,11 +316,13 @@ def read_wham_input(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1,
             * **biasses** (list of callables) -- list of bias potentials (defined as callable functions) for all Umbrella Sampling simulations
             * **trajectories** (list of np.ndarrays) -- list of trajectory data arrays containing the CV trajectory for all Umbrella Sampling simulations
     '''
-    from thermolib.thermodynamics.bias import Parabola1D, bias_dict
+    from thermolib.thermodynamics.bias import BiasPotential1D, Parabola1D, Polynomial1D, AddMultiplePotentials1D
     temp = None
     biasses = []
     trajectories = []
     root = '/'.join(fn.split('/')[:-1])
+    if additional_bias is not None:
+        assert isinstance(additional_bias, BiasPotential1D), 'Given additional bias should be member/child of the class BiasPotential1D, got %s' %(additional_bias.__class__.__name__)
     with open(fn, 'r') as f:
         iline = -1
         for line in f.readlines():
@@ -340,6 +344,8 @@ def read_wham_input(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1,
                     print("WARNING: could not read trajectory file for bias with name %s, skipping line in wham input." %name)
                     continue
                 bias = Parabola1D(name, q0, kappa)
+                if additional_bias is not None:
+                    bias = AddMultiplePotentials1D('MultipleBias', [bias, additional_bias])
                 data = np.loadtxt(fn_traj)
                 biasses.append(bias)
                 if end==-1:
@@ -436,7 +442,7 @@ def read_wham_input_2D(fn, path_template_colvar_fns='%s', kappa1_unit='kjmol', k
             * **biasses** (list of callables) -- list of bias potentials (defined as callable functions) for all Umbrella Sampling simulations
             * **trajectories** (list of np.ndarrays) -- list of trajectory data arrays containing the CV trajectory for all Umbrella Sampling simulations
     '''
-    from thermolib.thermodynamics.bias import Parabola2D, bias_dict
+    from thermolib.thermodynamics.bias import Parabola2D
     temp = None
     biasses = []
     trajectories = []
@@ -559,7 +565,7 @@ def read_wham_input_custom1(fn,temp,fn_plumed=None, kappa_unit='kjmol', q0_unit=
             * **trajectories** (list of np.ndarrays) -- list of trajectory data arrays containing the CV trajectory for all Umbrella Sampling simulations
 
     '''
-    from thermolib.thermodynamics.bias import Parabola1D, Polynomial1D
+    from thermolib.thermodynamics.bias import BiasPotential1D, Parabola1D, Polynomial1D, AddMultiplePotentials1D
     temp = float(temp)
     biasses = []
     trajectories = []
