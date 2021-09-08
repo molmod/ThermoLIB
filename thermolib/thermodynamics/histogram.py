@@ -826,24 +826,70 @@ class Histogram2D(object):
 		cv2s = bin_centers2.copy()
 		ps = as_new.copy()
 		fs = 1.0/np.einsum('ikl,kl->i', bs, as_new)
-		plower = None
-		pupper = None
 		
 		#error estimation
-		if error_estimate in ['mle_p']:
-			#construct the extended Fisher information matrix corresponding to histogram counts directly as the weighted sum of the indivual Fisher matrices of each simulation separately. This is very similar as in the 1D case. However, we first have to flatten the CV1,CV2 2D grid to a 1D CV12 grid. This is achieved with the flatten function (which flattens a 2D index to a 1D index). Deflattening of the CV12 grid to a 2D CV1,CV2 grid is achieved with the deflatten function (which deflattens a 1D index to a 2D index). Using the flatten function, the ps array is flattened and a conventional Fisher matrix can be constructed and inverted. Afterwards the covariance matrix is deflattened using the deflatten function to arrive to a multidimensional matrix giving (co)variances on the 2D probability array.
-			def flatten(k,l):
-				return Ngrid2*k+l
-			def deflatten(K):
-				k = int(K/Ngrid2)
-				l = K - Ngrid2*k
-				return k,l
-			I = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])
-			for i in range(Nsims):
-				Ii = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])
-				for k in range(Ngrid1):
-					for l in range(Ngrid2):
-						K = flatten(k,l)
+		if error_estimate is not None:
+			pupper, plower = cls._estimate_WHAM_error_2D(ps, fs, bs, Nis, method=error_estimate, nsigma=nsigma)
+		else:
+			pupper, plower = None, None
+		
+		#For consistency with how FreeEnergySurface2D is implemented, ps (and plower, pupper) need to be transposed
+		ps = ps.T
+		if plower is not None: plower = plower.T
+		if pupper is not None: pupper = pupper.T
+		return cls(cv1s, cv2s, ps, plower=plower, pupper=pupper)
+
+	@classmethod
+	def _estimate_WHAM_error_2D(cls, ps, fs, bs, Nis, method='mle_f', nsigma=2):
+		'''
+			Internal routine to compute the error assiciated with solving the 2D WHAM equations using the Fisher information comming from the Maximum Likelihood Estimator. The procedure is as follows:
+
+			* construct the extended Fisher information matrix by taking the weighted sum of the Fisher information matrix of each simulation. This is very similar as in the 1D case. However, we first have to flatten the CV1,CV2 2D grid to a 1D CV12 grid. This is achieved with the flatten function (which flattens a 2D index to a 1D index). Deflattening of the CV12 grid to a 2D CV1,CV2 grid is achieved with the deflatten function (which deflattens a 1D index to a 2D index). Using the flatten function, the ps array is flattened and a conventional Fisher matrix can be constructed and inverted. Afterwards the covariance matrix is deflattened using the deflatten function to arrive to a multidimensional matrix giving (co)variances on the 2D probability array.
+			* filter out the zero-rows and columns corresponding to absent histogram counts using the masking procedure
+			* invert the masked extended Fisher matrix and use the square root of its diagonal elements to compute errors
+
+			:param ps: the final unbiased probability density as computed by solving the WHAM equations. 
+			:type fs: np.ndarray(Ngrid1, Ngrid2)
+
+			:param fs: the final normalization factor for the biased probability density of each simulation as computed by solving the WHAM equations
+			:type fs: np.ndarray(Nsim)
+
+			:param bs: the biasses (for each simulation) precomputed on the 2D CV grid
+			:type bs: np.ndarray(Nsim,Ngrid1,Ngrid2)
+
+			:param Nis: the number of simulation steps in each simulation
+			:type Nis: np.ndarray(Nsims)
+
+			:param method: Define the method for computing the error:
+			
+				* *mle_p*: the error is computed on the probability density directly
+				* *mle_f*: the error is first computed on minus of the logarithm of the probability density (corresponding to the scaled free energy) and afterwards 			propagated to the probability density.
+			
+			:type method: str, optional, defaults to mle_f
+			
+			:param nsigma: specify the length of the error bar in terms of the number of sigmas. For example, a 2-sigma error bar (i.e. nsigma=2) would correspond to a 95% confidence interval.
+
+			:return: pupper, plower corresponding to the upper and lower value of the nsigma error bar
+			:rtype: np.ndarray, np.ndarray
+		'''
+		#initialization
+		Nsims, Ngrid1, Ngrid2 = bs.shape
+		Ngrid = Ngrid1*Ngrid2
+		def flatten(k,l):
+			return Ngrid2*k+l
+		def deflatten(K):
+			k = int(K/Ngrid2)
+			l = K - Ngrid2*k
+			return k,l
+		
+		#Compute the extended Fisher matrix
+		I = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])
+		for i in range(Nsims):
+			Ii = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])
+			for k in range(Ngrid1):
+				for l in range(Ngrid2):
+					K = flatten(k,l)
+					if method in ['mle_p']:
 						if ps[k,l]>0:
 							Ii[K,K] = fs[i]*bs[i,k,l]/ps[k,l]
 						Ii[K, Ngrid+i] = bs[i,k,l]
@@ -852,78 +898,52 @@ class Histogram2D(object):
 						Ii[Ngrid+Nsims+i, K] = fs[i]*bs[i,k,l]
 						Ii[K,-1] = 1
 						Ii[-1,K] = 1
-				Ii[Ngrid+i, Ngrid+i] = 1/fs[i]**2
-				Ii[Ngrid+i, Ngrid+Nsims+i] = 1/fs[i]
-				Ii[Ngrid+Nsims+i, Ngrid+i] = 1/fs[i]
-				I += Nis[i]*Ii
-			#the covariance matrix is now simply the inverse of the total Fisher matrix. However, for histogram bins with count 0 (and hence probability 0), we cannot estimate the corresponding error. This can be seen above as ps[k]=0 introduces a divergence. Therefore, we define a mask corresponding to only non-zero probabilities and define and invert the masked information matrix
-			mask = np.ones([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1], dtype=bool)
-			for k in range(Ngrid1):
-				for l in range(Ngrid2):
-					K = flatten(k,l)
-					if ps[k,l]==0:
-						mask[K,:] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
-						mask[:,K] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
-			Nmask2 = len(I[mask])
-			assert abs(int(np.sqrt(Nmask2))-np.sqrt(Nmask2))==0 #consistency check, sqrt(Nmask2) should be integer valued
-			Nmask = int(np.sqrt(Nmask2))
-			Imask = I[mask].reshape([Nmask,Nmask])
-			sigma = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])*np.nan
-			sigma[mask] = np.linalg.inv(Imask).reshape([Nmask2])
-			#the error bar on the probability of bin (k,l) is now simply the [K,K]-diagonal element of sigma (with [K,K] corresponding to deflattend [(k,l),(k,l)])
-			perr = np.zeros([Ngrid1,Ngrid2])
-			for K in range(Ngrid):
-				k, l = deflatten(K)
-				perr[k,l] = np.sqrt(sigma[K,K])
-			plower = ps - nsigma*perr
-			plower[plower<0] = 0.0
-			pupper = ps + nsigma*perr
-		elif error_estimate in ['mle_f']:
-			######################################################################
-			#TODO: has to be adapted to 2D variant as already done above for mle_p
-			######################################################################
-			
-			#construct the extended Fisher information matrix corresponding to minus the logarithm of the histogram counts (which are related to the free energy values) as the weighted sum of the indivual Fisher matrices of each simulation separately
-			I = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])
-			for i in range(Nsims):
-				Ii = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])
-				for k in range(Ngrid):
-					#note that ps=exp(-gs) where gs are the degrees of freedom in the mle_f method (minus logarithm of the histogram counts)
-					Ii[k,k] = ps[k]*fs[i]*bs[i,k]
-					Ii[k,Ngrid+i] = -ps[k]*bs[i,k]
-					Ii[Ngrid+i,k] = -ps[k]*bs[i,k]
-					Ii[k,Ngrid+Nsims+i] = -fs[i]*ps[k]*bs[i,k]
-					Ii[Ngrid+Nsims+i,k] = -fs[i]*ps[k]*bs[i,k]
-					Ii[k,-1] = -ps[k]
-					Ii[-1,k] = -ps[k]
-				Ii[Ngrid+i,Ngrid+i] = 1/fs[i]**2
-				Ii[Ngrid+i,Ngrid+Nsims+i] = 1/fs[i]
-				Ii[Ngrid+Nsims+i,Ngrid+i] = 1/fs[i]
-				I += Nis[i]*Ii
-			#the covariance matrix is now simply the inverse of the total Fisher matrix. However, for histogram bins with count 0 (and hence probability 0), we cannot estimate the corresponding error. This can be seen above as ps[k]=0 introduces a row (and column) or zeros resulting in a singular matrix. Therefore, we define a mask corresponding to only non-zero probabilities and define and inverted the masked information matrix
-			mask = np.ones([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1], dtype=bool)
-			for k in range(Ngrid):
-				if ps[k]==0:
-					mask[k,:] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
-					mask[:,k] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
-			Nmask2 = len(I[mask])
-			assert abs(int(np.sqrt(Nmask2))-np.sqrt(Nmask2))==0
-			Nmask = int(np.sqrt(Nmask2))
-			Imask = I[mask].reshape([Nmask,Nmask])
-			sigma = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])*np.nan
-			sigma[mask] = np.linalg.inv(Imask).reshape([Nmask2])
-			#the error bar on the g-value (i.e. minus logarithm of the probability) of bin k is now simply the (k,k)-diagonal element of sigma
-			gerr = np.sqrt(np.diagonal(sigma)[:Ngrid])
-			plower = ps*np.exp(-nsigma*gerr)
-			pupper = ps*np.exp(nsigma*gerr)
-		elif error_estimate is not None and error_estimate not in ["None"]:
-			raise ValueError('Received invalid value for keyword argument error_estimate, got %s. See documentation for valid choices.' %error_estimate)
+					elif method in ['mle_f']:
+						Ii[K,K] = ps[k,l]*fs[i]*bs[i,k,l]
+						Ii[K, Ngrid+i] = -ps[k,l]*bs[i,k,l]
+						Ii[Ngrid+i, K] = -ps[k,l]*bs[i,k,l]
+						Ii[K, Ngrid+Nsims+i] = -ps[k,l]*fs[i]*bs[i,k,l]
+						Ii[Ngrid+Nsims+i, K] = -ps[k,l]*fs[i]*bs[i,k,l]
+						Ii[K,-1] = -ps[k,l]
+						Ii[-1,K] = -ps[k,l]
+					else:
+						raise IOError('Recieved invalid argument for method, recieved %s. Check routine signiture for more information on allowed values.' %method)
+			Ii[Ngrid+i, Ngrid+i] = 1/fs[i]**2
+			Ii[Ngrid+i, Ngrid+Nsims+i] = 1/fs[i]
+			Ii[Ngrid+Nsims+i, Ngrid+i] = 1/fs[i]
+			I += Nis[i]*Ii
 		
-		#For consistency with how FreeEnergySurface2D is implemented, ps (and plower, pupper) need to be transposed
-		ps = ps.T
-		if plower is not None: plower = plower.T
-		if pupper is not None: pupper = pupper.T
-		return cls(cv1s, cv2s, ps, plower=plower, pupper=pupper)
+		#Define and apply mask to filter out zero counts in histogram (as no error can be computed on them)
+		mask = np.ones([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1], dtype=bool)
+		for k in range(Ngrid1):
+			for l in range(Ngrid2):
+				K = flatten(k,l)
+				if ps[k,l]==0:
+					mask[K,:] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
+					mask[:,K] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
+		Nmask2 = len(I[mask])
+		assert abs(int(np.sqrt(Nmask2))-np.sqrt(Nmask2))==0 #consistency check, sqrt(Nmask2) should be integer valued
+		Nmask = int(np.sqrt(Nmask2))
+		Imask = I[mask].reshape([Nmask,Nmask])
+		sigma = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])*np.nan
+		sigma[mask] = np.linalg.inv(Imask).reshape([Nmask2])
+		
+		#the error bar on the probability of bin (k,l) is now simply the [K,K]-diagonal element of sigma (with [K,K] corresponding to deflattend [(k,l),(k,l)])
+		err = np.zeros([Ngrid1,Ngrid2])
+		for K in range(Ngrid):
+			k, l = deflatten(K)
+			err[k,l] = np.sqrt(sigma[K,K])
+		if method in ['mle_p']:
+			plower = ps - nsigma*err
+			plower[plower<0] = 0.0
+			pupper = ps + nsigma*err
+		elif method in ['mle_f']:
+			plower = ps*np.exp(-nsigma*err)
+			pupper = ps*np.exp(nsigma*err)
+		else:
+			raise IOError('Recieved invalid argument for method, recieved %s. Check routine signiture for more information on allowed values.' %method)
+		
+		return pupper, plower
 
 	@classmethod
 	def from_fes(cls, fes, temp):
