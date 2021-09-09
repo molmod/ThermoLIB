@@ -507,6 +507,8 @@ def extract_polynomial_bias_info(fn_plumed='plumed.dat'):
 
 def read_wham_input_custom1(fn,temp,fn_plumed=None, kappa_unit='kjmol', q0_unit='au', start=0, end=-1, stride=1, bias_potential='poly_parabola',plumed_unit='kjmol',default_cv_directory='./', verbose=False,reflect_x=False):
     '''
+        THIS HAS BECOME REDUNDANT AND WILL BE DELETED IN THE FUTURE, USE READ_WHAM_INPUT INSTEAD
+        
         Read the input for a WHAM reconstruction of the free energy profile from a set of Umbrella Sampling simulations. The file specified by fn should have the following format:
 
         .. code-block:: python
@@ -565,7 +567,7 @@ def read_wham_input_custom1(fn,temp,fn_plumed=None, kappa_unit='kjmol', q0_unit=
             * **trajectories** (list of np.ndarrays) -- list of trajectory data arrays containing the CV trajectory for all Umbrella Sampling simulations
 
     '''
-    from thermolib.thermodynamics.bias import BiasPotential1D, Parabola1D, Polynomial1D, AddMultiplePotentials1D
+    from thermolib.thermodynamics.bias import BiasPotential1D, Parabola1D, Polynomial1D, MultipleBiasses1D
     temp = float(temp)
     biasses = []
     trajectories = []
@@ -598,7 +600,7 @@ def read_wham_input_custom1(fn,temp,fn_plumed=None, kappa_unit='kjmol', q0_unit=
                 try:
                     parabola = Parabola1D('Parabola', kappa, q0, inverse_cv=reflect_x)
                     poly = Polynomial1D('Polynomial', poly_coef, unit=plumed_unit, inverse_cv=reflect_x)
-                    poly_parabola = AddMultiplePotentials1D(fn_U, [parabola,poly])
+                    poly_parabola = MultipleBiasses1D(fn_U, [parabola,poly])
                     biasses.append(poly_parabola)
                 except:
                     raise ValueError('Could not process line %i in %s: %s' % (iline, fn, line))

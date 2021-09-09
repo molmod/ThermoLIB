@@ -1060,10 +1060,10 @@ class FreeEnergySurface2D(object):
             for i2, cv2 in enumerate(self.cv2s):
                 u = 0.5*(cv1+cv2)
                 v = cv2-cv1
-                if len(np.where(abs(u-us)<1e-6)[0])==0:
+                if len(np.where(abs(u-np.array(us))<1e-6)[0])==0:
                     us.append(u)
                 v = cv2-cv1
-                if len(np.where(abs(v-vs)<1e-6)[0])==0:
+                if len(np.where(abs(v-np.array(vs))<1e-6)[0])==0:
                     vs.append(v)
         us = np.array(sorted(us))
         vs = np.array(sorted(vs))
@@ -1088,6 +1088,10 @@ class FreeEnergySurface2D(object):
         #Third, construct rotated free energy
         print('Constructing rotated free energy')
         fs = np.zeros([len(us), len(vs)], float)*np.nan
+        fupper, flower = None, None
+        if self.fupper is not None and self.flower is not None:
+            fupper = np.zeros([len(us), len(vs)], float)*np.nan
+            flower = np.zeros([len(us), len(vs)], float)*np.nan
         for iu, u in enumerate(us):
             for iv, v in enumerate(vs):
                 key = '%i,%i' %(iu,iv)
@@ -1096,6 +1100,9 @@ class FreeEnergySurface2D(object):
                     assert abs(0.5*(self.cv1s[i1]+self.cv2s[i2]) - u)<1e-8
                     assert abs(    (self.cv2s[i2]-self.cv1s[i1]) - v)<1e-8
                     fs[iu,iv] = self.fs[i2,i1]
+                    if fupper is not None and flower is not None:
+                        fupper[iu,iv] = self.fupper[i2,i1]
+                        flower[iu,iv] = self.flower[i2,i1]
         #Fourth, do interpolate
         if interpolate:
             print('Interpolating extra intermediate grid points')
@@ -1108,13 +1115,16 @@ class FreeEnergySurface2D(object):
                         fa = fs[iu,iv+1]
                         if not (np.isnan(fl) or np.isnan(fr) or np.isnan(fb) or np.isnan(fa)):
                             fs[iu,iv] = 0.25*(fl+fr+fb+fa)
+                            if fupper is not None and flower is not None:
+                                fupper[iu,iv] = 0.25*(fupper[iu-1,iv] + fupper[iu+1,iv] + fupper[iu,iv-1] + fupper[iu,iv+1])
+                                flower[iu,iv] = 0.25*(flower[iu-1,iv] + flower[iu+1,iv] + flower[iu,iv-1] + flower[iu,iv+1])
         if self.cv1_unit==self.cv2_unit:
             u_unit = self.cv1_unit
             v_unit = self.cv1_unit
         else:
             u_unit = 'au'
             v_unit = 'au'
-        return FreeEnergySurface2D(vs, us, fs, self.T, cv1_unit=v_unit, cv2_unit=u_unit, f_unit='kjmol', cv1_label='CV2-CV1', cv2_label='0.5*(CV1+CV2)')
+        return FreeEnergySurface2D(vs, us, fs, self.T, fupper=fupper, flower=flower, cv1_unit=v_unit, cv2_unit=u_unit, f_unit='kjmol', cv1_label='CV2-CV1', cv2_label='0.5*(CV1+CV2)')
 
     def project_difference(self, sign=1):
         '''
@@ -1136,12 +1146,18 @@ class FreeEnergySurface2D(object):
         if sign==1:
             x = self.cv1s.copy()
             y = self.cv2s.copy()
-            Pxy = self.ps.copy()
+            Pxy = np.exp(-self.beta*self.fs.copy()))
+            if self.fupper is not None and self.flower is not None:
+                Pxy_upper = np.exp(-self.beta*self.flower.copy()))
+                Pxy_lower = np.exp(-self.beta*self.fupper.copy()))
             label = 'CV2-CV1'
         elif sign==-1:
             x = self.cv2s.copy()
             y = self.cv1s.copy()
-            Pxy = self.ps.T.copy()
+            Pxy = np.exp(-self.beta*self.fs.T))
+            if self.fupper is not None and self.flower is not None:
+                Pxy_upper = np.exp(-self.beta*self.flower.T)))
+                Pxy_lower = np.exp(-self.beta*self.fupper.T))
             label = 'CV1-CV2'
         else:
             raise ValueError('Recieved invalid sign, should be 1 or -1 but got %s' %str(sign))
@@ -1150,43 +1166,49 @@ class FreeEnergySurface2D(object):
         for i, xi in enumerate(x):
             for j, yj in enumerate(y):
                 q = yj-xi
-                if (abs(Q-q)>1e-6).all():
+                if (abs(np.array(Q)-q)>1e-6).all():
                     Q.append(q)
         Q = np.array(sorted(Q))
         #construct probability on this grid
         Pq = np.zeros(len(Q), float)
+        Pq_upper, Pq_lower = None, None
+        if self.fupper is not None and self.flower is not None:
+            Pq_upper = np.zeros(len(Q), float)
+            Pq_lower = np.zeros(len(Q), float)
         for iq, q in enumerate(Q):
             lower = max(x[0], y[0]-q)
             upper = min(x[-1], y[-1]-q)
             if lower>upper:
                 print('For q=%.6f:  Lower=%.6f  Upper=%.6f' %(q,lower,upper))
                 print('             Pq set to zero')
-                #raise ValueError('Upper limit below lower limit in projection')
+                continue
             delta = (x[-1]-x[0])/(len(x)-1)
             x_cropped = np.arange(lower, upper, delta)
             if not upper in x_cropped:
                 x_cropped = np.array(list(x_cropped)+[upper])
-            #print('q=',q,'  xcropped=',x_cropped)
             integrandum = np.zeros(x_cropped.shape, float)
+            if self.fupper is not None and self.flower is not None:
+                integrandum_upper = np.zeros(x_cropped.shape, float)
+                integrandum_lower = np.zeros(x_cropped.shape, float)
             for index_cropped, xi in enumerate(x_cropped):
                 x_indices = np.where(abs(x-xi)<1e-6)[0]
                 if len(x_indices)>1:
-                    print('ERROR: in project for q=%.3f and xi=%.3f: found more than 1 x_index' %(q,xi))
-                    sys.exit()
-                elif len(x_indices)==0:
-                    integrandum[index_cropped] = 0
-                else:
+                    raise RuntimeError("In project for q=%.3f and xi=%.3f: found more than 1 x_index" %(q,xi))
+                elif len(x_indices)==1:
                     ix = x_indices[0]
                     y_indices = np.where(abs(y-(xi+q))<1e-6)[0]
                     if len(y_indices)>1:
-                        print('ERROR: in project for q=%.3f and xi=%.3f: found more than 1 y_index' %(q,xi))
-                        sys.exit()
-                    elif len(y_indices)==0:
-                        integrandum[index_cropped] = 0
-                    else:
+                        raise RuntimeError("In project for q=%.3f and xi=%.3f: found more than 1 y_index" %(q,xi))
+                    elif len(y_indices)==1:
                         iy = y_indices[0]
                         integrandum[index_cropped] = Pxy[iy,ix] #x is stored in columns of Pxy
+                        if self.fupper is not None and self.flower is not None:
+                            integrandum_upper[index_cropped] = Pxy_upper[iy,ix] 
+                            integrandum_lower[index_cropped] = Pxy_lower[iy,ix] 
             Pq[iq] = np.trapz(integrandum,x=x_cropped)
+            if self.fupper is not None and self.flower is not None:
+                Pq_upper[iq] = np.trapz(integrandum_upper,x=x_cropped)
+                Pq_lower[iq] = np.trapz(integrandum_lower,x=x_cropped)
         #Derive corresponding free energy and return free energy profile
         if self.cv1_unit==self.cv2_unit:
             cv_unit = self.cv1_unit
@@ -1194,7 +1216,12 @@ class FreeEnergySurface2D(object):
             cv_unit = 'au'
         fs = np.zeros(len(Pq), float)*np.nan
         fs[Pq>0] = -np.log(Pq[Pq>0])/self.beta
-        return SimpleFreeEnergyProfile(Q, fs, self.T, cv_unit=cv_unit, f_unit='kjmol', cv_label=label)
+        fupper, flower = None, None
+        if self.fupper is not None and self.flower is not None:
+            fupper, flower = np.zeros(len(Pq), float)*np.nan, np.zeros(len(Pq), float)*np.nan
+            fupper[Pq_lower>0] = -np.log(Pq_lower[Pq_lower>0])/self.beta
+            flower[Pq_upper>0] = -np.log(Pq_upper[Pq_upper>0])/self.beta
+        return SimpleFreeEnergyProfile(Q, fs, self.T, fupper=fupper, flower=flower, cv_unit=cv_unit, f_unit='kjmol', cv_label=label)
 
     def project_average(self):
         '''
@@ -1211,7 +1238,10 @@ class FreeEnergySurface2D(object):
         '''
         x = self.cv1s.copy()
         y = self.cv2s.copy()
-        Pxy = self.ps.copy()
+        Pxy = np.exp(-self.beta*self.fs.copy()))
+        if self.fupper is not None and self.flower is not None:
+            Pxy_upper = np.exp(-self.beta*self.flower.copy()))
+            Pxy_lower = np.exp(-self.beta*self.fupper.copy()))
         #construct grid for projected degree of freedom q
         Q = []
         for i, xi in enumerate(x):
@@ -1222,37 +1252,44 @@ class FreeEnergySurface2D(object):
         Q = np.array(sorted(Q))
         #construct probability on this grid
         Pq = np.zeros(len(Q), float)
+        if self.fupper is not None and self.flower is not None:
+            Pq_upper = np.zeros(len(Q), float)
+            Pq_lower = np.zeros(len(Q), float)
         for iq, q in enumerate(Q):
             lower = max(x[0], 2*q-y[-1])
             upper = min(x[-1], 2*q-y[0])
             if lower>upper:
                 print('For q=%.6f:  Lower=%.6f  Upper=%.6f' %(q,lower,upper))
                 print('             Pq set to zero')
-                #raise ValueError('For projection on q=%.6f: upper limit (= %.6f) of integration variable lower than lower limit (= %.6f).' %(q, upper, lower))
+                continue
             delta = (x[-1]-x[0])/(len(x)-1)
             x_cropped = np.arange(lower, upper, delta)
             if not upper in x_cropped:
                 x_cropped = np.array(list(x_cropped)+[upper])
             integrandum = np.zeros(x_cropped.shape, float)
+            if self.fupper is not None and self.flower is not None:
+                integrandum_upper = np.zeros(x_cropped.shape, float)
+                integrandum_lower = np.zeros(x_cropped.shape, float)
             for index_cropped, xi in enumerate(x_cropped):
                 x_indices = np.where(abs(x-xi)<1e-6)[0]
                 if len(x_indices)>1:
-                    print('ERROR: in project for q=%.3f and xi=%.3f: found more than 1 x_index' %(q,xi))
-                    sys.exit()
-                elif len(x_indices)==0:
-                    integrandum[index_cropped] = 0
-                else:
+                    raise RuntimeError('In project for q=%.3f and xi=%.3f: found more than 1 x_index' %(q,xi))
+                elif len(x_indices)==1:
                     ix = x_indices[0]
                     y_indices = np.where(abs(y-(2*q-xi))<1e-6)[0]
                     if len(y_indices)>1:
-                        print('ERROR: in project for q=%.3f and xi=%.3f: found more than 1 y_index' %(q,xi))
-                        sys.exit()
-                    elif len(y_indices)==0:
-                        integrandum[index_cropped] = 0
-                    else:
+                        raise RuntimeError('In project for q=%.3f and xi=%.3f: found more than 1 y_index' %(q,xi))
+                    elif len(y_indices)==1:
                         iy = y_indices[0]
-                        integrandum[index_cropped] = 2*Pxy[iy,ix] #the extra 2 comes from delta((x+y)/2-q)=2*delta(x+y-2*q). Basically, it is a jacobian. Also x is stored in columns of Pxy
+                        #the extra 2 comes from delta((x+y)/2-q)=2*delta(x+y-2*q). Basically, it is a jacobian. Also x is stored in columns of Pxy
+                        integrandum[index_cropped] = 2*Pxy[iy,ix]
+                        if self.fupper is not None and self.flower is not None:
+                            integrandum_upper[index_cropped] = 2*Pxy_upper[iy,ix]
+                            integrandum_lower[index_cropped] = 2*Pxy_lower[iy,ix]
             Pq[iq] = np.trapz(integrandum,x=x_cropped)
+            if self.fupper is not None and self.flower is not None:
+                Pq_upper[iq] = np.trapz(integrandum_upper,x=x_cropped)
+                Pq_lower[iq] = np.trapz(integrandum_lower,x=x_cropped)
         #Derive corresponding free energy and return free energy profile
         if self.cv1_unit==self.cv2_unit:
             cv_unit = self.cv1_unit
@@ -1260,7 +1297,12 @@ class FreeEnergySurface2D(object):
             cv_unit = 'au'
         fs = np.zeros(len(Pq), float)*np.nan
         fs[Pq>0] = -np.log(Pq[Pq>0])/self.beta
-        return SimpleFreeEnergyProfile(Q, fs, self.T, cv_unit=cv_unit, f_unit='kjmol', cv_label='0.5*(CV1+CV2)')
+        fupper, flower = None, None
+        if self.fupper is not None and self.flower is not None:
+            fupper, flower = np.zeros(len(Pq), float)*np.nan, np.zeros(len(Pq), float)*np.nan
+            fupper[Pq_lower>0] = -np.log(Pq_lower[Pq_lower>0])/self.beta
+            flower[Pq_upper>0] = -np.log(Pq_upper[Pq_upper>0])/self.beta
+        return SimpleFreeEnergyProfile(Q, fs, self.T, fupper=fupper, flower=flower, cv_unit=cv_unit, f_unit='kjmol', cv_label='0.5*(CV1+CV2)')
 
     def project_cv1(self):
         '''
@@ -1275,14 +1317,24 @@ class FreeEnergySurface2D(object):
         '''
         cvs = self.cv1s.copy()
         ps = np.zeros(len(cvs), float)*np.nan
-        for i, cv in enumerate(cvs):
-            ys = self.ps[:,i].copy()
-            mask = ~np.isnan(ys)
-            ps[i] = np.trapz(ys[mask], x=self.cv2s[mask])
-            #print(i, cv, ys, self.fs[:,i]/kjmol, ps[i], -np.log(ps[i])/self.beta/kjmol if ps[i]>0 else np.nan)
+        sources_and_targets = [(self.fs, ps)]
+        if self.fupper is not None and self.flower is not None:
+            pupper = np.zeros(len(cvs), float)*np.nan
+            plower = np.zeros(len(cvs), float)*np.nan
+            sources_and_targets += [(self.fupper, plower), (self.flower, pupper)]
+        for source, target in sources_and_targets:
+            for i, cv in enumerate(cvs):
+                ys = np.exp(-self.beta*source[:,i])
+                mask = ~np.isnan(ys)
+                target[i] = np.trapz(ys[mask], x=self.cv2s[mask])
         fs = np.zeros(len(cvs), float)*np.nan
         fs[ps>0] = -np.log(ps[ps>0])/self.beta
-        return SimpleFreeEnergyProfile(cvs, fs, self.T, cv_unit=self.cv1_unit, f_unit='kjmol', cv_label=self.cv1_label)
+        fupper, flower = None, None
+        if self.fupper is not None and self.flower is not None:
+            fupper, flower = np.zeros(len(cvs), float)*np.nan, np.zeros(len(cvs), float)*np.nan
+            fupper[plower>0] = -np.log(plower[plower>0])/self.beta
+            flower[pupper>0] = -np.log(pupper[pupper>0])/self.beta
+        return SimpleFreeEnergyProfile(cvs, fs, self.T, fupper=fupper, flower=flower, cv_unit=self.cv1_unit, f_unit='kjmol', cv_label=self.cv1_label)
 
     def project_cv2(self):
         '''
@@ -1297,13 +1349,24 @@ class FreeEnergySurface2D(object):
         '''
         cvs = self.cv2s.copy()
         ps = np.zeros(len(cvs), float)*np.nan
-        for i, cv in enumerate(cvs):
-            ys = self.ps[i,:].copy()
-            mask = ~np.isnan(ys)
-            ps[i] = np.trapz(ys[mask], x=self.cv1s[mask])
+        sources_and_targets = [(self.fs, ps)]
+        if self.fupper is not None and self.flower is not None:
+            pupper = np.zeros(len(cvs), float)*np.nan
+            plower = np.zeros(len(cvs), float)*np.nan
+            sources_and_targets += [(self.fupper, plower), (self.flower, pupper)]
+        for source, target in sources_and_targets:
+            for i, cv in enumerate(cvs):
+                ys = np.exp(-self.beta*source[i,:])
+                mask = ~np.isnan(ys)
+                target[i] = np.trapz(ys[mask], x=self.cv1s[mask])
         fs = np.zeros(len(cvs), float)*np.nan
         fs[ps>0] = -np.log(ps[ps>0])/self.beta
-        return SimpleFreeEnergyProfile(cvs, fs, self.T, cv_unit=self.cv2_unit, f_unit='kjmol', cv_label=self.cv2_label)
+        fupper, flower = None, None
+        if self.fupper is not None and self.flower is not None:
+            fupper, flower = np.zeros(len(cvs), float)*np.nan, np.zeros(len(cvs), float)*np.nan
+            fupper[plower>0] = -np.log(plower[plower>0])/self.beta
+            flower[pupper>0] = -np.log(pupper[pupper>0])/self.beta
+        return SimpleFreeEnergyProfile(cvs, fs, self.T, fupper=fupper, flower=flower, cv_unit=self.cv2_unit, f_unit='kjmol', cv_label=self.cv2_label)
 
     def plot(self, fn_png, obs='F', cv1_lims=None, cv2_lims=None, lims=None, ncolors=8, scale='lin'):
         '''
