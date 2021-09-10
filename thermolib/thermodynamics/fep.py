@@ -887,6 +887,14 @@ class FreeEnergySurface2D(object):
             flower[histogram.pupper>0] = -boltzmann*temp*np.log(histogram.pupper[histogram.pupper>0])
         return cls(histogram.cv1s, histogram.cv2s, fs, temp, fupper=fupper, flower=flower, cv1_unit=histogram.cv1_unit, cv2_unit=histogram.cv2_unit, cv1_label=histogram.cv1_label, cv2_label=histogram.cv2_label)
 
+    def savetxt(self, fn_txt):
+        '''
+            Save the free energy profile as txt file
+        '''
+        header = '%s [%s]\t %s [%s]\t Free energy [%s]' %(self.cv1_label, self.cv1_unit,self.cv2_label, self.cv2_unit, self.f_unit)
+        xv,yv = np.meshgrid(self.cv1s,self.cv2s)
+        np.savetxt(fn_txt, np.vstack((yv.flatten()/parse_unit(self.cv1_unit),xv.flatten()/parse_unit(self.cv2_unit), self.fs.flatten()/parse_unit(self.f_unit))).T, header=header,fmt='%f')
+
     def compute_probdens(self):
         '''
             Compute the probability density profile associated with the free energy profile as given below and store internally in `self.ps`
