@@ -917,9 +917,14 @@ class FreeEnergySurface2D(object):
             :raises IOError: invalid value for keyword argument ref is given. See doc above for choices.
         '''
         if ref.lower() in ['m', 'min']:
-            self.fs -= self.fs[~np.isnan(self.fs)].min()
+            fref = self.fs[~np.isnan(self.fs)].min()
         else:
             raise IOError('Invalid REF specification, recieved %s and should be min' %ref)
+        self.fs -= fref
+        if self.fupper is not None:
+            self.fupper -= fref
+        if self.flower is not None:
+            self.flower -= fref
 
     def detect_clusters(self, eps=1.5, min_samples=8, metric='euclidean', fn_plot=None, delete_clusters=[-1]):
         '''
@@ -1134,7 +1139,7 @@ class FreeEnergySurface2D(object):
             v_unit = 'au'
         return FreeEnergySurface2D(vs, us, fs, self.T, fupper=fupper, flower=flower, cv1_unit=v_unit, cv2_unit=u_unit, f_unit='kjmol', cv1_label='CV2-CV1', cv2_label='0.5*(CV1+CV2)')
 
-    def project_difference(self, sign=1, cv_unit='au'):
+    def project_difference(self, sign=1, cv_unit='au', return_class=BaseFreeEnergyProfile):
         '''
             Construct a 1D free energy profile representing the projection of the 2D FES onto the difference of collective variables:
 
@@ -1147,8 +1152,14 @@ class FreeEnergySurface2D(object):
             :param sign: If sign is set to 1, the projection is done on q=CV2-CV1, if it is set to -1, projection is done to q=CV1-CV2 instead. Defaults to 1
             :type sign: int, optional
 
+            :param cv_unit: unit for the new CV for plotting purposes, defaults to au.
+            :type cv_unit: str, optional
+            
+            :param return_class: The class of which an instance will finally be returned. Defaults to BaseFreeEnergyProfile
+            :type return_class: python class object, optional
+
             :returns: projected 1D free energy profile
-            :rtype: SimpleFreeEnergyProfile
+            :rtype: see return_class argument
         '''
         if sign==1:
             x = self.cv1s.copy()
@@ -1172,9 +1183,9 @@ class FreeEnergySurface2D(object):
                 if (abs(np.array(cvs)-q)>1e-6).all():
                     cvs.append(q)
         cvs = np.array(sorted(cvs))
-        return self.project_function(function, cvs, cv_label=cv_label, cv_unit=cv_unit)
+        return self.project_function(function, cvs, cv_label=cv_label, cv_unit=cv_unit, return_class=return_class)
 
-    def project_average(self, cv_unit='au'):
+    def project_average(self, cv_unit='au', return_class=BaseFreeEnergyProfile):
         '''
             Construct a 1D free energy profile representing the projection of the 2D FES F2(CV1,CV2) onto the average q=(CV1+CV2)/2 of the collective variables:
 
@@ -1184,8 +1195,14 @@ class FreeEnergySurface2D(object):
 
             with :math:`q=0.5\\dot(CV1+CV2)`. This projection is implemented by first projecting the probability density and afterwards reconstructing the free energy.
 
+            :param cv_unit: unit for the new CV for plotting purposes, defaults to au.
+            :type cv_unit: str, optional
+            
+            :param return_class: The class of which an instance will finally be returned. Defaults to BaseFreeEnergyProfile
+            :type return_class: python class object, optional
+
             :returns: projected 1D free energy profile
-            :rtype: SimpleFreeEnergyProfile
+            :rtype: see return_class argument
         '''
         cvs = []
         for i, xi in enumerate(self.cv1s):
@@ -1196,9 +1213,9 @@ class FreeEnergySurface2D(object):
         cvs = np.array(sorted(cvs))
         def function(q1,q2):
             return 0.5*(q1+q2)
-        return self.project_function(function, cvs, cv_label='0.5*(%s+%s)' %(self.cv1_label,self.cv1_label), cv_unit=cv_unit)
+        return self.project_function(function, cvs, cv_label='0.5*(%s+%s)' %(self.cv1_label,self.cv1_label), cv_unit=cv_unit, return_class=return_class)
 
-    def project_cv1(self):
+    def project_cv1(self, return_class=BaseFreeEnergyProfile):
         '''
             Construct a 1D free energy profile representing the projection of the 2D FES F2(CV1,CV2) onto q=CV1. This is implemented as follows:
 
@@ -1206,14 +1223,17 @@ class FreeEnergySurface2D(object):
                 
                 F1(q) = -k_B T \\log\\left( \\int_{-\infty}^{+\infty} e^{-\\beta F2(q,y}dy \\right)
 
+            :param return_class: The class of which an instance will finally be returned. Defaults to BaseFreeEnergyProfile
+            :type return_class: python class object, optional
+
             :returns: projected 1D free energy profile
-            :rtype: SimpleFreeEnergyProfile
+            :rtype: see return_class argument
         '''
         def function(q1,q2):
             return q1
-        return self.project_function(function, self.cv1s.copy(), cv_label=self.cv1_label, cv_unit=self.cv1_unit)
+        return self.project_function(function, self.cv1s.copy(), cv_label=self.cv1_label, cv_unit=self.cv1_unit, return_class=return_class)
 
-    def project_cv2(self):
+    def project_cv2(self, return_class=BaseFreeEnergyProfile):
         '''
             Construct a 1D free energy profile representing the projection of the 2D FES F2(CV1,CV2) onto q=CV2. This is implemented as follows:
 
@@ -1221,14 +1241,17 @@ class FreeEnergySurface2D(object):
                 
                 F1(q) = -k_B T \\log\\left( \\int_{-\infty}^{+\infty} e^{-\\beta F2(x,q}dx \\right)
 
+            :param return_class: The class of which an instance will finally be returned. Defaults to BaseFreeEnergyProfile
+            :type return_class: python class object, optional
+
             :returns: projected 1D free energy profile
-            :rtype: SimpleFreeEnergyProfile
+            :rtype: see return_class argument
         '''
         def function(q1,q2):
             return q2
-        return self.project_function(function, self.cv2s.copy(), cv_label=self.cv2_label, cv_unit=self.cv2_unit)
+        return self.project_function(function, self.cv2s.copy(), cv_label=self.cv2_label, cv_unit=self.cv2_unit, return_class=return_class)
 
-    def project_function(self, function, cvs, delta=1e-3, cv_label='CV', cv_unit='au'):
+    def project_function(self, function, cvs, delta=1e-3, cv_label='CV', cv_unit='au', return_class=BaseFreeEnergyProfile):
         '''
             Routine to implement the general projection of a 2D FES onto a collective variable defined by the given function (which takes the original two CVs as arguments).
 
@@ -1246,6 +1269,12 @@ class FreeEnergySurface2D(object):
 
             :param cv_unit: unit for the new CV for plotting purposes, defaults to au.
             :type cv_unit: str, optional
+
+            :param return_class: The class of which an instance will finally be returned. Defaults to BaseFreeEnergyProfile
+            :type return_class: python class object, optional
+
+            :returns: projected 1D free energy profile
+            :rtype: see return_class argument
         '''
         CV1s, CV2s = np.meshgrid(self.cv1s, self.cv2s, indexing='xy')
         def dirac(cv1, cv2, q):
@@ -1257,6 +1286,7 @@ class FreeEnergySurface2D(object):
         delta2 = (self.cv2s[1:]-self.cv2s[:-1]).mean()
         def project(f12s):
             P12s = np.exp(-self.beta*f12s)
+            P12s[np.isnan(P12s)] = 0.0
             pqs = np.zeros(len(cvs), float)
             for i,q in enumerate(cvs):
                 Hs = dirac(CV1s, CV2s, q)
@@ -1269,7 +1299,7 @@ class FreeEnergySurface2D(object):
         if self.flower is not None and self.fupper is not None:
             fupper = project(self.flower)
             flower = project(self.fupper)
-        return SimpleFreeEnergyProfile(cvs, fs, self.T, fupper=fupper, flower=flower, cv_unit=cv_unit, f_unit='kjmol', cv_label=cv_label)
+        return return_class(cvs, fs, self.T, fupper=fupper, flower=flower, cv_unit=cv_unit, f_unit='kjmol', cv_label=cv_label)
 
     def plot(self, fn_png, obs='F', cv1_lims=None, cv2_lims=None, lims=None, ncolors=8, scale='lin'):
         '''

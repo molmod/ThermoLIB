@@ -648,7 +648,7 @@ class Histogram2D(object):
 			:param temp: the temperature at which all simulations were performed
 			:type temp: float
 
-			:param pinit: initial guess for the probability density. If None is given, a uniform distribution is used as initial guess.
+			:param pinit: initial guess for the probability density, which is assumed to be in the 'xy'-indexing convention (see the "indexing" argument and the corresponding "Notes" section in :ref:`the numpy online documentation of the meshgrid routine <https://numpy.org/doc/stable/reference/generated/numpy.meshgrid.html>`). If None is given, a uniform distribution is used as initial guess.
 			:type pinit: np.ndarray, optional, default=None
 			
 			:param error_estimate: indicate if and how to perform error analysis. One of following options is available:
@@ -788,9 +788,11 @@ class Histogram2D(object):
 		if pinit is None:
 			as_old = np.ones([Ngrid1,Ngrid2])/Ngrid
 		else:
-			assert pinit.shape[0]==Ngrid1, 'Specified initial guess should be of shape (%i,%i), got (%i,%i)' %(Ngrid1,Ngrid2,pinit.shape[0],pinit.shape[1])
-			assert pinit.shape[1]==Ngrid2, 'Specified initial guess should be of shape (%i,%i), got (%i,%i)' %(Ngrid1,Ngrid2,pinit.shape[0],pinit.shape[1])
-			as_old = pinit.copy()/pinit.sum()
+			#it is assumed pinit is given in 'xy'-indexing convention (such as for example when using the ps attribute of another Histogram2D instance)
+			#however, this routine is written in the 'ij'-indexing convention, therefore, we transpose pinit here.
+			assert pinit.T.shape[0]==Ngrid1, 'Specified initial guess should be of shape (%i,%i), got (%i,%i)' %(Ngrid1,Ngrid2,pinit.shape[0],pinit.shape[1])
+			assert pinit.T.shape[1]==Ngrid2, 'Specified initial guess should be of shape (%i,%i), got (%i,%i)' %(Ngrid1,Ngrid2,pinit.shape[0],pinit.shape[1])
+			as_old = pinit.T/pinit.sum()
 		nominator = Hs.sum(axis=0) #precomputable factor in WHAM update equations
 		for iscf in range(Nscf):
 			#compute new normalization factors
@@ -833,7 +835,7 @@ class Histogram2D(object):
 		else:
 			pupper, plower = None, None
 		
-		#For consistency with how FreeEnergySurface2D is implemented, ps (and plower, pupper) need to be transposed
+		#For consistency with how FreeEnergySurface2D is implemented (using 'xy'-indexing), ps (and plower, pupper) need to be transposed
 		ps = ps.T
 		if plower is not None: plower = plower.T
 		if pupper is not None: pupper = pupper.T
