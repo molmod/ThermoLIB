@@ -76,7 +76,7 @@ class Polynomial1D(BiasPotential1D):
         self.unit = unit
     
     def print_pars(self, e_unit='kjmol', q_unit='au'):
-        return ' '.join(['a%i=%.3e %s/%s^%i' %(n,an/(e_unit/q_unit**n), e_unit, q_unit, n) for n,an in enumerate(self.coeffs)])
+        return ' '.join(['a%i=%.3e %s/%s^%i' %(n,(an/(parse_unit(e_unit)/parse_unit(q_unit)))**n, e_unit, q_unit, n) for n,an in enumerate(self.coeffs)])
 
     def __call__(self, q):
         result = 0.0
