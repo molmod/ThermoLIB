@@ -648,7 +648,7 @@ class Histogram2D(object):
 			:param temp: the temperature at which all simulations were performed
 			:type temp: float
 
-			:param pinit: initial guess for the probability density, which is assumed to be in the 'xy'-indexing convention (see the "indexing" argument and the corresponding "Notes" section in :ref:`the numpy online documentation of the meshgrid routine <https://numpy.org/doc/stable/reference/generated/numpy.meshgrid.html>`). If None is given, a uniform distribution is used as initial guess.
+			:param pinit: initial guess for the probability density, which is assumed to be in the 'xy'-indexing convention (see the "indexing" argument and the corresponding "Notes" section in `the numpy online documentation of the meshgrid routine <https://numpy.org/doc/stable/reference/generated/numpy.meshgrid.html>`_). If None is given, a uniform distribution is used as initial guess.
 			:type pinit: np.ndarray, optional, default=None
 			
 			:param error_estimate: indicate if and how to perform error analysis. One of following options is available:
