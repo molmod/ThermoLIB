@@ -10,16 +10,21 @@
 # Van Speybroeck. Usage of this package should be authorized by prof. Van
 # Van Speybroeck.
 
-
 from molmod.units import *
 from scipy import interpolate
 
 import numpy as np
 import matplotlib.pyplot as pp
 
-__all__ = ['Parabola1D', 'Polynomial1D', 'PlumedSplinePotential1D', 'MultipleBiasses1D', 'Parabola2D']
+__all__ = [
+    'BiasPotential1D', 'Parabola1D', 'Polynomial1D', 'PlumedSplinePotential1D',
+    'MultipleBiasses1D', 'BiasPotential2D', 'Parabola2D'
+]
 
 class BiasPotential1D(object):
+    '''
+        A base class for 1-dimensional bias potentials. This abstract class serves as a parent for inheriting child classes which should implement the __call__ routine.
+    '''
     def __init__(self, name, inverse_cv=False):
         self.name = name
         self.sign_q = 1.0
@@ -48,7 +53,23 @@ class BiasPotential1D(object):
 
 
 class Parabola1D(BiasPotential1D):
+    '''
+        A 1-dimensional parabolic bias potential.
+    '''
     def __init__(self, name, q0, kappa, inverse_cv=False):
+        '''
+            :param name: a name for the bias potential
+            :type name: str
+
+            :param q0: the value of the parabola equilibruim (i.e. its minimum)
+            :type q0: float
+
+            :param kappa: the force constant of the parabola
+            :type kappa: float
+
+            :param inverse_cv: If set to True, the CV-axis will be inverted prior to bias evaluation
+            :type inverse_cv: bool, optional, defaults to False
+        '''
         BiasPotential1D.__init__(self, name, inverse_cv=inverse_cv)
         self.q0 = q0
         self.kappa = kappa
@@ -61,10 +82,11 @@ class Parabola1D(BiasPotential1D):
 
 
 class Polynomial1D(BiasPotential1D):
+    '''
+        Bias potential given by general polynomial of any degree.
+    '''
     def __init__(self, name, coeffs, inverse_cv=False, unit='au'):
         '''
-            Bias potential given by general polynomial of any degree.
-
             :param name: name of the bias
             :type name: str
 
@@ -86,17 +108,18 @@ class Polynomial1D(BiasPotential1D):
 
 
 class PlumedSplinePotential1D(BiasPotential1D):
+    '''
+        A bias potential read from a PLUMED file, which is spline-interpolated.
+    '''
     def __init__(self, name, fn, inverse_cv=False, unit='au', scale=1.0):
         '''
-            A bias potential read from a PLUMED file, which is spline-interpolated.
-
             :param name: name for the external bias potential
             :type name: str
 
             :param fn: specifies the filename of an external potential written on a grid and acting on the collective variable, as used with the EXTERNAL keyword in PLUMED.
             :type fn: str
             
-            :param unit: unit used to express the external potential, defaults to 'kjmol'
+            :param unit: unit used to express the external potential, defaults to 'au'
             :type unit: str, optional
 
             :param scale: scaling factor for the external potential (useful to invert free energy surfaces), default to 1.0
@@ -118,14 +141,15 @@ class PlumedSplinePotential1D(BiasPotential1D):
 
 
 class MultipleBiasses1D(BiasPotential1D):
+    '''
+        A class to add multiple bias potentials together, possibly weighted by given coefficients.
+    '''
     def __init__(self, biasses, coeffs=None):
         '''
-            Add multiple bias potentials together, possibly weighted by the given coefficients. If coefficients is not specified, all potentials are simply added without prefactor.
-
             :param biasses: list of bias potentials
             :type biasses: list(BiasPotential1D)
 
-            :param coeffs: array of weigth coefficients. If not given, defaults to an array of ones.
+            :param coeffs: array of weigth coefficients. If not given, defaults to an array of ones (i.e. no weighting).
             :type coeffs: list/np.ndarray, optional
         '''
         assert isinstance(biasses, list), 'Biasses should be a list'
@@ -154,7 +178,11 @@ class MultipleBiasses1D(BiasPotential1D):
             result += bias(q)
         return result
 
+
 class BiasPotential2D(object):
+    '''
+        A base class for 2-dimensional bias potentials. This abstract class serves as a parent for inheriting child classes which should implement the __call__ routine.
+    '''
     def __init__(self, name, inverse_cv1=False, inverse_cv2=False):
         self.name = name
         self.sign_q1 = 1.0
@@ -194,7 +222,32 @@ class BiasPotential2D(object):
 
 
 class Parabola2D(BiasPotential2D):
+    '''
+        A 2-dimensional parabolic bias potential.
+    '''
     def __init__(self, name, q01, q02, kappa1, kappa2, inverse_cv1=False, inverse_cv2=False):
+        '''
+            :param name: a name for the bias potential
+            :type name: str
+
+            :param q01: the value of the first collective variable corresponding to the parabola minimum
+            :type q01: float
+
+            :param q02: the value of the second collective variable corresponding to the parabola minimum
+            :type q02: float
+
+            :param kappa1: the force constant of the parabola in the direction of the first collective variable
+            :type kappa: float
+
+            :param kappa2: the force constant of the parabola in the direction of the second collective variable
+            :type kappa: float
+
+            :param inverse_cv1: If set to True, the CV1-axis will be inverted prior to bias evaluation
+            :type inverse_cv1: bool, optional, defaults to False
+
+            :param inverse_cv2: If set to True, the CV2-axis will be inverted prior to bias evaluation
+            :type inverse_cv2: bool, optional, defaults to False
+        '''
         BiasPotential2D.__init__(self, name, inverse_cv1=inverse_cv1, inverse_cv2=inverse_cv2)
         self.q01 = q01
         self.q02 = q02

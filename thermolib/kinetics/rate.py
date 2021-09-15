@@ -27,11 +27,15 @@ __all__ = ['RateFactorEquilibrium']
 
 class BaseRateFactor(object):
     '''
-        Class to compute the prefactor A required for the computation of the rate constant of the process of crossing a transition state:
+        An abstract class for inheriting child classes to compute the prefactor :math:`A` required for the computation of the rate constant of the process of crossing a transition state:
 
         .. math::
 
-            k = A\cdot\frac{\exp(-\beta\cdot F_{TS})}{\int_{-\infty}^{q_{TS}}\exp(-\beta\cdot F(q))dq}
+            \\begin{aligned}
+                k &= A\\cdot\\frac{ e^{-\\beta F(q_{TS})} }{ \\int_{-\\infty}^{q_{TS}}e^{-\\beta F(q)}dq } \\\\
+
+                A &= \\frac{1}{2}\\left\\langle|\\dot{Q}|\\right\\rangle_{TS}
+            \\end{aligned}
     '''
     def __init__(self, CV, CV_TS_lims, temp, CV_unit='au'):
         '''
@@ -135,28 +139,43 @@ class BaseRateFactor(object):
 
 class RateFactorEquilibrium(BaseRateFactor):
     '''
-        Class to compute the factor A required for the computation of the rate constant of the process of crossing a transition state:
+        Class to compute the factor :math:`A` required for the computation of the rate constant :math:`k` of the process of crossing a transition state:
 
-            A = 0.5*<|dot(Q)|>_TS
+        .. math::
+
+            \\begin{aligned}
+                k &= A\\cdot\\frac{ e^{-\\beta F(q_{TS})} }{ \\int_{-\\infty}^{q_{TS}}e^{-\\beta F(q)}dq } \\\\
+
+                A &= \\frac{1}{2}\\left\\langle|\\dot{Q}|\\right\\rangle_{TS}
+            \\end{aligned}
         
         Herein, the subscript TS refers to the fact that the average has to be taken only at configurational states corresponding to the transition state (TS). Furthermore, the average contains an integral over configurational phase space as well as momenta. The integral over momenta can either be performed analytical or numerical by taking momentum samples according to a certain distribution. 
         
             * When performing the momentum integration analytical, the above expression simplifies to:
 
-                A = sqrt(k*T/(2*pi)) * <|DQ|>_TS
+                .. math::
 
-              where the average is now only taken in configurational space for states corresponding to the transition state (hence still subscript TS). Furtheremore, DQ represents the gradient of the collective variable Q towards the mass-weighted cartesian coordinates.
+                    A = \\sqrt{\\frac{kT}{2\\pi}} \\cdot \\left\\langle\\left||\\vec{\\nabla}_x Q\\right||\\right\\rangle_{TS}
+
+                where the average is now only taken in configurational space for states corresponding to the transition state (hence still the subscript TS). Furtheremore, :math:`\\vec{\\nabla}_x Q` represents the gradient of the collective variable :math:`Q` towards the mass-weighted cartesian coordinates.
 
             * When performing the momentum integral numerically, the expression for A can be rewritten as:
 
-                A = 0.5*int[ int[|dot(Q)|(x,P)*p_p(P), P=-inf...+inf]*p_x(x), x=TS]
-            
-              where |dot(Q)|(x,P) indicates that the time derivative of Q depends on both configurational state x as well as the momentum P. Furthermore p_p(P) represents the momentum probability distribution which will need to be specified (eg. the Maxwell-Boltzmann distribution). The integral over x is computed using the samples xi taken from the MD trajectory while the integration over P is computed numerically by taking random samples Pk from the given momentum distribution p_p:
+                .. math::
 
-                A = 1/Ns*sum(A(xi), i=1..Ns)
-                A(xi) =  0.5/Np*sum(|dot(Q)|(xi,Pk), k=1...Np]
+                    A = \\frac{1}{2}\\int_{\\vec{x}\\in TS} \\left[\\int_{-\\infty}^{+\\infty} \\left|\\dot{Q}(\\vec{x},\\vec{P})\\right| p_p(\\vec{P}) d\\vec{P}\\right]p_x(\\vec{x})d\\vec{x}
             
-        These computational methods are implemented in the proces_trajectory routine.
+                where :math:`\\dot{Q}(\\vec{x},\\vec{P})` indicates that the time derivative of :math:`Q` depends on both configurational state indicated by its mass-weighted cartesian coordinates :math:`\\vec{x}` as well as the mass-weighted momenta :math:`\\vec{P}`. Furthermore :math:`p_p(\\vec{P})` represents the momentum probability distribution which will need to be specified (eg. the Maxwell-Boltzmann distribution). The integral over :math:`\\vec{x}` is computed using the samples :math:`\\vec{x}_i` taken from the MD trajectory while the integration over :math:`\\vec{P}` is computed numerically by taking random samples :math:`\\vec{P}_k` from the given momentum distribution :math:`p_p`:
+
+                .. math::
+                
+                    \\begin{aligned}
+                        A &= \\frac{1}{N_s}\\sum_{i=1}^{N_s}A(\\vec{x}_i) \\\\
+
+                        A(x_i) &=  \\frac{1}{2N_p}\\sum_{k=1}^{N_p}\\left|\\dot{Q}\\left(\\vec{x}_i,\\vec{P}_k\\right)\\right|
+                    \\end{aligned}
+            
+        These computational methods are implemented in the :meth:`thermolib.thermodynamics.rate.RateFactorEquilibrium.proces_trajectory` routine.
     '''
 
     def process_trajectory(self, fn_xyz, finish=True, fn_samples=None, momenta='analytical', Nmomenta=500, verbose=False):

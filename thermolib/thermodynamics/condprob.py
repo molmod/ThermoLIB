@@ -34,9 +34,8 @@ __all__ = ['ConditionalProbability1D1D', 'ConditionalProbability1D2D']
 
 class ConditionalProbability1D1D(object):
     '''
-        Routine to store and compute conditional probabilities of the form
+        Routine to store and compute conditional probabilities of the form :math:`p(q_1|cv)` which allow to convert a free energy profile in terms of the collective variable :math:`cv` to a free energy profile in terms of the collective variable :math:`q_1`.
 
-            p(q1|cv)
     '''
     def __init__(self, q1s, cvs, q1_label='Q', cv_label='CV'):
         self.q1s = q1s.copy()
@@ -54,10 +53,7 @@ class ConditionalProbability1D1D(object):
 
     def process_trajectory_xyz(self, fns, Q1, CV, finish=True):
         '''
-            Compute the conditional probability p(q1|cv) (and norm for final
-            normalisation) by processing a series of XYZ trajectory files. The
-            final probability is estimated as the average over all given files.
-            These files may also contain data from biased simulations.
+            Compute the conditional probability p(q1|cv) (and norm for final normalisation) by processing a series of XYZ trajectory files. The final probability is estimated as the average over all given files. These files may also contain data from biased simulations.
         '''
         if self._finished:
             raise RuntimeError("Cannot read additional XYZ trajectory because current conditional probability has already been finished.")
@@ -86,14 +82,11 @@ class ConditionalProbability1D1D(object):
 
     def process_trajectory_cvs(self, fns, col_q1=1, col_cv=2, finish=True):
         '''
-            Compute the conditional probability p(q1|cv) (and norm for final
-            normalisation) by processing a series of CV trajectory files.
-            Each CV trajectory file contains rows of the form
+            Compute the conditional probability p(q1|cv) (and norm for final normalisation) by processing a series of CV trajectory files. Each CV trajectory file contains rows of the form
 
                 time q1 cv
 
-            If the trajectory file contains this data in a different order, it
-            can be accounted for using the col_xx keyword arguments.
+            If the trajectory file contains this data in a different order, it can be accounted for using the col_xx keyword arguments.
         '''
         if self._finished:
             raise RuntimeError("Cannot read additional XYZ trajectory because current conditional probability has already been finished.")
@@ -154,14 +147,25 @@ class ConditionalProbability1D1D(object):
             pp.savefig(fn)
             pp.close()
 
-    def transform(self, fep, cv_unit='au', f_unit='kjmol', cv_label=None):
+    def transform(self, fep, cv_unit='au', f_unit='kjmol', cv_label='CV'):
         '''
-            Transform the provided 1D FES to a different 1D FES using the current
-            conditional probability according to the formula
+            Transform the provided 1D FES to a different 1D FES using the current conditional probability according to the formula
 
-                FES(q1) = -kT*ln(P(q1))
+            .. math::
 
-                P(q1) = int(condprob(q1|cv)*exp(-beta*F(cv), cv)
+                F(q) &= -kT \\ln\\left(\\int p(q|v)\\cdot e^{-\\beta F(v)} dv\\right)
+            
+            :param fep: the free energy profile F(v) which will be transformed
+            :type fep: (child of) BaseFreeEnergyProfile
+
+            :param cv_unit: the unit to be used in plotting and printing of the new cv
+            :type cv_unit: str, optional, defaults to atomic units
+
+            :param f_unit: the unit of the the transformed free energy profile to be used in plotting and printing of energies
+            :type f_unit: str, optional, defaults to kJ/mol
+
+            :param cv_label: the label of the new collective variable to be used in plot labels
+            :type cv_label: str, optional, defaults to CV
         '''
         assert self._finished, "Conditional probability needs to be finished before applying at in transformations."
         assert isinstance(fep, BaseFreeEnergyProfile), 'Input argument should be instance of BaseFreeEnergyProfile, instead received %s' %fep.__class__.__name__
@@ -179,11 +183,8 @@ class ConditionalProbability1D1D(object):
 
 class ConditionalProbability1D2D(object):
     '''
-        Routine to store and compute conditional probabilities of the form
+        Class to store and compute conditional probabilities of the form :math:`p(q_1,q_2|cv)` which can be used to transform a 1D free energy profile in terms of the collective variable *cv* towards a 2D free energy surface in terms of the collective variables :math:`q_{1}` and :math:`q_{2}`.
 
-        .. math::
-            
-            p\left(q_1,q_2|cv\right)
     '''
     def __init__(self, q1s, q2s, cvs, q1_label='Q1', q2_label='Q2', cv_label='CV'):
         self.q1s = q1s.copy()
@@ -204,14 +205,7 @@ class ConditionalProbability1D2D(object):
 
     def process_trajectory_xyz(self, fns, Q1, Q2, CV, finish=True):
         '''
-            Compute the conditional probability p(q1,q2|cv) (and norm for final
-            normalisation) by processing a series of XYZ trajectory files. The
-            final probability is estimated as the average over all given files.
-            These files may also contain data from biased simulations as long
-            as the bias is constant over the simulation. For example, data from
-            Umbrella Sampling is OK, while data from metadynamica itself is not.
-            Data obtained from a regular MD with the final MTD profile as bias
-            is OK.
+            Compute the conditional probability :math:`p(q_1,q_2|v)` (and norm for final normalisation) by processing a series of XYZ trajectory files. The final probability is estimated as the average over all given files. These files may also contain data from biased simulations as long as the bias is constant over the simulation. For example, data from Umbrella Sampling is OK, while data from metadynamica itself is not. Data obtained from a regular MD with the final MTD profile as bias is OK.
         '''
         if self._finished:
             raise RuntimeError("Cannot read additional XYZ trajectory because current conditional probability has already been finished.")
@@ -245,16 +239,11 @@ class ConditionalProbability1D2D(object):
 
     def process_trajectory_cvs(self, fns, col_q1=1, col_q2=2, col_cv=3, finish=True):
         '''
-            Routine to update conditional probability p(q1,q2|cv) (and norm for
-            final normalisation) by processing a series of CV trajectory file.
-            Each CV trajectory file contains rows of the form
+            Routine to update conditional probability :math:`p(q_1,q_2|v)` (and norm for final normalisation) by processing a series of CV trajectory file. Each CV trajectory file contains rows of the form
 
-                time q1 q2 cv
+                time q1 q2 v
 
-            If the trajectory file contains this data in a different order, it
-            can be accounted for using the col_xx keyword arguments. Similar
-            constraints apply to these CV trajectory files as specified in the
-            routine ´´process_trajectory_xyz´´.
+            If the trajectory file contains this data in a different order, it can be accounted for using the col_xx keyword arguments. Similar constraints apply to these CV trajectory files as specified in the routine :meth:`process_trajectory_xyz`.
 
             Warning: after all trajectories have been processes, you need to manually call the finish routine!
         '''
@@ -337,12 +326,12 @@ class ConditionalProbability1D2D(object):
 
     def transform(self, fep, cv1_unit='au', cv2_unit='au', f_unit='kjmol', label1=None, label2=None):
         '''
-            Transform the provided 1D FEP to a 2D FES using the current
-            conditional probability according to the formula
+            Transform the provided 1D FEP to a 2D FES using the current conditional probability according to the formula
 
-                FES(q1,q2) = -kT*log(P(q1,q2))
+            .. math::
 
-                P(q1,q2) = int(condprob(q1,q2|cv)*exp(-beta*F(cv), cv)
+                F(q_1,q_2) &= -kT\cdot\\ln\\left(\\int p(q_1,q_2|v)\\cdot e^{-\\beta F(v)}dv\\right)
+            
         '''
         assert self._finished, "Conditional probability needs to be finished before applying at in transformations."
         assert isinstance(fep, BaseFreeEnergyProfile), 'Input argument should be instance of BaseFreeEnergyProfile, instead received %s' %fep.__class__.__name__
