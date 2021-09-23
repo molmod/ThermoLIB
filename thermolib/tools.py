@@ -242,7 +242,7 @@ def blav(data, blocksizes=None, fitrange=[0,-1], exponent=1, fn_plot=None, unit=
         pp.savefig(fn_plot, dpi=300)
     return blavs.mean(), error, corrtime
 
-def read_wham_input(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1, kappa_unit='kjmol', q0_unit='au', start=0, end=-1, stride=1, bias_potential='Parabola1D', additional_bias=None, verbose=False):
+def read_wham_input(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1, kappa_unit='kjmol', q0_unit='au', start=0, end=-1, stride=1, bias_potential='Parabola1D', additional_bias=None,inverse_cv=False, verbose=False):
     '''
         Read the input for a WHAM reconstruction of the free energy profile from a set of Umbrella Sampling simulations. The file specified by fn should have the following format:
 
@@ -343,7 +343,7 @@ def read_wham_input(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1,
                 if not os.path.isfile(fn_traj):
                     print("WARNING: could not read trajectory file for bias with name %s, skipping line in wham input." %name)
                     continue
-                bias = Parabola1D(name, q0, kappa)
+                bias = Parabola1D(name, q0, kappa,inverse_cv=inverse_cv)
                 if additional_bias is not None:
                     bias = MultipleBiasses1D([bias, additional_bias])
                 data = np.loadtxt(fn_traj)
@@ -600,7 +600,7 @@ def read_wham_input_custom1(fn,temp,fn_plumed=None, kappa_unit='kjmol', q0_unit=
                 try:
                     parabola = Parabola1D('Parabola', kappa, q0, inverse_cv=reflect_x)
                     poly = Polynomial1D('Polynomial', poly_coef, unit=plumed_unit, inverse_cv=reflect_x)
-                    poly_parabola = MultipleBiasses1D(fn_U, [parabola,poly])
+                    poly_parabola = MultipleBiasses1D([parabola,poly])
                     biasses.append(poly_parabola)
                 except:
                     raise ValueError('Could not process line %i in %s: %s' % (iline, fn, line))
