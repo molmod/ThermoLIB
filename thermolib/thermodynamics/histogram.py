@@ -24,33 +24,33 @@ from thermolib.tools import integrate, integrate2d
 __all__ = ['Histogram1D', 'Histogram2D', 'plot_histograms']
 
 class Histogram1D(object):
-	def __init__(self, cvs, ps, plower=None, pupper=None, cv_unit='au', cv_label='CV'):
+	def __init__(self, cvs, ps, plower=None, pupper=None, cv_output_unit='au', cv_label='CV'):
 		'''
 			Class to implement the estimation of a probability histogram in terms of a collective variable from a trajectory series corresponding to that collective variable.
 
-			:param cvs: array corresponding the collective variable grid points
+			:param cvs: array corresponding the collective variable grid points, which should be in atomic units.
 			:type data: np.ndarray
 
-			:param ps: array corresponding to the histogram probability values at the grid points
+			:param ps: array corresponding to the histogram probability values at the grid points, which should be in atomic units.
 			:type bins: np.ndarray
 
-			:param plower: lower bound of the error on the probability histogram values, defaults to None
-			:type do_error: np.ndarray, optional
+			:param plower: lower bound of the error on the probability histogram values, which should be in atomic units.
+			:type do_error: np.ndarray, optional, default=None
 
-			:param pupper: upper bound of the error on the probability histogram values, defaults to None
-			:type pupper: np.ndarray, optional
+			:param pupper: upper bound of the error on the probability histogram values, which should be in atomic units.
+			:type pupper: np.ndarray, optional, default=None
 
-			:param cv_unit: the unit in which cv will be plotted/printed, defaults to 'au'
-			:type cv_unit: str, optional
+			:param cv_output_unit: the unit in which cv will be plotted/printed
+			:type cv_output_unit: str, optional, default='au'
 
-			:param cv_label: the label of the cv that will be used on plots, defaults to 'CV'
-			:type cv_label: str, optional
+			:param cv_label: the label of the cv that will be used on plots
+			:type cv_label: str, optional, default='CV'
 		'''
 		self.cvs = cvs.copy()
 		self.ps = ps.copy()
 		self.plower = plower
 		self.pupper = pupper
-		self.cv_unit = cv_unit
+		self.cv_output_unit = cv_output_unit
 		self.cv_label = cv_label
 
 	def copy(self):
@@ -60,10 +60,10 @@ class Histogram1D(object):
 		pupper = None
 		if self.pupper is not None:
 			pupper = self.pupper.copy()
-		return Histogram1D(self.cvs.copy(), self.ps.copy(), plower=plower, pupper=pupper, cv_unit=self.cv_unit, cv_label=self.cv_label)
+		return Histogram1D(self.cvs.copy(), self.ps.copy(), plower=plower, pupper=pupper, cv_output_unit=self.cv_output_unit, cv_label=self.cv_label)
 
 	@classmethod
-	def from_average(cls, histograms, error_estimate=None, nsigma=2):
+	def from_average(cls, histograms, error_estimate=None, nsigma=2, cv_output_unit=None, cv_label=None):
 		'''
 			Start from a set of histograms and compute and return the averaged histogram. If error_estimate is set to 'std', an error on the histogram will be computed from the standard deviation within the set of histograms.
 
@@ -75,27 +75,29 @@ class Histogram1D(object):
 				*  **std** -- compute error from the standard deviation within the set of histograms.
 				*  **None** -- do not estimate the error.
 			
-			Defaults to None, i.e. no error estimate.
-			:type error_estimate: str, optional
+			:type error_estimate: str, optional, default=None
 
-			:param nsigma: only relevant when error estimation is turned on (i.e. when keyword ``error_estimate`` is not None), this option defines how large the error interval should be in terms of the standard deviation sigma. A ``nsigma=2`` implies a 2-sigma error bar (corresponding to 95% confidence interval) will be returned. Defaults to 2
-			:type nsigma: int, optional
+			:param nsigma: only relevant when error estimation is turned on (i.e. when keyword ``error_estimate`` is not None), this option defines how large the error interval should be in terms of the standard deviation sigma. A ``nsigma=2`` implies a 2-sigma error bar (corresponding to 95% confidence interval) will be returned.
+			:type nsigma: int, optional, default=2
+
+			:param cv_output_unit: the unit in which cv will be plotted/printed. Defaults to the cv_output_unit of the first histogram given.
+			:type cv_output_unit: str, optional
+
+			:param cv_label: label for the new CV. Defaults to the cv_label of the first given histogram.
+			:type cv_label: str, optional
 
 			:return: averages histogram
 			:rtype: Histrogram1D
 		'''
 		#sanity checks
-		cv_unit, cv_label = None, None
 		cvs = None
 		for hist in histograms:
 			if cvs is None:
 				cvs = hist.cvs.copy()
 			else:
 				assert (abs(cvs-hist.cvs)<1e-12*np.abs(cvs.mean())).all(), 'Cannot average the histograms as they do not have consistent CV grids'
-			if cv_unit is None:
-				cv_unit = hist.cv_unit
-			else:
-				assert cv_unit==hist.cv_unit, 'Inconsistent CV unit definition in histograms'
+			if cv_output_unit is None:
+				cv_output_unit = hist.cv_output_unit
 			if cv_label is None:
 				cv_label = hist.cv_label
 			else:
@@ -111,14 +113,14 @@ class Histogram1D(object):
 			plower = ps - nsigma*perr
 			plower[plower<0] = 0.0
 			pupper = ps + nsigma*perr
-		return cls(cvs, ps, plower=plower, pupper=pupper, cv_unit=cv_unit, cv_label=cv_label)
+		return cls(cvs, ps, plower=plower, pupper=pupper, cv_output_unit=cv_output_unit, cv_label=cv_label)
 
 	@classmethod
-	def from_single_trajectory(cls, data, bins, error_estimate=None, nsigma=2, cv_unit='au', cv_label='CV'):
+	def from_single_trajectory(cls, data, bins, error_estimate=None, nsigma=2, cv_output_unit='au', cv_label='CV'):
 		'''
 			Routine to estimate of a probability histogram in terms of a collective variable from a trajectory series corresponding to that collective variable.
 
-			:param data: array corresponding to the trajectory series of the collective variable
+			:param data: array corresponding to the trajectory series of the collective variable in atomic units
 			:type data: np.ndarray
 
 			:param bins: array representing the edges of the bins for which a histogram will be constructed. This argument is parsed to `the numpy.histogram routine <https://numpy.org/doc/stable/reference/generated/numpy.histogram.html>`_. Hence, more information on its meaning and allowed values can be found there.
@@ -130,14 +132,13 @@ class Histogram1D(object):
 				*  **mle_f** -- compute error through the asymptotic normality of the maximum likelihood estimator for -log(p) (hence for the beta-scaled free energy). This estimation does not suffor from the same WARNING as for ``mle_p``. Furthermore, in case of low variance, the error estimation using ``mle_f`` and ``mle_p`` are consistent (i.e. one can be computed from the other using f=-log(p)).
 				*  **None** -- do not estimate the error.
 			
-			Defaults to None, i.e. no error estimate.
-			:type error_estimate: str, optional
+			:type error_estimate: str, optional, default=None
 
-			:param nsigma: only relevant when error estimation is turned on (i.e. when keyword ``error_estimate`` is not None), this option defines how large the error interval should be in terms of the standard deviation sigma. A ``nsigma=2`` implies a 2-sigma error bar (corresponding to 95% confidence interval) will be returned. Defaults to 2
-			:type nsigma: int, optional
+			:param nsigma: only relevant when error estimation is turned on (i.e. when keyword ``error_estimate`` is not None), this option defines how large the error interval should be in terms of the standard deviation sigma. A ``nsigma=2`` implies a 2-sigma error bar (corresponding to 95% confidence interval) will be returned.
+			:type nsigma: int, optional, default=2
 
-			:param cv_unit: the unit in which cv will be plotted/printed, defaults to 'au'
-			:type cv_unit: str, optional
+			:param cv_output_unit: the unit in which cv will be plotted/printed (not the unit of the input array, that is assumed to be atomic units)
+			:type cv_output_unit: str, optional, default='au'
 
 			:param cv_label: the label of the cv that will be used on plots, defaults to 'CV'
 			:type cv_label: str, optional
@@ -171,10 +172,10 @@ class Histogram1D(object):
 			pupper[np.isinf(pupper)] = np.nan
 		elif error_estimate is not None:
 			raise ValueError('Invalid value for error_estimate argument, received %s. Check documentation for allowed values.' %error_estimate)
-		return cls(cvs, ps, plower=plower, pupper=pupper, cv_unit=cv_unit, cv_label=cv_label)
+		return cls(cvs, ps, plower=plower, pupper=pupper, cv_output_unit=cv_output_unit, cv_label=cv_label)
 
 	@classmethod
-	def from_wham(cls, bins, trajectories, biasses, temp, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, verbose=False, cv_unit='au', cv_label='CV'):
+	def from_wham(cls, bins, trajectories, biasses, temp, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, verbose=False, cv_output_unit='au', cv_label='CV'):
 		'''
 			Routine that implements the Weighted Histogram Analysis Method (WHAM) for reconstructing the overall probability histogram from a series of biased molecular simulations.
 
@@ -196,29 +197,28 @@ class Histogram1D(object):
 				*  **mle_f** -- compute error through the asymptotic normality of the maximum likelihood estimator for -log(p) (hence for the beta-scaled free energy). This estimation does not suffor from the same WARNING as for ``mle_p``. Furthermore, in case of high probability and low variance, the error estimation using ``mle_f`` and ``mle_p`` are consistent (i.e. one can be computed from the other using f=-log(p)).
 				*  **None** -- do not estimate the error.
 			
-			Defaults to None, i.e. no error estimate.
-			:type error_estimate: str, optional
+			:type error_estimate: str, optional, default=None
 
-			:param nsigma: only relevant when error estimation is turned on (i.e. when keyword ``error_estimate`` is not None), this option defines how large the error interval should be in terms of the standard deviation sigma. A ``nsigma=2`` implies a 2-sigma error bar (corresponding to 95% confidence interval) will be returned. Defaults to 2
-			:type nsigma: int, optional
+			:param nsigma: only relevant when error estimation is turned on (i.e. when keyword ``error_estimate`` is not None), this option defines how large the error interval should be in terms of the standard deviation sigma. A ``nsigma=2`` implies a 2-sigma error bar (corresponding to 95% confidence interval) will be returned.
+			:type nsigma: int, optional, default=2
 			
 			:param bias_subgrid_num: the number of grid points for the sub-grid used to compute the integrated boltzmann factor of the bias in each CV bin.
-			:type bias_subgrid_num: optional, defaults to 20
+			:type bias_subgrid_num: optional, default=20
 
 			:param Nscf: the maximum number of steps in the self-consistent loop to solve the WHAM equations
-			:type Nscf: int, defaults to 1000
+			:type Nscf: int, default=1000
 
 			:param convergence: convergence criterium for the WHAM self consistent solver. The SCF loop will stop whenever the integrated absolute difference between consecutive probability densities is less then the specified value.
-			:type convergence: float, defaults to 1e-6
+			:type convergence: float, default=1e-6
 
-			:param verbose: set to True to turn on more verbosity during the self consistent solution cycles of the WHAM equations, defaults to False.
-			:type verbose: bool, optional
+			:param verbose: set to True to turn on more verbosity during the self consistent solution cycles of the WHAM equations.
+			:type verbose: bool, optional, default=False
 
-			:param cv_unit: the unit in which cv will be plotted/printed, defaults to 'au'
-			:type cv_unit: str, optional
+			:param cv_output_unit: the unit in which cv will be plotted/printed
+			:type cv_output_unit: str, optional, default='au'
 
-			:param cv_label: the label of the cv that will be used on plots, defaults to 'CV'
-			:type cv_label: str, optional
+			:param cv_label: the label of the cv that will be used on plots
+			:type cv_label: str, optional, default='CV'
 
 			:return: probability histogram
 			:rtype: Histogram1D
@@ -275,7 +275,7 @@ class Histogram1D(object):
 			print('  Number of simulations = ', Nsims)
 			for i, Ni in enumerate(Nis):
 				print('    simulation %i has %i steps' %(i,Ni))
-			print('  CV grid [%s]: start = %.3f    end = %.3f    delta = %.3f    N = %i' %(cv_unit, bins.min()/parse_unit(cv_unit), bins.max()/parse_unit(cv_unit), delta/parse_unit(cv_unit), Ngrid))
+			print('  CV grid [%s]: start = %.3f    end = %.3f    delta = %.3f    N = %i' %(cv_output_unit, bins.min()/parse_unit(cv_output_unit), bins.max()/parse_unit(cv_output_unit), delta/parse_unit(cv_output_unit), Ngrid))
 			print('')
 			print('Starting WHAM SCF loop:')
 		#self consistent loop to solve the WHAM equations
@@ -297,14 +297,10 @@ class Histogram1D(object):
 			if verbose:
 				max = as_new.max()
 				imax = np.where(as_new==max)[0]
-				#min = as_new.min()
-				#imin = np.where(as_new==min)[0]
 				print('cycle %i/%i' %(iscf+1,Nscf))
 				print('  norm prob. dens. [au] = %.3e' %as_new.sum())
 				print('  max prob. dens.  [au] = %.3e' %max)
-				print('  cv for max       [%s] = ' %cv_unit, bin_centers[imax]/parse_unit(cv_unit))
-				#print('  min prob. dens.  [au] = %.3e' %min)
-				#print('  cv for min       [%s] = ' %cv_unit, bin_centers[imin]/parse_unit(cv_unit))
+				print('  cv for max       [%s] = ' %cv_output_unit, bin_centers[imax]/parse_unit(cv_output_unit))
 				print('  Integr. Diff.    [au] = %.3e' %integrated_diff)
 				print('')
 			if integrated_diff<convergence:
@@ -393,7 +389,7 @@ class Histogram1D(object):
 			pupper = ps*np.exp(nsigma*gerr)
 		elif error_estimate is not None and error_estimate not in ["None"]:
 			raise ValueError('Received invalid value for keyword argument error_estimate, got %s. See documentation for valid choices.' %error_estimate)
-		return cls(cvs, ps, plower=plower, pupper=pupper)
+		return cls(cvs, ps, plower=plower, pupper=pupper, cv_output_unit=cv_output_unit, cv_label=cv_label)
 
 	@classmethod
 	def from_fep(cls, fep, temp):
@@ -422,7 +418,7 @@ class Histogram1D(object):
 			plower = np.exp(-beta*fep.fupper)
 			pupper /= pupper[~np.isnan(pupper)].sum()
 			plower /= plower[~np.isnan(plower)].sum()
-		return cls(fep.cvs, ps, pupper=pupper, plower=plower, cv_unit=fep.cv_unit, cv_label=fep.cv_label)
+		return cls(fep.cvs, ps, pupper=pupper, plower=plower, cv_output_unit=fep.cv_output_unit, cv_label=fep.cv_label)
 
 	def plot(self, fn, temp=None, flim=None):
 		'''
@@ -431,58 +427,64 @@ class Histogram1D(object):
 			:param fn: file name of the resulting plot
 			:type fn: str
 
-			:param temp: the temperature for conversion of histogram to free energy profile. Specifying this number will add a free energy plot. Defaults to None
-			:type temp: float, optional
+			:param temp: the temperature for conversion of histogram to free energy profile. Specifying this number will add a free energy plot.
+			:type temp: float, optional, default=None
 
-			:param flim: upper limit of the free energy axis in plots. Defaults to None
-			:type flim: float, optional
+			:param flim: upper limit of the free energy axis in plots.
+			:type flim: float, optional, default=None
 		'''
 		plot_histograms(fn, [self], temp=temp, flim=flim)
 
 
 class Histogram2D(object):
-	def __init__(self, cv1s, cv2s, ps, plower=None, pupper=None, cv1_unit='au', cv2_unit='au', cv1_label='CV1', cv2_label='CV2'):
+	def __init__(self, cv1s, cv2s, ps, plower=None, pupper=None, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2'):
 		'''
 			Class to implement the estimation of a probability histogram in terms of a collective variable from a trajectory series corresponding to that collective variable.
 
-			:param cv1s: 1D array corresponding the grid points of the first collective variable
+			:param cv1s: 1D array corresponding the grid points of the first collective variable, which should be in atomic units.
 			:type data: np.ndarray
 
-			:param cv2s: 1D array corresponding the grid points of the second collective variable
+			:param cv2s: 1D array corresponding the grid points of the second collective variable, which should be in atomic units.
 			:type data: np.ndarray
 
-			:param ps: 2D array corresponding to the histogram probability values at the (CV1,CV2) grid points
+			:param ps: 2D array corresponding to the histogram probability values at the (CV1,CV2) grid points, which should be in atomic units.
 			:type bins: np.ndarray
 
-			:param plower: lower bound of the error on the probability histogram values, defaults to None
-			:type do_error: np.ndarray, optional
+			:param plower: lower bound of the error on the probability histogram values, which should be in atomic units.
+			:type do_error: np.ndarray, optional, default=None
 
-			:param pupper: upper bound of the error on the probability histogram values, defaults to None
-			:type pupper: np.ndarray, optional
+			:param pupper: upper bound of the error on the probability histogram values, which should be in atomic units.
+			:type pupper: np.ndarray, optional, default=None
 
-			:param cv1_unit: the unit in which the first collective variable will be plotted/printed, defaults to 'au'
-			:type cv_unit: str, optional
+			:param cv1_output_unit: the unit in which the first collective variable will be plotted/printed.
+			:type cv_output_unit: str, optional, default='au'
 
-			:param cv2_unit: the unit in which the second collective variable will be plotted/printed, defaults to 'au'
-			:type cv_unit: str, optional
+			:param cv2_output_unit: the unit in which the second collective variable will be plotted/printed.
+			:type cv_output_unit: str, optional, default='au'
 
-			:param cv1_label: the label of the first collective variable that will be used on plots, defaults to 'CV1'
-			:type cv1_label: str, optional
+			:param cv1_label: the label of the first collective variable that will be used on plots.
+			:type cv1_label: str, optional, default='CV1'
 
-			:param cv2_label: the label of the first collective variable that will be used on plots, defaults to 'CV2'
-			:type cv2_label: str, optional
+			:param cv2_label: the label of the first collective variable that will be used on plots.
+			:type cv2_label: str, optional, default='CV2
 		'''
 		self.cv1s = cv1s.copy()
 		self.cv2s = cv2s.copy()
 		self.ps = ps.copy()
 		self.plower = plower
 		self.pupper = pupper
-		self.cv1_unit = cv1_unit
-		self.cv2_unit = cv2_unit
+		self.cv1_output_unit = cv1_output_unit
+		self.cv2_output_unit = cv2_output_unit
 		self.cv1_label = cv1_label
 		self.cv2_label = cv2_label
 
 	def copy(self):
+		'''
+			Make and return a copy of the current instance.
+
+			:return: copy of the current instance
+			:rtype: Histogram2D
+		'''
 		plower = None
 		if self.plower is not None:
 			plower = self.plower.copy()
@@ -491,11 +493,12 @@ class Histogram2D(object):
 			pupper = self.pupper.copy()
 		return Histogram1D(
 			self.cvs1.copy(), self.cvs2.copy(), self.ps.copy(), plower=plower, pupper=pupper, 
-			cv1_unit=self.cv1_unit, cv2_unit=self.cv2_unit, cv1_label=self.cv1_label, cv2_label=self.cv2_label
+			cv1_output_unit=self.cv1_output_unit, cv2_output_unit=self.cv2_output_unit, 
+			cv1_label=self.cv1_label, cv2_label=self.cv2_label
 		)
 
 	@classmethod
-	def from_average(cls, histograms, error_estimate=None, nsigma=2):
+	def from_average(cls, histograms, error_estimate=None, nsigma=2, cv1_output_unit=None, cv2_output_unit=None, cv1_label=None, cv2_label=None):
 		'''
 			Start from a set of histograms and compute and return the averaged histogram. If error_estimate is set to 'std', an error on the histogram will be computed from the standard deviation within the set of histograms.
 
@@ -507,17 +510,27 @@ class Histogram2D(object):
 				*  **std** -- compute error from the standard deviation within the set of histograms.
 				*  **None** -- do not estimate the error.
 			
-			Defaults to None, i.e. no error estimate.
-			:type error_estimate: str, optional
+			:type error_estimate: str, optional, default=None
 
-			:param nsigma: only relevant when error estimation is turned on (i.e. when keyword ``error_estimate`` is not None), this option defines how large the error interval should be in terms of the standard deviation sigma. A ``nsigma=2`` implies a 2-sigma error bar (corresponding to 95% confidence interval) will be returned. Defaults to 2
-			:type nsigma: int, optional
+			:param nsigma: only relevant when error estimation is turned on (i.e. when keyword ``error_estimate`` is not None), this option defines how large the error interval should be in terms of the standard deviation sigma. A ``nsigma=2`` implies a 2-sigma error bar (corresponding to 95% confidence interval) will be returned.
+			:type nsigma: int, optional, default=2
+
+			:param cv1_output_unit: the units for printing and plotting of CV1 values. Units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_. Defaults to the cv1_output_unit of the first histogram given.
+            :type cv1_output_unit: str or float, optional
+
+			:param cv2_output_unit: the units for printing and plotting of CV2 values. Units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_. Defaults to the cv2_output_unit of the first histogram given.
+            :type cv2_output_unit: str or float, optional
+
+			:param cv1_label: label for the first collective variable in plots. Defaults to the cv1_label of the first given histogram.
+            :type cv1_label: str, optional
+
+			:param cv2_label: label for the second collective variable in plots. Defaults to the cv2_label of the first given histogram.
+            :type cv2_label: str, optional
 
 			:return: averages histogram
 			:rtype: Histrogram1D
 		'''
 		#sanity checks
-		cv1_unit, cv2_unit, cv1_label, cv2_label = None, None, None, None
 		cv1s, cv2s = None, None
 		for hist in histograms:
 			if cv1s is None:
@@ -528,22 +541,14 @@ class Histogram2D(object):
 				cv2s = hist.cv2s.copy()
 			else:
 				assert (abs(cv2s-hist.cv2s)<1e-12*np.abs(cv2s.mean())).all(), 'Cannot average the histograms as they do not have consistent CV2 grids'
-			if cv1_unit is None:
-				cv1_unit = hist.cv1_unit
-			else:
-				assert cv1_unit==hist.cv1_unit, 'Inconsistent CV1 unit definition in histograms'
-			if cv2_unit is None:
-				cv2_unit = hist.cv2_unit
-			else:
-				assert cv2_unit==hist.cv2_unit, 'Inconsistent CV2 unit definition in histograms'
+			if cv1_output_unit is None:
+				cv1_output_unit = hist.cv1_output_unit
+			if cv2_output_unit is None:
+				cv2_output_unit = hist.cv2_output_unit
 			if cv1_label is None:
 				cv1_label = hist.cv1_label
-			else:
-				assert cv1_label==hist.cv1_label, 'Inconsistent CV1 label definition in histograms'
 			if cv2_label is None:
 				cv2_label = hist.cv2_label
-			else:
-				assert cv2_label==hist.cv2_label, 'Inconsistent CV2 label definition in histograms'
 		#collect probability distributions
 		pss = np.array([hist.ps for hist in histograms])
 		#average histograms
@@ -555,10 +560,10 @@ class Histogram2D(object):
 			plower = ps - nsigma*perr
 			plower[plower<0] = 0.0
 			pupper = ps + nsigma*perr
-		return cls(cv1s, cv2s, ps, plower=plower, pupper=pupper, cv1_unit=cv1_unit, cv2_unit=cv2_unit, cv1_label=cv1_label, cv2_label=cv2_label)
+		return cls(cv1s, cv2s, ps, plower=plower, pupper=pupper, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, cv1_label=cv1_label, cv2_label=cv2_label)
 
 	@classmethod
-	def from_single_trajectory(cls, data, bins, error_estimate=None, nsigma=2, cv1_unit='au', cv2_unit='au', cv1_label='CV1', cv2_label='CV2'):
+	def from_single_trajectory(cls, data, bins, error_estimate=None, nsigma=2, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2'):
 		'''
 			Routine to estimate of a probability histogram in terms of two collective variables from a trajectory series corresponding to that collective variable.
 
@@ -580,17 +585,17 @@ class Histogram2D(object):
 			:param nsigma: only relevant when error estimation is turned on (i.e. when keyword ``error_estimate`` is not None), this option defines how large the error interval should be in terms of the standard deviation sigma. A ``nsigma=2`` implies a 2-sigma error bar (corresponding to 95% confidence interval) will be returned. Defaults to 2
 			:type nsigma: int, optional
 
-			:param cv1_unit: the unit in which the first collective variable will be plotted/printed, defaults to 'au'
-			:type cv_unit: str, optional
+			:param cv1_output_unit: the unit in which the first collective variable will be plotted/printed
+			:type cv1_output_unit: str, optional, default='au'
 
-			:param cv2_unit: the unit in which the second collective variable will be plotted/printed, defaults to 'au'
-			:type cv_unit: str, optional
+			:param cv2_output_unit: the unit in which the second collective variable will be plotted/printed
+			:type cv2_output_unit: str, optional, default='au'
 
-			:param cv1_label: the label of the first collective variable that will be used on plots, defaults to 'CV1'
-			:type cv1_label: str, optional
+			:param cv1_label: the label of the first collective variable that will be used on plots
+			:type cv1_label: str, optional, default='CV1'
 
-			:param cv2_label: the label of the first collective variable that will be used on plots, defaults to 'CV2'
-			:type cv2_label: str, optional
+			:param cv2_label: the label of the first collective variable that will be used on plots
+			:type cv2_label: str, optional, default='CV2'
 		'''
 		#initialization
 		cv1s, cv2s = None, None
@@ -622,10 +627,10 @@ class Histogram2D(object):
 			pupper[np.isinf(pupper)] = np.nan
 		elif error_estimate is not None:
 			raise ValueError('Invalid value for error_estimate argument, received %s. Check documentation for allowed values.' %error_estimate)
-		return cls(cv1s, cv2s, ps, plower=plower, pupper=pupper, cv1_unit=cv1_unit, cv2_unit=cv2_unit, cv1_label=cv1_label, cv2_label=cv2_label)
+		return cls(cv1s, cv2s, ps, plower=plower, pupper=pupper, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, cv1_label=cv1_label, cv2_label=cv2_label)
 
 	@classmethod
-	def from_wham(cls, bins, trajectories, biasses, temp, pinit=None, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, verbose=False, cv1_unit='au', cv2_unit='au', cv1_label='CV1', cv2_label='CV2', plot_biases=False):
+	def from_wham(cls, bins, trajectories, biasses, temp, pinit=None, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, verbose=False, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2', plot_biases=False):
 		'''
 			Routine that implements the Weighted Histogram Analysis Method (WHAM) for reconstructing the overall 2D probability histogram from a series of biased molecular simulations in terms of two collective variables CV1 and CV2.
 
@@ -648,7 +653,7 @@ class Histogram2D(object):
 			:param temp: the temperature at which all simulations were performed
 			:type temp: float
 
-			:param pinit: initial guess for the probability density, which is assumed to be in the 'xy'-indexing convention (see the "indexing" argument and the corresponding "Notes" section in :ref:`the numpy online documentation of the meshgrid routine <https://numpy.org/doc/stable/reference/generated/numpy.meshgrid.html>`). If None is given, a uniform distribution is used as initial guess.
+			:param pinit: initial guess for the probability density, which is assumed to be in the 'xy'-indexing convention (see the "indexing" argument and the corresponding "Notes" section in `the numpy online documentation of the meshgrid routine <https://numpy.org/doc/stable/reference/generated/numpy.meshgrid.html>`_). If None is given, a uniform distribution is used as initial guess.
 			:type pinit: np.ndarray, optional, default=None
 			
 			:param error_estimate: indicate if and how to perform error analysis. One of following options is available:
@@ -657,8 +662,7 @@ class Histogram2D(object):
 				*  **mle_f** -- compute error through the asymptotic normality of the maximum likelihood estimator for -log(p) (hence for the beta-scaled free energy). This estimation does not suffor from the same WARNING as for ``mle_p``. Furthermore, in case of high probability and low variance, the error estimation using ``mle_f`` and ``mle_p`` are consistent (i.e. one can be computed from the other using f=-log(p)).
 				*  **None** -- do not estimate the error.
 			
-			Defaults to None, i.e. no error estimate.
-			:type error_estimate: str, optional
+			:type error_estimate: str, optional, default=None
 
 			:param nsigma: only relevant when error estimation is turned on (i.e. when keyword ``error_estimate`` is not None), this option defines how large the error interval should be in terms of the standard deviation sigma. A ``nsigma=2`` implies a 2-sigma error bar (corresponding to 95% confidence interval) will be returned. Defaults to 2
 			:type nsigma: int, optional
@@ -675,20 +679,20 @@ class Histogram2D(object):
 			:param verbose: set to True to turn on more verbosity during the self consistent solution cycles of the WHAM equations, defaults to False.
 			:type verbose: bool, optional
 
-			:param cv1_unit: the unit in which the first collective variable will be plotted/printed, defaults to 'au'
-			:type cv_unit: str, optional
+			:param cv1_output_unit: the unit in which the first collective variable will be plotted/printed
+			:type cv1_output_unit: str, optional, default='au'
 
-			:param cv2_unit: the unit in which the second collective variable will be plotted/printed, defaults to 'au'
-			:type cv_unit: str, optional
+			:param cv2_output_unit: the unit in which the second collective variable will be plotted/printed
+			:type cv2_output_unit: str, optional, default='au'
 
-			:param cv1_label: the label of the first collective variable that will be used on plots, defaults to 'CV1'
-			:type cv1_label: str, optional
+			:param cv1_label: the label of the first collective variable that will be used on plots
+			:type cv1_label: str, optional, default='CV1'
 
-			:param cv2_label: the label of the first collective variable that will be used on plots, defaults to 'CV2'
-			:type cv2_label: str, optional
+			:param cv2_label: the label of the first collective variable that will be used on plots
+			:type cv2_label: str, optional, default='CV2'
 
-			:param plot_biases: if set to True, a 2D plot of the boltzmann factor of the bias integrated over each bin will be made. Defaults to False.
-			:type plot_biases: bool, optional.
+			:param plot_biases: if set to True, a 2D plot of the boltzmann factor of the bias integrated over each bin will be made.
+			:type plot_biases: bool, optional, default=False
 
 			:return: 2D probability histogram
 			:rtype: Histogram2D
@@ -777,8 +781,8 @@ class Histogram2D(object):
 			print('Number of simulations = ', Nsims)
 			for i, Ni in enumerate(Nis):
 				print('    simulation %i has %i steps' %(i,Ni))
-			print('CV1 grid [%s]: start = %.3f    end = %.3f    delta = %.3f    N = %i' %(cv1_unit, bins[0].min()/parse_unit(cv1_unit), bins[0].max()/parse_unit(cv1_unit), delta1/parse_unit(cv1_unit), Ngrid1))
-			print('CV2 grid [%s]: start = %.3f    end = %.3f    delta = %.3f    N = %i' %(cv2_unit, bins[1].min()/parse_unit(cv2_unit), bins[1].max()/parse_unit(cv2_unit), delta2/parse_unit(cv2_unit), Ngrid2))
+			print('CV1 grid [%s]: start = %.3f    end = %.3f    delta = %.3f    N = %i' %(cv1_output_unit, bins[0].min()/parse_unit(cv1_output_unit), bins[0].max()/parse_unit(cv1_output_unit), delta1/parse_unit(cv1_output_unit), Ngrid1))
+			print('CV2 grid [%s]: start = %.3f    end = %.3f    delta = %.3f    N = %i' %(cv2_output_unit, bins[1].min()/parse_unit(cv2_output_unit), bins[1].max()/parse_unit(cv2_output_unit), delta2/parse_unit(cv2_output_unit), Ngrid2))
 			print('')
 			print('Starting WHAM SCF loop:')
 			print('-----------------------')
@@ -812,7 +816,7 @@ class Histogram2D(object):
 				print('cycle %i/%i' %(iscf+1,Nscf))
 				print('  norm prob. dens. = %.3e au' %as_new.sum())
 				print('  max prob. dens.  = %.3e au' %max)
-				print('  cv1,cv2 for max  = %.3e %s , %.3f %s' %(bin_centers1[kmax]/parse_unit(cv1_unit), cv1_unit, bin_centers2[lmax]/parse_unit(cv2_unit), cv2_unit))
+				print('  cv1,cv2 for max  = %.3e %s , %.3f %s' %(bin_centers1[kmax]/parse_unit(cv1_output_unit), cv1_output_unit, bin_centers2[lmax]/parse_unit(cv2_output_unit), cv2_output_unit))
 				print('  Integr. Diff.    = %.3e au' %integrated_diff)
 				print('')
 			if integrated_diff<convergence:
@@ -839,7 +843,7 @@ class Histogram2D(object):
 		ps = ps.T
 		if plower is not None: plower = plower.T
 		if pupper is not None: pupper = pupper.T
-		return cls(cv1s, cv2s, ps, plower=plower, pupper=pupper)
+		return cls(cv1s, cv2s, ps, plower=plower, pupper=pupper, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, cv1_label=cv1_label, cv2_label=cv2_label)
 
 	@classmethod
 	def _estimate_WHAM_error_2D(cls, ps, fs, bs, Nis, method='mle_f', nsigma=2):
@@ -867,9 +871,10 @@ class Histogram2D(object):
 				* *mle_p*: the error is computed on the probability density directly
 				* *mle_f*: the error is first computed on minus of the logarithm of the probability density (corresponding to the scaled free energy) and afterwards 			propagated to the probability density.
 			
-			:type method: str, optional, defaults to mle_f
+			:type method: str, optional, default='mle_f'
 			
 			:param nsigma: specify the length of the error bar in terms of the number of sigmas. For example, a 2-sigma error bar (i.e. nsigma=2) would correspond to a 95% confidence interval.
+			:type nsimga: float, optional, default=2
 
 			:return: pupper, plower corresponding to the upper and lower value of the nsigma error bar
 			:rtype: np.ndarray, np.ndarray
@@ -975,7 +980,7 @@ class Histogram2D(object):
 			plower = np.exp(-beta*fes.fupper)
 			pupper /= pupper[~np.isnan(pupper)].sum()
 			plower /= plower[~np.isnan(plower)].sum()
-		return cls(fes.cv1s, fes.cv2s, ps, pupper=pupper, plower=plower, cv1_unit=fes.cv1_unit, cv2_unit=fes.cv2_unit, cv1_label=fes.cv1_label, cv2_label=fes.cv2_label)
+		return cls(fes.cv1s, fes.cv2s, ps, pupper=pupper, plower=plower, cv1_output_unit=fes.cv1_output_unit, cv2_output_unit=fes.cv2_output_unit, cv1_label=fes.cv1_label, cv2_label=fes.cv2_label)
 
 	def plot(self, fn, temp=None, flim=None):
 		'''
@@ -984,11 +989,11 @@ class Histogram2D(object):
 			:param fn: file name of the resulting plot
 			:type fn: str
 
-			:param temp: the temperature for conversion of histogram to free energy profile. Specifying this number will add a free energy plot. Defaults to None
-			:type temp: float, optional
+			:param temp: the temperature for conversion of histogram to free energy profile. Specifying this number will add a free energy plot.
+			:type temp: float, optional, default=None
 
-			:param flim: upper limit of the free energy axis in plots. Defaults to None
-			:type flim: float, optional
+			:param flim: upper limit of the free energy axis in plots.
+			:type flim: float, optional, default=None
 		'''
 		raise NotImplementedError
 
@@ -1003,14 +1008,14 @@ def plot_histograms(fn, histograms, temp=None, labels=None, flims=None, colors=N
 		:param histograms: list of histrograms to plot
 		:type histograms: list(Histogram1D)
 
-		:param temp: if defined, the free energy profile corresponding to each histogram will be computed and plotted with its corresponding temperature. If a single float is given, all histograms are assumed to be at the same temperature, if a list or array of floats is given, each entry is assumed to be the temperature of the corresponding entry in the input list of histograms. Defaults to None
-		:type temp: float/list(float)/np.ndarray, optional
+		:param temp: if defined, the free energy profile corresponding to each histogram will be computed and plotted with its corresponding temperature. If a single float is given, all histograms are assumed to be at the same temperature, if a list or array of floats is given, each entry is assumed to be the temperature of the corresponding entry in the input list of histograms.
+		:type temp: float/list(float)/np.ndarray, optional, default=None
 
-		:param labels: list of labels for the legend, one for each histogram. Defaults to None
-		:type labels: list(str), optional
+		:param labels: list of labels for the legend, one for each histogram.
+		:type labels: list(str), optional, default=None
 
-		:param flims: [lower,upper] limit of the free energy axis in plots. Defaults to None
-		:type flims: float, optional
+		:param flims: [lower,upper] limit of the free energy axis in plots.
+		:type flims: float, optional, default=None
 
 		:param colors: List of matplotlib color definitions for each entry in histograms. If an entry is None, a color will be chosen internally. Defaults to None, implying all colors are chosen internally.
 		:type colors: List(str), optional
@@ -1034,7 +1039,7 @@ def plot_histograms(fn, histograms, temp=None, labels=None, flims=None, colors=N
 	else:
 		fig, axs = pp.subplots(nrows=1, ncols=2, squeeze=False)
 	cmap = cm.get_cmap('tab10')
-	cv_unit = histograms[0].cv_unit
+	cv_unit = histograms[0].cv_output_unit
 	cv_label = histograms[0].cv_label
 	fmax = -np.inf
 	#add probability histogram and possible free energy plots	
@@ -1069,7 +1074,7 @@ def plot_histograms(fn, histograms, temp=None, labels=None, flims=None, colors=N
 			if set_ref is not None:
 				fep.set_ref(ref=set_ref)
 			fmax = max(fmax, np.ceil(max(fep.fs[~np.isnan(fep.fs)]/kjmol)/10)*10)
-			funit = fep.f_unit
+			funit = fep.f_output_unit
 			axs[0,1].plot(fep.cvs/parse_unit(cv_unit), fep.fs/parse_unit(funit), linewidth=linewidth, color=color, linestyle=linestyle, label=label)
 			if fep.flower is not None and fep.fupper is not None:
 				axs[0,1].fill_between(fep.cvs/parse_unit(cv_unit), fep.flower/parse_unit(funit), fep.fupper/parse_unit(funit), color=color, alpha=0.33)
