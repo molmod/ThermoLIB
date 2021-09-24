@@ -1333,8 +1333,8 @@ class FreeEnergySurface2D(object):
         fs = project(self.fs)
         flower, fupper = None, None
         if self.flower is not None and self.fupper is not None:
-            fupper = project(self.flower)
-            flower = project(self.fupper)
+            fupper = project(self.fupper)
+            flower = project(self.flower)
         return return_class(cvs, fs, self.T, fupper=fupper, flower=flower, cv_output_unit=cv_output_unit, f_output_unit=self.f_output_unit, cv_label=cv_label)
 
     def plot(self, fn_png, obs='F', cv1_lims=None, cv2_lims=None, lims=None, ncolors=8, scale='lin'):
