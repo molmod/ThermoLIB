@@ -319,7 +319,8 @@ def read_wham_input(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1,
     temp = None
     biasses = []
     trajectories = []
-    root = '/'.join(fn.split('/')[:-1]) #Windows-compatible?
+    #root = '/'.join(fn.split('/')[:-1]) #Windows-compatible?
+    root = os.path.split(fn)[0]
     if additional_bias is not None:
         assert isinstance(additional_bias, BiasPotential1D), 'Given additional bias should be member/child of the class BiasPotential1D, got %s' %(additional_bias.__class__.__name__)
     with open(fn, 'r') as f:
