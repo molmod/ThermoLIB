@@ -81,7 +81,6 @@ def integrate2d(z,x=None,y=None,dx=1.,dy=1.):
 def format_scientific(x, prec=3, latex=True):
     if np.isnan(x):
         return r'nan'
-    #print(x, ('{:.%iE}' %prec).format(x))
     a, b = ('{:.%iE}' %prec).format(x).split('E')
     if latex:
         return r'$%s\cdot 10^{%s}$' %(a,b)
@@ -90,7 +89,7 @@ def format_scientific(x, prec=3, latex=True):
 
 def trajectory_xyz_to_CV(fns, CV):
     '''
-        Compute the CV along an XYZ trajectory. The XYZ trajectory is assumed to be composed out of a (list of subsequent) XYZ files.
+        Compute the CV along an XYZ trajectory. The XYZ trajectory is assumed to be defined in a (list of subsequent) XYZ file(s).
 
         :param fns: (list of) names of XYZ trajectory file(s) containing the xyz coordinates of the system
         :type fns: str or list(str)
@@ -320,7 +319,7 @@ def read_wham_input(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1,
     temp = None
     biasses = []
     trajectories = []
-    root = '/'.join(fn.split('/')[:-1])
+    root = '/'.join(fn.split('/')[:-1]) #Windows-compatible?
     if additional_bias is not None:
         assert isinstance(additional_bias, BiasPotential1D), 'Given additional bias should be member/child of the class BiasPotential1D, got %s' %(additional_bias.__class__.__name__)
     with open(fn, 'r') as f:

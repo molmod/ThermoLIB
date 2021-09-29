@@ -868,8 +868,8 @@ class Histogram2D(object):
 
 			:param method: Define the method for computing the error:
 			
-				* *mle_p*: the error is computed on the probability density directly
-				* *mle_f*: the error is first computed on minus of the logarithm of the probability density (corresponding to the scaled free energy) and afterwards 			propagated to the probability density.
+				* *mle_p*: the error is computed on the probability density directly. This method corresponds to ignoring the positivity constraints of the histogram 			 parameters.
+				* *mle_f*: the error is first computed on minus of the logarithm of the probability density (corresponding to the scaled free energy) and afterwards 			propagated to the probability density. This method corresponds to taking the positivity constraints of the histogram parameters explicitly 			   into account.
 			
 			:type method: str, optional, default='mle_f'
 			
@@ -897,7 +897,7 @@ class Histogram2D(object):
 				for l in range(Ngrid2):
 					K = flatten(k,l)
 					if method in ['mle_p']:
-						if ps[k,l]>0:
+						if ps[k,l]>0: #see below where we define mask to filter out rows/columns corresponding to histogram counts of zero
 							Ii[K,K] = fs[i]*bs[i,k,l]/ps[k,l]
 						Ii[K, Ngrid+i] = bs[i,k,l]
 						Ii[Ngrid+i, K] = bs[i,k,l]
@@ -932,10 +932,11 @@ class Histogram2D(object):
 		assert abs(int(np.sqrt(Nmask2))-np.sqrt(Nmask2))==0 #consistency check, sqrt(Nmask2) should be integer valued
 		Nmask = int(np.sqrt(Nmask2))
 		Imask = I[mask].reshape([Nmask,Nmask])
+		#Compute the inverse of the masked Fisher information matrix. Rows or columns corresponding to a histogram count of zero will have a (co)variance set to nan
 		sigma = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])*np.nan
 		sigma[mask] = np.linalg.inv(Imask).reshape([Nmask2])
 		
-		#the error bar on the probability of bin (k,l) is now simply the [K,K]-diagonal element of sigma (with [K,K] corresponding to deflattend [(k,l),(k,l)])
+		#the error bar on the probability of bin (k,l) is now simply the [K,K]-diagonal element of sigma (with K corresponding to the flattend (k,l))
 		err = np.zeros([Ngrid1,Ngrid2])
 		for K in range(Ngrid):
 			k, l = deflatten(K)
