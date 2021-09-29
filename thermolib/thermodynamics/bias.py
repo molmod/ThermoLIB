@@ -26,6 +26,13 @@ class BiasPotential1D(object):
         A base class for 1-dimensional bias potentials. This abstract class serves as a parent for inheriting child classes which should implement the __call__ routine.
     '''
     def __init__(self, name, inverse_cv=False):
+        '''
+            :param name: name for the bias which will also be given in the title of plots
+            :type name: string
+
+            :param inverse_cv: If set to True, the CV axix will be inverted prior to bias potential evaluation. WARNING: possible rest value parameters of the potential (such as the rest value of the Parabola1D potential) will not be multiplied with -1!
+            :type inverse_cv: bool, optional, default=False
+        '''
         self.name = name
         self.sign_q = 1.0
         if inverse_cv:
@@ -54,12 +61,14 @@ class BiasPotential1D(object):
 
 class Parabola1D(BiasPotential1D):
     '''
-        A 1-dimensional parabolic bias potential.
+        A 1-dimensional parabolic bias potential:
+
+        .. math:: V(q) = \\frac{\\kappa}{2}\\left(sign_q*q-q_0\\right)^2
     '''
     def __init__(self, name, q0, kappa, inverse_cv=False):
         '''
-            :param name: a name for the bias potential
-            :type name: str
+            :param name: name for the bias which will also be given in the title of plots
+            :type name: string
 
             :param q0: the value of the parabola equilibruim (i.e. its minimum)
             :type q0: float
@@ -67,7 +76,7 @@ class Parabola1D(BiasPotential1D):
             :param kappa: the force constant of the parabola
             :type kappa: float
 
-            :param inverse_cv: If set to True, the CV-axis will be inverted prior to bias evaluation
+            :param inverse_cv: If set to True, the CV-axis will be inverted prior to bias evaluation. WARNING: the rest value parameter q0 of the potential will not be multiplied with -1!
             :type inverse_cv: bool, optional, defaults to False
         '''
         BiasPotential1D.__init__(self, name, inverse_cv=inverse_cv)
@@ -83,15 +92,23 @@ class Parabola1D(BiasPotential1D):
 
 class Polynomial1D(BiasPotential1D):
     '''
-        Bias potential given by general polynomial of any degree.
+        Bias potential given by general polynomial of any degree:
+
+        .. math:: V(q) = \\sum_{n}a_n\\left(sign_q*q\\right)^n
     '''
     def __init__(self, name, coeffs, inverse_cv=False, unit='au'):
         '''
-            :param name: name of the bias
-            :type name: str
+            :param name: name for the bias which will also be given in the title of plots
+            :type name: string
 
             :param coeffs: list of expansion coefficients of the polynomial in increasing order starting with the coefficient of power 0. The degree of the polynomial is given by len(coeffs)-1
             :type coeffs: list/np.ndarray
+
+            :param inverse_cv: If set to True, the CV-axis will be inverted prior to bias evaluation.
+            :type inverse_cv: bool, optional, defaults to False
+
+            :param unit: unit in which the bias is given
+            :type unit: str, optional, default='au'
         '''
         BiasPotential1D.__init__(self, name, inverse_cv=inverse_cv)
         self.coeffs = coeffs
@@ -113,11 +130,14 @@ class PlumedSplinePotential1D(BiasPotential1D):
     '''
     def __init__(self, name, fn, inverse_cv=False, unit='au', scale=1.0):
         '''
-            :param name: name for the external bias potential
-            :type name: str
+            :param name: name for the bias which will also be given in the title of plots
+            :type name: string
 
             :param fn: specifies the filename of an external potential written on a grid and acting on the collective variable, as used with the EXTERNAL keyword in PLUMED.
             :type fn: str
+
+            :param inverse_cv: If set to True, the CV-axis will be inverted prior to bias evaluation.
+            :type inverse_cv: bool, optional, defaults to False
             
             :param unit: unit used to express the external potential, defaults to 'au'
             :type unit: str, optional
@@ -184,6 +204,16 @@ class BiasPotential2D(object):
         A base class for 2-dimensional bias potentials. This abstract class serves as a parent for inheriting child classes which should implement the __call__ routine.
     '''
     def __init__(self, name, inverse_cv1=False, inverse_cv2=False):
+        '''
+            :param name: name for the bias which will also be given in the title of plots
+            :type name: string
+            
+            :param inverse_cv1: If set to True, the CV1-axis will be inverted prior to bias evaluation. WARNING: possible rest value parameters of the potential (such as the rest value q01 of the Parabola2D potential) will not be multiplied with -1!
+            :type inverse_cv1: bool, optional, defaults to False
+
+            :param inverse_cv2: If set to True, the CV2-axis will be inverted prior to bias evaluation. WARNING: possible rest value parameters of the potential (such as the rest value q02 of the Parabola1D potential) will not be multiplied with -1!
+            :type inverse_cv2: bool, optional, defaults to False
+        '''
         self.name = name
         self.sign_q1 = 1.0
         if inverse_cv1:
@@ -227,8 +257,8 @@ class Parabola2D(BiasPotential2D):
     '''
     def __init__(self, name, q01, q02, kappa1, kappa2, inverse_cv1=False, inverse_cv2=False):
         '''
-            :param name: a name for the bias potential
-            :type name: str
+            :param name: name for the bias which will also be given in the title of plots
+            :type name: string
 
             :param q01: the value of the first collective variable corresponding to the parabola minimum
             :type q01: float
@@ -242,10 +272,10 @@ class Parabola2D(BiasPotential2D):
             :param kappa2: the force constant of the parabola in the direction of the second collective variable
             :type kappa: float
 
-            :param inverse_cv1: If set to True, the CV1-axis will be inverted prior to bias evaluation
+            :param inverse_cv1: If set to True, the CV1-axis will be inverted prior to bias evaluation. WARNING: the rest value parameter q01 will not be multiplied with -1!
             :type inverse_cv1: bool, optional, defaults to False
 
-            :param inverse_cv2: If set to True, the CV2-axis will be inverted prior to bias evaluation
+            :param inverse_cv2: If set to True, the CV2-axis will be inverted prior to bias evaluation. WARNING: the rest value parameter q02 will not be multiplied with -1!
             :type inverse_cv2: bool, optional, defaults to False
         '''
         BiasPotential2D.__init__(self, name, inverse_cv1=inverse_cv1, inverse_cv2=inverse_cv2)

@@ -356,7 +356,7 @@ def read_wham_input(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1,
                     print('Added bias %s' %bias.print())
                     print('Read corresponding trajectory data from %s' %fn_traj)
             elif bias_potential not in ['Parabola1D']:
-                    raise ValueError('Bias potential definition not supported (yet).')
+                    raise ValueError('Bias potential %s not supported (yet) in read_wham_input.' %bias_potential)
             else:
                 raise ValueError('Could not process line %i in %s: %s' %(iline, fn, line))
     if temp is None:
