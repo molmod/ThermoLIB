@@ -932,7 +932,7 @@ class FreeEnergySurface2D(object):
             flower = np.zeros(histogram.ps.shape)*np.nan
             fupper[histogram.plower>0] = -boltzmann*temp*np.log(histogram.plower[histogram.plower>0])
             flower[histogram.pupper>0] = -boltzmann*temp*np.log(histogram.pupper[histogram.pupper>0])
-        return cls(histogram.cv1s, histogram.cv2s, fs, temp, fupper=fupper, flower=flower, cv1_output_unit=histogram.cv1_output_unit, cv2_unit=histogram.cv2_unit, cv1_label=histogram.cv1_label, cv2_label=histogram.cv2_label)
+        return cls(histogram.cv1s, histogram.cv2s, fs, temp, fupper=fupper, flower=flower, cv1_output_unit=histogram.cv1_output_unit, cv2_output_unit=histogram.cv2_output_unit, cv1_label=histogram.cv1_label, cv2_label=histogram.cv2_label)
 
     def savetxt(self, fn_txt):
         '''
