@@ -900,7 +900,7 @@ class Histogram2D(object):
 		return cls(cv1s, cv2s, ps, plower=plower, pupper=pupper, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, cv1_label=cv1_label, cv2_label=cv2_label)
 	
 	@classmethod
-	def from_wham_c(cls, bins, trajectories, biasses, temp, pinit=None, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, verbose=False, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2', plot_biases=False):
+	def from_wham_c(cls, bins, traj_input, biasses, temp, pinit=None, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, verbose=False, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2', plot_biases=False):
 		'''
 			This routine implements the exact same thing as the from_wham routine, but now using the cythonized wham2D_XXX routines from ext.pyx for increased calculation speed. For more documentation on the arguments and algorithm in this routine, see the doc of the :meth:`from_wham routine <Histogram2D.from_wham>`.
 		'''
@@ -909,7 +909,7 @@ class Histogram2D(object):
 			print('--------------')
 		
 		#checks and initialization
-		assert len(biasses)==len(trajectories), 'The arguments trajectories and biasses should be of the same length.'
+		assert len(biasses)==len(traj_input), 'The arguments trajectories and biasses should be of the same length.'
 		beta = 1/(boltzmann*temp)
 		Nsims = len(biasses)
 		if isinstance(bias_subgrid_num, int):
@@ -923,15 +923,16 @@ class Histogram2D(object):
 		#Preprocess trajectory argument: load files if file names are given instead of raw data, determine and store the number of simulation steps in each simulation:
 		if verbose:
 			print('processing trajectories ...')
-		Nis = []
-		data = []
-		for i, trajectory in enumerate(trajectories):
+		Nis = np.zeros(len(traj_input), dtype=int)
+		trajectories = np.empty(len(traj_input), dtype=object)
+		for i, trajectory in enumerate(traj_input):
 			if isinstance(trajectory, str):
 				trajectory = np.loadtxt(trajectory)[:,1:3] #first column is the time, second column is the CV1, third column is the CV2
-			Nis.append(len(trajectory))
-			data.append(trajectory)
-		trajectories = np.array(data, dtype=float)
-		Nis = np.array(Nis, dtype=int)
+			else:
+				assert isinstance(trajectory, np.ndarray)
+				assert trajectory.shape[1]==2, 'Input trajectories parsed as numpy.ndarray should be have a second dimension of length 2, got %i' %(trajectory.shape[1])
+			Nis[i] = len(trajectory)
+			trajectories[i] = trajectory
 		
 		#Preprocess the bins argument and redefine it to represent the bin_edges. We need to do this beforehand to make sure that when calling the numpy.histogram routine with this bins argument, each histogram will have a consistent bin_edges array and hence consistent histogram.
 		if verbose:
@@ -952,13 +953,12 @@ class Histogram2D(object):
 		#generate the individual histograms using numpy.histogram
 		if verbose:
 			print('generating individual histograms for each biased simulation ...')
-		Hs = wham2d_hs(Nsims, Ngrid1, Ngrid2, trajectories, bins, Nis)
+		Hs = wham2d_hs(Nsims, Ngrid1, Ngrid2, trajectories, bins[0], bins[1], Nis)
 		
 		#compute the boltzmann factors of the biases in each grid interval
-		#b_ikl = 1/(delta1*delta2)*int(exp(-beta*W_i(q1,q2)), q1=Q_k-delta1/2...Q_k+delta1/2, q2=Q_l-delta2/2...Q_l+delta2/2)
 		if verbose:
 			print('computing bias on grid ...')
-		bs = wham1d_bias(Nsims, Ngrid1, Ngrid2, beta, biasses, delta1, delta2, bias_subgrid_num[0], bias_subgrid_num[1], bin_centers1, bin_centers2)
+		bs = wham2d_bias(Nsims, Ngrid1, Ngrid2, beta, biasses, delta1, delta2, bias_subgrid_num[0], bias_subgrid_num[1], bin_centers1, bin_centers2)
 		if plot_biases:
 			for i, bias in enumerate(biasses):
 				bias.plot('bias_%i.png' %i, bin_centers1, bin_centers2)
@@ -978,7 +978,6 @@ class Histogram2D(object):
 			print('-----------------------')
 		
 		#self consistent loop to solve the WHAM equations
-		##initialize probability density array (which should sum to 1)
 		if pinit is None:
 			pinit = np.ones([Ngrid1,Ngrid2])/Ngrid
 		else:

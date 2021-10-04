@@ -150,15 +150,15 @@ def wham1d_error(int Nsims, int Ngrid, np.ndarray[long] Nis, np.ndarray[double] 
     return plower, pupper
 
 
-def wham2d_hs(int Nsims, int Ngrid1, int Ngrid2, np.ndarray[double, ndim=3] trajectories, np.ndarray[double, ndim=2] bins, np.ndarray[long] Nis):
+def wham2d_hs(int Nsims, int Ngrid1, int Ngrid2, np.ndarray[object] trajectories, np.ndarray[double] bins1, np.ndarray[double] bins2, np.ndarray[long] Nis):
     cdef np.ndarray[long, ndim=3] Hs = np.zeros([Nsims, Ngrid1, Ngrid2], dtype=int)
     cdef np.ndarray[double, ndim=2] data
     cdef np.ndarray[double] edges
     cdef int i, N
     for i, data in enumerate(trajectories):
-        Hs[i,:,:], edges1, edges2 = np.histogram2d(data[:,0], data[:,1], bins, density=False)
-        assert (bins[0]==edges1).all()
-        assert (bins[1]==edges2).all()
+        Hs[i,:,:], edges1, edges2 = np.histogram2d(data[:,0], data[:,1], [bins1, bins2], density=False)
+        assert (bins1==edges1).all()
+        assert (bins2==edges2).all()
         N = Hs[i,:,:].sum()
         if Nis[i]!=N:
             print('WARNING: Histogram of trajectory %i should have total count of %i (=number of simulation steps), but found %f (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.' %(i,Nis[i],N))
@@ -195,13 +195,14 @@ def wham2d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=3] Hs, np.ndarray[dou
     cdef double integrated_diff, pmax
     cdef np.ndarray[double, ndim=2] as_old, as_new
     cdef np.ndarray[double] fs
-    cdef np.ndarray[long, ndim=2] nominator, denominator
+    cdef np.ndarray[long, ndim=2] nominator
+    cdef np.ndarray[double, ndim=2] denominator
     cdef int Ngrid1, Ngrid2, Nsims, iscf
     ##initialize
     Nsims = Hs.shape[0]
     Ngrid1 = Hs.shape[1]
     Ngrid2 = Hs.shape[2]
-    as_old = pinit.T #(transpose because of difference in ij and xy indexing)
+    as_old = pinit #(transpose because of difference in ij and xy indexing)
     nominator = Hs.sum(axis=0) #precomputable factor in WHAM update equations
     for iscf in range(Nscf):
         #compute new normalization factors
