@@ -542,16 +542,17 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
         self.set_macrostates([-np.inf, self.cvs[self.its], np.inf], verbose=verbose)
 
     def _find_R_TS_P(self, ts_range=[-np.inf,np.inf]):
-        '''Internal routine called by :meth:`process_states` to find:
-        
-        *  the transition state (TS) as the local maximum within the given ts_range
-        *  the reactant (R) as local minimum left of TS
-        *  the product (P) as local minimum right of TS
+        '''
+            Internal routine called by :meth:`process_states` to find:
+            
+            *  the transition state (TS) as the local maximum within the given ts_range
+            *  the reactant (R) as local minimum left of TS
+            *  the product (P) as local minimum right of TS
 
-        :param ts_range: range for the cv in which to look for the transition state as a local maximum
-        :type ts_range: list, optional, default=[-np.inf,np.inf]
+            :param ts_range: range for the cv in which to look for the transition state as a local maximum
+            :type ts_range: list, optional, default=[-np.inf,np.inf]
 
-        :raises ValueError: the transition state cannot be found in the range defined by ts_range.
+            :raises ValueError: the transition state cannot be found in the range defined by ts_range.
         '''
         self.ir  = None
         self.its = None

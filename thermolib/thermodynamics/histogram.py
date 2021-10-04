@@ -19,6 +19,7 @@ import matplotlib.cm as cm
 import numpy as np
 
 from thermolib.thermodynamics.fep import BaseFreeEnergyProfile
+from thermolib.ext import wham1d_hs, wham1d_bias, wham1d_scf, wham1d_error, wham2d_hs, wham2d_bias, wham2d_scf
 from thermolib.tools import integrate, integrate2d
 
 __all__ = ['Histogram1D', 'Histogram2D', 'plot_histograms']
@@ -390,6 +391,59 @@ class Histogram1D(object):
 		elif error_estimate is not None and error_estimate not in ["None"]:
 			raise ValueError('Received invalid value for keyword argument error_estimate, got %s. See documentation for valid choices.' %error_estimate)
 		return cls(cvs, ps, plower=plower, pupper=pupper, cv_output_unit=cv_output_unit, cv_label=cv_label)
+
+	@classmethod
+	def from_wham_c(cls, bins, trajectories, biasses, temp, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, verbose=False, cv_output_unit='au', cv_label='CV'):
+		'''
+			This routine does the same as the from_wham routine (see documentation there) but this version used the cythonized helper routines wham_XXX defined in ext.pyx.
+		'''
+		#checks and initialization
+		assert len(biasses)==len(trajectories), 'The arguments trajectories and biasses should be of the same length.'
+		beta = 1/(boltzmann*temp)
+		Nsims = len(biasses)
+		#Prerocess trajectory argument: load files if file names are given instead of raw data, determine and store the number of simulation steps in each simulation:
+		Nis = []
+		data = []
+		for i, trajectory in enumerate(trajectories):
+			if isinstance(trajectory, str):
+				trajectory = np.loadtxt(trajectory)[:,1] #first column is the time, second column is the CV
+			Nis.append(len(trajectory))
+			data.append(trajectory)
+		trajectories = np.array(data, dtype=float)
+		Nis = np.array(Nis, dtype=int)
+		#Preprocess the bins argument and redefine it to represent the bin_edges. We need to do this beforehand to make sure that when calling the numpy.histogram routine with this bins argument, each histogram will have a consistent bin_edges array and hence consistent histogram.
+		if isinstance(bins, int):
+			raise NotImplementedError
+			cv_min = None #TODO
+			cv_max = None #TODO
+			cv_delta = (cv_max-cv_min)/bins #this 
+			bins = np.arange(cv_min, cv_max+cv_delta, cv_delta)			
+		bin_centers = 0.5*(bins[:-1]+bins[1:])
+		deltas = bins[1:]-bins[:-1]
+		grid_non_uniformity = deltas.std()/deltas.mean()
+		assert grid_non_uniformity<1e-6, 'CV grid defined by bins argument should be of uniform spacing!'
+		delta =deltas.mean()
+		Ngrid = len(bin_centers)
+		#generate the individual histograms using numpy.histogram
+		Hs = wham1d_hs(Nsims, Ngrid, trajectories, bins, Nis)
+		#compute the integrated boltzmann factors of the biases in each grid interval
+		bs = wham1d_bias(Nsims, Ngrid, beta, biasses, delta, bias_subgrid_num, bin_centers)
+		#some init printing
+		if verbose:
+			print('Initialization:')
+			print('  Number of simulations = ', Nsims)
+			for i, Ni in enumerate(Nis):
+				print('    simulation %i has %i steps' %(i,Ni))
+			print('  CV grid [%s]: start = %.3f    end = %.3f    delta = %.3f    N = %i' %(cv_output_unit, bins.min()/parse_unit(cv_output_unit), bins.max()/parse_unit(cv_output_unit), delta/parse_unit(cv_output_unit), Ngrid))
+			print('')
+			print('Starting WHAM SCF loop:')
+		ps, fs = wham1d_scf(Nis, Hs, bs, Nscf=Nscf, convergence=convergence, verbose=verbose)
+		plower, pupper = None, None
+		if error_estimate in ['mle_p', 'mle_f']:
+			plower, pupper = wham1d_error(Nsims, Ngrid, Nis, ps, fs, bs, method=error_estimate, nsigma=nsigma)
+		elif error_estimate is not None and error_estimate not in ["None"]:
+			raise ValueError('Received invalid value for keyword argument error_estimate, got %s. See documentation for valid choices.' %error_estimate)
+		return cls(bin_centers.copy(), ps, plower=plower, pupper=pupper, cv_output_unit=cv_output_unit, cv_label=cv_label)
 
 	@classmethod
 	def from_fep(cls, fep, temp):
@@ -844,6 +898,108 @@ class Histogram2D(object):
 		if plower is not None: plower = plower.T
 		if pupper is not None: pupper = pupper.T
 		return cls(cv1s, cv2s, ps, plower=plower, pupper=pupper, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, cv1_label=cv1_label, cv2_label=cv2_label)
+	
+	@classmethod
+	def from_wham_c(cls, bins, trajectories, biasses, temp, pinit=None, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, verbose=False, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2', plot_biases=False):
+		'''
+			This routine implements the exact same thing as the from_wham routine, but now using the cythonized wham2D_XXX routines from ext.pyx for increased calculation speed. For more documentation on the arguments and algorithm in this routine, see the doc of the :meth:`from_wham routine <Histogram2D.from_wham>`.
+		'''
+		if verbose:
+			print('Initialization')
+			print('--------------')
+		
+		#checks and initialization
+		assert len(biasses)==len(trajectories), 'The arguments trajectories and biasses should be of the same length.'
+		beta = 1/(boltzmann*temp)
+		Nsims = len(biasses)
+		if isinstance(bias_subgrid_num, int):
+			bias_subgrid_num = [bias_subgrid_num, bias_subgrid_num]
+		else:
+			assert isinstance(bias_subgrid_num,list) or isinstance(bias_subgrid_num,np.ndarray), 'bias_subgrid_num argument should be an integer or a list of two integers'
+			assert len(bias_subgrid_num)==2, 'bias_subgrid_num argument should be an integer or a list of two integers'
+			assert isinstance(bias_subgrid_num[0],int), 'bias_subgrid_num argument should be an integer or a list of two integers'
+			assert isinstance(bias_subgrid_num[1],int), 'bias_subgrid_num argument should be an integer or a list of two integers'
+		
+		#Preprocess trajectory argument: load files if file names are given instead of raw data, determine and store the number of simulation steps in each simulation:
+		if verbose:
+			print('processing trajectories ...')
+		Nis = []
+		data = []
+		for i, trajectory in enumerate(trajectories):
+			if isinstance(trajectory, str):
+				trajectory = np.loadtxt(trajectory)[:,1:3] #first column is the time, second column is the CV1, third column is the CV2
+			Nis.append(len(trajectory))
+			data.append(trajectory)
+		trajectories = np.array(data, dtype=float)
+		Nis = np.array(Nis, dtype=int)
+		
+		#Preprocess the bins argument and redefine it to represent the bin_edges. We need to do this beforehand to make sure that when calling the numpy.histogram routine with this bins argument, each histogram will have a consistent bin_edges array and hence consistent histogram.
+		if verbose:
+			print('processing bins ...')
+		assert isinstance(bins,list), "Bins argument should be a list of 2 numpy arrays with the corresponding bin edges. Current definition is not a list, but an object of type %s." %bins.__class__.__name__
+		assert len(bins)==2, "Bins argument should be a list of 2 numpy arrays with the corresponding bin edges. Current list definition does not have two elements, but %i." %(len(bins))
+		assert isinstance(bins[0],np.ndarray), "Bins argument should be a list of 2 numpy arrays with the corresponding bin edges. The first element in the current definition is not a numpy array but an object of type %s" %bins[0].__class__.__name__
+		assert isinstance(bins[1],np.ndarray), "Bins argument should be a list of 2 numpy arrays with the corresponding bin edges. The second element in the current definition is not a numpy array but an object of type %s" %bins[1].__class__.__name__
+		bin_centers1, bin_centers2 = 0.5*(bins[0][:-1]+bins[0][1:]), 0.5*(bins[1][:-1]+bins[1][1:])
+		deltas1, deltas2 = bins[0][1:]-bins[0][:-1], bins[1][1:]-bins[1][:-1]
+		grid_non_uniformity1, grid_non_uniformity2 = deltas1.std()/deltas1.mean(), deltas2.std()/deltas2.mean()
+		assert grid_non_uniformity1<1e-6, 'CV1 grid defined by bins argument should be of uniform spacing! Non-uniform grids not implemented.'
+		assert grid_non_uniformity2<1e-6, 'CV2 grid defined by bins argument should be of uniform spacing! Non-uniform grids not implemented.'
+		delta1, delta2 = deltas1.mean(), deltas2.mean()
+		Ngrid1, Ngrid2 = len(bin_centers1), len(bin_centers2)
+		Ngrid = Ngrid1*Ngrid2
+		
+		#generate the individual histograms using numpy.histogram
+		if verbose:
+			print('generating individual histograms for each biased simulation ...')
+		Hs = wham2d_hs(Nsims, Ngrid1, Ngrid2, trajectories, bins, Nis)
+		
+		#compute the boltzmann factors of the biases in each grid interval
+		#b_ikl = 1/(delta1*delta2)*int(exp(-beta*W_i(q1,q2)), q1=Q_k-delta1/2...Q_k+delta1/2, q2=Q_l-delta2/2...Q_l+delta2/2)
+		if verbose:
+			print('computing bias on grid ...')
+		bs = wham1d_bias(Nsims, Ngrid1, Ngrid2, beta, biasses, delta1, delta2, bias_subgrid_num[0], bias_subgrid_num[1], bin_centers1, bin_centers2)
+		if plot_biases:
+			for i, bias in enumerate(biasses):
+				bias.plot('bias_%i.png' %i, bin_centers1, bin_centers2)
+		
+		#some init printing
+		if verbose:
+			print('')
+			print('WHAM setup')
+			print('----------')
+			print('Number of simulations = ', Nsims)
+			for i, Ni in enumerate(Nis):
+				print('    simulation %i has %i steps' %(i,Ni))
+			print('CV1 grid [%s]: start = %.3f    end = %.3f    delta = %.3f    N = %i' %(cv1_output_unit, bins[0].min()/parse_unit(cv1_output_unit), bins[0].max()/parse_unit(cv1_output_unit), delta1/parse_unit(cv1_output_unit), Ngrid1))
+			print('CV2 grid [%s]: start = %.3f    end = %.3f    delta = %.3f    N = %i' %(cv2_output_unit, bins[1].min()/parse_unit(cv2_output_unit), bins[1].max()/parse_unit(cv2_output_unit), delta2/parse_unit(cv2_output_unit), Ngrid2))
+			print('')
+			print('Starting WHAM SCF loop:')
+			print('-----------------------')
+		
+		#self consistent loop to solve the WHAM equations
+		##initialize probability density array (which should sum to 1)
+		if pinit is None:
+			pinit = np.ones([Ngrid1,Ngrid2])/Ngrid
+		else:
+			#it is assumed pinit is given in 'xy'-indexing convention (such as for example when using the ps attribute of another Histogram2D instance)
+			#however, this routine is written in the 'ij'-indexing convention, therefore, we transpose pinit here.
+			assert pinit.T.shape[0]==Ngrid1, 'Specified initial guess should be of shape (%i,%i), got (%i,%i)' %(Ngrid1,Ngrid2,pinit.shape[0],pinit.shape[1])
+			assert pinit.T.shape[1]==Ngrid2, 'Specified initial guess should be of shape (%i,%i), got (%i,%i)' %(Ngrid1,Ngrid2,pinit.shape[0],pinit.shape[1])
+			pinit /= pinit.sum()
+		ps, fs = wham2d_scf(Nis, Hs, bs, pinit, Nscf=Nscf, convergence=convergence, verbose=verbose)
+
+		#error estimation
+		if error_estimate is not None:
+			pupper, plower = cls._estimate_WHAM_error_2D(ps, fs, bs, Nis, method=error_estimate, nsigma=nsigma)
+		else:
+			pupper, plower = None, None
+		
+		#For consistency with how FreeEnergySurface2D is implemented (using 'xy'-indexing), ps (and plower, pupper) need to be transposed
+		ps = ps.T
+		if plower is not None: plower = plower.T
+		if pupper is not None: pupper = pupper.T
+		return cls(bin_centers1.copy(), bin_centers2.copy(), ps, plower=plower, pupper=pupper, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, cv1_label=cv1_label, cv2_label=cv2_label)
 
 	@classmethod
 	def _estimate_WHAM_error_2D(cls, ps, fs, bs, Nis, method='mle_f', nsigma=2):
