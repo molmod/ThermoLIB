@@ -20,7 +20,7 @@ __all__ = [
     'wham2d_hs', 'wham2d_bias', 'wham2d_scf', 'wham2d_error',
 ]
 
-def wham1d_hs(int Nsims, int Ngrid, np.ndarray[double, ndim=2] trajectories, np.ndarray[double] bins, np.ndarray[long] Nis):
+def wham1d_hs(int Nsims, int Ngrid, np.ndarray[object] trajectories, np.ndarray[double] bins, np.ndarray[long] Nis):
     cdef np.ndarray[long, ndim=2] Hs = np.zeros([Nsims, Ngrid], dtype=int)
     cdef np.ndarray[double] data, edges
     cdef int i, N
@@ -58,6 +58,7 @@ def wham1d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=2] Hs, np.ndarray[dou
     cdef np.ndarray[double] as_old, as_new, fs
     cdef np.ndarray[long] nominator
     cdef int Ngrid, Nsims, iscf, i, k
+    cdef int converged = 0
     #initialization
     Nsims = Hs.shape[0]
     Ngrid = Hs.shape[1]
@@ -84,15 +85,12 @@ def wham1d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=2] Hs, np.ndarray[dou
             print('  Integr. Diff.    [au] = %.3e' %integrated_diff)
             print('')
         if integrated_diff<convergence:
-            print('WHAM SCF Converged!')
+            converged = 1
             break
-        else:
-            if iscf==Nscf-1:
-                print('WARNING: could not converge WHAM equations to convergence of %.3e in %i steps!' %(convergence, Nscf))
         as_old = as_new.copy()
     #compute final normalization factors
     fs = 1.0/np.einsum('ik,k->i', bs, as_new)
-    return as_new, fs
+    return as_new, fs, converged
 
 
 def wham1d_error(int Nsims, int Ngrid, np.ndarray[long] Nis, np.ndarray[double] ps, np.ndarray[double] fs, np.ndarray[double, ndim=2] bs, method='mle_f', int nsigma=2):
@@ -175,19 +173,17 @@ def wham2d_bias(int Nsims, int Ngrid1, int Ngrid2, double beta, list biasses, do
     '''
     from thermolib.tools import integrate2d
     cdef np.ndarray[double, ndim=3] bs = np.zeros([Nsims, Ngrid1, Ngrid2], dtype=float)
+    cdef np.ndarray[double, ndim=2] CV1, CV2
     cdef int i, k, l
-    cdef double center1, center2, subdelta1, subdelta2
-    cdef np.ndarray[double] subgrid1, subgrid2
+    cdef double center1, center2
+    cdef double subdelta1 = delta1/bias_subgrid_num1, subdelta2 = delta2/bias_subgrid_num2
+    cdef np.ndarray[double] subgrid1 = np.arange(-delta1/2, delta1/2 + subdelta1, subdelta1), subgrid2 = np.arange(-delta2/2, delta2/2 + subdelta2, subdelta2)
     for i, bias in enumerate(biasses):
         for k, center1 in enumerate(bin_centers1):
-            subdelta1 = delta1/bias_subgrid_num1
-            subgrid1 = np.arange(center1-delta1/2, center1+delta1/2 + subdelta1, subdelta1)
             for l, center2 in enumerate(bin_centers2):
-                subdelta2 = delta2/bias_subgrid_num2
-                subgrid2 = np.arange(center2-delta2/2, center2+delta2/2 + subdelta2, subdelta2)
-                CV1, CV2 = np.meshgrid(subgrid1, subgrid2, indexing='ij')
-                Ws = np.exp(-beta*bias(CV1,CV2))
-                bs[i,k,l] = integrate2d(Ws, dx=subdelta1, dy=subdelta2)/(delta1*delta2)
+                CV1, CV2 = np.meshgrid(center1+subgrid1, center2+subgrid2, indexing='ij')
+                Ws = np.exp(-beta*bias(CV1, CV2))
+                bs[i,k,l] = integrate2d_c(Ws, subdelta1, subdelta2)/(delta1*delta2)
     return bs
 
 
@@ -198,17 +194,17 @@ def wham2d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=3] Hs, np.ndarray[dou
     cdef np.ndarray[long, ndim=2] nominator
     cdef np.ndarray[double, ndim=2] denominator
     cdef int Ngrid1, Ngrid2, Nsims, iscf
+    cdef int converged = 0
     ##initialize
     Nsims = Hs.shape[0]
     Ngrid1 = Hs.shape[1]
     Ngrid2 = Hs.shape[2]
-    as_old = pinit #(transpose because of difference in ij and xy indexing)
+    as_old = pinit.copy()
     nominator = Hs.sum(axis=0) #precomputable factor in WHAM update equations
     for iscf in range(Nscf):
         #compute new normalization factors
         fs = 1.0/np.einsum('ikl,kl->i', bs, as_old)
         #compute new probabilities
-        as_new = np.zeros([as_old.shape[0], as_old.shape[1]], dtype=float)
         denominator = np.einsum('i,i,ikl->kl', Nis, fs, bs)
         as_new = np.divide(nominator,denominator)
         as_new /= as_new.sum() #enforce normalization
@@ -222,7 +218,7 @@ def wham2d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=3] Hs, np.ndarray[dou
             print('  Integr. Diff.    = %.3e au' %integrated_diff)
             print('')
         if integrated_diff<convergence:
-            print('WHAM SCF Converged!')
+            converged = 1
             break
         else:
             if iscf==Nscf-1:
@@ -230,4 +226,26 @@ def wham2d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=3] Hs, np.ndarray[dou
         as_old = as_new.copy()
     #compute final normalization factors
     fs = 1.0/np.einsum('ikl,kl->i', bs, as_new)
-    return as_new, fs
+    return as_new, fs, converged
+
+def integrate2d_c(np.ndarray[double, ndim=2] z, double dx, double dy):
+    '''
+        Integrates a regularly spaced 2D grid using the composite trapezium rule.
+
+        :param z: 2 dimensional array containing the function values
+        :type z: np.ndarray(flt)
+        
+        :param dx: grid spacing for first function argument. If not given, argument is used to determine grid spacing. Defaults to 1.
+        :type dx: float
+
+        :param dy: grid spacing for second function argument. If not given, argument is used to determine grid spacing. Defaults to 1.
+        :type dy: float
+
+        :return: integral value
+        :rtype: float
+    '''
+    cdef double s1, s2, s3
+    s1 = z[0,0] + z[-1,0] + z[0,-1] + z[-1,-1]
+    s2 = np.sum(z[1:-1,0]) + np.sum(z[1:-1,-1]) + np.sum(z[0,1:-1]) + np.sum(z[-1,1:-1])
+    s3 = np.sum(z[1:-1,1:-1])
+    return 0.25*dx*dy*(s1 + 2*s2 + 4*s3)

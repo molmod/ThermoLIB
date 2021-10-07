@@ -17,6 +17,7 @@ from molmod.constants import *
 import matplotlib.pyplot as pp
 import matplotlib.cm as cm
 import numpy as np
+import time
 
 from thermolib.thermodynamics.fep import BaseFreeEnergyProfile
 from thermolib.ext import wham1d_hs, wham1d_bias, wham1d_scf, wham1d_error, wham2d_hs, wham2d_bias, wham2d_scf
@@ -176,7 +177,7 @@ class Histogram1D(object):
 		return cls(cvs, ps, plower=plower, pupper=pupper, cv_output_unit=cv_output_unit, cv_label=cv_label)
 
 	@classmethod
-	def from_wham(cls, bins, trajectories, biasses, temp, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, verbose=False, cv_output_unit='au', cv_label='CV'):
+	def from_wham(cls, bins, trajectories, biasses, temp, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, cv_output_unit='au', cv_label='CV', verbose=None, verbosity='low'):
 		'''
 			Routine that implements the Weighted Histogram Analysis Method (WHAM) for reconstructing the overall probability histogram from a series of biased molecular simulations.
 
@@ -224,11 +225,26 @@ class Histogram1D(object):
 			:return: probability histogram
 			:rtype: Histogram1D
 		'''
+		timings = {}
+		timings['start'] = time.time()
+		#backward compatibility between verbose and verbosity. 
+		if verbose is not None:
+			print('The keyword verbose is depricated and will be removed in the near future. Use the keyword verbosity instead.')
+			if verbose:
+				verbosity = 'high'
+			else:
+				verbosity = 'none'
+		if verbosity.lower() in ['medium', 'high']:
+			print('Initialization ...')
+
 		#checks and initialization
 		assert len(biasses)==len(trajectories), 'The arguments trajectories and biasses should be of the same length.'
 		beta = 1/(boltzmann*temp)
 		Nsims = len(biasses)
+
 		#Prerocess trajectory argument: load files if file names are given instead of raw data, determine and store the number of simulation steps in each simulation:
+		if verbosity.lower() in ['high']:
+			print('  processing trajectories')
 		Nis = []
 		data = []
 		for i, trajectory in enumerate(trajectories):
@@ -239,7 +255,10 @@ class Histogram1D(object):
 		if len(data)>0:
 			trajectory = data
 		Nis = np.array(Nis)
+
 		#Preprocess the bins argument and redefine it to represent the bin_edges. We need to do this beforehand to make sure that when calling the numpy.histogram routine with this bins argument, each histogram will have a consistent bin_edges array and hence consistent histogram.
+		if verbosity.lower() in ['high']:
+			print('  processing bins')
 		if isinstance(bins, int):
 			raise NotImplementedError
 			cv_min = None #TODO
@@ -252,7 +271,11 @@ class Histogram1D(object):
 		assert grid_non_uniformity<1e-6, 'CV grid defined by bins argument should be of uniform spacing!'
 		delta =deltas.mean()
 		Ngrid = len(bin_centers)
+		timings['init'] = time.time()
+
 		#generate the individual histograms using numpy.histogram
+		if verbosity.lower() in ['medium', 'high']:
+			print('Constructing individual histograms for each biased simulation ...')
 		Hs = np.zeros([Nsims, Ngrid])
 		for i, data in enumerate(trajectories):
 			ns, edges = np.histogram(data, bins, density=False)
@@ -262,23 +285,34 @@ class Histogram1D(object):
 			if Nis[i]!=N:
 				print("WARNING: the CV range you specified for the histogram does not cover the entire simulation range in trajectory %i. Simulation samples outside the given CV range were cropped out." %(i))
 				Nis[i] = N
+		timings['hist'] = time.time()
+
 		#compute the boltzmann factors of the biases in each grid interval
 		#b_ik = 1/delta*int(exp(-beta*W_i(q)), q=Q_k-delta/2...Q_k+delta/2)
+		if verbosity.lower() in ['medium', 'high']:
+			print('Computing bias on grid ...')
 		bs = np.zeros([Nsims, Ngrid])
 		for i, bias in enumerate(biasses):
 			for k, center in enumerate(bin_centers):
 				subdelta = delta/bias_subgrid_num
 				subgrid = np.arange(center-delta/2, center+delta/2 + subdelta, subdelta)
 				bs[i,k] = integrate(subgrid, np.exp(-beta*bias(subgrid)))/delta
+		timings['bias'] = time.time()
+
 		#some init printing
-		if verbose:
-			print('Initialization:')
+		if verbosity.lower() in ['high']:
+			print()
+			print('---------------------------------------------------------------------')
+			print('WHAM SETUP')
 			print('  Number of simulations = ', Nsims)
 			for i, Ni in enumerate(Nis):
 				print('    simulation %i has %i steps' %(i,Ni))
 			print('  CV grid [%s]: start = %.3f    end = %.3f    delta = %.3f    N = %i' %(cv_output_unit, bins.min()/parse_unit(cv_output_unit), bins.max()/parse_unit(cv_output_unit), delta/parse_unit(cv_output_unit), Ngrid))
-			print('')
-			print('Starting WHAM SCF loop:')
+			print('---------------------------------------------------------------------')
+			print()
+		
+		if verbosity.lower() in ['medium', 'high']:
+			print('Solving WHAM equations (SCF loop) ...')
 		#self consistent loop to solve the WHAM equations
 		as_old = np.ones(Ngrid)/Ngrid #initialize probability density array (which should sum to 1)
 		nominator = Hs.sum(axis=0) #precomputable factor in WHAM update equations
@@ -305,20 +339,26 @@ class Histogram1D(object):
 				print('  Integr. Diff.    [au] = %.3e' %integrated_diff)
 				print('')
 			if integrated_diff<convergence:
-				print('WHAM SCF Converged!')
+				if verbosity.lower() in ['low', 'medium', 'high']:
+					print('SCF Converged!')
 				break
 			else:
 				if iscf==Nscf-1:
-					print('WARNING: could not converge WHAM equations to convergence of %.3e in %i steps!' %(convergence, Nscf))
+					if verbosity.lower() in ['low', 'medium', 'high']:
+						print('SCF did not converge!')
 			as_old = as_new.copy()
 		cvs = bin_centers.copy()
 		ps = as_new.copy()
 		#compute final normalization factors
 		for i in range(Nsims):
 			fs[i] = 1.0/np.dot(bs[i,:],as_new)
+		timings['scf'] = time.time()
+
 		plower = None
 		pupper = None
-		if error_estimate in ['mle_p']:
+		if error_estimate is not None and error_estimate in ['mle_p']:
+			if verbosity.lower() in ['medium', 'high']:
+				print('Estimating error ...')
 			#construct the extended Fisher information matrix corresponding to histogram counts directly as the weighted sum of the indivual Fisher matrices of each simulation separately.
 			I = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])
 			for i in range(Nsims):
@@ -354,7 +394,9 @@ class Histogram1D(object):
 			plower = ps - nsigma*perr
 			plower[plower<0] = 0.0
 			pupper = ps + nsigma*perr
-		elif error_estimate in ['mle_f']:
+		elif error_estimate is not None and error_estimate in ['mle_f']:
+			if verbosity.lower() in ['medium', 'high']:
+				print('Estimating error ...')
 			#construct the extended Fisher information matrix corresponding to minus the logarithm of the histogram counts (which are related to the free energy values) as the weighted sum of the indivual Fisher matrices of each simulation separately
 			I = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])
 			for i in range(Nsims):
@@ -390,28 +432,65 @@ class Histogram1D(object):
 			pupper = ps*np.exp(nsigma*gerr)
 		elif error_estimate is not None and error_estimate not in ["None"]:
 			raise ValueError('Received invalid value for keyword argument error_estimate, got %s. See documentation for valid choices.' %error_estimate)
+		timings['error'] = time.time()
+
+		if verbosity.lower() in ['low', 'medium', 'high']:
+			print('---------------------------------------------------------------------')
+			print('TIMING SUMMARY')
+			t = timings['init'] - timings['start']
+			print('  initializing: %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+			t = timings['hist'] - timings['init']
+			print('  histograms  : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+			t = timings['bias'] - timings['hist']
+			print('  bias poten. : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+			t = timings['scf'] - timings['bias']
+			print('  solve scf   : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+			t = timings['error'] - timings['scf']
+			print('  error est.  : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+			t = timings['error'] - timings['init']
+			print('  TOTAL       : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+			print('---------------------------------------------------------------------')
+
 		return cls(cvs, ps, plower=plower, pupper=pupper, cv_output_unit=cv_output_unit, cv_label=cv_label)
 
 	@classmethod
-	def from_wham_c(cls, bins, trajectories, biasses, temp, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, verbose=False, cv_output_unit='au', cv_label='CV'):
+	def from_wham_c(cls, bins, traj_input, biasses, temp, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, cv_output_unit='au', cv_label='CV', verbose=None, verbosity='low'):
 		'''
 			This routine does the same as the from_wham routine (see documentation there) but this version used the cythonized helper routines wham_XXX defined in ext.pyx.
 		'''
+		timings = {}
+		timings['start'] = time.time()
+		#backward compatibility between verbose and verbosity. 
+		if verbose is not None:
+			print('The keyword verbose is depricated and will be removed in the near future. Use the keyword verbosity instead.')
+			if verbose:
+				verbosity = 'high'
+			else:
+				verbosity = 'none'
+		if verbosity.lower() in ['medium', 'high']:
+			print('Initialization ...')
+
 		#checks and initialization
-		assert len(biasses)==len(trajectories), 'The arguments trajectories and biasses should be of the same length.'
+		assert len(biasses)==len(traj_input), 'The arguments traj_input and biasses should be of the same length.'
 		beta = 1/(boltzmann*temp)
 		Nsims = len(biasses)
-		#Prerocess trajectory argument: load files if file names are given instead of raw data, determine and store the number of simulation steps in each simulation:
-		Nis = []
-		data = []
-		for i, trajectory in enumerate(trajectories):
+
+		#Preprocess trajectory argument: load files if file names are given instead of raw data, determine and store the number of simulation steps in each simulation:
+		if verbosity.lower() in ['high']:
+			print('  processing trajectories')
+		Nis = np.zeros(len(traj_input), dtype=int)
+		trajectories = np.empty(len(traj_input), dtype=object)
+		for i, trajectory in enumerate(traj_input):
 			if isinstance(trajectory, str):
 				trajectory = np.loadtxt(trajectory)[:,1] #first column is the time, second column is the CV
-			Nis.append(len(trajectory))
-			data.append(trajectory)
-		trajectories = np.array(data, dtype=float)
-		Nis = np.array(Nis, dtype=int)
+			else:
+				assert isinstance(trajectory, np.ndarray)
+			Nis[i] = len(trajectory)
+			trajectories[i] = trajectory
+
 		#Preprocess the bins argument and redefine it to represent the bin_edges. We need to do this beforehand to make sure that when calling the numpy.histogram routine with this bins argument, each histogram will have a consistent bin_edges array and hence consistent histogram.
+		if verbosity.lower() in ['high']:
+			print('  processing bins')
 		if isinstance(bins, int):
 			raise NotImplementedError
 			cv_min = None #TODO
@@ -424,25 +503,68 @@ class Histogram1D(object):
 		assert grid_non_uniformity<1e-6, 'CV grid defined by bins argument should be of uniform spacing!'
 		delta =deltas.mean()
 		Ngrid = len(bin_centers)
+		timings['init'] = time.time()
+
 		#generate the individual histograms using numpy.histogram
+		if verbosity.lower() in ['medium', 'high']:
+			print('Constructing individual histograms for each biased simulation ...')
 		Hs = wham1d_hs(Nsims, Ngrid, trajectories, bins, Nis)
+		timings['hist'] = time.time()
+
 		#compute the integrated boltzmann factors of the biases in each grid interval
+		if verbosity.lower() in ['medium', 'high']:
+			print('Computing bias on grid ...')
 		bs = wham1d_bias(Nsims, Ngrid, beta, biasses, delta, bias_subgrid_num, bin_centers)
+		timings['bias'] = time.time()
+
 		#some init printing
-		if verbose:
-			print('Initialization:')
-			print('  Number of simulations = ', Nsims)
+		if verbosity.lower() in ['high']:
+			print()
+			print('---------------------------------------------------------------------')
+			print('WHAM SETUP')
+			print('  number of simulations = ', Nsims)
 			for i, Ni in enumerate(Nis):
 				print('    simulation %i has %i steps' %(i,Ni))
 			print('  CV grid [%s]: start = %.3f    end = %.3f    delta = %.3f    N = %i' %(cv_output_unit, bins.min()/parse_unit(cv_output_unit), bins.max()/parse_unit(cv_output_unit), delta/parse_unit(cv_output_unit), Ngrid))
-			print('')
-			print('Starting WHAM SCF loop:')
-		ps, fs = wham1d_scf(Nis, Hs, bs, Nscf=Nscf, convergence=convergence, verbose=verbose)
+			print('---------------------------------------------------------------------')
+			print()
+
+		if verbosity.lower() in ['medium', 'high']:
+			print('Solving WHAM equations (SCF loop) ...')
+		ps, fs, converged = wham1d_scf(Nis, Hs, bs, Nscf=Nscf, convergence=convergence, verbose=verbosity.lower() in ['high'])
+		if verbosity.lower() in ['low', 'medium', 'high']:
+			if bool(converged):
+				print('SCF Converged!')
+			else:
+				print('SCF did not converge!')
+		timings['scf'] = time.time()
+		
 		plower, pupper = None, None
-		if error_estimate in ['mle_p', 'mle_f']:
+		if error_estimate is not None and error_estimate in ['mle_p', 'mle_f']:
+			if verbosity.lower() in ['medium', 'high']:
+				print('Estimating error ...')
 			plower, pupper = wham1d_error(Nsims, Ngrid, Nis, ps, fs, bs, method=error_estimate, nsigma=nsigma)
 		elif error_estimate is not None and error_estimate not in ["None"]:
 			raise ValueError('Received invalid value for keyword argument error_estimate, got %s. See documentation for valid choices.' %error_estimate)
+		timings['error'] = time.time()
+		
+		if verbosity.lower() in ['low', 'medium', 'high']:
+			print('---------------------------------------------------------------------')
+			print('TIMING SUMMARY')
+			t = timings['init'] - timings['start']
+			print('  initializing: %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+			t = timings['hist'] - timings['init']
+			print('  histograms  : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+			t = timings['bias'] - timings['hist']
+			print('  bias poten. : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+			t = timings['scf'] - timings['bias']
+			print('  solve scf   : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+			t = timings['error'] - timings['scf']
+			print('  error est.  : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+			t = timings['error'] - timings['init']
+			print('  TOTAL       : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+			print('---------------------------------------------------------------------')
+
 		return cls(bin_centers.copy(), ps, plower=plower, pupper=pupper, cv_output_unit=cv_output_unit, cv_label=cv_label)
 
 	@classmethod
@@ -684,7 +806,7 @@ class Histogram2D(object):
 		return cls(cv1s, cv2s, ps, plower=plower, pupper=pupper, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, cv1_label=cv1_label, cv2_label=cv2_label)
 
 	@classmethod
-	def from_wham(cls, bins, trajectories, biasses, temp, pinit=None, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, verbose=False, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2', plot_biases=False):
+	def from_wham(cls, bins, trajectories, biasses, temp, pinit=None, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2', plot_biases=False, verbose=None, verbosity='low'):
 		'''
 			Routine that implements the Weighted Histogram Analysis Method (WHAM) for reconstructing the overall 2D probability histogram from a series of biased molecular simulations in terms of two collective variables CV1 and CV2.
 
@@ -751,9 +873,17 @@ class Histogram2D(object):
 			:return: 2D probability histogram
 			:rtype: Histogram2D
 		'''
-		if verbose:
-			print('Initialization')
-			print('--------------')
+		timings = {}
+		timings['start'] = time.time()
+		#backward compatibility between verbose and verbosity. 
+		if verbose is not None:
+			print('The keyword verbose is depricated and will be removed in the near future. Use the keyword verbosity instead.')
+			if verbose:
+				verbosity = 'high'
+			else:
+				verbosity = 'none'
+		if verbosity.lower() in ['medium', 'high']:
+			print('Initialization ...')
 		
 		#checks and initialization
 		assert len(biasses)==len(trajectories), 'The arguments trajectories and biasses should be of the same length.'
@@ -768,8 +898,8 @@ class Histogram2D(object):
 			assert isinstance(bias_subgrid_num[1],int), 'bias_subgrid_num argument should be an integer or a list of two integers'
 		
 		#Preprocess trajectory argument: load files if file names are given instead of raw data, determine and store the number of simulation steps in each simulation:
-		if verbose:
-			print('processing trajectories ...')
+		if verbosity.lower() in ['high']:
+			print('  processing trajectories')
 		Nis = []
 		data = []
 		for i, trajectory in enumerate(trajectories):
@@ -780,8 +910,8 @@ class Histogram2D(object):
 		Nis = np.array(Nis)
 		
 		#Preprocess the bins argument and redefine it to represent the bin_edges. We need to do this beforehand to make sure that when calling the numpy.histogram routine with this bins argument, each histogram will have a consistent bin_edges array and hence consistent histogram.
-		if verbose:
-			print('processing bins ...')
+		if verbosity.lower() in ['high']:
+			print('  processing bins')
 		assert isinstance(bins,list), "Bins argument should be a list of 2 numpy arrays with the corresponding bin edges. Current definition is not a list, but an object of type %s." %bins.__class__.__name__
 		assert len(bins)==2, "Bins argument should be a list of 2 numpy arrays with the corresponding bin edges. Current list definition does not have two elements, but %i." %(len(bins))
 		assert isinstance(bins[0],np.ndarray), "Bins argument should be a list of 2 numpy arrays with the corresponding bin edges. The first element in the current definition is not a numpy array but an object of type %s" %bins[0].__class__.__name__
@@ -794,10 +924,11 @@ class Histogram2D(object):
 		delta1, delta2 = deltas1.mean(), deltas2.mean()
 		Ngrid1, Ngrid2 = len(bin_centers1), len(bin_centers2)
 		Ngrid = Ngrid1*Ngrid2
+		timings['init'] = time.time()
 		
 		#generate the individual histograms using numpy.histogram
-		if verbose:
-			print('generating individual histograms for each biased simulation ...')
+		if verbosity.lower() in ['medium', 'high']:
+			print('Constructing individual histograms for each biased simulation ...')
 		Hs = np.zeros([Nsims, Ngrid1, Ngrid2])
 		for i, traj in enumerate(data):
 			ns, edges1, edges2 = np.histogram2d(traj[:,0], traj[:,1], bins, density=False)
@@ -808,11 +939,12 @@ class Histogram2D(object):
 			if not Nis[i]==N:
 				print('WARNING: Histogram of trajectory %i should have total count of %i (=number of simulation steps), but found %f (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.' %(i,Nis[i],N))
 				Nis[i] = N
+		timings['hist'] = time.time()
 		
 		#compute the boltzmann factors of the biases in each grid interval
 		#b_ikl = 1/(delta1*delta2)*int(exp(-beta*W_i(q1,q2)), q1=Q_k-delta1/2...Q_k+delta1/2, q2=Q_l-delta2/2...Q_l+delta2/2)
-		if verbose:
-			print('computing bias on grid ...')
+		if verbosity.lower() in ['medium', 'high']:
+			print('Computing bias on grid ...')
 		bs = np.zeros([Nsims, Ngrid1, Ngrid2])
 		for i, bias in enumerate(biasses):
 			for k, center1 in enumerate(bin_centers1):
@@ -826,21 +958,24 @@ class Histogram2D(object):
 					bs[i,k,l] = integrate2d(Ws, dx=subdelta1, dy=subdelta2)/(delta1*delta2)
 			if plot_biases:
 				bias.plot('bias_%i.png' %i, bin_centers1, bin_centers2)
+		timings['bias'] = time.time()
 		
 		#some init printing
-		if verbose:
-			print('')
-			print('WHAM setup')
-			print('----------')
-			print('Number of simulations = ', Nsims)
+		if verbosity.lower() in ['high']:
+			print()
+			print('---------------------------------------------------------------------')
+			print('WHAM SETUP')
+			print('  number of simulations = ', Nsims)
 			for i, Ni in enumerate(Nis):
 				print('    simulation %i has %i steps' %(i,Ni))
-			print('CV1 grid [%s]: start = %.3f    end = %.3f    delta = %.3f    N = %i' %(cv1_output_unit, bins[0].min()/parse_unit(cv1_output_unit), bins[0].max()/parse_unit(cv1_output_unit), delta1/parse_unit(cv1_output_unit), Ngrid1))
-			print('CV2 grid [%s]: start = %.3f    end = %.3f    delta = %.3f    N = %i' %(cv2_output_unit, bins[1].min()/parse_unit(cv2_output_unit), bins[1].max()/parse_unit(cv2_output_unit), delta2/parse_unit(cv2_output_unit), Ngrid2))
-			print('')
-			print('Starting WHAM SCF loop:')
-			print('-----------------------')
+			print('  CV1 grid [%s]: start = %.3f    end = %.3f    delta = %.3f    N = %i' %(cv1_output_unit, bins[0].min()/parse_unit(cv1_output_unit), bins[0].max()/parse_unit(cv1_output_unit), delta1/parse_unit(cv1_output_unit), Ngrid1))
+			print('  CV2 grid [%s]: start = %.3f    end = %.3f    delta = %.3f    N = %i' %(cv2_output_unit, bins[1].min()/parse_unit(cv2_output_unit), bins[1].max()/parse_unit(cv2_output_unit), delta2/parse_unit(cv2_output_unit), Ngrid2))
+			print('---------------------------------------------------------------------')
+			print()
 		
+		if verbosity.lower() in ['medium', 'high']:
+			print('Solving WHAM equations (SCF loop) ...')
+
 		#self consistent loop to solve the WHAM equations
 		##initialize probability density array (which should sum to 1)
 		if pinit is None:
@@ -874,11 +1009,11 @@ class Histogram2D(object):
 				print('  Integr. Diff.    = %.3e au' %integrated_diff)
 				print('')
 			if integrated_diff<convergence:
-				print('WHAM SCF Converged!')
+				print('  SCF Converged!')
 				break
 			else:
 				if iscf==Nscf-1:
-					print('WARNING: could not converge WHAM equations to convergence of %.3e in %i steps!' %(convergence, Nscf))
+					print('  SCF did not converge!')
 			as_old = as_new.copy()
 		
 		#finalization
@@ -887,8 +1022,12 @@ class Histogram2D(object):
 		ps = as_new.copy()
 		fs = 1.0/np.einsum('ikl,kl->i', bs, as_new)
 		
+		timings['scf'] = time.time()
+
 		#error estimation
 		if error_estimate is not None:
+			if verbosity.lower() in ['medium', 'high']:
+				print('Estimating error ...')
 			pupper, plower = cls._estimate_WHAM_error_2D(ps, fs, bs, Nis, method=error_estimate, nsigma=nsigma)
 		else:
 			pupper, plower = None, None
@@ -897,16 +1036,45 @@ class Histogram2D(object):
 		ps = ps.T
 		if plower is not None: plower = plower.T
 		if pupper is not None: pupper = pupper.T
+
+		timings['error'] = time.time()
+
+		if verbosity.lower() in ['low', 'medium', 'high']:
+			print()
+			print('---------------------------------------------------------------------')
+			print('TIMING SUMMARY')
+			t = timings['init'] - timings['start']
+			print('  initializing: %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+			t = timings['hist'] - timings['init']
+			print('  histograms  : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+			t = timings['bias'] - timings['hist']
+			print('  bias poten. : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+			t = timings['scf'] - timings['bias']
+			print('  solve scf   : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+			t = timings['error'] - timings['scf']
+			print('  error est.  : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+			t = timings['error'] - timings['init']
+			print('  TOTAL       : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+			print('---------------------------------------------------------------------')
+
 		return cls(cv1s, cv2s, ps, plower=plower, pupper=pupper, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, cv1_label=cv1_label, cv2_label=cv2_label)
 	
 	@classmethod
-	def from_wham_c(cls, bins, traj_input, biasses, temp, pinit=None, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, verbose=False, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2', plot_biases=False):
+	def from_wham_c(cls, bins, traj_input, biasses, temp, pinit=None, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2', plot_biases=False, verbose=None, verbosity='low'):
 		'''
 			This routine implements the exact same thing as the from_wham routine, but now using the cythonized wham2D_XXX routines from ext.pyx for increased calculation speed. For more documentation on the arguments and algorithm in this routine, see the doc of the :meth:`from_wham routine <Histogram2D.from_wham>`.
 		'''
-		if verbose:
-			print('Initialization')
-			print('--------------')
+		timings = {}
+		timings['start'] = time.time()
+		#backward compatibility between verbose and verbosity. 
+		if verbose is not None:
+			print('The keyword verbose is depricated and will be removed in the near future. Use the keyword verbosity instead.')
+			if verbose:
+				verbosity = 'high'
+			else:
+				verbosity = 'none'
+		if verbosity.lower() in ['medium', 'high']:
+			print('Initialization ...')
 		
 		#checks and initialization
 		assert len(biasses)==len(traj_input), 'The arguments trajectories and biasses should be of the same length.'
@@ -921,8 +1089,8 @@ class Histogram2D(object):
 			assert isinstance(bias_subgrid_num[1],int), 'bias_subgrid_num argument should be an integer or a list of two integers'
 		
 		#Preprocess trajectory argument: load files if file names are given instead of raw data, determine and store the number of simulation steps in each simulation:
-		if verbose:
-			print('processing trajectories ...')
+		if verbosity.lower() in ['high']:
+			print('  processing trajectories')
 		Nis = np.zeros(len(traj_input), dtype=int)
 		trajectories = np.empty(len(traj_input), dtype=object)
 		for i, trajectory in enumerate(traj_input):
@@ -935,8 +1103,8 @@ class Histogram2D(object):
 			trajectories[i] = trajectory
 		
 		#Preprocess the bins argument and redefine it to represent the bin_edges. We need to do this beforehand to make sure that when calling the numpy.histogram routine with this bins argument, each histogram will have a consistent bin_edges array and hence consistent histogram.
-		if verbose:
-			print('processing bins ...')
+		if verbosity.lower() in ['high']:
+			print('  processing bins')
 		assert isinstance(bins,list), "Bins argument should be a list of 2 numpy arrays with the corresponding bin edges. Current definition is not a list, but an object of type %s." %bins.__class__.__name__
 		assert len(bins)==2, "Bins argument should be a list of 2 numpy arrays with the corresponding bin edges. Current list definition does not have two elements, but %i." %(len(bins))
 		assert isinstance(bins[0],np.ndarray), "Bins argument should be a list of 2 numpy arrays with the corresponding bin edges. The first element in the current definition is not a numpy array but an object of type %s" %bins[0].__class__.__name__
@@ -949,33 +1117,38 @@ class Histogram2D(object):
 		delta1, delta2 = deltas1.mean(), deltas2.mean()
 		Ngrid1, Ngrid2 = len(bin_centers1), len(bin_centers2)
 		Ngrid = Ngrid1*Ngrid2
-		
+		timings['init'] = time.time()
+
 		#generate the individual histograms using numpy.histogram
-		if verbose:
-			print('generating individual histograms for each biased simulation ...')
+		if verbosity.lower() in ['medium', 'high']:
+			print('Constructing individual histograms for each biased simulation ...')
 		Hs = wham2d_hs(Nsims, Ngrid1, Ngrid2, trajectories, bins[0], bins[1], Nis)
-		
+		timings['hist'] = time.time()
+
 		#compute the boltzmann factors of the biases in each grid interval
-		if verbose:
-			print('computing bias on grid ...')
+		if verbosity.lower() in ['medium', 'high']:
+			print('Computing bias on grid ...')
 		bs = wham2d_bias(Nsims, Ngrid1, Ngrid2, beta, biasses, delta1, delta2, bias_subgrid_num[0], bias_subgrid_num[1], bin_centers1, bin_centers2)
 		if plot_biases:
 			for i, bias in enumerate(biasses):
 				bias.plot('bias_%i.png' %i, bin_centers1, bin_centers2)
-		
+		timings['bias'] = time.time()
+
 		#some init printing
-		if verbose:
-			print('')
-			print('WHAM setup')
-			print('----------')
-			print('Number of simulations = ', Nsims)
+		if verbosity.lower() in ['high']:
+			print()
+			print('---------------------------------------------------------------------')
+			print('WHAM SETUP')
+			print('  number of simulations = ', Nsims)
 			for i, Ni in enumerate(Nis):
 				print('    simulation %i has %i steps' %(i,Ni))
-			print('CV1 grid [%s]: start = %.3f    end = %.3f    delta = %.3f    N = %i' %(cv1_output_unit, bins[0].min()/parse_unit(cv1_output_unit), bins[0].max()/parse_unit(cv1_output_unit), delta1/parse_unit(cv1_output_unit), Ngrid1))
-			print('CV2 grid [%s]: start = %.3f    end = %.3f    delta = %.3f    N = %i' %(cv2_output_unit, bins[1].min()/parse_unit(cv2_output_unit), bins[1].max()/parse_unit(cv2_output_unit), delta2/parse_unit(cv2_output_unit), Ngrid2))
-			print('')
-			print('Starting WHAM SCF loop:')
-			print('-----------------------')
+			print('  CV1 grid [%s]: start = %.3f    end = %.3f    delta = %.3f    N = %i' %(cv1_output_unit, bins[0].min()/parse_unit(cv1_output_unit), bins[0].max()/parse_unit(cv1_output_unit), delta1/parse_unit(cv1_output_unit), Ngrid1))
+			print('  CV2 grid [%s]: start = %.3f    end = %.3f    delta = %.3f    N = %i' %(cv2_output_unit, bins[1].min()/parse_unit(cv2_output_unit), bins[1].max()/parse_unit(cv2_output_unit), delta2/parse_unit(cv2_output_unit), Ngrid2))
+			print('---------------------------------------------------------------------')
+			print()
+		
+		if verbosity.lower() in ['medium', 'high']:
+			print('Solving WHAM equations (SCF loop) ...')
 		
 		#self consistent loop to solve the WHAM equations
 		if pinit is None:
@@ -986,18 +1159,48 @@ class Histogram2D(object):
 			assert pinit.T.shape[0]==Ngrid1, 'Specified initial guess should be of shape (%i,%i), got (%i,%i)' %(Ngrid1,Ngrid2,pinit.shape[0],pinit.shape[1])
 			assert pinit.T.shape[1]==Ngrid2, 'Specified initial guess should be of shape (%i,%i), got (%i,%i)' %(Ngrid1,Ngrid2,pinit.shape[0],pinit.shape[1])
 			pinit /= pinit.sum()
-		ps, fs = wham2d_scf(Nis, Hs, bs, pinit, Nscf=Nscf, convergence=convergence, verbose=verbose)
+		ps, fs, converged = wham2d_scf(Nis, Hs, bs, pinit, Nscf=Nscf, convergence=convergence, verbose=verbosity.lower() in ['high'])
+		if verbosity.lower() in ['low', 'medium', 'high']:
+			if bool(converged):
+				print('  SCF Converged!')
+			else:
+				print('  SCF did not converge!')
+
+		timings['scf'] = time.time()
 
 		#error estimation
 		if error_estimate is not None:
+			if verbosity.lower() in ['medium', 'high']:
+				print('Estimating error ...')
 			pupper, plower = cls._estimate_WHAM_error_2D(ps, fs, bs, Nis, method=error_estimate, nsigma=nsigma)
 		else:
 			pupper, plower = None, None
-		
+
 		#For consistency with how FreeEnergySurface2D is implemented (using 'xy'-indexing), ps (and plower, pupper) need to be transposed
 		ps = ps.T
 		if plower is not None: plower = plower.T
 		if pupper is not None: pupper = pupper.T
+
+		timings['error'] = time.time()
+
+		if verbosity.lower() in ['low', 'medium', 'high']:
+			print()
+			print('---------------------------------------------------------------------')
+			print('TIMING SUMMARY')
+			t = timings['init'] - timings['start']
+			print('  initializing: %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+			t = timings['hist'] - timings['init']
+			print('  histograms  : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+			t = timings['bias'] - timings['hist']
+			print('  bias poten. : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+			t = timings['scf'] - timings['bias']
+			print('  solve scf   : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+			t = timings['error'] - timings['scf']
+			print('  error est.  : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+			t = timings['error'] - timings['init']
+			print('  TOTAL       : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+			print('---------------------------------------------------------------------')
+
 		return cls(bin_centers1.copy(), bin_centers2.copy(), ps, plower=plower, pupper=pupper, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, cv1_label=cv1_label, cv2_label=cv2_label)
 
 	@classmethod
