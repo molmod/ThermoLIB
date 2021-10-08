@@ -12,6 +12,10 @@
 #
 #cython: embedsignature=True
 
+from molmod.units import parse_unit
+
+import matplotlib.pyplot as pp
+
 import numpy as np
 cimport numpy as np
 
@@ -19,6 +23,7 @@ __all__ = [
     'wham1d_hs', 'wham1d_bias', 'wham1d_scf', 'wham1d_error',
     'wham2d_hs', 'wham2d_bias', 'wham2d_scf', 'wham2d_error',
 ]
+
 
 def wham1d_hs(int Nsims, int Ngrid, np.ndarray[object] trajectories, np.ndarray[double] bins, np.ndarray[long] Nis):
     cdef np.ndarray[long, ndim=2] Hs = np.zeros([Nsims, Ngrid], dtype=int)
@@ -34,22 +39,28 @@ def wham1d_hs(int Nsims, int Ngrid, np.ndarray[object] trajectories, np.ndarray[
     return Hs
 
 
-def wham1d_bias(int Nsims, int Ngrid, double beta, list biasses, double delta, int bias_subgrid_num, np.ndarray[double] bin_centers):
+def wham1d_bias(int Nsims, int Ngrid, double beta, list biasses, double delta, int bias_subgrid_num, np.ndarray[double] bin_centers, double thresshold=1e-3):
     '''
         Compute the integrated boltzmann factors of the biases in each grid interval:
 
         .. math:: b_ik = \\frac{1}{\\delta}\\int_{Q_k-\\frac{\\delta}{2}}^{Q_k+\\frac{\\delta}{2}} e^{-\\beta W_i(q)}dq
+
+        This routine implements a conservative algorithm which takes into account that for a given simulation i, only a limited number of grid points k will give rise to a non-zero b_ik. This is achieved by first using the bin-center approximation to the integral by computing the factor exp(-beta*bias(Qk)) on the CV grid (which is faster as there is no integral involved and which is also already a good approximation for the b_ik array) and only performing the precise integral when the approximation exceeds a thresshold.
     '''
     from thermolib.tools import integrate
     cdef np.ndarray[double, ndim=2] bs = np.zeros([Nsims, Ngrid], dtype=float)
+    cdef double subdelta = delta/bias_subgrid_num
+    cdef np.ndarray[double] subgrid = np.arange(-delta/2, delta/2+subdelta, subdelta)
+    cdef np.ndarray[double] Ws
     cdef int i, k
-    cdef double center, subdelta
-    cdef np.ndarray[double] subgrid
     for i, bias in enumerate(biasses):
-        for k, center in enumerate(bin_centers):
-            subdelta = delta/bias_subgrid_num
-            subgrid = np.arange(center-delta/2, center+delta/2 + subdelta, subdelta)
-            bs[i,k] = integrate(subgrid, np.exp(-beta*bias(subgrid)))/delta
+        #first compute bin-center approximation
+        bs[i,:] = np.exp(-beta*bias(bin_centers))
+        #find large bias factors for exact computation
+        ks = np.where(bs[i,:]>thresshold)[0]
+        for k in ks:
+            Ws = np.exp(-beta*bias(bin_centers[k]+subgrid))
+            bs[i,k] = integrate_c(bin_centers[k]+subgrid, Ws)/delta
     return bs
 
 
@@ -164,26 +175,30 @@ def wham2d_hs(int Nsims, int Ngrid1, int Ngrid2, np.ndarray[object] trajectories
     return Hs
 
 
-def wham2d_bias(int Nsims, int Ngrid1, int Ngrid2, double beta, list biasses, double delta1, double delta2, int bias_subgrid_num1, int bias_subgrid_num2, np.ndarray[double] bin_centers1, np.ndarray[double] bin_centers2):
+def wham2d_bias(int Nsims, int Ngrid1, int Ngrid2, double beta, list biasses, double delta1, double delta2, int bias_subgrid_num1, int bias_subgrid_num2, np.ndarray[double] bin_centers1, np.ndarray[double] bin_centers2, double thresshold=1e-3):
     '''
         Compute the integrated boltzmann factors of the biases in each grid interval:
 
         .. math:: b_ikl = \\frac{1}{\\delta1\\cdot\\delta2}\\int_{Q_{1,k}-\\frac{\\delta1}{2}}^{Q_{1,k}+\\frac{\\delta1}{2}}\\int_{Q_{2,l}-\\frac{\\delta2}{2}}^{Q_{2,l}+\\frac{\\delta2}{2}} e^{-\\beta W_i(q_1,q_2)}dq_1dq_2
 
+        This routine implements a conservative algorithm which takes into account that for a given simulation i, only a limited number of grid points (k,l) will give rise to a non-zero b_ikl. This is achieved by first using the bin-center approximation to the integral by computing the factor exp(-beta*bias(Q1,k,Q2,l)) on the CV1 and CV2 grid (which is faster as there is no integral involved and which is also already a good approximation for the b_ikl array) and only performing the precise integral when the approximation exceeds a thresshold.
     '''
-    from thermolib.tools import integrate2d
     cdef np.ndarray[double, ndim=3] bs = np.zeros([Nsims, Ngrid1, Ngrid2], dtype=float)
-    cdef np.ndarray[double, ndim=2] CV1, CV2
+    cdef np.ndarray[double, ndim=2] CV1, CV2, Ws
     cdef int i, k, l
-    cdef double center1, center2
     cdef double subdelta1 = delta1/bias_subgrid_num1, subdelta2 = delta2/bias_subgrid_num2
     cdef np.ndarray[double] subgrid1 = np.arange(-delta1/2, delta1/2 + subdelta1, subdelta1), subgrid2 = np.arange(-delta2/2, delta2/2 + subdelta2, subdelta2)
     for i, bias in enumerate(biasses):
-        for k, center1 in enumerate(bin_centers1):
-            for l, center2 in enumerate(bin_centers2):
-                CV1, CV2 = np.meshgrid(center1+subgrid1, center2+subgrid2, indexing='ij')
-                Ws = np.exp(-beta*bias(CV1, CV2))
-                bs[i,k,l] = integrate2d_c(Ws, subdelta1, subdelta2)/(delta1*delta2)
+        #first compute bin-center approximation
+        CV1, CV2 = np.meshgrid(bin_centers1, bin_centers2, indexing='ij')
+        bs[i,:,:] = np.exp(-beta*bias(CV1, CV2))
+        #find large bias factors for exact computation
+        ks, ls = np.where(bs[i,:,:]>thresshold)
+        #perform exact computation
+        for (k,l) in zip(ks,ls):
+            CV1, CV2 = np.meshgrid(bin_centers1[k]+subgrid1, bin_centers2[l]+subgrid2, indexing='ij')
+            Ws = np.exp(-beta*bias(CV1, CV2))
+            bs[i,k,l] = integrate2d_c(Ws, subdelta1, subdelta2)/(delta1*delta2)
     return bs
 
 
@@ -227,6 +242,21 @@ def wham2d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=3] Hs, np.ndarray[dou
     #compute final normalization factors
     fs = 1.0/np.einsum('ikl,kl->i', bs, as_new)
     return as_new, fs, converged
+
+def integrate_c(np.ndarray[double] xs, np.ndarray[double] ys):
+    '''
+        A simple integration method using the trapezoid rule
+
+        :param xs: array containing function argument values on grid
+        :type xs: np.ndarray
+
+        :param ys: array containing function values on grid
+        :type ys: np.ndarray
+    '''
+    assert len(xs)==len(ys)
+    return 0.5*np.dot(ys[1:]+ys[:-1],xs[1:]-xs[:-1])
+
+
 
 def integrate2d_c(np.ndarray[double, ndim=2] z, double dx, double dy):
     '''

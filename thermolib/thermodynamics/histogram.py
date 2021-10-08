@@ -454,7 +454,7 @@ class Histogram1D(object):
 		return cls(cvs, ps, plower=plower, pupper=pupper, cv_output_unit=cv_output_unit, cv_label=cv_label)
 
 	@classmethod
-	def from_wham_c(cls, bins, traj_input, biasses, temp, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, cv_output_unit='au', cv_label='CV', verbose=None, verbosity='low'):
+	def from_wham_c(cls, bins, traj_input, biasses, temp, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, bias_thress=1e-3, cv_output_unit='au', cv_label='CV', verbose=None, verbosity='low'):
 		'''
 			This routine does the same as the from_wham routine (see documentation there) but this version used the cythonized helper routines wham_XXX defined in ext.pyx.
 		'''
@@ -514,7 +514,7 @@ class Histogram1D(object):
 		#compute the integrated boltzmann factors of the biases in each grid interval
 		if verbosity.lower() in ['medium', 'high']:
 			print('Computing bias on grid ...')
-		bs = wham1d_bias(Nsims, Ngrid, beta, biasses, delta, bias_subgrid_num, bin_centers)
+		bs = wham1d_bias(Nsims, Ngrid, beta, biasses, delta, bias_subgrid_num, bin_centers, thresshold=bias_thress)
 		timings['bias'] = time.time()
 
 		#some init printing
@@ -1060,9 +1060,14 @@ class Histogram2D(object):
 		return cls(cv1s, cv2s, ps, plower=plower, pupper=pupper, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, cv1_label=cv1_label, cv2_label=cv2_label)
 	
 	@classmethod
-	def from_wham_c(cls, bins, traj_input, biasses, temp, pinit=None, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2', plot_biases=False, verbose=None, verbosity='low'):
+	def from_wham_c(cls, bins, traj_input, biasses, temp, pinit=None, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, bias_thress=1e-3, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2', plot_biases=False, verbose=None, verbosity='low'):
 		'''
 			This routine implements the exact same thing as the from_wham routine, but now using the cythonized wham2D_XXX routines from ext.pyx for increased calculation speed. For more documentation on the arguments and algorithm in this routine, see the doc of the :meth:`from_wham routine <Histogram2D.from_wham>`.
+
+			One additional keyword is available in this routine with respect to the pure python version, the bias_thress keyword. See description below.
+
+			:param bias_thress: thresshold for determining whether the exact bin integration of the bias boltzmann factors is required, or the boltzmann factor of the bin center suffices as an approximation. Setting the thresshold to 0 implies exact integration for all bins, setting the thresshold to 1 implies the bin center approximation for all cells and setting the thresshold to x implies that only does bins with a center approximation higher than x will be integrated exactly.
+			:type bias_thress: double, optional, default=1e-3
 		'''
 		timings = {}
 		timings['start'] = time.time()
@@ -1128,7 +1133,7 @@ class Histogram2D(object):
 		#compute the boltzmann factors of the biases in each grid interval
 		if verbosity.lower() in ['medium', 'high']:
 			print('Computing bias on grid ...')
-		bs = wham2d_bias(Nsims, Ngrid1, Ngrid2, beta, biasses, delta1, delta2, bias_subgrid_num[0], bias_subgrid_num[1], bin_centers1, bin_centers2)
+		bs = wham2d_bias(Nsims, Ngrid1, Ngrid2, beta, biasses, delta1, delta2, bias_subgrid_num[0], bias_subgrid_num[1], bin_centers1, bin_centers2, thresshold=bias_thress)
 		if plot_biases:
 			for i, bias in enumerate(biasses):
 				bias.plot('bias_%i.png' %i, bin_centers1, bin_centers2)

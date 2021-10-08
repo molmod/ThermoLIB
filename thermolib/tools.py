@@ -241,7 +241,7 @@ def blav(data, blocksizes=None, fitrange=[0,-1], exponent=1, fn_plot=None, unit=
         pp.savefig(fn_plot, dpi=300)
     return blavs.mean(), error, corrtime
 
-def read_wham_input(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1, kappa_unit='kjmol', q0_unit='au', start=0, end=-1, stride=1, bias_potential='Parabola1D', additional_bias=None,inverse_cv=False, verbose=False):
+def read_wham_input(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1, kappa_unit='kjmol', q0_unit='au', start=0, end=-1, stride=1, bias_potential='Parabola1D', additional_bias=None, inverse_cv=False, verbose=False):
     '''
         Read the input for a WHAM reconstruction of the free energy profile from a set of Umbrella Sampling simulations. The file specified by fn should have the following format:
 
@@ -353,7 +353,7 @@ def read_wham_input(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1,
                 else:
                     trajectories.append(data[start:end:stride,colvar_cv_column_index])
                 if verbose:
-                    print('Added bias %s' %bias.print())
+                    print('Added bias %s' %bias.print_info())
                     print('Read corresponding trajectory data from %s' %fn_traj)
             elif bias_potential not in ['Parabola1D']:
                     raise ValueError('Bias potential %s not supported (yet) in read_wham_input.' %bias_potential)
@@ -363,7 +363,7 @@ def read_wham_input(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1,
         print('WARNING: temperature could not be read from %s' %fn)
     return temp, biasses, trajectories
 
-def read_wham_input_2D(fn, path_template_colvar_fns='%s', kappa1_unit='kjmol', kappa2_unit='kjmol', q01_unit='au', q02_unit='au', start=0, end=-1, stride=1, bias_potential='Parabola2D', verbose=False):
+def read_wham_input_2D(fn, path_template_colvar_fns='%s', kappa1_unit='kjmol', kappa2_unit='kjmol', q01_unit='au', q02_unit='au', start=0, end=-1, stride=1, bias_potential='Parabola2D', verbose=False, inverse_cv1=0, inverse_cv2=0):
     '''
         Read the input for a WHAM reconstruction of the 2D free energy surface from a set of Umbrella Sampling simulations. The file specified by fn should have the following format:
 
@@ -472,7 +472,7 @@ def read_wham_input_2D(fn, path_template_colvar_fns='%s', kappa1_unit='kjmol', k
                     print("  WARNING: could not read trajectory file for bias with name %s, skipping line in wham input." %name)
                     print('')
                     continue
-                bias = Parabola2D(name, q01, q02, kappa1, kappa2)
+                bias = Parabola2D(name, q01, q02, kappa1, kappa2, inverse_cv1=inverse_cv1, inverse_cv2=inverse_cv2)
                 data = np.loadtxt(fn_traj)
                 biasses.append(bias)
                 if end==-1:
@@ -480,7 +480,7 @@ def read_wham_input_2D(fn, path_template_colvar_fns='%s', kappa1_unit='kjmol', k
                 else:
                     trajectories.append(data[start:end:stride,1:3])#COLVAR format: CV1 is second column and CV2 is third column
                 if verbose:
-                    print('  added %s' %bias.print())
+                    print('  added %s' %bias.print_info())
                     print('  trajectory read from %s' %fn_traj)
                     print('')
             elif bias_potential not in ['Parabola2D']:

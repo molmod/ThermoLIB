@@ -38,7 +38,7 @@ class BiasPotential1D(object):
         if inverse_cv:
             self.sign_q = -1.0
     
-    def print(self, **pars_units):
+    def print_info(self, **pars_units):
         return '%s (%s): %s' %(self.__class__.__name__, self.name, self.print_pars(**pars_units))
 
     def print_pars(self, **pars_units):
@@ -225,7 +225,7 @@ class BiasPotential2D(object):
     def __call__(self, q1, q2):
         raise NotImplementedError
     
-    def print(self, *pars_units):
+    def print_info(self, *pars_units):
         return '%s (%s): %s' %(self.__class__.__name__, self.name, self.print_pars(*pars_units))
 
     def print_pars(self, *pars_units):
