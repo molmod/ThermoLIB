@@ -243,6 +243,132 @@ def wham2d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=3] Hs, np.ndarray[dou
     fs = 1.0/np.einsum('ikl,kl->i', bs, as_new)
     return as_new, fs, converged
 
+def wham2d_error(np.ndarray[double, ndim=2] ps, np.ndarray[double] fs, np.ndarray[double, ndim=3] bs, np.ndarray[long] Nis, method='mle_f', int nsigma=2, verbose=False):
+    '''
+        Internal routine to compute the error assiciated with solving the 2D WHAM equations using the Fisher information comming from the Maximum Likelihood Estimator. The procedure is as follows:
+
+        * construct the extended Fisher information matrix by taking the weighted sum of the Fisher information matrix of each simulation. This is very similar as in the 1D case. However, we first have to flatten the CV1,CV2 2D grid to a 1D CV12 grid. This is achieved with the flatten function (which flattens a 2D index to a 1D index). Deflattening of the CV12 grid to a 2D CV1,CV2 grid is achieved with the deflatten function (which deflattens a 1D index to a 2D index). Using the flatten function, the ps array is flattened and a conventional Fisher matrix can be constructed and inverted. Afterwards the covariance matrix is deflattened using the deflatten function to arrive to a multidimensional matrix giving (co)variances on the 2D probability array.
+        * filter out the zero-rows and columns corresponding to absent histogram counts using the masking procedure
+        * invert the masked extended Fisher matrix and use the square root of its diagonal elements to compute errors
+
+        :param ps: the final unbiased probability density as computed by solving the WHAM equations. 
+        :type fs: np.ndarray(Ngrid1, Ngrid2)
+
+        :param fs: the final normalization factor for the biased probability density of each simulation as computed by solving the WHAM equations
+        :type fs: np.ndarray(Nsim)
+
+        :param bs: the biasses (for each simulation) precomputed on the 2D CV grid
+        :type bs: np.ndarray(Nsim,Ngrid1,Ngrid2)
+
+        :param Nis: the number of simulation steps in each simulation
+        :type Nis: np.ndarray(Nsims)
+
+        :param method: Define the method for computing the error:
+        
+            * *mle_p*: the error is computed on the probability density directly. This method corresponds to ignoring the positivity constraints of the histogram 			 parameters.
+            * *mle_f*: the error is first computed on minus of the logarithm of the probability density (corresponding to the scaled free energy) and afterwards 			propagated to the probability density. This method corresponds to taking the positivity constraints of the histogram parameters explicitly 			   into account.
+        
+        :type method: str, optional, default='mle_f'
+        
+        :param nsigma: specify the length of the error bar in terms of the number of sigmas. For example, a 2-sigma error bar (i.e. nsigma=2) would correspond to a 95% confidence interval.
+        :type nsimga: float, optional, default=2
+
+        :return: pupper, plower corresponding to the upper and lower value of the nsigma error bar
+        :rtype: np.ndarray, np.ndarray
+    '''
+    if verbose:
+        print('  initializing ...')
+    #initialization
+    cdef np.ndarray[double, ndim=2] I, Ii, Imask, sigma
+    cdef np.ndarray[double, ndim=2] perr, plower, pupper
+    cdef np.ndarray[np.uint8_t, ndim=2] mask
+    cdef int Nsims = bs.shape[0]
+    cdef int Ngrid1 = bs.shape[1]
+    cdef int Ngrid2 = bs.shape[2]
+    cdef long Ngrid = Ngrid1*Ngrid2
+    cdef int i, k, l, K
+    cdef long Nmask, Nmask2
+
+    def flatten(int kk, int ll):
+        return Ngrid2*kk+ll
+    def deflatten(int KK):
+        cdef int kk = int(K/Ngrid2)
+        cdef int ll = KK - Ngrid2*kk
+        return kk,ll
+
+    if verbose:
+        print('  computing extended Fisher matrix ...')
+    #Compute the extended Fisher matrix
+    I = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])
+    for i in range(Nsims):
+        Ii = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])
+        for k in range(Ngrid1):
+            for l in range(Ngrid2):
+                K = flatten(k,l)
+                if method in ['mle_p']:
+                    if ps[k,l]>0: #see below where we define mask to filter out rows/columns corresponding to histogram counts of zero
+                        Ii[K,K] = fs[i]*bs[i,k,l]/ps[k,l]
+                    Ii[K, Ngrid+i] = bs[i,k,l]
+                    Ii[Ngrid+i, K] = bs[i,k,l]
+                    Ii[K, Ngrid+Nsims+i] = fs[i]*bs[i,k,l]
+                    Ii[Ngrid+Nsims+i, K] = fs[i]*bs[i,k,l]
+                    Ii[K,-1] = 1
+                    Ii[-1,K] = 1
+                elif method in ['mle_f']:
+                    Ii[K,K] = ps[k,l]*fs[i]*bs[i,k,l]
+                    Ii[K, Ngrid+i] = -ps[k,l]*bs[i,k,l]
+                    Ii[Ngrid+i, K] = -ps[k,l]*bs[i,k,l]
+                    Ii[K, Ngrid+Nsims+i] = -ps[k,l]*fs[i]*bs[i,k,l]
+                    Ii[Ngrid+Nsims+i, K] = -ps[k,l]*fs[i]*bs[i,k,l]
+                    Ii[K,-1] = -ps[k,l]
+                    Ii[-1,K] = -ps[k,l]
+                else:
+                    raise IOError('Recieved invalid argument for method, recieved %s. Check routine signiture for more information on allowed values.' %method)
+        Ii[Ngrid+i, Ngrid+i] = 1/fs[i]**2
+        Ii[Ngrid+i, Ngrid+Nsims+i] = 1/fs[i]
+        Ii[Ngrid+Nsims+i, Ngrid+i] = 1/fs[i]
+        I += Nis[i]*Ii
+
+    #Define and apply mask to filter out zero counts in histogram (as no error can be computed on them)
+    if verbose:
+        print('  defining and applying zero-mask ...')
+    mask = np.ones([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1], dtype=bool)
+    for k in range(Ngrid1):
+        for l in range(Ngrid2):
+            K = flatten(k,l)
+            if ps[k,l]==0:
+                mask[K,:] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
+                mask[:,K] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
+    Nmask2 = len(I[mask])
+    assert abs(int(np.sqrt(Nmask2))-np.sqrt(Nmask2))==0 #consistency check, sqrt(Nmask2) should be integer valued
+    Nmask = int(np.sqrt(Nmask2))
+    Imask = I[mask].reshape([Nmask,Nmask])
+    
+    #Compute the inverse of the masked Fisher information matrix. Rows or columns corresponding to a histogram count of zero will have a (co)variance set to nan
+    if verbose:
+        print('  computing inverse of masked flattened Fisher matrix ...')
+    sigma = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])*np.nan
+    sigma[mask] = np.linalg.inv(Imask).reshape([Nmask2])
+
+    #the error bar on the probability of bin (k,l) is now simply the [K,K]-diagonal element of sigma (with K corresponding to the flattend (k,l))
+    if verbose:
+        print('  constructing error bars ...')
+    perr = np.zeros([Ngrid1,Ngrid2], dtype=float)
+    for K in range(Ngrid):
+        k, l = deflatten(K)
+        perr[k,l] = np.sqrt(sigma[K,K])
+    if method in ['mle_p']:
+        plower = ps - nsigma*perr
+        plower[plower<0] = 0.0
+        pupper = ps + nsigma*perr
+    elif method in ['mle_f']:
+        plower = ps*np.exp(-nsigma*perr)
+        pupper = ps*np.exp(nsigma*perr)
+    else:
+        raise IOError('Recieved invalid argument for method, recieved %s. Check routine signiture for more information on allowed values.' %method)
+
+    return pupper, plower
+
 def integrate_c(np.ndarray[double] xs, np.ndarray[double] ys):
     '''
         A simple integration method using the trapezoid rule
@@ -255,8 +381,6 @@ def integrate_c(np.ndarray[double] xs, np.ndarray[double] ys):
     '''
     assert len(xs)==len(ys)
     return 0.5*np.dot(ys[1:]+ys[:-1],xs[1:]-xs[:-1])
-
-
 
 def integrate2d_c(np.ndarray[double, ndim=2] z, double dx, double dy):
     '''
