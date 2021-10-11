@@ -38,7 +38,7 @@ class BiasPotential1D(object):
         if inverse_cv:
             self.sign_q = -1.0
     
-    def print_info(self, **pars_units):
+    def print(self, **pars_units):
         return '%s (%s): %s' %(self.__class__.__name__, self.name, self.print_pars(**pars_units))
 
     def print_pars(self, **pars_units):
@@ -194,8 +194,8 @@ class MultipleBiasses1D(BiasPotential1D):
     
     def __call__(self, q):
         result = 0.0
-        for bias in self.biasses:
-            result += bias(q)
+        for idx,bias in enumerate(self.biasses):
+            result += self.coeffs[idx]*bias(q)
         return result
 
 
@@ -225,7 +225,7 @@ class BiasPotential2D(object):
     def __call__(self, q1, q2):
         raise NotImplementedError
     
-    def print_info(self, *pars_units):
+    def print(self, *pars_units):
         return '%s (%s): %s' %(self.__class__.__name__, self.name, self.print_pars(*pars_units))
 
     def print_pars(self, *pars_units):
@@ -289,3 +289,54 @@ class Parabola2D(BiasPotential2D):
     
     def __call__(self, q1, q2):
         return 0.5*self.kappa1*(q1*self.sign_q1-self.q01)**2 + 0.5*self.kappa2*(q2*self.sign_q2-self.q02)**2
+
+
+
+class MultipleBiasses2D(BiasPotential2D):
+    '''
+        A class to add multiple bias potentials together, possibly weighted by given coefficients.
+    '''
+    def __init__(self, biasses, additional_bias_dimension='q1', coeffs=None):
+        '''
+            :param biasses: list of bias potentials
+            :type biasses: list(BiasPotential2D,BiasPotential1D)
+
+            :param coeffs: array of weigth coefficients. If not given, defaults to an array of ones (i.e. no weighting).
+            :type coeffs: list/np.ndarray, optional
+        '''
+        assert isinstance(biasses, list), 'Biasses should be a list'
+        for bias in biasses:
+            assert isinstance(bias, BiasPotential1D) or isinstance(bias, BiasPotential2D), 'Each bias in the list should be a (child) instance of the BiasPotential1D class or BiasPotential2D class. However, member %s is of class %s' %(bias.name, bias.__class__.__name__)
+        if coeffs is None:
+            coeffs = np.ones(len(biasses))
+        else:
+            if isinstance(coeffs, list):
+                coeffs = np.array(coeffs)
+            assert isinstance(coeffs, np.ndarray), 'Coefficients should be list or numpy array'
+            assert len(coeffs)==len(biasses), 'Coefficients should be array of same length as biasses.'
+        BiasPotential2D.__init__(self, 'MultipleBias')
+        self.biasses = biasses
+        self.additional_bias_dimension = additional_bias_dimension
+        self.coeffs = coeffs.copy()
+    
+    def print_pars(self, **par_units):
+        string = 'MultipleBias:\n'
+        for bias in self.biasses:
+            string += '  %s\n' %(bias.print(**par_units))
+        return string
+    
+    def __call__(self, q1, q2):
+        result = 0.0
+        for idx,bias in enumerate(self.biasses):
+            if isinstance(bias, BiasPotential1D):
+                if self.additional_bias_dimension == 'q1':
+                    result += self.coeffs[idx]*bias(q1)
+                elif self.additional_bias_dimension == 'q2':
+                    result += self.coeffs[idx]*bias(q2)
+                else:
+                    raise ArgumentError('additional bias_dimension is either q1 or q3 but you specified %s' % self.additional_bias_dimension)
+            elif isinstance(bias, BiasPotential2D):
+                result += self.coeffs[idx]*bias(q1,q2)
+            else:
+                raise ArgumentError('Additional bias is not recognized correctly')
+        return result
