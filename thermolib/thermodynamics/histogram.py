@@ -20,7 +20,7 @@ import numpy as np
 import time
 
 from thermolib.thermodynamics.fep import BaseFreeEnergyProfile
-from thermolib.ext import wham1d_hs, wham1d_bias, wham1d_scf, wham1d_error, wham2d_hs, wham2d_bias, wham2d_scf
+from thermolib.ext import wham1d_hs, wham1d_bias, wham1d_scf, wham1d_error, wham2d_hs, wham2d_bias, wham2d_scf, wham2d_error
 from thermolib.tools import integrate, integrate2d
 
 __all__ = ['Histogram1D', 'Histogram2D', 'plot_histograms']
@@ -1177,7 +1177,7 @@ class Histogram2D(object):
 		if error_estimate is not None:
 			if verbosity.lower() in ['medium', 'high']:
 				print('Estimating error ...')
-			pupper, plower = cls._estimate_WHAM_error_2D(ps, fs, bs, Nis, method=error_estimate, nsigma=nsigma)
+			pupper, plower = wham2d_error(ps, fs, bs, Nis, method=error_estimate, nsigma=nsigma, verbose=verbosity.lower() in ['medium', 'high'])
 		else:
 			pupper, plower = None, None
 

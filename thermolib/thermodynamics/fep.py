@@ -1472,7 +1472,7 @@ def plot_feps(fn, feps, temp=None, labels=None, flims=None, colors=None, linesty
         fmax = max(fmax, np.ceil(max(fep.fs[~np.isnan(fep.fs)]/kjmol)/10)*10)
         axs[0,0].plot(fep.cvs/parse_unit(cv_unit), fep.fs/parse_unit(f_unit), linewidth=linewidth, linestyle=linestyle, color=color, label=label)
         if fep.flower is not None and fep.fupper is not None:
-            axs[0,0].fill_between(fep.cvs/parse_unit(cv_unit), fep.flower/parse_unit(f_unit), fep.fupper/parse_unit(f_unit), color=cmap(ifep, alpha=0.33))
+            axs[0,0].fill_between(fep.cvs/parse_unit(cv_unit), fep.flower/parse_unit(f_unit), fep.fupper/parse_unit(f_unit), color=color, alpha=0.33)
         #histogram if requested
         if temp is not None:
             hist = Histogram1D.from_fep(fep, temp)
