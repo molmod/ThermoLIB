@@ -247,7 +247,7 @@ class RateFactorEquilibrium(BaseRateFactor):
         '''
         assert (coords.shape[0]==self.Natoms and coords.shape[1]==3)
         Q, DQ = self.CV.compute(coords)
-        DQ = DQ.T.reshape([3*self.Natoms, 1]).flatten()
+        DQ = DQ.flatten()
         Ai = np.nan
         if self.CV_TS_lims[0]<=Q<=self.CV_TS_lims[1]:
             if momenta=='analytical':
