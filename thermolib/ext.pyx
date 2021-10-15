@@ -153,9 +153,15 @@ def wham1d_error(int Nsims, int Ngrid, np.ndarray[long] Nis, np.ndarray[double] 
     sigma[mask] = np.linalg.inv(Imask).reshape([Nmask2])
     #the error bar on the probability of bin k is now simply the (k,k)-diagonal element of sigma
     perr = np.sqrt(np.diagonal(sigma)[:Ngrid])
-    plower = ps - nsigma*perr
-    plower[plower<0] = 0.0
-    pupper = ps + nsigma*perr
+    if method in ['mle_p']:
+        plower = ps - nsigma*perr
+        plower[plower<0] = 0.0
+        pupper = ps + nsigma*perr
+    elif method in ['mle_f']:
+        plower = ps*np.exp(-nsigma*perr)
+        pupper = ps*np.exp(nsigma*perr)
+    else:
+        raise IOError('Recieved invalid argument for method, recieved %s. Check routine signiture for more information on allowed values.' %method)
     return plower, pupper
 
 
