@@ -1066,7 +1066,7 @@ class Histogram2D(object):
 
 			One additional keyword is available in this routine with respect to the pure python version, the bias_thress keyword. See description below.
 
-			:param bias_thress: thresshold for determining whether the exact bin integration of the bias boltzmann factors is required, or the boltzmann factor of the bin center suffices as an approximation. Setting the thresshold to 0 implies exact integration for all bins, setting the thresshold to 1 implies the bin center approximation for all cells and setting the thresshold to x implies that only does bins with a center approximation higher than x will be integrated exactly.
+			:param bias_thress: thresshold for determining whether the exact bin integration of the bias boltzmann factors is required, or the boltzmann factor of the bin center suffices as an approximation. Setting the thresshold to 0 implies exact integration for all bins, setting the thresshold to 1 implies the bin center approximation for all cells and setting the thresshold to x implies that only those bins with a center approximation higher than x will be integrated exactly.
 			:type bias_thress: double, optional, default=1e-3
 		'''
 		timings = {}
