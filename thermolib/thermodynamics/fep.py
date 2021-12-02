@@ -512,6 +512,43 @@ class BaseFreeEnergyProfile(object):
             self.fs = new_fs[~np.isnan(new_fs)].copy()
             self.compute_probdens()
 
+    def transform_function(self, function, derivative=None, cv_label='Q', cv_output_unit='au'):
+        '''
+            Routine to transform the current free energy profile in terms of the original CV towards a free energy profile in terms of the new collective variable Q.
+
+            :param function: The transformation function from the old CV towards the new Q
+            :type function: callable
+
+            :param qs: grid of new collective variable Q 
+            :type qs: np.ndarray
+
+            :param derivative: The analytical derivative of the transformation function. If set to None, the derivative will be estimated through numerical differentiatio. Defaults to None
+            :type derivative: callable, optional
+
+            :param cv_label: The label of the new collective variable used in plotting etc, defaults to 'CV'
+            :type cv_label: str, optional
+
+            :param cv_output_unit: The unit of the new collective varaible used in plotting and printing, defaults to 'au'
+            :type cv_output_unit: str, optional
+
+            :return: transformed free energy profile
+            :rtype: the same class as the instance this routine is called upon
+        '''
+        #TODO: not tested yet!
+        qs = function(self.cvs)
+        if derivative is None:
+            eps = min(qs[1:]-qs[:-1])*0.001
+            def derivative(q):
+                return (function(q+eps/2)-function(q-eps/2))/eps
+        dfs = derivative(qs)
+        fs = self.fs - np.log(dfs)/self.beta
+        fupper, flower = None, None
+        if self.fupper is not None:
+            fupper = self.fupper - np.log(dfs)/self.beta
+        if self.flower is not None:
+            flower = self.flower - np.log(dfs)/self.beta
+        return self.__class__(qs, fs, self.T, fupper=fupper, flower=flower, cv_output_unit=cv_output_unit, f_output_unit=self.f_output_unit, cv_label=cv_label)
+
 
 class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
     '''
@@ -1298,7 +1335,7 @@ class FreeEnergySurface2D(object):
             :param cvs: grid for the new CV
             :type cvs: np.ndarray
 
-            :param delta: width of the single-bin approximation of the delta function applied in the projection formula.
+            :param delta: width of the single-bin approximation of the delta function applied in the projection formula. The delta function is one whenever abs(function(cv1,cv2)-q)<delta/2. Hence, delta has the same units as the new collective variable q.
             :type delta: float, optional, default=1e-3
             
             :param cv_label: label for the new CV
@@ -1333,8 +1370,9 @@ class FreeEnergySurface2D(object):
             return fqs
         fs = project(self.fs)
         flower, fupper = None, None
-        if self.flower is not None and self.fupper is not None:
+        if self.fupper is not None:
             fupper = project(self.fupper)
+        if self.flower is not None:
             flower = project(self.flower)
         return return_class(cvs, fs, self.T, fupper=fupper, flower=flower, cv_output_unit=cv_output_unit, f_output_unit=self.f_output_unit, cv_label=cv_label)
 
