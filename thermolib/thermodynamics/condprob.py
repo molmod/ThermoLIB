@@ -172,7 +172,9 @@ class ConditionalProbability1D1D(object):
 
     def transform(self, fep, cv_output_unit='au', f_output_unit=None, cv_label='CV'):
         '''
-            Transform the provided 1D FES to a different 1D FES using the current conditional probability according to the formula
+            Transform the provided 1D FES to a different 1D FES using the current conditional probability according to the formula. 
+            
+            **WARNING**: The error on the original fep is propagated to an error on the new transformed fep, but it is assumed that the conditional probability used for this transformation is exactly known (i.e. has no error, which is offcourse an approximation as the conditional probability is itself estimated from the simulation).
 
             .. math:: F(q) &= -kT \\ln\\left(\\int p(q|v)\\cdot e^{-\\beta F(v)} dv\\right)
             
@@ -194,13 +196,24 @@ class ConditionalProbability1D1D(object):
         assert (abs(fep.cvs-self.cvs)<1e-6).all(), 'Values of 1D CV in conditional probability not identical to those of 1D FEP'
         if cv_label is None: cv_label = self.q1_label
         # Construct 1D FES
-        ps = np.trapz(self.pconds[:, ~np.isnan(fep.fs)]*np.exp(-fep.beta*fep.fs[~np.isnan(fep.fs)]), x=self.cvs[~np.isnan(fep.fs)])
-        ps /= np.trapz(ps, x=self.q1s)
-        fs = np.zeros([self.q1num], float)*np.nan
-        fs[ps>0] = -np.log(ps[ps>0])/fep.beta
+        def transform(fs_old):
+            mask = ~np.isnan(fs_old)
+            ps = np.trapz(self.pconds[:,mask]*np.exp(-fep.beta*fs_old[mask]), x=self.cvs[mask])
+            ps /= np.trapz(ps, x=self.q1s)
+            fs_new = np.zeros([self.q1num], float)*np.nan
+            fs_new[ps>0] = -np.log(ps[ps>0])/fep.beta
+            return fs_new
+        fs = transform(fep.fs)
+        fupper, flower = None, None
+        if fep.fupper is not None or fep.flower is None:
+            print('WARNING: the error on the original fep is propagated to an error on the new transformed fep, but it is assumed that the conditional probability use for this transformation is exactly known (i.e. has no error), which is an approximation as the conditional probability is itself estimated from the simulation.')
+        if fep.fupper is not None:
+            fupper = transform(fep.fupper)
+        if fep.flower is not None:
+            flower = transform(fep.flower)
         if f_output_unit is None:
             f_output_unit = fep.f_output_unit
-        return BaseFreeEnergyProfile(self.q1s, fs, fep.T, cv_output_unit=cv_output_unit, f_output_unit=f_output_unit, cv_label=cv_label)
+        return BaseFreeEnergyProfile(self.q1s, fs, fep.T, fupper=fupper, flower=flower, cv_output_unit=cv_output_unit, f_output_unit=f_output_unit, cv_label=cv_label)
 
     def deproject(self, fep, cv1_output_unit='au', cv2_output_unit='au', f_output_unit=None, cv1_label='Q1', cv2_label='Q2'):
         '''
@@ -208,6 +221,8 @@ class ConditionalProbability1D1D(object):
 
             .. math:: F(q_1,q_2) &= F(q_2)-kT \\ln\\left(p(q_1|q_2)\\right)
             
+            **WARNING**: the error on the 1D FEP is propagated towards the deprojected 2D FES, but under the assumption that the underlying conditional probability is exactly known (i.e. it has no error, which is offcourse an approximation as the conditional probability is itself estimated from a molecular simulation).
+
             :param fep: the free energy profile F(q_2) which will be transformed
             :type fep: (child of) BaseFreeEnergyProfile
 
@@ -232,14 +247,25 @@ class ConditionalProbability1D1D(object):
         assert (abs(fep.cvs-self.cvs)<1e-6).all(), 'Values of collective variable v in conditional probability p(q|v) not identical to those of collective variable in 1D FEP'
         # Construct 1D FES
         fs = np.zeros([len(self.cvs), len(self.q1s)], float)*np.nan
+        fupper, flower = None, None
+        if fep.fupper is not None:
+            fupper = np.zeros([len(self.cvs), len(self.q1s)], float)*np.nan
+        if fep.flower is not None:
+            flower = np.zeros([len(self.cvs), len(self.q1s)], float)*np.nan
         kT = boltzmann*fep.T
         for iq1 in range(len(self.q1s)):
             for icv in range(len(self.cvs)):
                 if self.pconds[iq1,icv]>0:
                     fs[icv,iq1] = fep.fs[icv] - kT*np.log(self.pconds[iq1,icv])
+                    if fep.fupper is not None:
+                        fupper[icv,iq1] = fep.fupper[icv] - kT*np.log(self.pconds[iq1,icv])
+                    if fep.flower is not None:
+                        flower[icv,iq1] = fep.flower[icv] - kT*np.log(self.pconds[iq1,icv])
+        if fep.fupper is not None or fep.flower is None:
+            print('WARNING: the error on the 1D FEP is propagated to an error on the new deprojected 2D FES, but it is assumed that the conditional probability use for this transformation is exactly known (i.e. has no error), which is an approximation as the conditional probability is itself estimated from the simulation.')
         if f_output_unit is None:
             f_output_unit = fep.f_output_unit
-        return FreeEnergySurface2D(self.q1s, self.cvs, fs, fep.T, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, f_output_unit=f_output_unit, cv1_label=cv1_label, cv2_label=cv2_label)
+        return FreeEnergySurface2D(self.q1s, self.cvs, fs, fep.T, fupper=fupper, flower=flower, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, f_output_unit=f_output_unit, cv1_label=cv1_label, cv2_label=cv2_label)
 
         
 
@@ -501,6 +527,8 @@ class ConditionalProbability1D2D(object):
 
             .. math:: F(q_1,q_2) &= -kT\cdot\\ln\\left(\\int p(q_1,q_2|v)\\cdot e^{-\\beta F(v)}dv\\right)
 
+            **WARNING**: the error on the 1D FEP is propagated towards the 2D FES, but under the assumption that the underlying conditional probability is exactly known (i.e. it has no error, which is offcourse an approximation as the conditional probability is itself estimated from a molecular simulation).
+            
             :param fep: The free energy profile that will be transformed (:math:`F(v)` in the equation above).
             :type fep: BaseFreeEnergyProfile or inheriting child class
             
@@ -518,11 +546,21 @@ class ConditionalProbability1D2D(object):
         assert len(fep.cvs)==len(self.cvs), 'Dimension of 1D CV in conditional probability inconsistent with 1D FEP'
         assert (abs(fep.cvs-self.cvs)<1e-6).all(), 'Values of 1D CV in conditional probability not identical to those of 1D FEP'
         #construct 2D FES
-        ps = np.zeros([self.q2num, self.q1num], float)
-        for icv, fcv in enumerate(fep.fs):
-            if not np.isnan(fcv):
-                ps += self.pconds[:,:,icv]*np.exp(-fep.beta*fcv)
-        ps /= integrate2d(ps, x=self.q1s, y=self.q2s)
-        fs = np.zeros([self.q2num, self.q1num], float)*np.nan
-        fs[ps>0] = -np.log(ps[ps>0])/fep.beta
-        return FreeEnergySurface2D(self.q1s, self.q2s, fs, fep.T, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, f_output_unit=f_output_unit, cv1_label=self.q1_label, cv2_label=self.q2_label)
+        def deproject(fs_old):
+            ps = np.zeros([self.q2num, self.q1num], float)
+            for icv, fcv in enumerate(fs_old):
+                if not np.isnan(fcv):
+                    ps += self.pconds[:,:,icv]*np.exp(-fep.beta*fcv)
+            ps /= integrate2d(ps, x=self.q1s, y=self.q2s)
+            fs_new = np.zeros([self.q2num, self.q1num], float)*np.nan
+            fs_new[ps>0] = -np.log(ps[ps>0])/fep.beta
+            return fs_new
+        fs = deproject(fep.fs)
+        fupper, flower = None, None
+        if fep.fupper is not None or fep.flower is None:
+            print('WARNING: the error on the 1D FEP is propagated to an error on the new deprojected 2D FES, but it is assumed that the conditional probability use for this transformation is exactly known (i.e. has no error), which is an approximation as the conditional probability is itself estimated from the simulation.')
+        if fep.fupper is not None:
+            fupper = deproject(fep.fupper)
+        if fep.flower is not None:
+            flower = deproject(fep.fupflowerper)
+        return FreeEnergySurface2D(self.q1s, self.q2s, fs, fep.T, fupper=fupper, flower=flower, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, f_output_unit=f_output_unit, cv1_label=self.q1_label, cv2_label=self.q2_label)
