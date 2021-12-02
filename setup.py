@@ -35,7 +35,7 @@ setup(
         'Programming Language :: Python',
         'Topic :: Science/Engineering :: Molecular Science'
     ],
-    install_requires=['cython>=0.29',
+    install_requires=['cython>=0.29.23',
                       'numpy>=1.0',
                       'scikit-learn>=0.24.2',
                       'matplotlib',
