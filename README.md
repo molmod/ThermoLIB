@@ -17,6 +17,7 @@ Module for computing the rate factor required in transition state theory require
 
 # Dependencies
 
+* Cython
 * numpy
 * scipy
 * molmod
