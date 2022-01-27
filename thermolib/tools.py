@@ -353,7 +353,7 @@ def read_wham_input(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1,
                 else:
                     trajectories.append(data[start:end:stride,colvar_cv_column_index])
                 if verbose:
-                    print('Added bias %s' %bias.print_info())
+                    print('Added bias %s' %bias.print())
                     print('Read corresponding trajectory data from %s' %fn_traj)
             elif bias_potential not in ['Parabola1D']:
                     raise ValueError('Bias potential %s not supported (yet) in read_wham_input.' %bias_potential)
