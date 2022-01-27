@@ -399,6 +399,7 @@ class BaseFreeEnergyProfile(object):
             :param flim: plot range for the free energy
             :type flim: float, optional, defaults to min-max.
         '''
+        rc('text', usetex=False)
         pp.clf()
         fig, axs = pp.subplots(nrows=1, ncols=1)
         axs = [axs]
@@ -708,6 +709,7 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
             :param macro_color: matplotlib line color for indicating macrostates
             :type macro_color: str, optional, default='b'
         '''
+        rc('text', usetex=do_latex)
         pp.clf()
         fig = pp.gcf()
         gs  = gridspec.GridSpec(1,2, width_ratios=[2,1])
