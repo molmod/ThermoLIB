@@ -683,7 +683,7 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
         for i in range(len(cvs)-1):
             self.macrostates.append(self.macrostate(cvrange=cvs[i:i+2], verbose=verbose))
 
-    def plot(self, fn, rate=None, micro_marker='s', micro_color='r', micro_size='4', macro_linestyle='-', macro_color='b'):
+    def plot(self, fn, rate=None, micro_marker='s', micro_color='r', micro_size='4', macro_linestyle='-', macro_color='b', do_latex=False):
         '''
             Plot the free energy profile including visualization of the microstates (markers) and macrostates (lines) defined by :meth:`set_microstates` and :meth:`set_macrostates` respectively. The values of CV and free energy are plotted in units specified by the cv_unit and f_output_unit attributes of the self instance.
 
@@ -748,28 +748,49 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
             Zr,Fr = self.macrostates[0][2], self.macrostates[0][3]
             Zp,Fp = self.macrostates[1][2], self.macrostates[1][3]
             Fts = self.fs[self.its]
-            fig.text(0.65, 0.88, r'\textit{Thermodynamic properties}', fontsize=16)
-            fig.text(0.65, 0.86, '-------------------------------------', fontsize=16)
-            fig.text(0.65, 0.82, r'$Z_{R} =\ $'+format_scientific(Zr/parse_unit(self.cv_output_unit))+'  %s' %(self.cv_output_unit), fontsize=16)
-            fig.text(0.65, 0.78, r'$F_{R} = -k_B T \log(Z_{R}) = %.3f\ \ $ kJ.mol$^{-1}$' %(Fr/kjmol), fontsize=16)
-            fig.text(0.65, 0.74, r'$Z_{P} =\ $'+format_scientific(Zp/parse_unit(self.cv_output_unit))+'  %s' %(self.cv_output_unit), fontsize=16)
-            fig.text(0.65, 0.70, r'$F_{P} = -k_B T \log(Z_{P}) = %.3f\ \ $ kJ.mol$^{-1}$' %(Fp/kjmol), fontsize=16)
-            fig.text(0.65, 0.66, r'$F(q_{TS}) = %.3f\ \ $ kJ.mol$^{-1}$' %(Fts/kjmol), fontsize=16)
+            if do_latex:
+                fig.text(0.65, 0.88, r'\textit{Thermodynamic properties}', fontsize=16)
+                fig.text(0.65, 0.86, '-------------------------------------', fontsize=16)
+                fig.text(0.65, 0.82, r'$Z_{R} =\ $'+format_scientific(Zr/parse_unit(self.cv_output_unit))+'  %s' %(self.cv_output_unit), fontsize=16)
+                fig.text(0.65, 0.78, r'$F_{R} = -k_B T \log(Z_{R}) = %.3f\ \ $ kJ.mol$^{-1}$' %(Fr/kjmol), fontsize=16)
+                fig.text(0.65, 0.74, r'$Z_{P} =\ $'+format_scientific(Zp/parse_unit(self.cv_output_unit))+'  %s' %(self.cv_output_unit), fontsize=16)
+                fig.text(0.65, 0.70, r'$F_{P} = -k_B T \log(Z_{P}) = %.3f\ \ $ kJ.mol$^{-1}$' %(Fp/kjmol), fontsize=16)
+                fig.text(0.65, 0.66, r'$F(q_{TS}) = %.3f\ \ $ kJ.mol$^{-1}$' %(Fts/kjmol), fontsize=16)
+            else:
+                fig.text(0.65, 0.88, 'Thermodynamic properties', fontsize=16)
+                fig.text(0.65, 0.86, '-------------------------------------', fontsize=16)
+                fig.text(0.65, 0.82, 'ZR = ' + format_scientific(Zr/parse_unit(self.cv_output_unit))+'%s' %(self.cv_output_unit), fontsize=16)
+                fig.text(0.65, 0.78, 'FR = -kT log(ZR) = %.3f kJ/mol' %(Fr/kjmol), fontsize=16)
+                fig.text(0.65, 0.74, 'ZP = '+format_scientific(Zp/parse_unit(self.cv_output_unit))+'%s' %(self.cv_output_unit), fontsize=16)
+                fig.text(0.65, 0.70, 'FP = -kT log(ZP) = %.3f kJ/mol' %(Fp/kjmol), fontsize=16)
+                fig.text(0.65, 0.66, 'F(q_TS) = %.3f kJ/mol' %(Fts/kjmol), fontsize=16)
         if rate is not None:
             k_forward = rate.A*np.exp(-Fts/(boltzmann*self.T))/Zr
             k_backward = rate.A*np.exp(-Fts/(boltzmann*self.T))/Zp
             dF_forward = Fts+boltzmann*self.T*np.log(boltzmann*self.T*Zr/(planck*rate.A))
             dF_backward = Fts+boltzmann*self.T*np.log(boltzmann*self.T*Zp/(planck*rate.A))
-            fig.text(0.65, 0.58, r'\textit{Kinetic properties}', fontsize=16)
-            fig.text(0.65, 0.56, '-------------------------------------', fontsize=16)
-            fig.text(0.65, 0.50, r'$A  =\ $' + format_scientific(rate.A/(parse_unit(self.cv_output_unit)/second)) + r' %s.s$^{-1}$' %(self.cv_output_unit), fontsize=16)
-            fig.text(0.65, 0.44, r'$k_{F} = A \frac{e^{-\beta\cdot F(q_{TS})}}{Z_{R} } =\ $ ' +format_scientific(k_forward*second)  + r' s$^{-1}$', fontsize=16)
-            fig.text(0.65, 0.38, r'$k_{B} = A \frac{e^{-\beta\cdot F(q_{TS})}}{Z_{P} } =\ $ ' +format_scientific(k_backward*second) + r' s$^{-1}$', fontsize=16)
-            fig.text(0.65, 0.30, r'\textit{Phenomenological barrier}', fontsize=16)
-            fig.text(0.65, 0.28, '-------------------------------------', fontsize=16)
-            fig.text(0.65, 0.22, r'$k = \frac{k_B T}{h}e^{-\beta\cdot\Delta F}$', fontsize=16)
-            fig.text(0.65, 0.18, r'$\Delta F_{F}  = %.3f\ \ $ kJ.mol$^{-1}$' %(dF_forward/kjmol), fontsize=16)
-            fig.text(0.65, 0.14, r'$\Delta F_{B}  = %.3f\ \ $ kJ.mol$^{-1}$' %(dF_backward/kjmol), fontsize=16)
+            if do_latex:
+                fig.text(0.65, 0.58, r'\textit{Kinetic properties}', fontsize=16)
+                fig.text(0.65, 0.56, '-------------------------------------', fontsize=16)
+                fig.text(0.65, 0.50, r'$A  =\ $' + format_scientific(rate.A/(parse_unit(self.cv_output_unit)/second)) + r' %s.s$^{-1}$' %(self.cv_output_unit), fontsize=16)
+                fig.text(0.65, 0.44, r'$k_{F} = A \frac{e^{-\beta\cdot F(q_{TS})}}{Z_{R} } =\ $ ' +format_scientific(k_forward*second)  + r' s$^{-1}$', fontsize=16)
+                fig.text(0.65, 0.38, r'$k_{B} = A \frac{e^{-\beta\cdot F(q_{TS})}}{Z_{P} } =\ $ ' +format_scientific(k_backward*second) + r' s$^{-1}$', fontsize=16)
+                fig.text(0.65, 0.30, r'\textit{Phenomenological barrier}', fontsize=16)
+                fig.text(0.65, 0.28, '-------------------------------------', fontsize=16)
+                fig.text(0.65, 0.22, r'$k = \frac{k_B T}{h}e^{-\beta\cdot\Delta F}$', fontsize=16)
+                fig.text(0.65, 0.18, r'$\Delta F_{F}  = %.3f\ \ $ kJ.mol$^{-1}$' %(dF_forward/kjmol), fontsize=16)
+                fig.text(0.65, 0.14, r'$\Delta F_{B}  = %.3f\ \ $ kJ.mol$^{-1}$' %(dF_backward/kjmol), fontsize=16)
+            else:
+                fig.text(0.65, 0.58, 'Kinetic properties', fontsize=16)
+                fig.text(0.65, 0.56, '-------------------------------------', fontsize=16)
+                fig.text(0.65, 0.50, 'A  = ' + format_scientific(rate.A/(parse_unit(self.cv_output_unit)/second)) + r' %s/s' %(self.cv_output_unit), fontsize=16)
+                fig.text(0.65, 0.44, 'kF = A exp(-F(q_TS)/kT)/ZR = ' +format_scientific(k_forward*second)  + r' 1/s', fontsize=16)
+                fig.text(0.65, 0.38, 'kB = A exp(-F(q_TS)/kT)/ZP = ' +format_scientific(k_backward*second) + r' 1/s', fontsize=16)
+                fig.text(0.65, 0.30, 'Phenomenological barrier', fontsize=16)
+                fig.text(0.65, 0.28, '-------------------------------------', fontsize=16)
+                fig.text(0.65, 0.22, 'k = kT/h exp(-dF/kT)', fontsize=16)
+                fig.text(0.65, 0.18, 'dF_F = %.3f kJ/mol' %(dF_forward/kjmol), fontsize=16)
+                fig.text(0.65, 0.14, 'dF_B = %.3f kJ/mol' %(dF_backward/kjmol), fontsize=16)
         #save
         fig.set_size_inches([12,8])
         pp.savefig(fn)
