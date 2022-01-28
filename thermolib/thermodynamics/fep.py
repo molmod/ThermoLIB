@@ -420,6 +420,7 @@ class BaseFreeEnergyProfile(object):
             :param flim: plot range for the free energy
             :type flim: float, optional, defaults to min-max.
         '''
+        rc('text', usetex=False)
         pp.clf()
         fig, axs = pp.subplots(nrows=1, ncols=1)
         axs = [axs]
@@ -729,8 +730,7 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
             :param macro_color: matplotlib line color for indicating macrostates
             :type macro_color: str, optional, default='b'
         '''
-        if do_latex: 
-            rc('text', usetex=True)
+        rc('text', usetex=do_latex)
         pp.clf()
         fig = pp.gcf()
         gs  = gridspec.GridSpec(1,2, width_ratios=[2,1])
@@ -1514,8 +1514,7 @@ def plot_feps(fn, feps, temp=None, labels=None, flims=None, colors=None, linesty
 		:param linewidths: List of matplotlib line width definitions for each entry in histograms. If an entry is None, the default line width of 1 will be chosen. Defaults to None, implying all line widths are set to the default of 2.
 		:type linewidths: List(str), optional
     '''
-    if do_latex: 
-        rc('text', usetex=True)
+    rc('text', usetex=True)
     if temp is not None:
         from .histogram import Histogram1D
     #initialize

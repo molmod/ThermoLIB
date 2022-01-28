@@ -1362,7 +1362,7 @@ class Histogram2D(object):
 		raise NotImplementedError
 
 
-def plot_histograms(fn, histograms, temp=None, labels=None, flims=None, colors=None, linestyles=None, linewidths=None, set_ref='min'):
+def plot_histograms(fn, histograms, temp=None, labels=None, flims=None, colors=None, linestyles=None, linewidths=None, set_ref='min', flims=None):
 	'''
 		Make a plot to compare multiple probability histograms and possible the corresponding free energy (if the argument ``temp`` is specified).
 
