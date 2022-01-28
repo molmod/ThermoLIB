@@ -596,7 +596,7 @@ class Histogram1D(object):
 			plower /= plower[~np.isnan(plower)].sum()
 		return cls(fep.cvs, ps, pupper=pupper, plower=plower, cv_output_unit=fep.cv_output_unit, cv_label=fep.cv_label)
 
-	def plot(self, fn, temp=None, flim=None):
+	def plot(self, fn, temp=None, flims=None):
 		'''
 			Make a plot of the probability histogram and possible the corresponding free energy (if the argument ``temp`` is specified).
 
@@ -609,7 +609,7 @@ class Histogram1D(object):
 			:param flim: upper limit of the free energy axis in plots.
 			:type flim: float, optional, default=None
 		'''
-		plot_histograms(fn, [self], temp=temp, flim=flim)
+		plot_histograms(fn, [self], temp=temp, flims=flims)
 
 
 class Histogram2D(object):
@@ -1362,7 +1362,7 @@ class Histogram2D(object):
 		raise NotImplementedError
 
 
-def plot_histograms(fn, histograms, temp=None, labels=None, flims=None, colors=None, linestyles=None, linewidths=None, set_ref='min', flims=None):
+def plot_histograms(fn, histograms, temp=None, labels=None, flims=None, colors=None, linestyles=None, linewidths=None, set_ref='min'):
 	'''
 		Make a plot to compare multiple probability histograms and possible the corresponding free energy (if the argument ``temp`` is specified).
 
