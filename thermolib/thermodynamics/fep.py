@@ -174,7 +174,7 @@ class BaseFreeEnergyProfile(object):
             if fupper is not None:
                 fupper = fupper[mask]
                 flower = flower[mask]
-        return cls(cvs, fs, temp, cv_output_unit=cv_output_unit, f_output_unit=f_output_unit)
+        return cls(cvs, fs, temp, fupper=fupper, flower=flower, cv_output_unit=cv_output_unit, f_output_unit=f_output_unit)
 
     @classmethod
     def from_histogram(cls, histogram, temp, cv_output_unit=None, cv_label=None, f_output_unit='kjmol'):
@@ -1486,7 +1486,7 @@ class FreeEnergySurface2D(object):
         pp.savefig(fn_png)
 
 
-def plot_feps(fn, feps, temp=None, labels=None, flims=None, colors=None, linestyles=None, linewidths=None):
+def plot_feps(fn, feps, temp=None, labels=None, flims=None, colors=None, linestyles=None, linewidths=None, do_latex=False):
     '''
         Make a plot to compare multiple free energy profiles
 
@@ -1514,6 +1514,8 @@ def plot_feps(fn, feps, temp=None, labels=None, flims=None, colors=None, linesty
 		:param linewidths: List of matplotlib line width definitions for each entry in histograms. If an entry is None, the default line width of 1 will be chosen. Defaults to None, implying all line widths are set to the default of 2.
 		:type linewidths: List(str), optional
     '''
+    if do_latex: 
+        rc('text', usetex=True)
     if temp is not None:
         from .histogram import Histogram1D
     #initialize
