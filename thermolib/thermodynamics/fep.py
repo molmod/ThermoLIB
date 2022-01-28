@@ -264,13 +264,20 @@ class BaseFreeEnergyProfile(object):
 
     def savetxt(self, fn_txt):
         '''
-            Save the free energy profile as txt file. The values of CV and free energy are written in units specified by the cv_output_unit and f_output_unit attributes of the self instance.
+            Save the free energy profile as txt file. The values of CV and free energy are written in units specified by the cv_output_unit and f_output_unit attributes of the self instance. If both flower and fupper are defined, they will also be written as the third and fourth column respectively.
 
             :param fn_txt: name for the output file
             :type fn_txt: str
         '''
-        header = '%s [%s]\tFree energy [%s]' %(self.cv_label, self.cv_output_unit, self.f_output_unit)
-        np.savetxt(fn_txt, np.vstack((self.cvs/parse_unit(self.cv_output_unit), self.fs/parse_unit(self.f_output_unit))).T, header=header)
+        
+        if self.flower is None or self.fupper is None:
+            header = '%s [%s]\tFree energy [%s]' %(self.cv_label, self.cv_output_unit, self.f_output_unit)
+            data = np.vstack((self.cvs/parse_unit(self.cv_output_unit), self.fs/parse_unit(self.f_output_unit))).T
+        else:
+            header = '%s [%s]\tFree energy [%s]\tLower error [%s]\tUpper error [%s]' %(self.cv_label, self.cv_output_unit, self.f_output_unit, self.f_output_unit, self.f_output_unit)
+            data = np.vstack((self.cvs/parse_unit(self.cv_output_unit), self.fs/parse_unit(self.f_output_unit), self.flower/parse_unit(self.f_output_unit), self.fupper/parse_unit(self.f_output_unit))).T
+        np.savetxt(fn_txt, data, header=header)
+
 
     def process_states(self, *args, **kwargs):
         raise NotImplementedError('BaseFreeEnergyProfile has no routine process_states implemented. Try to convert the free energy profile to a SimpleFreeEnergyProfile first.')
