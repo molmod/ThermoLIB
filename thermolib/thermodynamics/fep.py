@@ -87,7 +87,7 @@ class BaseFreeEnergyProfile(object):
     beta = property(_beta)
 
     @classmethod
-    def from_txt(cls, fn, temp, cvcol=0, fcol=1, cv_input_unit='au', f_input_unit='kjmol', cv_output_unit='au', f_output_unit='kjmol', cv_label='CV', cvrange=None, delimiter=None, reverse=False, cut_constant=False):
+    def from_txt(cls, fn, temp, cvcol=0, fcol=1, flowercol=None, fuppercol=None, cv_input_unit='au', f_input_unit='kjmol', cv_output_unit='au', f_output_unit='kjmol', cv_label='CV', cvrange=None, delimiter=None, reverse=False, cut_constant=False):
         '''
             Read the free energy profile as function of a collective variable from a txt file.
 
@@ -135,9 +135,18 @@ class BaseFreeEnergyProfile(object):
         data = np.loadtxt(fn, delimiter=delimiter, dtype=float)
         cvs = data[:,cvcol]*parse_unit(cv_input_unit)
         fs = data[:,fcol]*parse_unit(f_input_unit)
+        fupper, flower = None, None
+        if fuppercol is not None and flowercol is not None:
+            flower = data[:,flowercol]*parse_unit(f_input_unit)
+            fupper = data[:,fuppercol]*parse_unit(f_input_unit)
+        elif (fuppercol is None and flowercol is not None) or (fuppercol is not None and flowercol is None):
+            raise ValueError("For errorbars, you need to define both column indexes of the upper error limit, fuppercol, and the lower limit, flowercol.")
         if reverse:
             cvs = cvs[::-1]
             fs = fs[::-1]
+            if fupper is not None:
+                fupper = fupper[::-1]
+                flower = flower[::-1]
         if cvrange is not None:
             indexes = []
             for i, cv in enumerate(cvs):
@@ -145,6 +154,9 @@ class BaseFreeEnergyProfile(object):
                     indexes.append(i)
             cvs = cvs[np.array(indexes)]
             fs = fs[np.array(indexes)]
+            if fupper is not None:
+                fupper = fupper[np.array(indexes)]
+                flower = flower[np.array(indexes)]
         if cut_constant:
             mask = np.ones(len(fs), bool)
             for i in range(len(fs)):
@@ -159,6 +171,9 @@ class BaseFreeEnergyProfile(object):
                     break
             cvs = cvs[mask]
             fs = fs[mask]
+            if fupper is not None:
+                fupper = fupper[mask]
+                flower = flower[mask]
         return cls(cvs, fs, temp, cv_output_unit=cv_output_unit, f_output_unit=f_output_unit)
 
     @classmethod
