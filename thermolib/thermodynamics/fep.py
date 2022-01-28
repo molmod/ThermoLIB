@@ -1514,7 +1514,7 @@ def plot_feps(fn, feps, temp=None, labels=None, flims=None, colors=None, linesty
 		:param linewidths: List of matplotlib line width definitions for each entry in histograms. If an entry is None, the default line width of 1 will be chosen. Defaults to None, implying all line widths are set to the default of 2.
 		:type linewidths: List(str), optional
     '''
-    rc('text', usetex=True)
+    rc('text', usetex=do_latex)
     if temp is not None:
         from .histogram import Histogram1D
     #initialize
