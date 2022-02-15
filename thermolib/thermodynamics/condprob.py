@@ -141,7 +141,7 @@ class ConditionalProbability1D1D(object):
         for fn in fns:
             print('  Reading data from %s' %fn)
             data = np.loadtxt(fn)
-            data = data[:,::stride]
+            data = data[::stride]
             self.pconds[:-1, :-1] += np.histogram2d(data[:, col_q1], data[:, col_cv], bins=(self.q1s, self.cvs))[0]
             self.norms[:-1] += np.histogram(data[:, col_cv], bins=self.cvs)[0]
         if finish:
@@ -402,7 +402,7 @@ class ConditionalProbability1D2D(object):
         for fn in fns:
             print('  Reading data from %s' %fn)
             data = np.loadtxt(fn)
-            data = data[:,::stride]
+            data = data[::stride]
             for row in data:
                 q1i, q2i, cvi = row[col_q1], row[col_q2], row[col_cv]
                 if not self.cvmin<=cvi<=self.cvmax:
