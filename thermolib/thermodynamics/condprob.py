@@ -111,7 +111,7 @@ class ConditionalProbability1D1D(object):
         if finish:            
             self.finish()
 
-    def process_trajectory_cvs(self, fns, col_q1=1, col_cv=2, stride=1, finish=True):
+    def process_trajectory_cvs(self, fns, col_q1=1, col_cv=2, sub=slice(None,None,None), finish=True):
         '''
             Compute the conditional probability p(q1|cv) (and norm for final normalisation) by processing a series of CV trajectory files. Each CV trajectory file contains rows of the form
 
@@ -128,8 +128,8 @@ class ConditionalProbability1D1D(object):
             :param col_cv: column index of the collective variable CV in the given input file.
             :type col_cv: int, optional, default=2
             
-            :param stride: subsamples the collective variables every n steps.
-            :type stride: int, optional, default=1
+            :param sub: slice object to subsample the file.
+            :type sub: slice, optional, default=slice(None, None, None)
 
             :param finish: set this to True if the given file name(s) are the only relevant trajectories and hence the conditional probability should be computed from only these trajectories. Setting it to True will therefore trigger propper normalisation of the conditional probability. Set this to False if you intend to call the routine *process_trajectory_xyz* again later on with additional trajectory files.
             :type finish: bool, optional, default=True
@@ -141,7 +141,7 @@ class ConditionalProbability1D1D(object):
         for fn in fns:
             print('  Reading data from %s' %fn)
             data = np.loadtxt(fn)
-            data = data[::stride]
+            data = data[sub]
             self.pconds[:-1, :-1] += np.histogram2d(data[:, col_q1], data[:, col_cv], bins=(self.q1s, self.cvs))[0]
             self.norms[:-1] += np.histogram(data[:, col_cv], bins=self.cvs)[0]
         if finish:
@@ -369,7 +369,7 @@ class ConditionalProbability1D2D(object):
         if finish:            
             self.finish()
 
-    def process_trajectory_cvs(self, fns, col_q1=1, col_q2=2, col_cv=3, stride=1, finish=True, tolerance=1e-6):
+    def process_trajectory_cvs(self, fns, col_q1=1, col_q2=2, col_cv=3, sub=slice(None,None,None), finish=True, tolerance=1e-6):
         '''
             Routine to update conditional probability :math:`p(q_1,q_2|v)` (and norm for final normalisation) by processing a series of CV trajectory file. Each CV trajectory file contains rows of the form
 
@@ -389,8 +389,8 @@ class ConditionalProbability1D2D(object):
             :param col_cv: column index of the collective variable CV in the given input file.
             :type col_cv: int, optional, default=3
             
-            :param stride: subsamples the collective variables every n steps.
-            :type stride: int, optional, default=1
+            :param sub: slice object to subsample the file.
+            :type sub: slice, optional, default=slice(None, None, None)
 
             :param finish: set this to True if the given file name(s) are the only relevant trajectories and hence the conditional probability should be computed from only these trajectories. Setting it to True will therefore trigger propper normalisation of the conditional probability. Set this to False if you intend to call the routine *process_trajectory_xyz* again later on with additional trajectory files.
             :type finish: bool, optional, default=True
@@ -402,7 +402,7 @@ class ConditionalProbability1D2D(object):
         for fn in fns:
             print('  Reading data from %s' %fn)
             data = np.loadtxt(fn)
-            data = data[::stride]
+            data = data[sub]
             for row in data:
                 q1i, q2i, cvi = row[col_q1], row[col_q2], row[col_cv]
                 if not self.cvmin<=cvi<=self.cvmax:
