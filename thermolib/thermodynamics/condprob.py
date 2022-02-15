@@ -576,5 +576,5 @@ class ConditionalProbability1D2D(object):
         if fep.fupper is not None:
             fupper = deproject(fep.fupper)
         if fep.flower is not None:
-            flower = deproject(fep.fupflowerper)
+            flower = deproject(fep.flower)
         return FreeEnergySurface2D(self.q1s, self.q2s, fs, fep.T, fupper=fupper, flower=flower, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, f_output_unit=f_output_unit, cv1_label=self.q1_label, cv2_label=self.q2_label)
