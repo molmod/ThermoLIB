@@ -178,12 +178,15 @@ class RateFactorEquilibrium(BaseRateFactor):
         These computational methods are implemented in the :meth:`thermolib.thermodynamics.rate.RateFactorEquilibrium.proces_trajectory` routine.
     '''
 
-    def process_trajectory(self, fn_xyz, finish=True, fn_samples=None, momenta='analytical', Nmomenta=500, verbose=False):
+    def process_trajectory(self, fn_xyz, sub=slice(None,None,None), finish=True, fn_samples=None, momenta='analytical', Nmomenta=500, verbose=False):
         '''
             Process the given XYZ trajectory and store T and N values.
 
             :param fn_xyz: filename of the trajectory from which the rate factor will be computed.
             :type fn_xyz: str
+            
+            :param sub: slice object to subsample the xyz trajectory. For more information see https://molmod.github.io/molmod/reference/io.html#module-molmod.io.xyz
+            :type sub: slice, optional, default=(None,None,None)
 
             :param finish: when set to True, the finish routine will be called after processing the trajectory, which will finalize storing the data. If multiple trajectory from different files need to be read, set finish to False for all but the last trajectory.
             :type finish: bool, optional, default=True
@@ -205,7 +208,7 @@ class RateFactorEquilibrium(BaseRateFactor):
             :type verbose: bool, optional, default=False
         '''
         #initialization
-        xyzreader = XYZReader(fn_xyz)
+        xyzreader = XYZReader(fn_xyz, sub=sub)
         masses = np.array([pt[Z].mass for Z in xyzreader.numbers])
         Natoms = len(masses)
         masses3 = np.array([masses, masses, masses]).T.reshape([3*Natoms, 1]).flatten()
