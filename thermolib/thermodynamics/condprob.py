@@ -67,7 +67,7 @@ class ConditionalProbability1D1D(object):
         self.pcvs = np.zeros(self.cvnum)
         self._finished = False
 
-    def process_trajectory_xyz(self, fns, Q1, CV, finish=True):
+    def process_trajectory_xyz(self, fns, Q1, CV, sub=slice(None,None,None), finish=True):
         '''
             Compute the conditional probability p(q1|cv) (and norm for final normalisation) by processing a series of XYZ trajectory files. The final probability is estimated as the average over all given files. These files may also contain data from biased simulations.
 
@@ -79,6 +79,9 @@ class ConditionalProbability1D1D(object):
 
             :param CV: collective variable definition used to compute the CV value, should be an object with the *compute* routine to compute the value of the collective variable given a set of molecular coordinates.
             :type CV: classes defined in :mod:`thermolib.thermodynamics.cv`
+            
+            :param sub: slice object to subsample the trajectory, for more information see https://molmod.github.io/molmod/reference/io.html#module-molmod.io.xyz
+            :type sub: slice, optional, default=slice(None, None, None)
 
             :param finish: set this to True if the given file name(s) are the only relevant trajectories and hence the conditional probability should be computed from only these trajectories. Setting it to True will therefore trigger propper normalisation of the conditional probability. Set this to False if you intend to call the routine *process_trajectory_xyz* again later on with additional trajectory files.
             :type finish: bool, optional, default=True
@@ -88,7 +91,7 @@ class ConditionalProbability1D1D(object):
         print('Constructing/updating conditional probability with input from XYZ trajectory files ...')
         if not isinstance(fns, list): fns = [fns]
         for fn in fns:
-            xyz = XYZReader(fn)
+            xyz = XYZReader(fn, sub=sub)
             for title, coords in xyz:
                 cvi = CV.compute(coords, deriv=False)
                 if not self.cvmin<=cvi<=self.cvmax:
@@ -108,7 +111,7 @@ class ConditionalProbability1D1D(object):
         if finish:            
             self.finish()
 
-    def process_trajectory_cvs(self, fns, col_q1=1, col_cv=2, finish=True):
+    def process_trajectory_cvs(self, fns, col_q1=1, col_cv=2, sub=slice(None,None,None), finish=True):
         '''
             Compute the conditional probability p(q1|cv) (and norm for final normalisation) by processing a series of CV trajectory files. Each CV trajectory file contains rows of the form
 
@@ -124,6 +127,9 @@ class ConditionalProbability1D1D(object):
 
             :param col_cv: column index of the collective variable CV in the given input file.
             :type col_cv: int, optional, default=2
+            
+            :param sub: slice object to subsample the file.
+            :type sub: slice, optional, default=slice(None, None, None)
 
             :param finish: set this to True if the given file name(s) are the only relevant trajectories and hence the conditional probability should be computed from only these trajectories. Setting it to True will therefore trigger propper normalisation of the conditional probability. Set this to False if you intend to call the routine *process_trajectory_xyz* again later on with additional trajectory files.
             :type finish: bool, optional, default=True
@@ -135,6 +141,7 @@ class ConditionalProbability1D1D(object):
         for fn in fns:
             print('  Reading data from %s' %fn)
             data = np.loadtxt(fn)
+            data = data[sub]
             self.pconds[:-1, :-1] += np.histogram2d(data[:, col_q1], data[:, col_cv], bins=(self.q1s, self.cvs))[0]
             self.norms[:-1] += np.histogram(data[:, col_cv], bins=self.cvs)[0]
         if finish:
@@ -310,7 +317,7 @@ class ConditionalProbability1D2D(object):
         self.pcvs = np.zeros(self.cvnum)
         self._finished = False
 
-    def process_trajectory_xyz(self, fns, Q1, Q2, CV, finish=True):
+    def process_trajectory_xyz(self, fns, Q1, Q2, CV, sub=slice(None,None,None), finish=True):
         '''
             Compute the conditional probability :math:`p(q_1,q_2|v)` (and norm for final normalisation) by processing a series of XYZ trajectory files. The final probability is estimated as the average over all given files. These files may also contain data from biased simulations as long as the bias is constant over the simulation. For example, data from Umbrella Sampling is OK, while data from metadynamica itself is not. Data obtained from a regular MD with the final MTD profile as bias is OK.
 
@@ -325,6 +332,9 @@ class ConditionalProbability1D2D(object):
 
             :param CV: collective variable definition used to compute the CV value, should be an object with the *compute* routine to compute the value of the collective variable given a set of molecular coordinates.
             :type CV: classes defined in :mod:`thermolib.thermodynamics.cv`
+            
+            :param sub: slice object to subsample the trajectory, for more information see https://molmod.github.io/molmod/reference/io.html#module-molmod.io.xyz
+            :type sub: slice, optional, default=slice(None, None, None)
 
             :param finish: set this to True if the given file name(s) are the only relevant trajectories and hence the conditional probability should be computed from only these trajectories. Setting it to True will therefore trigger propper normalisation of the conditional probability. Set this to False if you intend to call the routine *process_trajectory_xyz* again later on with additional trajectory files.
             :type finish: bool, optional, default=True
@@ -333,7 +343,7 @@ class ConditionalProbability1D2D(object):
             raise RuntimeError("Cannot read additional XYZ trajectory because current conditional probability has already been finished.")
         if not isinstance(fns, list): fns = [fns]
         for fn in fns:
-            xyz = XYZReader(fn)
+            xyz = XYZReader(fn, sub=sub)
             for title, coords in xyz:
                 cvi = CV.compute(coords, deriv=False)
                 if not self.cvmin<=cvi<=self.cvmax:
@@ -359,7 +369,7 @@ class ConditionalProbability1D2D(object):
         if finish:            
             self.finish()
 
-    def process_trajectory_cvs(self, fns, col_q1=1, col_q2=2, col_cv=3, finish=True, tolerance=1e-6):
+    def process_trajectory_cvs(self, fns, col_q1=1, col_q2=2, col_cv=3, sub=slice(None,None,None), finish=True, tolerance=1e-6):
         '''
             Routine to update conditional probability :math:`p(q_1,q_2|v)` (and norm for final normalisation) by processing a series of CV trajectory file. Each CV trajectory file contains rows of the form
 
@@ -378,6 +388,9 @@ class ConditionalProbability1D2D(object):
 
             :param col_cv: column index of the collective variable CV in the given input file.
             :type col_cv: int, optional, default=3
+            
+            :param sub: slice object to subsample the file.
+            :type sub: slice, optional, default=slice(None, None, None)
 
             :param finish: set this to True if the given file name(s) are the only relevant trajectories and hence the conditional probability should be computed from only these trajectories. Setting it to True will therefore trigger propper normalisation of the conditional probability. Set this to False if you intend to call the routine *process_trajectory_xyz* again later on with additional trajectory files.
             :type finish: bool, optional, default=True
@@ -389,6 +402,7 @@ class ConditionalProbability1D2D(object):
         for fn in fns:
             print('  Reading data from %s' %fn)
             data = np.loadtxt(fn)
+            data = data[sub]
             for row in data:
                 q1i, q2i, cvi = row[col_q1], row[col_q2], row[col_cv]
                 if not self.cvmin<=cvi<=self.cvmax:
@@ -562,5 +576,5 @@ class ConditionalProbability1D2D(object):
         if fep.fupper is not None:
             fupper = deproject(fep.fupper)
         if fep.flower is not None:
-            flower = deproject(fep.fupflowerper)
+            flower = deproject(fep.flower)
         return FreeEnergySurface2D(self.q1s, self.q2s, fs, fep.T, fupper=fupper, flower=flower, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, f_output_unit=f_output_unit, cv1_label=self.q1_label, cv2_label=self.q2_label)

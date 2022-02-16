@@ -363,7 +363,7 @@ def read_wham_input(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1,
         print('WARNING: temperature could not be read from %s' %fn)
     return temp, biasses, trajectories
 
-def read_wham_input_2D(fn, path_template_colvar_fns='%s', kappa1_unit='kjmol', kappa2_unit='kjmol', q01_unit='au', q02_unit='au', start=0, end=-1, stride=1, bias_potential='Parabola2D',additional_bias=None,additional_bias_dimension='q1',inverse_cv1=False,inverse_cv2=False, verbose=False):
+def read_wham_input_2D(fn, path_template_colvar_fns='%s', colvar_cv1_column_index=1, colvar_cv2_column_index=2, kappa1_unit='kjmol', kappa2_unit='kjmol', q01_unit='au', q02_unit='au', start=0, end=-1, stride=1, bias_potential='Parabola2D',additional_bias=None,additional_bias_dimension='q1',inverse_cv1=False,inverse_cv2=False, verbose=False):
     '''
         Read the input for a WHAM reconstruction of the 2D free energy surface from a set of Umbrella Sampling simulations. The file specified by fn should have the following format:
 
@@ -385,7 +385,7 @@ def read_wham_input_2D(fn, path_template_colvar_fns='%s', kappa1_unit='kjmol', k
             Window3/r1 1.50 -0.2 1000.0 1000.0
             ...
         
-        Then the colvar trajectory file of the first potential can be found through the path (relative to the wham input file) 'Window1/r1/COLVAR' and so on. These colvar files contain the trajectory of the relevant collective variable during the biased simulation. Finally, these trajectory files should be formatted as outputted by PLUMED:
+        Then the colvar trajectory file of the first potential can be found through the path (relative to the wham input file) 'Window1/r1/COLVAR' and so on. These colvar files contain the trajectory of the relevant collective variable during the biased simulation. Finally, these trajectory files should be formatted as outputted by PLUMED (if the desired collective variable columns are not the default second and third, these can be specified with colvar_cv1_column_index and colvar_cv2_column_index):
 
         .. code-block:: python
 
@@ -491,9 +491,9 @@ def read_wham_input_2D(fn, path_template_colvar_fns='%s', kappa1_unit='kjmol', k
                 data = np.loadtxt(fn_traj)
                 biasses.append(bias)
                 if end==-1:
-                    trajectories.append(data[start::stride,1:3])#COLVAR format: CV1 is second column and CV2 is third column
+                    trajectories.append(data[start::stride,[colvar_cv1_column_index,colvar_cv2_column_index]])#COLVAR format: CV1 is column colvar_cv1_column_index and CV2 is column colvar_cv2_column_index
                 else:
-                    trajectories.append(data[start:end:stride,1:3])#COLVAR format: CV1 is second column and CV2 is third column
+                    trajectories.append(data[start:end:stride,[colvar_cv1_column_index,colvar_cv2_column_index]])#COLVAR format: CV1 is column colvar_cv1_column_index and CV2 is column colvar_cv2_column_index
                 if verbose:
                     print('  added %s' %bias.print_info())
                     print('  trajectory read from %s' %fn_traj)
