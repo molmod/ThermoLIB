@@ -14,6 +14,7 @@ from molmod.units import *
 from molmod.constants import *
 from molmod.periodic import periodic as pt
 from molmod.io.xyz import XYZReader, XYZFile
+from molmod.io.h5 import h5Reader
 from molmod.minimizer import check_delta
 from molmod.unit_cells import UnitCell
 
@@ -89,7 +90,7 @@ class BaseRateFactor(object):
         self.A_err = np.nan
         return self.A
 
-    def result_blav(self, fn=None, blocksizes=None, fitrange=[0,-1], exponent=1, verbose=True, plot_ac=False, ac_range=None, acft_plot_range=None):
+    def result_blav(self, fn=None, blocksizes=None, fitrange=[0,-1], exponent=1, plot=True, verbose=True, plot_ac=False, ac_range=None, acft_plot_range=None):
         'Compute rate factor A and estimate its error with block averaging'
         assert self._finished, "Reading trajectory data is not finished yet"
         As = self.As[~np.isnan(self.As)]
@@ -97,7 +98,7 @@ class BaseRateFactor(object):
         if blocksizes is None:
             blocksizes = np.arange(1,len(As)//2+1,1)
         if fn is not None:
-            fn_A = fn
+            fn_A = fn+'blav_rate_A.png'
         self.A, self.A_err, Acorrtime = blav(As, blocksizes=blocksizes, fitrange=fitrange, exponent=exponent, fn_plot=fn_A, unit='1e12/s', plot_ac=plot_ac, ac_range=ac_range, acft_plot_range=acft_plot_range)
         if verbose:
             print('Rate factor directly with block averaging:')
@@ -224,6 +225,59 @@ class RateFactorEquilibrium(BaseRateFactor):
             print('Estimating rate factor from trajectory %s for TS=[%.3f,%.3f] %s using %s momentum integration' %(fn_xyz, self.CV_TS_lims[0]/parse_unit(self.CV_unit), self.CV_TS_lims[1]/parse_unit(self.CV_unit), self.CV_unit, momenta))
         for i, (title, coords) in enumerate(xyzreader):
             #framenumber = int(title.split()[2].rstrip(','))
+            self._compute_contribution(coords, momenta=momenta, Nmomenta=Nmomenta, verbose=verbose)
+        
+        if finish:
+            if verbose:
+                print('Finishing')
+            self.finish(fn=fn_samples)
+
+    def process_trajectory_h5(self, fn_h5, sub=slice(None,None,None), finish=True, fn_samples=None, momenta='analytical', Nmomenta=500, verbose=False):
+        '''
+            Process the given XYZ trajectory and store T and N values.
+
+            :param fn_h5: filename of the trajectory from which the rate factor will be computed.
+            :type fn_h5: str
+            
+            :param sub: slice object to subsample the xyz trajectory. For more information see https://molmod.github.io/molmod/reference/io.html#module-molmod.io.xyz
+            :type sub: slice, optional, default=(None,None,None)
+
+            :param finish: when set to True, the finish routine will be called after processing the trajectory, which will finalize storing the data. If multiple trajectory from different files need to be read, set finish to False for all but the last trajectory.
+            :type finish: bool, optional, default=True
+
+            :param fn_samples: write the rate factor samples (i.e. the As array) to the given file. This feature is switched off by specifying None.
+            :type fn_samples: str, optional, default=None
+
+            :param momenta: specify how to compute the momentum part of the phase space integral in computing the As samples (see description above). The following options are available:
+            
+                * **analytical** -- compute the momentum integral analytically, is hence the fastest method
+                * **MB** -- compute the momentum integral numerical by taking random samples for the velocity from the Maxwell-Boltzmann distribution.
+
+            :type momenta: string, optional, default=analytical
+
+            :param Nmomenta: the number of momentum samples taken from the given distribution in case of numerical momentum integration. This keyword is only relevant when momenta is not set to analytical.
+            :type Nmomenta: float, optional, default=500
+
+            :param verbose: increase verbosity by setting to True.
+            :type verbose: bool, optional, default=False
+        '''
+        #initialization
+        masses = h5Reader(fn_h5, subdirectory='/system/masses/').read_subdirectory()
+        Natoms = len(masses)
+        masses3 = np.array([masses, masses, masses]).T.reshape([3*Natoms, 1]).flatten()
+        if self.Natoms is None:
+            self.Natoms = Natoms
+            self.masses = masses3
+            self._inv_sqrt_masses = 1.0/np.sqrt(masses3)
+        else:
+            assert self.Natoms==len(masses), "Incompatible number of atoms in file %s with respect to previously read files" %fn_h5
+            assert (self.masses==masses3).all(), "Incompatible masses in file %s with respect to previously read files" %fn_h5
+        
+        if verbose:
+            print('Estimating rate factor from trajectory %s for TS=[%.3f,%.3f] %s using %s momentum integration' %(fn_h5, self.CV_TS_lims[0]/parse_unit(self.CV_unit), self.CV_TS_lims[1]/parse_unit(self.CV_unit), self.CV_unit, momenta))
+        
+        coords = h5Reader(fn_h5, subdirectory='/trajectory/pos/').read_subdirectory()
+        for coords in h5Reader(fn_h5, subdirectory='/trajectory/pos/').read_subdirectory():
             self._compute_contribution(coords, momenta=momenta, Nmomenta=Nmomenta, verbose=verbose)
         
         if finish:
