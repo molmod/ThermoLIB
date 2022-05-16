@@ -705,7 +705,7 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
         for i in range(len(cvs)-1):
             self.macrostates.append(self.macrostate(cvrange=cvs[i:i+2], verbose=verbose))
 
-    def plot(self, fn, rate=None, micro_marker='s', micro_color='r', micro_size='4', macro_linestyle='-', macro_color='b', do_latex=False):
+    def plot(self, fn, rate=None, micro_marker='s', micro_color='r', micro_size='4', macro_linestyle='-', macro_color='b', do_latex=False, fig_size=[16,8]):
         '''
             Plot the free energy profile including visualization of the microstates (markers) and macrostates (lines) defined by :meth:`set_microstates` and :meth:`set_macrostates` respectively. The values of CV and free energy are plotted in units specified by the cv_unit and f_output_unit attributes of the self instance.
 
@@ -815,7 +815,7 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
                 fig.text(0.65, 0.18, 'dF_F = %.3f kJ/mol' %(dF_forward/kjmol), fontsize=16)
                 fig.text(0.65, 0.14, 'dF_B = %.3f kJ/mol' %(dF_backward/kjmol), fontsize=16)
         #save
-        fig.set_size_inches([12,8])
+        fig.set_size_inches(fig_size)
         pp.savefig(fn)
         return
 

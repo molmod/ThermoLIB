@@ -276,8 +276,6 @@ class RateFactorEquilibrium(BaseRateFactor):
         if verbose:
             print('Estimating rate factor from trajectory %s for TS=[%.3f,%.3f] %s using %s momentum integration' %(fn_h5, self.CV_TS_lims[0]/parse_unit(self.CV_unit), self.CV_TS_lims[1]/parse_unit(self.CV_unit), self.CV_unit, momenta))
         
-        print(h5Reader(fn_h5, subdirectory='/trajectory/pos/').read_subdirectory()[1])
-        
         coords = h5Reader(fn_h5, subdirectory='/trajectory/pos/').read_subdirectory()
         for coords in h5Reader(fn_h5, subdirectory='/trajectory/pos/').read_subdirectory():
             self._compute_contribution(coords, momenta=momenta, Nmomenta=Nmomenta, verbose=verbose)
