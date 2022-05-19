@@ -14,7 +14,7 @@ from molmod.units import *
 from molmod.constants import *
 from molmod.periodic import periodic as pt
 from molmod.io.xyz import XYZReader, XYZFile
-from molmod.io.h5 import h5Reader
+#from molmod.io.h5 import h5Reader
 from molmod.minimizer import check_delta
 from molmod.unit_cells import UnitCell
 
