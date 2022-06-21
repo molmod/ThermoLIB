@@ -209,7 +209,37 @@ def wham2d_bias(int Nsims, int Ngrid1, int Ngrid2, double beta, list biasses, do
     return bs
 
 
-def wham2d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=3] Hs, np.ndarray[double, ndim=3] bs, np.ndarray[double, ndim=2] pinit, int Nscf=1000, double convergence=1e-6, verbose=False):
+def wham2d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=3] Hs, np.ndarray[double, ndim=3] bs, np.ndarray[double, ndim=2] pinit, int Nscf=1000, double convergence=1e-6, double overflow_threshold=1e-150, verbose=False):
+    '''
+        Internal routine to solve the 2D WHAM equations,
+
+        * 1/f_i = sum_k b_ik a_k
+        * a_k = sum_i H_ik / sum_i N_i f_i b_ik
+
+        which clearly requires an iterative solution. To avoid floating point errors in the calculation of the first equation, we check whether f_i > overflow_threshold.
+        Similarly, we check whether the denominator of eqution 2 > overflow_threshold. This corresponds to only keeping those simulations with relevant information.
+
+        :param Nis: the number of simulation steps in each simulation
+        :type Nis: np.ndarray(Nsims)
+
+        :param Hs: the histogram counts for each simulation, for each grid point
+        :type Nis: np.ndarray(Nsims, Ngrid1, Ngrid2)
+
+        :param bs: the biasses (for each simulation) precomputed on the 2D CV grid
+        :type bs: np.ndarray(Nsims,Ngrid1,Ngrid2)
+
+        :param pinit: the initial unbiased probability density
+        :type pinit: np.ndarray(Ngrid1, Ngrid2)
+
+        :param Nscf: maximum number of scf cycles, convergence should be reached before Nscf steps
+        :type Nscf: int, optional, default=1000
+
+        :param convergence: convergence criterion for scf cycle, if integrated difference (sum of the absolute element-wise difference between subsequent predictions of the unbiased probability a_k) is lower than this value, SCF is converged
+        :type convergence: double, optional, default=1e-6
+
+        :param overflow_threshold: numerical threshold to avoid overflow errors when calculating the normalization factors and the denominator of the unbiased probability a_k
+        :type overflow_threshold: double, optional, default=1e-150
+    '''
     cdef double integrated_diff, pmax
     cdef np.ndarray[double, ndim=2] as_old, as_new
     cdef np.ndarray[double] fs
@@ -219,14 +249,13 @@ def wham2d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=3] Hs, np.ndarray[dou
     cdef np.ndarray[np.uint8_t, ndim=2] grid_mask
     cdef int Ngrid1, Ngrid2, Nsims, iscf
     cdef int converged = 0
-    cdef double threshold = 1e-250 # arbitrary low number threshold to avoid number overflow
     ##initialize
     Nsims = Hs.shape[0]
     Ngrid1 = Hs.shape[1]
     Ngrid2 = Hs.shape[2]
     as_old = pinit.copy()
     nominator = Hs.sum(axis=0) #precomputable factor in WHAM update equations
-    sims_mask = np.ones(Nsims,dtype=bool) # ADAPT ME PLEASE
+    sims_mask = np.ones(Nsims,dtype=bool)
     grid_mask = np.ones((Ngrid1, Ngrid2),dtype=bool)
 
     for iscf in range(Nscf):
@@ -234,19 +263,20 @@ def wham2d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=3] Hs, np.ndarray[dou
         inverse_fs = np.einsum('ikl,kl->i', bs, as_old)
 
         # Calculate mask for simulations
-        if np.any(inverse_fs<threshold):
-            new_sims_mask = (inverse_fs>=threshold)
+        if np.any(inverse_fs<overflow_threshold):
+            new_sims_mask = (inverse_fs>=overflow_threshold)
             if not np.array_equiv(new_sims_mask,sims_mask):
                 sims_mask = new_sims_mask
+                # Recalculate nominator when sims_mask changes
                 nominator = Hs[sims_mask,:,:].sum(axis=0)
 
         #compute new probabilities
         denominator = np.einsum('i,i,ikl->kl', Nis[sims_mask], 1.0/inverse_fs[sims_mask], bs[sims_mask])
 
         # Calculate mask for grid
-        if np.any(denominator<threshold):
-            grid_mask = (denominator>=threshold)
-            # check whether Hs < threshold for those points in the sims_mask that would be taken out by grid_mask, then we have 0/0
+        if np.any(denominator<overflow_threshold):
+            grid_mask = (denominator>=overflow_threshold)
+            # check whether Hs is close to 0 for those points in the sims_mask that would be taken out by grid_mask, then we have as_new = 0/0
             if not np.isclose(np.sum(Hs[sims_mask][:,~grid_mask]),0.):
                 warnings.warn('Grid indices are being masked that contain a total of at least 1 histogram count ({}/{} = {:2.4f}%).'.format(np.sum(Hs[sims_mask][:,~grid_mask]),np.sum(Hs[sims_mask,:]),(np.sum(Hs[sims_mask][:,~grid_mask])/np.sum(Hs[sims_mask,:]))*100))
 
@@ -272,7 +302,7 @@ def wham2d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=3] Hs, np.ndarray[dou
         as_old = as_new.copy()
 
     if verbose:
-        print('WARNING: the following simulations were removed from the WHAM analysis beacuse the bias was centered in a region with a prohibitively low unbiased probability: ' + ','.join([str(i) for i in np.where(~sims_mask)[0]]))
+        print('WARNING: the following simulations were removed from the WHAM analysis because the bias was centered in a region with a prohibitively low unbiased probability: ' + ','.join([str(i) for i in np.where(~sims_mask)[0]]))
         print('WARNING: the following grid locations were ignored in the WHAM analysis due to extremely unlikely probability:')
         lines = []
         for i in range(Ngrid1):
@@ -290,7 +320,7 @@ def wham2d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=3] Hs, np.ndarray[dou
 
 def wham2d_error(np.ndarray[double, ndim=2] ps, np.ndarray[double] fs, np.ndarray[double, ndim=3] bs, np.ndarray[long] Nis,  method='mle_f', int nsigma=2, verbose=False):
     '''
-        Internal routine to compute the error assiciated with solving the 2D WHAM equations using the Fisher information coming from the Maximum Likelihood Estimator. The procedure is as follows:
+        Internal routine to compute the error associated with solving the 2D WHAM equations using the Fisher information coming from the Maximum Likelihood Estimator. The procedure is as follows:
 
         * construct the extended Fisher information matrix by taking the weighted sum of the Fisher information matrix of each simulation. This is very similar as in the 1D case. However, we first have to flatten the CV1,CV2 2D grid to a 1D CV12 grid. This is achieved with the flatten function (which flattens a 2D index to a 1D index). Deflattening of the CV12 grid to a 2D CV1,CV2 grid is achieved with the deflatten function (which deflattens a 1D index to a 2D index). Using the flatten function, the ps array is flattened and a conventional Fisher matrix can be constructed and inverted. Afterwards the covariance matrix is deflattened using the deflatten function to arrive to a multidimensional matrix giving (co)variances on the 2D probability array.
         * filter out the zero-rows and columns corresponding to absent histogram counts using the masking procedure
@@ -302,11 +332,10 @@ def wham2d_error(np.ndarray[double, ndim=2] ps, np.ndarray[double] fs, np.ndarra
 
         :param fs: the final normalization factor for the biased probability density of each simulation as computed by solving the WHAM equations
         :type fs: np.ndarray(Nsim)
-        :note: contains nan values a sim indices
+        :note: contains nan values at sim indices
 
         :param bs: the biasses (for each simulation) precomputed on the 2D CV grid
         :type bs: np.ndarray(Nsim,Ngrid1,Ngrid2)
-
 
         :param Nis: the number of simulation steps in each simulation
         :type Nis: np.ndarray(Nsims)
@@ -374,7 +403,7 @@ def wham2d_error(np.ndarray[double, ndim=2] ps, np.ndarray[double] fs, np.ndarra
                             Ii[K,-1] = -ps[k,l]
                             Ii[-1,K] = -ps[k,l]
                         else:
-                            raise IOError('Recieved invalid argument for method, recieved %s. Check routine signature for more information on allowed values.' %method)
+                            raise IOError('Received invalid argument for method, recieved %s. Check routine signature for more information on allowed values.' %method)
             Ii[Ngrid+i, Ngrid+i] = 1/fs[i]**2
             Ii[Ngrid+i, Ngrid+Nsims+i] = 1/fs[i]
             Ii[Ngrid+Nsims+i, Ngrid+i] = 1/fs[i]
@@ -396,7 +425,7 @@ def wham2d_error(np.ndarray[double, ndim=2] ps, np.ndarray[double] fs, np.ndarra
     for k in range(Ngrid1):
         for l in range(Ngrid2):
             K = flatten(k,l)
-            if np.isnan(ps[k,l]) or ps[k,l]==0: # account for faulty grid locations
+            if np.isnan(ps[k,l]) or ps[k,l]==0: # account for not-sampled grid locations
                 mask[K,:] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
                 mask[:,K] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
 
@@ -411,7 +440,7 @@ def wham2d_error(np.ndarray[double, ndim=2] ps, np.ndarray[double] fs, np.ndarra
     sigma = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])*np.nan
     sigma[mask] = np.linalg.inv(Imask).reshape([Nmask2])
 
-    #the error bar on the probability of bin (k,l) is now simply the [K,K]-diagonal element of sigma (with K corresponding to the flattend (k,l))
+    #the error bar on the probability of bin (k,l) is now simply the [K,K]-diagonal element of sigma (with K corresponding to the flattened (k,l))
     if verbose:
         print('  constructing error bars ...')
     perr = np.zeros([Ngrid1,Ngrid2], dtype=float)
@@ -420,8 +449,9 @@ def wham2d_error(np.ndarray[double, ndim=2] ps, np.ndarray[double] fs, np.ndarra
         try:
             perr[k,l] = np.sqrt(sigma[K,K])
         except FloatingPointError: #negative sigma
+            warnings.warn('Negative sigma**2 values encountered. This is likely because of numerical noise. Increase the overflow threshold to fix this.')
             if verbose:
-                print('Got a negative sigma for grid point: ', k,l)
+                print('Got a negative sigma for grid point: ', k,l, sigma[K,K], ps[k,l])
             perr[k,l] = np.sqrt(-sigma[K,K])
 
     if method in ['mle_p']:
