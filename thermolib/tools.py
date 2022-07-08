@@ -227,7 +227,7 @@ def blav(data, blocksizes=None, fitrange=[0,-1], exponent=1, fn_plot=None, unit=
             axs[1,1].set_xlabel('Frequency [1/timestep]')
             axs[1,1].set_ylabel('Amplitude [-]')
             if acft_plot_range is not None:
-                axs[1,1].set_xlim(acft_plot_range)
+                axs[1,1].set_xlim(acft_plot_range)                
             
         axs[0,1].plot(blocksizes, errors/parse_unit(unit), color='b', linestyle='none', marker='o', markersize=1)
         axs[0,1].plot(blocksizes, function(blocksizes,error,corrtime)/parse_unit(unit), color='r', linestyle='-', linewidth=1)
@@ -495,7 +495,7 @@ def read_wham_input_2D(fn, path_template_colvar_fns='%s', kappa1_unit='kjmol', k
                 else:
                     trajectories.append(data[start:end:stride,1:3])#COLVAR format: CV1 is second column and CV2 is third column
                 if verbose:
-                    print('  added %s' %bias.print_info())
+                    print('  added %s' %bias.print())
                     print('  trajectory read from %s' %fn_traj)
                     print('')
             elif bias_potential not in ['Parabola2D']:

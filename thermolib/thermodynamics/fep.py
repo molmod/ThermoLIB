@@ -10,6 +10,7 @@
 # Van Speybroeck. Usage of this package should be authorized by prof. Van
 # Van Speybroeck.
 
+from this import d
 from molmod.units import *
 from molmod.constants import *
 
@@ -292,7 +293,6 @@ class BaseFreeEnergyProfile(object):
             data = np.vstack((self.cvs/parse_unit(self.cv_output_unit), self.fs/parse_unit(self.f_output_unit), self.flower/parse_unit(self.f_output_unit), self.fupper/parse_unit(self.f_output_unit))).T
         np.savetxt(fn_txt, data, header=header)
 
-
     def process_states(self, *args, **kwargs):
         raise NotImplementedError('BaseFreeEnergyProfile has no routine process_states implemented. Try to convert the free energy profile to a SimpleFreeEnergyProfile first.')
 
@@ -338,7 +338,7 @@ class BaseFreeEnergyProfile(object):
         self.ps[mask] = np.exp(-self.beta*self.fs[mask])
         self.ps /= integrate(self.cvs[mask], self.ps[mask])
 
-    def macrostate(self, cvrange=None, indexes=None, verbose=False):
+    def macrostate(self, cvrange=None, indexes=None, verbose=False, do_error=False, nsigma=2, Ncycles=100):
         '''
             Return the contribution to the partition function and free energy corresponding to the macrostate in the given range of cvs. This contribution is computed as follows. 
 
@@ -361,12 +361,22 @@ class BaseFreeEnergyProfile(object):
             :param verbose: set to true to turn on verbosity, defaults to False
             :type verbose: bool, optional
 
+            :param do_error: set to true to use the error bars defined in self.fupper and self.flower to estimate lower and upper error bars on the macrostate partition function and free energy. First a the error bar on the free energy will be reduced to a normal distribution standard deviation (std = (self.fupper-self.flower)/nsigma)). Next, the value of the partition function and free energy for the macrostates will be computed Ncycle times, where in each cycle normally distributed errors will be added to the self.fs profile. Finally, the mean and std on the resulting Ncycle estimates for Z and F will be used as mean and error bar.
+            :type verbose: bool, optional
+
+            :param nsigma: the number of sigmas used in the n-sigma interval to compute the error bars self.flower and self.fupper. This nsigma is used to recompute the normally distributed standard deviation from (self.fupper-self.flower)/nsigma, which is in term required for the error estimation on the macrostate Z and F.
+
             :return: 
                 *  **mean** (float) - the expected (=mean) value of the collective variable in the macrostate
                 *  **std** (float) - the thermal fluctuation (=standard deviation) of the CV in the macrostate
                 *  **Z** (float) - the contribution of the macrostate to the partition function
                 *  **F** (float) - the free energy of the given macrostate
+                *  **Zerr** (float) - only returned if do_error is set to True, the estimated error bar on Z
+                *  **Ferr** (float) - only returned if do_error is set to True, the estimated error bar on F
         '''
+        if do_error:
+            assert self.flower is not None, "flower attribute needs to be defined to be able to perform error estimation of macrostate"
+            assert self.fupper is not None, "fupper attribute needs to be defined to be able to perform error estimation of macrostate"
         if verbose: print('Processing macrostate(indices=%s, cvrange=%s)' %(indexes, cvrange))
         if indexes is None:
             if cvrange is not None:
@@ -384,13 +394,27 @@ class BaseFreeEnergyProfile(object):
                 sys.exit()
         else:
             if cvrange is not None:
-                print('WARNING: both indexes and cvrange given, I ignored cvrange')
+                print('WARNING: both indexes and cvrange given, cvrange was ignored')
         cvs = self.cvs[np.array(indexes)]
         fs = self.fs[np.array(indexes)]
+        if do_error:
+            flowers = self.flower[np.array(indexes)]
+            fuppers = self.fupper[np.array(indexes)]
         ps = self.ps[np.array(indexes)]
-        P = integrate(cvs, ps)
-        Z = integrate(cvs, np.exp(-self.beta*fs))
-        F = -np.log(Z)/self.beta
+        if do_error:
+            Ps, Zs, Fs = np.zeros(Ncycles, dtype=float)
+            for icycle in range(Ncycles):
+                fs_err =  fs + np.random.normal(fs, (fuppers-flowers)/nsigma)
+                Zs[i] = integrate(cvs, np.exp(-self.beta*fs_err))
+                Fs[i] = -np.log(Zs[i])/self.beta
+                Ps[i] = Zs[i]/(np.exp(-self.beta*fs_err).sum())
+            P, Perr = Ps.mean(), Ps.std()
+            Z, Zerr = Zs.mean(), Zs.std()
+            F, Ferr = Fs.mean(), Fs.std()
+        else:
+            P = integrate(cvs, ps)
+            Z = integrate(cvs, np.exp(-self.beta*fs))
+            F = -np.log(Z)/self.beta
         mean = integrate(cvs, ps*cvs)/P
         std = np.sqrt(integrate(cvs, ps*(cvs-mean)**2)/P)
         if verbose:
@@ -405,10 +429,19 @@ class BaseFreeEnergyProfile(object):
             print('  F min     [%s] = ' %self.f_output_unit, min(fs)/parse_unit(self.f_output_unit))
             print('  F max     [%s] = ' %self.f_output_unit, max(fs)/parse_unit(self.f_output_unit))
             print('')
-            print('  F [%s] = ', F/parse_unit(self.f_output_unit))
-            print('  Z [-] = ', Z)
-            print('  P [-] = ', P*100)
-        return mean, std, Z, F
+            if do_error:
+                raise NotImplementedError
+                print('  F [%s] = %.3f +- %.3f' %(F/parse_unit(self.f_output_unit), Ferr/parse_unit(self.f_output_unit)))
+                print('  Z [-] = %.3e +- %.3e', Z)
+                print('  P [-] = %.3f +- %.3f', P*100)
+            else:
+                print('  F [%s] = ' %self.f_output_unit, F/parse_unit(self.f_output_unit))
+                print('  Z [-] = ', Z)
+                print('  P [-] = ', P*100)
+        if not do_error:
+            return mean, std, Z, F
+        else:
+            return mean, std, Z, F, Zerr, Ferr
 
     def plot(self, fn, flim=None):
         '''
@@ -541,13 +574,10 @@ class BaseFreeEnergyProfile(object):
             :param function: The transformation function from the old CV towards the new Q
             :type function: callable
 
-            :param qs: grid of new collective variable Q 
-            :type qs: np.ndarray
-
-            :param derivative: The analytical derivative of the transformation function. If set to None, the derivative will be estimated through numerical differentiatio. Defaults to None
+            :param derivative: The analytical derivative of the transformation function. If set to None, the derivative will be estimated through numerical differentiation. Defaults to None
             :type derivative: callable, optional
 
-            :param cv_label: The label of the new collective variable used in plotting etc, defaults to 'CV'
+            :param cv_label: The label of the new collective variable used in plotting etc, defaults to 'Q'
             :type cv_label: str, optional
 
             :param cv_output_unit: The unit of the new collective varaible used in plotting and printing, defaults to 'au'
@@ -1262,6 +1292,58 @@ class FreeEnergySurface2D(object):
             u_unit = 'au'
             v_unit = 'au'
         return FreeEnergySurface2D(vs, us, fs, self.T, fupper=fupper, flower=flower, cv1_output_unit=v_unit, cv2_output_unit=u_unit, f_output_unit=self.f_output_unit, cv1_label='CV2-CV1', cv2_label='0.5*(CV1+CV2)')
+
+    def transform(self, function, derivative=None, Q1_label='Q1', Q2_label='Q2', Q1_output_unit='au', Q2_output_unit='au'):
+        '''
+            Routine to transform the current free energy surface in terms of the original (CV1,CV2) towards a free energy profile in terms of the new collective variables (Q1,Q2).
+
+            :param function: The transformation function (Q1,Q2) = f_1(CV1,CV2),f_2(CV1,CV2)
+            :type function: callable
+
+            :param derivative: The analytical derivative of the transformation function, i.e. the Jacobian J = [[J_11(CV1,CV2),J_12(CV1,CV2)],[J_21(CV1,CV2),J_22(CV1,CV2)]] given by J_mn(CV1,CV2) = df_m/dCV_n. If set to None, the derivative will be estimated through numerical differentiation. Defaults to None
+            :type derivative: np.array(callable), optional
+
+            :param Q1_label: The label of the new collective variable Q1 used in plotting etc, defaults to 'Q1'
+            :type Q1_label: str, optional
+
+            :param Q2_label: The label of the new collective variable Q2 used in plotting etc, defaults to 'Q2'
+            :type Q2_label: str, optional
+
+            :param Q1_output_unit: The unit of the new collective variable Q1 used in plotting and printing, defaults to 'au'
+            :type Q1_output_unit: str, optional
+
+            :param Q2_output_unit: The unit of the new collective variable Q2 used in plotting and printing, defaults to 'au'
+            :type Q2_output_unit: str, optional
+
+            :return: transformed free energy surface
+            :rtype: the same class as the instance this routine is called upon
+        '''
+        raise NotImplementedError
+        #TODO: not tested yet!
+        f1,f2 = function
+        q1s, q2s = f1(self.cv1s,self.cv2s), f2(self.cv1s,self.cv2s)
+        if derivative is None:
+            eps = min(qs[1:]-qs[:-1])*0.001
+            def J11(cv1,cv2):
+                return (f1(cv1+eps/2,cv2)-f1(cv1-eps/2,cv2))/eps
+            def J12(cv1,cv2):
+                return (f1(cv1,cv2+eps/2)-f1(cv1,cv2-eps/2))/eps
+            def J21(cv1,cv2):
+                return (f2(cv1+eps/2,cv2)-f2(cv1-eps/2,cv2))/eps
+            def J22(cv1,cv2):
+                return (f2(cv1,cv2+eps/2)-f2(cv1,cv2-eps/2))/eps
+            def jacobian(cv1,cv2):
+                raise NotImplementedError
+        dfs = derivative(qs)
+        fs = self.fs - np.log(dfs)/self.beta
+        fupper, flower = None, None
+        if self.fupper is not None:
+            fupper = self.fupper - np.log(dfs)/self.beta
+        if self.flower is not None:
+            flower = self.flower - np.log(dfs)/self.beta
+        return self.__class__(qs, fs, self.T, fupper=fupper, flower=flower, cv_output_unit=cv_output_unit, f_output_unit=self.f_output_unit, cv_label=cv_label)
+
+
 
     def project_difference(self, sign=1, cv_output_unit='au', return_class=BaseFreeEnergyProfile):
         '''
