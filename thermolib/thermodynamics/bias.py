@@ -10,6 +10,7 @@
 # Van Speybroeck. Usage of this package should be authorized by prof. Van
 # Van Speybroeck.
 
+from typing import List
 from molmod.units import *
 from scipy import interpolate
 
@@ -250,6 +251,35 @@ class BiasPotential2D(object):
         fig.set_size_inches([12,8])
         pp.savefig(fn)
 
+
+class BiasPotentialND(object):
+    '''
+        A base class for N-dimensional bias potentials. This abstract class serves as a parent for inheriting child classes which should implement the __call__ routine.
+    '''
+    def __init__(self, name, n:int,inverse_cv: List[bool]|None=None):
+        '''
+            :param name: name for the bias which will also be given in the title of plots
+            :type name: string
+            
+            :param inverse_cv1: TODO
+        '''
+        self.name = name
+        self.sign_qs = np.array([1.0 for _ in range(n)])
+        if inverse_cv is not None:
+            for i,b in enumerate(inverse_cv):
+                if b:
+                    self.sign_qs[i] = -1.0
+        self.n = n
+
+    def __call__(self, *qs):
+        raise NotImplementedError
+    
+    def print(self, *pars_units):
+        return '%s (%s): %s' %(self.__class__.__name__, self.name, self.print_pars(*pars_units))
+
+    def print_pars(self, *pars_units):
+        raise NotImplementedError
+    
 
 class Parabola2D(BiasPotential2D):
     '''
