@@ -98,6 +98,8 @@ class BaseRateFactor(object):
             blocksizes = np.arange(1,len(As)//2+1,1)
         if fn is not None:
             fn_A = fn+'blav_rate_A.png'
+        else:
+            fn_A = 'blav_rate_A.png'
         self.A, self.A_err, Acorrtime = blav(As, blocksizes=blocksizes, fitrange=fitrange, exponent=exponent, fn_plot=fn_A, unit='1e12/s', plot_ac=plot_ac, ac_range=ac_range, acft_plot_range=acft_plot_range)
         if verbose:
             print('Rate factor directly with block averaging:')
