@@ -67,7 +67,7 @@ def wham1d_bias(int Nsims, int Ngrid, double beta, list biasses, double delta, i
 
 def wham1d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=2] Hs, np.ndarray[double, ndim=2] bs, int Nscf=1000, double convergence=1e-6, verbose=False):
     cdef double integrated_diff, pmax
-    cdef np.ndarray[double] as_old, as_new, fs
+    cdef np.ndarray[double] as_old, as_new, fs, delta
     cdef np.ndarray[long] nominator
     cdef int Ngrid, Nsims, iscf, i, k
     cdef int converged = 0
@@ -102,6 +102,19 @@ def wham1d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=2] Hs, np.ndarray[dou
         as_old = as_new.copy()
     #compute final normalization factors
     fs = 1.0/np.einsum('ik,k->i', bs, as_new)
+
+    # calculate consistency error
+    delta = np.zeros(Nsims)
+    # delta_i = 1/M sum_k (P_b_ik - f_i b_ik P_k)**2
+    # with P_b the biased probability density calculated from the histograms
+    as_biased_sampled = ((Hs.T)/Hs.sum(axis=-1)).T # normalize per simulation (Nsims,Ngrid)
+
+    for i in range(Nsims):
+        for k in range(Ngrid):
+            delta[i] += (as_biased_sampled[i,k]-fs[i]*bs[i,k]*as_new[k])**2
+        delta[i] /= Ngrid
+    print(delta)
+
     return as_new, fs, converged
 
 
