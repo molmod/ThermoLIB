@@ -20,6 +20,8 @@ import warnings
 import numpy as np
 cimport numpy as np
 
+import scipy
+
 __all__ = [
     'wham1d_hs', 'wham1d_bias', 'wham1d_scf', 'wham1d_error',
     'wham2d_hs', 'wham2d_bias', 'wham2d_scf', 'wham2d_error',
@@ -65,28 +67,51 @@ def wham1d_bias(int Nsims, int Ngrid, double beta, list biasses, double delta, i
     return bs
 
 
-def wham1d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=2] Hs, np.ndarray[double, ndim=2] bs, int Nscf=1000, double convergence=1e-6, verbose=False):
+def wham1d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=2] Hs, np.ndarray[double, ndim=2] bs, int Nscf=1000, double convergence=1e-6, double overflow_threshold=1e-150, verbose=False):
     cdef double integrated_diff, pmax
-    cdef np.ndarray[double] as_old, as_new, fs, delta
+    cdef np.ndarray[double] as_old, as_new, inverse_fs, delta
     cdef np.ndarray[long] nominator
+    cdef np.ndarray[np.uint8_t] sims_mask, new_sims_mask
     cdef int Ngrid, Nsims, iscf, i, k
     cdef int converged = 0
+
     #initialization
     Nsims = Hs.shape[0]
     Ngrid = Hs.shape[1]
     as_old = np.ones(Ngrid)/Ngrid #probability density (should sum to 1)
     nominator = Hs.sum(axis=0) #precomputable nominator in WHAM equations
+    sims_mask = np.ones(Nsims,dtype=bool)
     for iscf in range(Nscf):
         #compute new normalization factors
-        fs = np.zeros(Nsims)
-        for i in range(Nsims):
-            fs[i] = 1.0/np.dot(bs[i,:],as_old)
+        inverse_fs = np.einsum('ik,k->i', bs, as_old)
+        
+        #fs = np.zeros(Nsims)
+        #for i in range(Nsims):
+        #    fs[i] = 1.0/np.dot(bs[i,:],as_old)
+
+        # Calculate mask for simulations
+        if np.any(inverse_fs<overflow_threshold):
+            new_sims_mask = (inverse_fs>=overflow_threshold)
+            if not np.array_equiv(new_sims_mask,sims_mask):
+                sims_mask = new_sims_mask
+                # Recalculate nominator when sims_mask changes
+                nominator = Hs[sims_mask,:].sum(axis=0)
+
         #compute new probabilities
-        as_new = as_old.copy()
-        for k in range(Ngrid):
-            denominator = sum([Nis[i]*fs[i]*bs[i,k] for i in range(Nsims)])
-            as_new[k] = nominator[k]/denominator
-        as_new /= as_new.sum() #enforce normalization
+        denominator = np.einsum('i,i,ik->k', Nis[sims_mask], 1.0/inverse_fs[sims_mask], bs[sims_mask])
+        #denominator = sum([Nis[i]*fs[i]*bs[i,k] for i in range(Nsims)])
+
+        # Calculate mask for grid
+        if np.any(denominator<overflow_threshold):
+            grid_mask = (denominator>=overflow_threshold)
+            # check whether Hs is close to 0 for those points in the sims_mask that would be taken out by grid_mask, then we have as_new = 0/0
+            if not np.isclose(np.sum(Hs[sims_mask][:,~grid_mask]),0.):
+                warnings.warn('Grid indices are being masked that contain a total of at least 1 histogram count ({}/{} = {:2.4f}%).'.format(np.sum(Hs[sims_mask][:,~grid_mask]),np.sum(Hs[sims_mask,:]),(np.sum(Hs[sims_mask][:,~grid_mask])/np.sum(Hs[sims_mask,:]))*100))
+
+        as_new = np.zeros(Ngrid) # if a is zero, it will be ignored in both fs and the error calculation
+        as_new[grid_mask] = np.divide(nominator[grid_mask],denominator[grid_mask])
+        as_new[grid_mask] /= np.sum(as_new) #enforce normalization
+
         #check convergence
         integrated_diff = np.abs(as_new-as_old).sum()
         if verbose:
@@ -100,20 +125,30 @@ def wham1d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=2] Hs, np.ndarray[dou
             converged = 1
             break
         as_old = as_new.copy()
-    #compute final normalization factors
-    fs = 1.0/np.einsum('ik,k->i', bs, as_new)
 
-    # calculate consistency error
+    #compute final normalization factors
+    fs = np.full(Nsims, np.nan)
+    fs[sims_mask] = 1.0/np.einsum('ik,k->i', bs[sims_mask], as_new)
+
+
+    """# calculate consistency error
     delta = np.zeros(Nsims)
     # delta_i = 1/M sum_k (P_b_ik - f_i b_ik P_k)**2
     # with P_b the biased probability density calculated from the histograms
     as_biased_sampled = ((Hs.T)/Hs.sum(axis=-1)).T # normalize per simulation (Nsims,Ngrid)
 
+    # Jensen-Shannon
+    for i in range(Nsims):
+        delta[i] = scipy.spatial.distance.jensenshannon(as_biased_sampled[i,:],np.round(fs[i]*bs[i,:]*as_new,15))**2
+
+    print(delta)"""
+
+    """# MSE
     for i in range(Nsims):
         for k in range(Ngrid):
             delta[i] += (as_biased_sampled[i,k]-fs[i]*bs[i,k]*as_new[k])**2
         delta[i] /= Ngrid
-    print(delta)
+    print(delta)"""
 
     return as_new, fs, converged
 
