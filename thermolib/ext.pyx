@@ -81,6 +81,7 @@ def wham1d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=2] Hs, np.ndarray[dou
     as_old = np.ones(Ngrid)/Ngrid #probability density (should sum to 1)
     nominator = Hs.sum(axis=0) #precomputable nominator in WHAM equations
     sims_mask = np.ones(Nsims,dtype=bool)
+    grid_mask = np.ones((Ngrid),dtype=bool)
     for iscf in range(Nscf):
         #compute new normalization factors
         inverse_fs = np.einsum('ik,k->i', bs, as_old)
