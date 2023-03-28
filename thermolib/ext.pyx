@@ -71,7 +71,7 @@ def wham1d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=2] Hs, np.ndarray[dou
     cdef double integrated_diff, pmax
     cdef np.ndarray[double] as_old, as_new, inverse_fs, delta
     cdef np.ndarray[long] nominator
-    cdef np.ndarray[np.uint8_t] sims_mask, new_sims_mask
+    cdef np.ndarray[np.uint8_t] sims_mask, new_sims_mask, grid_mask
     cdef int Ngrid, Nsims, iscf, i, k
     cdef int converged = 0
 
