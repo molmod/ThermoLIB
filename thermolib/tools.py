@@ -27,7 +27,7 @@ import sys, os
 __all__ = [
     'integrate', 'integrate2d', 'format_scientific',
     'trajectory_xyz_to_CV', 'blav', 'read_wham_input',
-    'read_wham_input_2D', 'read_wham_input_h5'
+    'read_wham_input_2D', 'read_wham_input_h5', 'read_wham_input_2D_h5'
 ]
 
 def integrate(xs, ys):
@@ -365,7 +365,7 @@ def read_wham_input(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1,
         print('WARNING: temperature could not be read from %s' %fn)
     return temp, biasses, trajectories
 
-def read_wham_input_h5(fn, path_template_colvar_fns_h5='%s', colvar_cv_h5_index='', kappa_unit='kjmol', q0_unit='au', start=0, end=-1, stride=1, bias_potential='Parabola1D', additional_bias=None, inverse_cv=False, verbose=False):
+def read_wham_input_h5(fn, h5_cv_path, path_template_h5_fns='%s', kappa_unit='kjmol', q0_unit='au', start=0, end=-1, stride=1, bias_potential='Parabola1D', additional_bias=None, inverse_cv=False, verbose=False):
     '''
         Read the input for a WHAM reconstruction of the free energy profile from a set of Umbrella Sampling simulations. The file specified by fn should have the following format:
 
@@ -400,12 +400,12 @@ def read_wham_input_h5(fn, path_template_colvar_fns_h5='%s', colvar_cv_h5_index=
 
         :param fn: file name of the wham input file
         :type fn: str
+        
+        :param h5_cv_path: the path of the dataset corresponding to the cv values in the h5 file.
+        :type h5_cv_path: str
 
-        :param path_template_colvar_fns_h5: Template for defining the path (relative to the directory containing the wham input file given by argument fn) to the colvar trajectory file corresponding to each bias. See documentation above for more details. This argument should be string containing a single '%s' substring. 
-        :type path_template_colvar_fns_h5: str. Defaults to '%s'
-
-        :param colvar_cv_h5_index: h5 file location of the cv in the h5 file.
-        :type colvar_cv_h5_index: str. Defaults to '%s'
+        :param path_template_h5_fns: Template for defining the path (relative to the directory containing the wham input file given by argument fn) to the HDF5 trajectory file corresponding to each bias. See documentation above for more details. This argument should be string containing a single '%s' substring. 
+        :type path_template_h5_fns: str. Defaults to '%s'
 
         :param kappa_unit: unit used to express kappa in the wham input file, defaults to 'kjmol'
         :type kappa_unit: str, optional
@@ -466,18 +466,16 @@ def read_wham_input_h5(fn, path_template_colvar_fns_h5='%s', colvar_cv_h5_index=
                 name = words[0]
                 q0 = float(words[1])*parse_unit(q0_unit)
                 kappa = float(words[2])*parse_unit(kappa_unit)
-
         
-                f_h5_1 = h5.File(os.path.join(root, path_template_colvar_fns_h5 %name), mode = 'r')
-                if not os.path.exists(os.path.join(root, path_template_colvar_fns_h5 %name)):
+                f_h5_1 = h5.File(os.path.join(root, path_template_h5_fns %name), mode = 'r')
+                if not os.path.exists(os.path.join(root, path_template_h5_fns %name)):
                     print("WARNING: could not read trajectory file for bias with name %s, skipping line in wham input." %name)
                     continue
                 bias = Parabola1D(name, q0, kappa,inverse_cv=inverse_cv)
                 if additional_bias is not None:
                     bias = MultipleBiasses1D([bias, additional_bias])
-                if verbose:
-                    print('Trajectory expected to be in angstrom!')
-                data = np.array(f_h5_1['%s'%colvar_cv_h5_index])/angstrom
+
+                data = np.array(f_h5_1['%s'%h5_cv_path])
                 data = np.concatenate(data)
 
                 biasses.append(bias)
@@ -638,6 +636,168 @@ def read_wham_input_2D(fn, path_template_colvar_fns='%s', colvar_cv1_column_inde
     if temp is None:
         print('WARNING: temperature could not be read from %s' %fn)
     return temp, biasses, trajectories
+
+
+def read_wham_input_2D_h5(fn, h5_cv1_path, h5_cv2_path, path_template_h5_fns='%s', kappa1_unit='kjmol', kappa2_unit='kjmol', q01_unit='au', q02_unit='au', start=0, end=-1, stride=1, bias_potential='Parabola2D',additional_bias=None,additional_bias_dimension='q1',inverse_cv1=False,inverse_cv2=False, verbose=False):
+    '''
+        Read the input for a WHAM reconstruction of the 2D free energy surface from a set of Umbrella Sampling simulations. The file specified by fn should have the following format:
+
+        .. code-block:: python
+
+            T = XXXK
+            NAME_1 Q01_1 Q02_1 KAPPA1_1 KAPPA1_1
+            NAME_2 Q01_2 Q02_2 KAPPA1_2 KAPPA1_2
+            NAME_3 Q01_3 Q02_3 KAPPA1_3 KAPPA1_3
+            ...
+
+        when a line starts with a T, it is supposed to specify the temperature. If no temperature line is found, a temperature of None will be returned. All other lines define the bias potential for each simulation as a parabola centered around (``Q01_i``,``Q02_i``) and with force constants (``KAPPA1_i``,``KAPPA2_i``) (the units used in this file can be specified the keyword arguments ``kappa1_unit``, ``kappa2_unit``, ``q01_unit`` and ``q02_unit``). For each bias with name ``NAME_i`` defined in this file, there should be a colvar trajectory file accessible through the path given by the string 'path_template_colvar_fns %(NAME_i)'. For example, if path_template_colvar_fns is defined as 'trajectories/%s/COLVAR' and the wham input file contains the following lines:
+
+        .. code-block:: python
+
+            T = 300K
+            Window1/r1 1.40 -0.2 1000.0 1000.0
+            Window2/r2 1.45 -0.2 1000.0 1000.0
+            Window3/r1 1.50 -0.2 1000.0 1000.0
+            ...
+        
+        Then the colvar trajectory file of the first potential can be found through the path (relative to the wham input file) 'Window1/r1/COLVAR' and so on. These colvar files contain the trajectory of the relevant collective variable during the biased simulation. Finally, these trajectory files should be formatted as outputted by PLUMED (if the desired collective variable columns are not the default second and third, these can be specified with colvar_cv1_column_index and colvar_cv2_column_index):
+
+        .. code-block:: python
+
+            time_1 cv1_value_1 cv2_value_1
+            time_2 cv1_value_2 cv2_value_2
+            time_3 cv1_value_3 cv2_value_3
+            ...
+        
+        where the cv1 and cv2 values again have a unit that can be specified by the keyword arguments ``q01_unit`` and ``q02_unit`` respectively.
+
+        :param fn: file name of the wham input file
+        :type fn: str
+
+        :param h5_cv1_path: the path of the dataset corresponding to the cv1 values in the h5 file.
+        :type h5_cv1_path: str
+
+        :param h5_cv2_path: the path of the dataset corresponding to the cv2 values in the h5 file.
+        :type h5_cv2_path: str
+
+        :param path_template_h5_fns: Template for defining the path (relative to the directory containing the wham input file given by argument fn) to the colvar trajectory file corresponding to each bias. See documentation above for more details. This argument should be string containing a single '%s' substring. 
+        :type path_template_colvar_fns: str. Defaults to '%s'
+
+        :param kappa1_unit: unit used to express the CV1 force constant kappa1 in the wham input file, defaults to 'kjmol'
+        :type kappa1_unit: str, optional
+
+        :param kappa2_unit: unit used to express the CV2 force constant kappa1 in the wham input file, defaults to 'kjmol'
+        :type kappa2_unit: str, optional
+
+        :param q01_unit: unit used to express q01 in the wham input file as well as the cv values in the trajectory files, defaults to 'au'
+        :type q01_unit: str, optional
+
+        :param q02_unit: unit used to express q02 in the wham input file as well as the cv values in the trajectory files, defaults to 'au'
+        :type q02_unit: str, optional
+        
+        :param stride: defines the sub sampling applied to the trajectory data to deal with correlations. For example a stride of 10 means only taking 1 in 10 samples and throw away 90% of the data. Defaults to 1 (i.e. no sub sampling).
+        :type stride: int, optional
+
+        :param start: defines the start point from which to take samples into account. This can be usefull for eliminating equilibration times as well as for taking various subsamples trajectories from the original data each starting at different timesteps. Defaults to 0.
+        :type start: int, optional
+
+        :param end: defines the end point to which to take samples into account. This can be usefull when it is desired to cut the original trajectory into blocks. Defaults to -1.
+        :type end: int, optional
+
+        :param bias_potential: mathematical form of the bias potential used, allowed values are
+
+            * **parabola2D/harmonic2D** -- harmonic bias of the form 0.5*kappa1*(q1-q01)**2 + 0.5*kappa2*(q2-q02)**2
+
+        defaults to parabola2D
+
+        :type bias_potantial: str, optional
+        
+        :param additional_bias: A single additional bias that is added for each simulation on top of the simulation-specific biases. Defaults to None
+        :type additional_bias: BiasPotential1D, optional
+
+        :param inverse_q1: Define whether to invert q1 values. Defaults to False
+        :type inverse_q1: boolean, optional
+        
+        :param inverse_q2: Define whether to invert q2 values. Defaults to False
+        :type inverse_q2: boolean, optional
+        
+        :param verbose: increases verbosity if set to True, defaults to False
+        :type verbose: bool, optional
+        
+        :raises ValueError: when a line in the wham input file cannot be interpreted
+
+        :return: temp, biasses, trajectories:
+
+            * **temp** (float) -- temperature at which the simulations were performed
+            * **biasses** (list of callables) -- list of bias potentials (defined as callable functions) for all Umbrella Sampling simulations
+            * **trajectories** (list of np.ndarrays) -- list of trajectory data arrays containing the CV trajectory for all Umbrella Sampling simulations
+    '''
+    from thermolib.thermodynamics.bias import Parabola2D,BiasPotential1D,MultipleBiasses2D
+    temp = None
+    biasses = []
+    trajectories = []
+    root = '/'.join(fn.split('/')[:-1])
+    if additional_bias is not None:
+        assert isinstance(additional_bias, BiasPotential1D), 'Given additional bias should be member/child of the class BiasPotential1D, got %s, currently no 2D additional biases are supported' %(additional_bias.__class__.__name__)
+    with open(fn, 'r') as f:
+        iline = -1
+        for line in f.readlines():
+            iline += 1
+            line = line.rstrip('\n')
+            words = line.split()
+            if line.startswith('#'):
+                continue
+            elif line.startswith('T'):
+                temp = float(line.split('=')[1].rstrip('K'))
+                if verbose:
+                    print('Temperature set at %f' %temp)
+            elif bias_potential in ['Parabola2D'] and len(words)==5:
+                name = words[0]
+                if verbose:
+                    print('Processing bias %s' %name)
+                q01 = float(words[1])*parse_unit(q01_unit)
+                q02 = float(words[2])*parse_unit(q02_unit)
+                kappa1 = float(words[3])*parse_unit(kappa1_unit)
+                kappa2 = float(words[4])*parse_unit(kappa2_unit)
+                
+                f_h5_1 = h5.File(os.path.join(root, path_template_h5_fns %name), mode = 'r')
+                if not os.path.exists(os.path.join(root, path_template_h5_fns %name)):
+                    print("WARNING: could not read trajectory file for bias with name %s, skipping line in wham input." %name)
+                    continue
+
+                bias = Parabola2D(name, q01, q02, kappa1, kappa2, inverse_cv1=inverse_cv1, inverse_cv2=inverse_cv2)
+                if additional_bias is not None:
+                    if verbose:
+                        print('     additional bias is applied to the %s dimension' % additional_bias_dimension)
+                    bias = MultipleBiasses2D([bias, additional_bias],additional_bias_dimension)
+                
+                if end==-1:
+                    data1 = np.array(f_h5_1[h5_cv1_path][start::stride])
+                    data2 = np.array(f_h5_1[h5_cv2_path][start::stride])
+                else:
+                    data1 = np.array(f_h5_1[h5_cv1_path][start:end:stride])
+                    data2 = np.array(f_h5_1[h5_cv2_path][start:end:stride])
+
+                print(data1)
+                print(data2)
+
+                data = np.concatenate([[data1],[data2]]).T
+
+                biasses.append(bias)
+                trajectories.append(data)
+                
+                if verbose:
+                    print('  added %s' %bias.print())
+                    print('  trajectory read from %s' %fn_traj)
+                    print('')
+            elif bias_potential not in ['Parabola2D']:
+                    raise ValueError('Bias potential definition not supported (yet).')
+            else:
+                raise ValueError('Could not process line %i in %s: %s' %(iline, fn, line))
+    if temp is None:
+        print('WARNING: temperature could not be read from %s' %fn)
+    return temp, biasses, trajectories
+
 
 def extract_polynomial_bias_info(fn_plumed='plumed.dat'):
     #TODO make less error phrone. include check.
