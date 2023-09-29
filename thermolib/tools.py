@@ -120,20 +120,20 @@ def blav(data, blocksizes=None, fitrange=[0,-1], exponent=1, fn_plot=None, unit=
             \\begin{aligned}
                 \\tau = 1 + \\frac{t_0-1}{B^n}
             \\end{aligned}
-            
+
         As a result, the model for the naive error estimate on the block averages becomes
-            
+
         .. math::
 
             \\begin{aligned}
                 error = TE\\cdot\\frac{B^n}{B^n+t_0-1}
             \\end{aligned}
-        
+
         in which :math:`B` represents the block size, :math:`TE` the true error, :math:`t_0` the correlation time for the original time series (:math:`B=1`) and :math:`n` the exponential rate with which the block average integrated correlation time decreases as function of block size.
 
         :param data: 1D array representing the data to be analyzed
         :type data: np.ndarray
-        
+
         :param blocksizes: array of block sizes, defaults to np.arange(1,len(data)+1,1)
         :type blocksizes: np.ndarray, optional
 
@@ -162,7 +162,7 @@ def blav(data, blocksizes=None, fitrange=[0,-1], exponent=1, fn_plot=None, unit=
 
         *  **mean** (*float*) -- the sample mean
         *  **error** (*foat*) -- the error on the sample mean
-        *  **corrtime** (*float*) -- the correlation time (in units of the timestep) of the original sample data 
+        *  **corrtime** (*float*) -- the correlation time (in units of the timestep) of the original sample data
     '''
     if blocksizes is None:
         blocksizes = np.arange(1,len(data)+1,1)
@@ -174,13 +174,13 @@ def blav(data, blocksizes=None, fitrange=[0,-1], exponent=1, fn_plot=None, unit=
         for iblock in range(nblocks):
             blavs[iblock] = data[iblock*blocksize:(iblock+1)*blocksize].mean()
         #the unbiased estimate on the variance of the block averages
-        sigmas[i] = blavs.std(ddof=1) 
-        #the estimate on the error on the mean of block averages assuming 
-        #uncorrelated block averages (which will only be truly valid for 
+        sigmas[i] = blavs.std(ddof=1)
+        #the estimate on the error on the mean of block averages assuming
+        #uncorrelated block averages (which will only be truly valid for
         #sufficiently large block size)
         errors[i] = sigmas[i]/np.sqrt(nblocks)
     #fit standard deviations
-    def function(blocksize, TE, t0):            
+    def function(blocksize, TE, t0):
         n=exponent
         return TE*blocksize**n/(blocksize**n+t0-1)
     def fit(blocksizes, xs):
@@ -201,7 +201,7 @@ def blav(data, blocksizes=None, fitrange=[0,-1], exponent=1, fn_plot=None, unit=
         axs[0,0].set_title('Samples', fontsize=12)
         axs[0,0].set_xlabel('Time [timestep]')
         axs[0,0].set_ylabel('Sample [%s]' %unit)
-        
+
         if plot_ac:
             if ac_range is None:
                 ac_range = np.arange(0,501,1)
@@ -264,7 +264,7 @@ def read_wham_input(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1,
             Window2/r2 1.45 1000.0
             Window3/r1 1.50 1000.0
             ...
-        
+
         Then the colvar trajectory file of the first potential can be found through the path (relative to the wham input file) 'Window1/r1/COLVAR' and so on. These colvar files contain the trajectory of the relevant collective variable during the biased simulation. Finally, these trajectory files should be formatted as outputted by PLUMED:
 
         .. code-block:: python
@@ -273,13 +273,13 @@ def read_wham_input(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1,
             time_2 cv_value_2
             time_3 cv_value_3
             ...
-        
+
         where the cv values again have a unit that can be specified by the keyword argument ``q0_unit``.
 
         :param fn: file name of the wham input file
         :type fn: str
 
-        :param path_template_colvar_fns: Template for defining the path (relative to the directory containing the wham input file given by argument fn) to the colvar trajectory file corresponding to each bias. See documentation above for more details. This argument should be string containing a single '%s' substring. 
+        :param path_template_colvar_fns: Template for defining the path (relative to the directory containing the wham input file given by argument fn) to the colvar trajectory file corresponding to each bias. See documentation above for more details. This argument should be string containing a single '%s' substring.
         :type path_template_colvar_fns: str. Defaults to '%s'
 
         :param kappa_unit: unit used to express kappa in the wham input file, defaults to 'kjmol'
@@ -287,7 +287,7 @@ def read_wham_input(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1,
 
         :param q0_unit: unit used to express q0 in the wham input file as well as the cv values in the trajectory files, defaults to 'au'
         :type q0_unit: str, optional
-        
+
         :param stride: defines the sub sampling applied to the trajectory data to deal with correlations. For example a stride of 10 means only taking 1 in 10 samples and throw away 90% of the data. Defaults to 1 (i.e. no sub sampling).
         :type stride: int, optional
 
@@ -515,7 +515,7 @@ def read_wham_input_2D(fn, path_template_colvar_fns='%s', colvar_cv1_column_inde
             Window2/r2 1.45 -0.2 1000.0 1000.0
             Window3/r1 1.50 -0.2 1000.0 1000.0
             ...
-        
+
         Then the colvar trajectory file of the first potential can be found through the path (relative to the wham input file) 'Window1/r1/COLVAR' and so on. These colvar files contain the trajectory of the relevant collective variable during the biased simulation. Finally, these trajectory files should be formatted as outputted by PLUMED (if the desired collective variable columns are not the default second and third, these can be specified with colvar_cv1_column_index and colvar_cv2_column_index):
 
         .. code-block:: python
@@ -524,13 +524,13 @@ def read_wham_input_2D(fn, path_template_colvar_fns='%s', colvar_cv1_column_inde
             time_2 cv1_value_2 cv2_value_2
             time_3 cv1_value_3 cv2_value_3
             ...
-        
+
         where the cv1 and cv2 values again have a unit that can be specified by the keyword arguments ``q01_unit`` and ``q02_unit`` respectively.
 
         :param fn: file name of the wham input file
         :type fn: str
 
-        :param path_template_colvar_fns: Template for defining the path (relative to the directory containing the wham input file given by argument fn) to the colvar trajectory file corresponding to each bias. See documentation above for more details. This argument should be string containing a single '%s' substring. 
+        :param path_template_colvar_fns: Template for defining the path (relative to the directory containing the wham input file given by argument fn) to the colvar trajectory file corresponding to each bias. See documentation above for more details. This argument should be string containing a single '%s' substring.
         :type path_template_colvar_fns: str. Defaults to '%s'
 
         :param kappa1_unit: unit used to express the CV1 force constant kappa1 in the wham input file, defaults to 'kjmol'
@@ -544,7 +544,7 @@ def read_wham_input_2D(fn, path_template_colvar_fns='%s', colvar_cv1_column_inde
 
         :param q02_unit: unit used to express q02 in the wham input file as well as the cv values in the trajectory files, defaults to 'au'
         :type q02_unit: str, optional
-        
+
         :param stride: defines the sub sampling applied to the trajectory data to deal with correlations. For example a stride of 10 means only taking 1 in 10 samples and throw away 90% of the data. Defaults to 1 (i.e. no sub sampling).
         :type stride: int, optional
 
@@ -561,19 +561,19 @@ def read_wham_input_2D(fn, path_template_colvar_fns='%s', colvar_cv1_column_inde
         defaults to parabola2D
 
         :type bias_potantial: str, optional
-        
+
         :param additional_bias: A single additional bias that is added for each simulation on top of the simulation-specific biases. Defaults to None
         :type additional_bias: BiasPotential1D, optional
 
         :param inverse_q1: Define whether to invert q1 values. Defaults to False
         :type inverse_q1: boolean, optional
-        
+
         :param inverse_q2: Define whether to invert q2 values. Defaults to False
         :type inverse_q2: boolean, optional
-        
+
         :param verbose: increases verbosity if set to True, defaults to False
         :type verbose: bool, optional
-        
+
         :raises ValueError: when a line in the wham input file cannot be interpreted
 
         :return: temp, biasses, trajectories:

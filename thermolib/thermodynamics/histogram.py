@@ -73,10 +73,10 @@ class Histogram1D(object):
 			:type histograms: list(Histogram1D)
 
 			:param error_estimate: indicate if and how to perform error analysis. One of following options is available:
-			
+
 				*  **std** -- compute error from the standard deviation within the set of histograms.
 				*  **None** -- do not estimate the error.
-			
+
 			:type error_estimate: str, optional, default=None
 
 			:param nsigma: only relevant when error estimation is turned on (i.e. when keyword ``error_estimate`` is not None), this option defines how large the error interval should be in terms of the standard deviation sigma. A ``nsigma=2`` implies a 2-sigma error bar (corresponding to 95% confidence interval) will be returned.
@@ -129,11 +129,11 @@ class Histogram1D(object):
 			:type bins: np.ndarray
 
 			:param error_estimate: indicate if and how to perform error analysis. One of following options is available:
-			
+
 				*  **mle_p** -- compute error through the asymptotic normality of the maximum likelihood estimator for the probability itself. WARNING: due to positivity constraint of the probability, this only works for low variance. Otherwise the standard error interval for the normal distribution (i.e. mle +- n*sigma) might give rise to negative lower error bars.
 				*  **mle_f** -- compute error through the asymptotic normality of the maximum likelihood estimator for -log(p) (hence for the beta-scaled free energy). This estimation does not suffor from the same WARNING as for ``mle_p``. Furthermore, in case of low variance, the error estimation using ``mle_f`` and ``mle_p`` are consistent (i.e. one can be computed from the other using f=-log(p)).
 				*  **None** -- do not estimate the error.
-			
+
 			:type error_estimate: str, optional, default=None
 
 			:param nsigma: only relevant when error estimation is turned on (i.e. when keyword ``error_estimate`` is not None), this option defines how large the error interval should be in terms of the standard deviation sigma. A ``nsigma=2`` implies a 2-sigma error bar (corresponding to 95% confidence interval) will be returned.
@@ -194,16 +194,16 @@ class Histogram1D(object):
 			:type temp: float
 
 			:param error_estimate: indicate if and how to perform error analysis. One of following options is available:
-			
+
 				*  **mle_p** -- compute error through the asymptotic normality of the maximum likelihood estimator for the probability itself. WARNING: due to positivity constraint of the probability, this only works for high probability and low variance. Otherwise the standard error interval for the normal distribution (i.e. mle +- n*sigma) might give rise to negative lower error bars.
 				*  **mle_f** -- compute error through the asymptotic normality of the maximum likelihood estimator for -log(p) (hence for the beta-scaled free energy). This estimation does not suffor from the same WARNING as for ``mle_p``. Furthermore, in case of high probability and low variance, the error estimation using ``mle_f`` and ``mle_p`` are consistent (i.e. one can be computed from the other using f=-log(p)).
 				*  **None** -- do not estimate the error.
-			
+
 			:type error_estimate: str, optional, default=None
 
 			:param nsigma: only relevant when error estimation is turned on (i.e. when keyword ``error_estimate`` is not None), this option defines how large the error interval should be in terms of the standard deviation sigma. A ``nsigma=2`` implies a 2-sigma error bar (corresponding to 95% confidence interval) will be returned.
 			:type nsigma: int, optional, default=2
-			
+
 			:param bias_subgrid_num: the number of grid points for the sub-grid used to compute the integrated boltzmann factor of the bias in each CV bin.
 			:type bias_subgrid_num: optional, default=20
 
@@ -227,7 +227,7 @@ class Histogram1D(object):
 		'''
 		timings = {}
 		timings['start'] = time.time()
-		#backward compatibility between verbose and verbosity. 
+		#backward compatibility between verbose and verbosity.
 		if verbose is not None:
 			print('The keyword verbose is depricated and will be removed in the near future. Use the keyword verbosity instead.')
 			if verbose:
@@ -263,8 +263,8 @@ class Histogram1D(object):
 			raise NotImplementedError
 			cv_min = None #TODO
 			cv_max = None #TODO
-			cv_delta = (cv_max-cv_min)/bins #this 
-			bins = np.arange(cv_min, cv_max+cv_delta, cv_delta)			
+			cv_delta = (cv_max-cv_min)/bins #this
+			bins = np.arange(cv_min, cv_max+cv_delta, cv_delta)
 		bin_centers = 0.5*(bins[:-1]+bins[1:])
 		deltas = bins[1:]-bins[:-1]
 		grid_non_uniformity = deltas.std()/deltas.mean()
@@ -310,7 +310,7 @@ class Histogram1D(object):
 			print('  CV grid [%s]: start = %.3f    end = %.3f    delta = %.3f    N = %i' %(cv_output_unit, bins.min()/parse_unit(cv_output_unit), bins.max()/parse_unit(cv_output_unit), delta/parse_unit(cv_output_unit), Ngrid))
 			print('---------------------------------------------------------------------')
 			print()
-		
+
 		if verbosity.lower() in ['medium', 'high']:
 			print('Solving WHAM equations (SCF loop) ...')
 		#self consistent loop to solve the WHAM equations
@@ -325,7 +325,7 @@ class Histogram1D(object):
 			as_new = as_old.copy()
 			for k in range(Ngrid):
 				denominator = sum([Nis[i]*fs[i]*bs[i,k] for i in range(Nsims)])
-				as_new[k] = nominator[k]/denominator			
+				as_new[k] = nominator[k]/denominator
 			as_new /= as_new.sum() #enforce normalization
 			#check convergence
 			integrated_diff = np.abs(as_new-as_old).sum()
@@ -460,7 +460,7 @@ class Histogram1D(object):
 		'''
 		timings = {}
 		timings['start'] = time.time()
-		#backward compatibility between verbose and verbosity. 
+		#backward compatibility between verbose and verbosity.
 		if verbose is not None:
 			print('The keyword verbose is depricated and will be removed in the near future. Use the keyword verbosity instead.')
 			if verbose:
@@ -495,8 +495,8 @@ class Histogram1D(object):
 			raise NotImplementedError
 			cv_min = None #TODO
 			cv_max = None #TODO
-			cv_delta = (cv_max-cv_min)/bins #this 
-			bins = np.arange(cv_min, cv_max+cv_delta, cv_delta)			
+			cv_delta = (cv_max-cv_min)/bins #this
+			bins = np.arange(cv_min, cv_max+cv_delta, cv_delta)
 		bin_centers = 0.5*(bins[:-1]+bins[1:])
 		deltas = bins[1:]-bins[:-1]
 		grid_non_uniformity = deltas.std()/deltas.mean()
@@ -538,7 +538,7 @@ class Histogram1D(object):
 			else:
 				print('SCF did not converge!')
 		timings['scf'] = time.time()
-		
+
 		plower, pupper = None, None
 		if error_estimate is not None and error_estimate in ['mle_p', 'mle_f']:
 			if verbosity.lower() in ['medium', 'high']:
@@ -547,7 +547,7 @@ class Histogram1D(object):
 		elif error_estimate is not None and error_estimate not in ["None"]:
 			raise ValueError('Received invalid value for keyword argument error_estimate, got %s. See documentation for valid choices.' %error_estimate)
 		timings['error'] = time.time()
-		
+
 		if verbosity.lower() in ['low', 'medium', 'high']:
 			print('---------------------------------------------------------------------')
 			print('TIMING SUMMARY')
@@ -668,8 +668,8 @@ class Histogram2D(object):
 		if self.pupper is not None:
 			pupper = self.pupper.copy()
 		return Histogram1D(
-			self.cvs1.copy(), self.cvs2.copy(), self.ps.copy(), plower=plower, pupper=pupper, 
-			cv1_output_unit=self.cv1_output_unit, cv2_output_unit=self.cv2_output_unit, 
+			self.cvs1.copy(), self.cvs2.copy(), self.ps.copy(), plower=plower, pupper=pupper,
+			cv1_output_unit=self.cv1_output_unit, cv2_output_unit=self.cv2_output_unit,
 			cv1_label=self.cv1_label, cv2_label=self.cv2_label
 		)
 
@@ -682,10 +682,10 @@ class Histogram2D(object):
 			:type histograms: list(Histogram1D)
 
 			:param error_estimate: indicate if and how to perform error analysis. One of following options is available:
-			
+
 				*  **std** -- compute error from the standard deviation within the set of histograms.
 				*  **None** -- do not estimate the error.
-			
+
 			:type error_estimate: str, optional, default=None
 
 			:param nsigma: only relevant when error estimation is turned on (i.e. when keyword ``error_estimate`` is not None), this option defines how large the error interval should be in terms of the standard deviation sigma. A ``nsigma=2`` implies a 2-sigma error bar (corresponding to 95% confidence interval) will be returned.
@@ -750,11 +750,11 @@ class Histogram2D(object):
 			:type bins: np.ndarray
 
 			:param error_estimate: indicate if and how to perform error analysis. One of following options is available:
-			
+
 				*  **mle_p** -- compute error through the asymptotic normality of the maximum likelihood estimator for the probability itself. WARNING: due to positivity constraint of the probability, this only works for low variance. Otherwise the standard error interval for the normal distribution (i.e. mle +- n*sigma) might give rise to negative lower error bars.
 				*  **mle_f** -- compute error through the asymptotic normality of the maximum likelihood estimator for -log(p) (hence for the beta-scaled free energy). This estimation does not suffor from the same WARNING as for ``mle_p``. Furthermore, in case of low variance, the error estimation using ``mle_f`` and ``mle_p`` are consistent (i.e. one can be computed from the other using f=-log(p)).
 				*  **None** -- do not estimate the error.
-			
+
 			Defaults to None, i.e. no error estimate.
 			:type error_estimate: str, optional
 
@@ -831,18 +831,18 @@ class Histogram2D(object):
 
 			:param pinit: initial guess for the probability density, which is assumed to be in the 'xy'-indexing convention (see the "indexing" argument and the corresponding "Notes" section in `the numpy online documentation of the meshgrid routine <https://numpy.org/doc/stable/reference/generated/numpy.meshgrid.html>`_). If None is given, a uniform distribution is used as initial guess.
 			:type pinit: np.ndarray, optional, default=None
-			
+
 			:param error_estimate: indicate if and how to perform error analysis. One of following options is available:
-			
+
 				*  **mle_p** -- compute error through the asymptotic normality of the maximum likelihood estimator for the probability itself. WARNING: due to positivity constraint of the probability, this only works for high probability and low variance. Otherwise the standard error interval for the normal distribution (i.e. mle +- n*sigma) might give rise to negative lower error bars.
-				*  **mle_f** -- compute error through the asymptotic normality of the maximum likelihood estimator for -log(p) (hence for the beta-scaled free energy). This estimation does not suffor from the same WARNING as for ``mle_p``. Furthermore, in case of high probability and low variance, the error estimation using ``mle_f`` and ``mle_p`` are consistent (i.e. one can be computed from the other using f=-log(p)).
+				*  **mle_f** -- compute error through the asymptotic normality of the maximum likelihood estimator for -log(p) (hence for the beta-scaled free energy). This estimation does not suffer from the same WARNING as for ``mle_p``. Furthermore, in case of high probability and low variance, the error estimation using ``mle_f`` and ``mle_p`` are consistent (i.e. one can be computed from the other using f=-log(p)).
 				*  **None** -- do not estimate the error.
-			
+
 			:type error_estimate: str, optional, default=None
 
 			:param nsigma: only relevant when error estimation is turned on (i.e. when keyword ``error_estimate`` is not None), this option defines how large the error interval should be in terms of the standard deviation sigma. A ``nsigma=2`` implies a 2-sigma error bar (corresponding to 95% confidence interval) will be returned. Defaults to 2
 			:type nsigma: int, optional
-			
+
 			:param bias_subgrid_num: the number of grid points along each CV for the sub-grid used to compute the integrated boltzmann factor of the bias in each CV1,CV2 bin. Either a single integer is given, corresponding to identical number of subgrid points for both CVs, or a list of two integers corresponding the number of grid points in the two CVs respectively.
 			:type bias_subgrid_num: optional, defaults to [20,20]
 
@@ -875,7 +875,7 @@ class Histogram2D(object):
 		'''
 		timings = {}
 		timings['start'] = time.time()
-		#backward compatibility between verbose and verbosity. 
+		#backward compatibility between verbose and verbosity.
 		if verbose is not None:
 			print('The keyword verbose is depricated and will be removed in the near future. Use the keyword verbosity instead.')
 			if verbose:
@@ -884,7 +884,7 @@ class Histogram2D(object):
 				verbosity = 'none'
 		if verbosity.lower() in ['medium', 'high']:
 			print('Initialization ...')
-		
+
 		#checks and initialization
 		assert len(biasses)==len(trajectories), 'The arguments trajectories and biasses should be of the same length.'
 		beta = 1/(boltzmann*temp)
@@ -896,7 +896,7 @@ class Histogram2D(object):
 			assert len(bias_subgrid_num)==2, 'bias_subgrid_num argument should be an integer or a list of two integers'
 			assert isinstance(bias_subgrid_num[0],int), 'bias_subgrid_num argument should be an integer or a list of two integers'
 			assert isinstance(bias_subgrid_num[1],int), 'bias_subgrid_num argument should be an integer or a list of two integers'
-		
+
 		#Preprocess trajectory argument: load files if file names are given instead of raw data, determine and store the number of simulation steps in each simulation:
 		if verbosity.lower() in ['high']:
 			print('  processing trajectories')
@@ -908,7 +908,7 @@ class Histogram2D(object):
 			Nis.append(len(trajectory))
 			data.append(trajectory)
 		Nis = np.array(Nis)
-		
+
 		#Preprocess the bins argument and redefine it to represent the bin_edges. We need to do this beforehand to make sure that when calling the numpy.histogram routine with this bins argument, each histogram will have a consistent bin_edges array and hence consistent histogram.
 		if verbosity.lower() in ['high']:
 			print('  processing bins')
@@ -925,7 +925,7 @@ class Histogram2D(object):
 		Ngrid1, Ngrid2 = len(bin_centers1), len(bin_centers2)
 		Ngrid = Ngrid1*Ngrid2
 		timings['init'] = time.time()
-		
+
 		#generate the individual histograms using numpy.histogram
 		if verbosity.lower() in ['medium', 'high']:
 			print('Constructing individual histograms for each biased simulation ...')
@@ -940,7 +940,7 @@ class Histogram2D(object):
 				print('WARNING: Histogram of trajectory %i should have total count of %i (=number of simulation steps), but found %f (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.' %(i,Nis[i],N))
 				Nis[i] = N
 		timings['hist'] = time.time()
-		
+
 		#compute the boltzmann factors of the biases in each grid interval
 		#b_ikl = 1/(delta1*delta2)*int(exp(-beta*W_i(q1,q2)), q1=Q_k-delta1/2...Q_k+delta1/2, q2=Q_l-delta2/2...Q_l+delta2/2)
 		if verbosity.lower() in ['medium', 'high']:
@@ -959,7 +959,7 @@ class Histogram2D(object):
 			if plot_biases:
 				bias.plot('bias_%i.png' %i, bin_centers1, bin_centers2)
 		timings['bias'] = time.time()
-		
+
 		#some init printing
 		if verbosity.lower() in ['high']:
 			print()
@@ -972,7 +972,7 @@ class Histogram2D(object):
 			print('  CV2 grid [%s]: start = %.3f    end = %.3f    delta = %.3f    N = %i' %(cv2_output_unit, bins[1].min()/parse_unit(cv2_output_unit), bins[1].max()/parse_unit(cv2_output_unit), delta2/parse_unit(cv2_output_unit), Ngrid2))
 			print('---------------------------------------------------------------------')
 			print()
-		
+
 		if verbosity.lower() in ['medium', 'high']:
 			print('Solving WHAM equations (SCF loop) ...')
 
@@ -995,7 +995,7 @@ class Histogram2D(object):
 			for k in range(Ngrid1):
 				for l in range(Ngrid2):
 					denominator = sum([Nis[i]*fs[i]*bs[i,k,l] for i in range(Nsims)])
-					as_new[k,l] = nominator[k,l]/denominator			
+					as_new[k,l] = nominator[k,l]/denominator
 			as_new /= as_new.sum() #enforce normalization
 			#check convergence
 			integrated_diff = np.abs(as_new-as_old).sum()
@@ -1015,13 +1015,13 @@ class Histogram2D(object):
 				if iscf==Nscf-1:
 					print('  SCF did not converge!')
 			as_old = as_new.copy()
-		
+
 		#finalization
 		cv1s = bin_centers1.copy()
 		cv2s = bin_centers2.copy()
 		ps = as_new.copy()
 		fs = 1.0/np.einsum('ikl,kl->i', bs, as_new)
-		
+
 		timings['scf'] = time.time()
 
 		#error estimation
@@ -1031,7 +1031,7 @@ class Histogram2D(object):
 			pupper, plower = cls._estimate_WHAM_error_2D(ps, fs, bs, Nis, method=error_estimate, nsigma=nsigma)
 		else:
 			pupper, plower = None, None
-		
+
 		#For consistency with how FreeEnergySurface2D is implemented (using 'xy'-indexing), ps (and plower, pupper) need to be transposed
 		ps = ps.T
 		if plower is not None: plower = plower.T
@@ -1058,20 +1058,23 @@ class Histogram2D(object):
 			print('---------------------------------------------------------------------')
 
 		return cls(cv1s, cv2s, ps, plower=plower, pupper=pupper, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, cv1_label=cv1_label, cv2_label=cv2_label)
-	
+
 	@classmethod
-	def from_wham_c(cls, bins, traj_input, biasses, temp, pinit=None, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, bias_thress=1e-3, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2', plot_biases=False, verbose=None, verbosity='low'):
+	def from_wham_c(cls, bins, traj_input, biasses, temp, pinit=None, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, bias_thress=1e-3, overflow_threshold=1e-150, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2', plot_biases=False, verbose=None, verbosity='low'):
 		'''
 			This routine implements the exact same thing as the from_wham routine, but now using the cythonized wham2D_XXX routines from ext.pyx for increased calculation speed. For more documentation on the arguments and algorithm in this routine, see the doc of the :meth:`from_wham routine <Histogram2D.from_wham>`.
 
-			One additional keyword is available in this routine with respect to the pure python version, the bias_thress keyword. See description below.
+			Two additional keywords are available in this routine with respect to the pure python version, the bias_thress and overflow_threshold keyword. See description below.
 
-			:param bias_thress: thresshold for determining whether the exact bin integration of the bias boltzmann factors is required, or the boltzmann factor of the bin center suffices as an approximation. Setting the thresshold to 0 implies exact integration for all bins, setting the thresshold to 1 implies the bin center approximation for all cells and setting the thresshold to x implies that only those bins with a center approximation higher than x will be integrated exactly.
+			:param bias_thress: threshold for determining whether the exact bin integration of the bias boltzmann factors is required, or the boltzmann factor of the bin center suffices as an approximation. Setting the threshold to 0 implies exact integration for all bins, setting the threshold to 1 implies the bin center approximation for all cells and setting the threshold to x implies that only those bins with a center approximation higher than x will be integrated exactly.
 			:type bias_thress: double, optional, default=1e-3
+
+            :param overflow_threshold: threshold used in the scf procedure to avoid overflow errors, this determines which simulations and which grid points to ignore. Decreasing it results in a FES with a larger maximum free energy (lower unbiased probability). If it is too low, imaginary errors (sigma^2) arise, so increase if necessary.
+			:type overflow_threshold: double, optional, default=1e-150
 		'''
 		timings = {}
 		timings['start'] = time.time()
-		#backward compatibility between verbose and verbosity. 
+		#backward compatibility between verbose and verbosity.
 		if verbose is not None:
 			print('The keyword verbose is depricated and will be removed in the near future. Use the keyword verbosity instead.')
 			if verbose:
@@ -1080,7 +1083,7 @@ class Histogram2D(object):
 				verbosity = 'none'
 		if verbosity.lower() in ['medium', 'high']:
 			print('Initialization ...')
-		
+
 		#checks and initialization
 		assert len(biasses)==len(traj_input), 'The arguments trajectories and biasses should be of the same length.'
 		beta = 1/(boltzmann*temp)
@@ -1092,7 +1095,7 @@ class Histogram2D(object):
 			assert len(bias_subgrid_num)==2, 'bias_subgrid_num argument should be an integer or a list of two integers'
 			assert isinstance(bias_subgrid_num[0],int), 'bias_subgrid_num argument should be an integer or a list of two integers'
 			assert isinstance(bias_subgrid_num[1],int), 'bias_subgrid_num argument should be an integer or a list of two integers'
-		
+
 		#Preprocess trajectory argument: load files if file names are given instead of raw data, determine and store the number of simulation steps in each simulation:
 		if verbosity.lower() in ['high']:
 			print('  processing trajectories')
@@ -1106,7 +1109,7 @@ class Histogram2D(object):
 				assert trajectory.shape[1]==2, 'Input trajectories parsed as numpy.ndarray should be have a second dimension of length 2, got %i' %(trajectory.shape[1])
 			Nis[i] = len(trajectory)
 			trajectories[i] = trajectory
-		
+
 		#Preprocess the bins argument and redefine it to represent the bin_edges. We need to do this beforehand to make sure that when calling the numpy.histogram routine with this bins argument, each histogram will have a consistent bin_edges array and hence consistent histogram.
 		if verbosity.lower() in ['high']:
 			print('  processing bins')
@@ -1151,10 +1154,10 @@ class Histogram2D(object):
 			print('  CV2 grid [%s]: start = %.3f    end = %.3f    delta = %.3f    N = %i' %(cv2_output_unit, bins[1].min()/parse_unit(cv2_output_unit), bins[1].max()/parse_unit(cv2_output_unit), delta2/parse_unit(cv2_output_unit), Ngrid2))
 			print('---------------------------------------------------------------------')
 			print()
-		
+
 		if verbosity.lower() in ['medium', 'high']:
 			print('Solving WHAM equations (SCF loop) ...')
-		
+
 		#self consistent loop to solve the WHAM equations
 		if pinit is None:
 			pinit = np.ones([Ngrid1,Ngrid2])/Ngrid
@@ -1164,7 +1167,7 @@ class Histogram2D(object):
 			assert pinit.T.shape[0]==Ngrid1, 'Specified initial guess should be of shape (%i,%i), got (%i,%i)' %(Ngrid1,Ngrid2,pinit.shape[0],pinit.shape[1])
 			assert pinit.T.shape[1]==Ngrid2, 'Specified initial guess should be of shape (%i,%i), got (%i,%i)' %(Ngrid1,Ngrid2,pinit.shape[0],pinit.shape[1])
 			pinit /= pinit.sum()
-		ps, fs, converged = wham2d_scf(Nis, Hs, bs, pinit, Nscf=Nscf, convergence=convergence, verbose=verbosity.lower() in ['high'])
+		ps, fs, converged = wham2d_scf(Nis, Hs, bs, pinit, Nscf=Nscf, convergence=convergence, verbose=verbosity.lower() in ['high'], overflow_threshold=overflow_threshold)
 		if verbosity.lower() in ['low', 'medium', 'high']:
 			if bool(converged):
 				print('  SCF Converged!')
@@ -1217,7 +1220,7 @@ class Histogram2D(object):
 			* filter out the zero-rows and columns corresponding to absent histogram counts using the masking procedure
 			* invert the masked extended Fisher matrix and use the square root of its diagonal elements to compute errors
 
-			:param ps: the final unbiased probability density as computed by solving the WHAM equations. 
+			:param ps: the final unbiased probability density as computed by solving the WHAM equations.
 			:type fs: np.ndarray(Ngrid1, Ngrid2)
 
 			:param fs: the final normalization factor for the biased probability density of each simulation as computed by solving the WHAM equations
@@ -1230,12 +1233,12 @@ class Histogram2D(object):
 			:type Nis: np.ndarray(Nsims)
 
 			:param method: Define the method for computing the error:
-			
+
 				* *mle_p*: the error is computed on the probability density directly. This method corresponds to ignoring the positivity constraints of the histogram 			 parameters.
 				* *mle_f*: the error is first computed on minus of the logarithm of the probability density (corresponding to the scaled free energy) and afterwards 			propagated to the probability density. This method corresponds to taking the positivity constraints of the histogram parameters explicitly 			   into account.
-			
+
 			:type method: str, optional, default='mle_f'
-			
+
 			:param nsigma: specify the length of the error bar in terms of the number of sigmas. For example, a 2-sigma error bar (i.e. nsigma=2) would correspond to a 95% confidence interval.
 			:type nsimga: float, optional, default=2
 
@@ -1251,7 +1254,7 @@ class Histogram2D(object):
 			k = int(K/Ngrid2)
 			l = K - Ngrid2*k
 			return k,l
-		
+
 		#Compute the extended Fisher matrix
 		I = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])
 		for i in range(Nsims):
@@ -1282,7 +1285,7 @@ class Histogram2D(object):
 			Ii[Ngrid+i, Ngrid+Nsims+i] = 1/fs[i]
 			Ii[Ngrid+Nsims+i, Ngrid+i] = 1/fs[i]
 			I += Nis[i]*Ii
-		
+
 		#Define and apply mask to filter out zero counts in histogram (as no error can be computed on them)
 		mask = np.ones([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1], dtype=bool)
 		for k in range(Ngrid1):
@@ -1298,7 +1301,7 @@ class Histogram2D(object):
 		#Compute the inverse of the masked Fisher information matrix. Rows or columns corresponding to a histogram count of zero will have a (co)variance set to nan
 		sigma = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])*np.nan
 		sigma[mask] = np.linalg.inv(Imask).reshape([Nmask2])
-		
+
 		#the error bar on the probability of bin (k,l) is now simply the [K,K]-diagonal element of sigma (with K corresponding to the flattend (k,l))
 		err = np.zeros([Ngrid1,Ngrid2])
 		for K in range(Ngrid):
@@ -1313,7 +1316,7 @@ class Histogram2D(object):
 			pupper = ps*np.exp(nsigma*err)
 		else:
 			raise IOError('Recieved invalid argument for method, recieved %s. Check routine signiture for more information on allowed values.' %method)
-		
+
 		return pupper, plower
 
 	@classmethod
@@ -1406,7 +1409,7 @@ def plot_histograms(fn, histograms, temp=None, labels=None, flims=None, colors=N
 	cv_unit = histograms[0].cv_output_unit
 	cv_label = histograms[0].cv_label
 	fmax = -np.inf
-	#add probability histogram and possible free energy plots	
+	#add probability histogram and possible free energy plots
 	for ihist, hist in enumerate(histograms):
 		#set label
 		label = 'Histogram %i' %ihist
