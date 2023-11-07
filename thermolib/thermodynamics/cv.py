@@ -372,6 +372,39 @@ class Minimum(object):
             else:
                 grad = grad2
         return value, grad
+    
+class LinearCombination(object):
+    '''
+        Class to implement a collective variable that is the linear combination of three collective variables:
+
+            CV = aCV1 + bCV2 + cCV3
+    '''
+    def __init__(self, a, cv1, b, cv2, c, cv3, name=None):
+        self.a = a
+        self.cv1 = cv1
+        self.b = b
+        self.cv2 = cv2
+        self.c = c
+        self.cv3 = cv3
+        if name is None:
+            self.name = '%+.2f%s%+.2f%s%+.2f%s' %(a, cv1.name, b, cv2.name, c, cv3.name)
+        else:
+            self.name = name
+
+    def compute(self, coords, deriv=True):
+        #computation of value
+        if not deriv:
+            cv1 = self.cv1.compute(coords, deriv=False)
+            cv2 = self.cv2.compute(coords, deriv=False)
+            cv3 = self.cv3.compute(coords, deriv=False)
+            return self.a*cv1+self.b*cv2+self.c*cv3
+        else:
+            cv1, grad1 = self.cv1.compute(coords, deriv=True)
+            cv2, grad2 = self.cv2.compute(coords, deriv=True)
+            cv3, grad3 = self.cv3.compute(coords, deriv=True)
+            value = self.a*cv1+self.b*cv2+self.c*cv3
+            grad = self.a*grad1+self.b*grad2+self.c*grad3
+        return value, grad
 
 def test_CV_implementations(fn, cvs, dx=0.001*angstrom, maxframes=100):
     xyz = XYZReader(fn)
