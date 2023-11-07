@@ -1384,11 +1384,11 @@ class HistogramND(object):
 			:param pupper: upper bound of the error on the probability histogram values, which should be in atomic units.
 			:type pupper: np.ndarray, optional, default=None
 
-			:param cvs_output_units: a list of units in which the collective variables will be plotted/printed.
+			:param cv_output_units: a list of units in which the collective variables will be plotted/printed.
 			:type cv_output_unit: str, optional, default='au'
 
-			:param cv1_label: a list of labels of the collective variables that will be used on plots.
-			:type cv1_label: str, optional, default='CV1'
+			:param cv_labels: a list of labels of the collective variables that will be used on plots.
+			:type cv_labels: str, optional, default='CV1'
 		'''
 		self.cvs = cvs.copy()
 		self.ps = ps.copy()
@@ -1398,7 +1398,7 @@ class HistogramND(object):
 		self.cv_labels = cv_labels
 
 	@classmethod
-	def from_wham(cls, bins:List[np.ndarray], trajectories: list[np.ndarray], biasses:List, temp, pinit=None, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, cv_output_units: List[str]|None=None, cv_labels: List[str]|None=None, plot_biases=False, verbosity='low'):
+	def from_wham(cls, bins:List[np.ndarray], trajectories: List[np.ndarray], biasses:List, temp, pinit=None, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, cv_output_units: List[str]|None=None, cv_labels: List[str]|None=None, plot_biases=False, verbosity='low'):
 		'''
 			Routine that implements the Weighted Histogram Analysis Method (WHAM) for reconstructing the overall ND probability histogram from a series of biased molecular simulations in terms of N collective variables (CV1,...,CVN).
 
@@ -1550,13 +1550,9 @@ class HistogramND(object):
 
 			if plot_biases:
 				bias.plot('bias_%i.png' %i, bin_centers[0], bin_centers[1])
-	
 
-		##########################todo
-
+		#TODO
 		timings['bias'] = time.time()
-
-
 
 		#some init printing
 		if verbosity == 'high':
@@ -1591,7 +1587,6 @@ class HistogramND(object):
 			fs = 1.0/np.tensordot(  bs, as_old, axes=len(Ngrid) )
 			#compute new probabilities
 			as_new = np.zeros(as_old.shape)
-
 
 			denominator = np.einsum(  "i,i,i...",Nis,fs,bs )
 			as_new = nominator / denominator		
@@ -1681,8 +1676,8 @@ class HistogramND(object):
 
 			:param method: Define the method for computing the error:
 			
-				* *mle_p*: the error is computed on the probability density directly. This method corresponds to ignoring the positivity constraints of the histogram 			 parameters.
-				* *mle_f*: the error is first computed on minus of the logarithm of the probability density (corresponding to the scaled free energy) and afterwards 			propagated to the probability density. This method corresponds to taking the positivity constraints of the histogram parameters explicitly 			   into account.
+				* *mle_p*: the error is computed on the probability density directly. This method corresponds to ignoring the positivity constraints of the histogram parameters.
+				* *mle_f*: the error is first computed on minus of the logarithm of the probability density (corresponding to the scaled free energy) and afterwards propagated to the probability density. This method corresponds to taking the positivity constraints of the histogram parameters explicitly into account.
 			
 			:type method: str, optional, default='mle_f'
 			
