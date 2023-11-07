@@ -351,9 +351,13 @@ def read_wham_input(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1,
                 data = np.loadtxt(fn_traj)
                 biasses.append(bias)
                 if end==-1:
-                    trajectories.append(data[start::stride,colvar_cv_column_index])
+                    data = data[start::stride,colvar_cv_column_index]
                 else:
-                    trajectories.append(data[start:end:stride,colvar_cv_column_index])
+                    data = data[start:end:stride,colvar_cv_column_index]
+                if len(data)>0:
+                    trajectories.append(data)
+                else:
+                    raise ValueError('No data could be read from trajectory %s. Are you sure you did not choose start:end:stride to restrictive?' %fn_traj)
                 if verbose:
                     print('Added bias %s' %bias.print())
                     print('Read corresponding trajectory data from %s' %fn_traj)
@@ -474,15 +478,18 @@ def read_wham_input_h5(fn, h5_cv_path, path_template_h5_fns='%s', kappa_unit='kj
                 bias = Parabola1D(name, q0, kappa,inverse_cv=inverse_cv)
                 if additional_bias is not None:
                     bias = MultipleBiasses1D([bias, additional_bias])
+                biasses.append(bias)
 
                 data = np.array(f_h5_1['%s'%h5_cv_path])
                 data = np.concatenate(data)
-
-                biasses.append(bias)
                 if end==-1:
-                    trajectories.append(data[start::stride])
+                    data = data[start::stride]
                 else:
-                    trajectories.append(data[start:end:stride])
+                    data = data[start:end:stride]
+                if len(data)>0:
+                    trajectories.append(data)
+                else:
+                    raise ValueError('No data could be read from trajectory %s. Are you sure you did not choose start:end:stride to restrictive?' %fn_traj)
                 if verbose:
                     print('Added bias %s' %bias.print())
                     print('Read corresponding trajectory data from %s' %f_h5_1)
