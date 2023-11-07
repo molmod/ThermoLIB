@@ -80,36 +80,6 @@ def integrate2d(z,x=None,y=None,dx=1.,dy=1.):
     s3 = np.sum(z[1:-1,1:-1])
     return 0.25*dx*dy*(s1 + 2*s2 + 4*s3)
 
-def integrate_nd(z,x:list[np.ndarray]|None=None,dx:list[float]|None=None):
-    '''
-        Integrates a regularly spaced 2D grid using the composite trapezium rule.
-
-        :param z: N dimensional array containing the function values
-        :type z: np.ndarray(flt)
-
-        :param xi: list of 1D arrays containing the grid points. used to determine grid spacing
-
-        :param dx: grid spacing for first function argument. If not given, argument is used to determine grid spacing. Defaults to 1.
-        :type dx: float, optional
-
-        :return: integral value
-        :rtype: float
-    '''
-
-    if x is not None:
-        for xi in x:
-            z = np.trapz(z, x=xi ,axis=0)
-        return z
-
-    if dx is None:
-        dx = [ 1.0 for a in  range( len(z.shape)) ]
-
-    for dxi in dx:
-        z = np.trapz(z, dx=dxi ,axis=0)
-
-    return z
-
-
 def format_scientific(x, prec=3, latex=True):
     if np.isnan(x):
         return r'nan'
