@@ -375,35 +375,34 @@ class Minimum(object):
     
 class LinearCombination(object):
     '''
-        Class to implement a collective variable that is the linear combination of three collective variables:
+        Class to implement a collective variable that is the linear combination of other collective variables
 
-            CV = aCV1 + bCV2 + cCV3
+            CV = sum(coeffs[i]*cvs[i], i=1..N)
+        
+        in which cvs is the list of involved collective variables and coeffs is list of equal length with the corresponing coefficients
     '''
-    def __init__(self, a, cv1, b, cv2, c, cv3, name=None):
-        self.a = a
-        self.cv1 = cv1
-        self.b = b
-        self.cv2 = cv2
-        self.c = c
-        self.cv3 = cv3
+    def __init__(self, cvs, coeffs, name=None):
+        assert len(cvs)==len(coeffs), "List of cvs and list of coefficients should be of equal length"
+        self.cvs = cvs
+        self.coeffs = coeffs
         if name is None:
-            self.name = '%+.2f%s%+.2f%s%+.2f%s' %(a, cv1.name, b, cv2.name, c, cv3.name)
+            self.name = ''.join(['%+.2f%s' %(coeff,cv.name) for (coeff,cv) in zip(coeffs,cvs)])
         else:
             self.name = name
 
     def compute(self, coords, deriv=True):
         #computation of value
         if not deriv:
-            cv1 = self.cv1.compute(coords, deriv=False)
-            cv2 = self.cv2.compute(coords, deriv=False)
-            cv3 = self.cv3.compute(coords, deriv=False)
-            return self.a*cv1+self.b*cv2+self.c*cv3
+            value = 0.0
+            for coeff, cv in zip(self.coeffs, self.cvs):
+                value += coeff*cv.compute(coords, deriv=False)
         else:
-            cv1, grad1 = self.cv1.compute(coords, deriv=True)
-            cv2, grad2 = self.cv2.compute(coords, deriv=True)
-            cv3, grad3 = self.cv3.compute(coords, deriv=True)
-            value = self.a*cv1+self.b*cv2+self.c*cv3
-            grad = self.a*grad1+self.b*grad2+self.c*grad3
+            value = 0.0
+            grad = np.zeros(coords.shape)
+            for coeff, cv in zip(self.coeffs, self.cvs):
+                v,g = cv.compute(coords, deriv=True)
+                value += coeff*v
+                grad += coeff*g
         return value, grad
 
 def test_CV_implementations(fn, cvs, dx=0.001*angstrom, maxframes=100):
