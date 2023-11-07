@@ -17,10 +17,9 @@ from molmod.io.xyz import XYZReader, XYZFile
 from molmod.minimizer import check_delta
 from molmod.unit_cells import UnitCell
 
-from ..tools import blav
+from ..tools import blav, h5_read_dataset
 
 import numpy as np
-import sys, os
 import matplotlib.pyplot as pp
 
 __all__ = ['RateFactorEquilibrium']
@@ -263,7 +262,7 @@ class RateFactorEquilibrium(BaseRateFactor):
             :type verbose: bool, optional, default=False
         '''
         #initialization
-        masses = self.read_subdirectory(fn_h5, subdirectory='/system/masses/').read_subdirectory()
+        masses = h5_read_dataset(fn_h5, '/system/masses/')
         Natoms = len(masses)
         masses3 = np.array([masses, masses, masses]).T.reshape([3*Natoms, 1]).flatten()
         if self.Natoms is None:
@@ -277,19 +276,13 @@ class RateFactorEquilibrium(BaseRateFactor):
         if verbose:
             print('Estimating rate factor from trajectory %s for TS=[%.3f,%.3f] %s using %s momentum integration' %(fn_h5, self.CV_TS_lims[0]/parse_unit(self.CV_unit), self.CV_TS_lims[1]/parse_unit(self.CV_unit), self.CV_unit, momenta))
         
-        coords = self.read_subdirectory(fn_h5, subdirectory='/trajectory/pos/').read_subdirectory()
-        for coords in self.read_subdirectory(fn_h5, subdirectory='/trajectory/pos/').read_subdirectory():
+        for coords in h5_read_dataset(fn_h5, '/trajectory/pos/'):
             self._compute_contribution(coords, momenta=momenta, Nmomenta=Nmomenta, verbose=verbose)
         
         if finish:
             if verbose:
                 print('Finishing')
             self.finish(fn=fn_samples)
-
-    def read_subdirectory(self):
-        f_h5_1 = h5.File(self.f, mode = 'r')
-        data = np.array(f_h5_1['%s'%self.subdirectory])
-        return data
 
     def _compute_contribution(self, coords, momenta='analytical', Nmomenta=500, verbose=False):
         '''

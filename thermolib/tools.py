@@ -812,3 +812,8 @@ def extract_polynomial_bias_info(fn_plumed='plumed.dat'):
                 poly_coef = [float(i) for i in split_line] #remark that -float is needed to get the resulting fe.
                 break
     return poly_coef
+
+def h5_read_dataset(fn, dset):
+    with h5.File(fn, mode = 'r') as f:
+        data = np.array(f[dset])
+    return data
