@@ -15,6 +15,7 @@ from typing import List
 from molmod.units import *
 from molmod.constants import *
 
+import numpy as np, sys
 
 from thermolib.tools import integrate, integrate2d, format_scientific, integrate_nd
 
@@ -29,16 +30,13 @@ rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 
 from sklearn.cluster import DBSCAN #clustering algorithm
 
-
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from thermolib.thermodynamics.histogram import HistogramND
 
-import numpy as np
-
-import sys
 
 __all__ = ['BaseFreeEnergyProfile', 'SimpleFreeEnergyProfile', 'FreeEnergySurface2D', 'plot_feps']
+
 
 class BaseFreeEnergyProfile(object):
     '''
@@ -1573,115 +1571,6 @@ class FreeEnergySurface2D(object):
         fig = pp.gcf()
         fig.set_size_inches([12,8])
         pp.savefig(fn_png)
-
-class FreeEnergyHypersurfaceND(object):
-    def __init__(self, cvs: List[np.ndarray], fs:np.ndarray, temp, fupper:np.ndarray|None=None, flower: np.ndarray|None=None, cv_output_units: List[str]|None=None, f_output_unit='kjmol', cv_labels: List[str]|None = None):
-
-        #input validation
-        n = len(cvs)
-        assert len(fs.shape) == n, "numer of CVs should match to dimensions of fs"
-
-        if cv_output_units is None:
-            cv_output_units = ["au"]*n
-        else:
-            assert len(cv_output_units)==n, "lenght of cv_output_units should match number of cvs"
-
-
-        if cv_labels is None:
-            cv_labels = [f"CV{i:d}"for i in range(n)]
-        else: 
-            assert len(cv_labels)==n, "lenght of cv_labels should match number of cvs"
-
-        if fupper is not None:
-            assert fupper.shape == fs.shape
-
-        if flower is not None:
-            assert flower.shape == fs.shape
-
-        #
-        self.cvs = [ cv.copy() for cv in cvs]
-        self.fs   = fs.copy()
-
-        self.fupper = fupper.copy() if fupper is not None else None
-        self.flower = flower.copy() if flower is not None else None
-
-        self.T = temp
-        self.cv_output_units = cv_output_units
-        self.f_output_unit = f_output_unit
-        self.cv_labels = cv_labels
-        self.compute_probdens()
-
-    @property
-    def beta(self):
-        return 1.0/(boltzmann*self.T)
-
-    def copy(self):
-        '''
-            Make and return a copy of the current FreeEnergySurface2D instance.
-
-            :return: a copy of the current instance
-            :rtype: FreeEnergySurface2D
-        '''
-        fupper, flower = None, None
-        if self.fupper is not None:
-            fupper = self.fupper.copy()
-        if self.flower is not None:
-            flower = self.flower.copy()
-        fes = FreeEnergyHypersurfaceND(
-            cvs=[cv.copy() for cv in self.cvs], fs=self.fs.copy(),T= self.T, fupper=fupper, flower=flower, 
-            cv_output_units= self.cv_output_units , f_output_unit=self.f_output_unit, cv_labels=self.cv_labels
-        )
-        return fes
-
-    @classmethod
-    def from_histogram(cls, histogram: HistogramND , temp:float):
-        '''
-            Use the estimated ND probability histogram to construct the corresponding ND free energy surface at the given temperature.
-        
-            :param histogram: histogram from which the free energy profile is computed
-            :type histogram: histogram.HistogramND
-
-            :param temp: the temperature at which the histogram input data was simulated
-            :type temp: float
-
-            :return: free energy profile corresponding to the estimated probability histogram
-            :rtype: cls
-        '''
-        fupper = None
-        flower = None
-        fs = np.zeros(histogram.ps.shape)*np.nan
-        fs[histogram.ps>0] = -boltzmann*temp*np.log(histogram.ps[histogram.ps>0])
-        if histogram.pupper is not None and histogram.plower is not None:
-            fupper = np.zeros(histogram.ps.shape)*np.nan
-            flower = np.zeros(histogram.ps.shape)*np.nan
-            fupper[histogram.plower>0] = -boltzmann*temp*np.log(histogram.plower[histogram.plower>0])
-            flower[histogram.pupper>0] = -boltzmann*temp*np.log(histogram.pupper[histogram.pupper>0])
-        return cls(histogram.cvs, fs, temp, fupper=fupper, flower=flower, cv_output_units=histogram.cv_output_units ,cv_labels=histogram.cv_labels)
-
-    def compute_probdens(self):
-        '''
-            Compute the probability density profile associated with the free energy profile as given below and store internally in `self.ps`
-
-            .. math:: p(q) = \\frac{\\exp\\left(-\\beta F(q)\\right)}{\\int_{-\\infty}^{+\\infty}\\exp\\left(-\\beta F(q)\\right)dq}
-        '''
-        self.ps = np.exp(-self.beta*self.fs)
-        self.ps[np.isnan(self.ps)] = 0.0
-        self.ps /= integrate_nd(self.ps, x=self.cvs)
-
-    
-
-    def set_ref(self, ref='min'):
-        '''
-            Set the energy reference of the free energy surface.
-
-            :param ref: the choice for the energy reference. Currently only one possibility is implemented, i.e. *m* or *min* for the global minimum.
-            :type ref: str, default='min'
-            
-            :raises IOError: invalid value for keyword argument ref is given. See doc above for choices.
-        '''
-
-        FreeEnergySurface2D.set_ref(self,ref=ref)
-
 
 def plot_feps(fn, feps, temp=None, labels=None, flims=None, colors=None, linestyles=None, linewidths=None, do_latex=False):
     '''
