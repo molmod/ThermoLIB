@@ -10,7 +10,9 @@
 # Van Speybroeck. Usage of this package should be authorized by prof. Van
 # Van Speybroeck.
 
-from matplotlib.colors import Normalize
+import itertools
+from typing import  List
+
 from molmod.units import *
 from molmod.constants import *
 
@@ -18,6 +20,7 @@ import matplotlib.pyplot as pp
 import matplotlib.cm as cm
 import numpy as np
 import time
+
 
 from thermolib.thermodynamics.fep import BaseFreeEnergyProfile
 from thermolib.ext import wham1d_hs, wham1d_bias, wham1d_scf, wham1d_error, wham2d_hs, wham2d_bias, wham2d_scf, wham2d_error
@@ -1363,6 +1366,408 @@ class Histogram2D(object):
 			:type flim: float, optional, default=None
 		'''
 		raise NotImplementedError
+
+
+class HistogramND(object):
+	def __init__(self, cvs: List[np.ndarray], ps, plower=None, pupper=None, cv_output_units: List[str]|None=None, cv_labels: List[str]|None=None):
+		'''
+			Class to implement the estimation of a probability histogram in terms of a collective variable from a trajectory series corresponding to that collective variable.
+
+			:param cvs: list of N 1D arrays corresponding the grid points of the Nth collective variable, which should be in atomic units.
+
+			:param ps: ND array corresponding to the histogram probability values at the (CV1,CV2,..,CVN) grid points, which should be in atomic units.
+			:type bins: np.ndarray
+
+			:param plower: lower bound of the error on the probability histogram values, which should be in atomic units.
+			:type do_error: np.ndarray, optional, default=None
+
+			:param pupper: upper bound of the error on the probability histogram values, which should be in atomic units.
+			:type pupper: np.ndarray, optional, default=None
+
+			:param cvs_output_units: a list of units in which the collective variables will be plotted/printed.
+			:type cv_output_unit: str, optional, default='au'
+
+			:param cv1_label: a list of labels of the collective variables that will be used on plots.
+			:type cv1_label: str, optional, default='CV1'
+		'''
+		self.cvs = cvs.copy()
+		self.ps = ps.copy()
+		self.plower = plower
+		self.pupper = pupper
+		self.cv_output_units = cv_output_units
+		self.cv_labels = cv_labels
+
+	@classmethod
+	def from_wham(cls, bins:List[np.ndarray], trajectories: list[np.ndarray], biasses:List, temp, pinit=None, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, cv_output_units: List[str]|None=None, cv_labels: List[str]|None=None, plot_biases=False, verbosity='low'):
+		'''
+			Routine that implements the Weighted Histogram Analysis Method (WHAM) for reconstructing the overall ND probability histogram from a series of biased molecular simulations in terms of N collective variables (CV1,...,CVN).
+
+			:param data: 2D array corresponding to the trajectory series of the N collective variables. The Nth column is assumed to correspond to the Nth collective variable.
+			:type data: np.ndarray([M,N])
+
+			:param bins: list of the form [bins1,... ,binsN] where bins are numpy arrays each representing the bin edges of their corresponding CV for which a histogram will be constructed. For example the following definition:
+
+				[np.arange(-1,1.05,0.05), ... ,np.arange(0,5.1,0.1)]
+
+			will result in a ND histogram with bins of width 0.05 between -1 and 1 for CV1 and bins of width 0.1 between 0 and 5 for CVN.
+			:type bins: list[np.ndarray]
+
+			:param trajectories: list or array of 2D numpy arrays containing the [CV1,...,CVN] trajectory data for each simulation. Alternatively, a list of PLUMED file names containing the trajectory data can be specified as well. The arguments trajectories and biasses should be of the same length.
+			:type trajectories: list(np.ndarray([Nmd,2]))/np.ndarray([Ntraj,Nmd,2])
+
+			:param biasses: list of callables, each representing a function to compute the bias at a given value of the collective variables CV1 and CV2. The arguments trajectories and biasses should be of the same length.
+			:type biasses: list(callable)
+
+			:param temp: the temperature at which all simulations were performed
+			:type temp: float
+
+			:param pinit: initial guess for the probability density, which is assumed to be in the 'xy'-indexing convention (see the "indexing" argument and the corresponding "Notes" section in `the numpy online documentation of the meshgrid routine <https://numpy.org/doc/stable/reference/generated/numpy.meshgrid.html>`_). If None is given, a uniform distribution is used as initial guess.
+			:type pinit: np.ndarray, optional, default=None
+			
+			:param error_estimate: indicate if and how to perform error analysis. One of following options is available:
+			
+				*  **mle_p** -- compute error through the asymptotic normality of the maximum likelihood estimator for the probability itself. WARNING: due to positivity constraint of the probability, this only works for high probability and low variance. Otherwise the standard error interval for the normal distribution (i.e. mle +- n*sigma) might give rise to negative lower error bars.
+				*  **mle_f** -- compute error through the asymptotic normality of the maximum likelihood estimator for -log(p) (hence for the beta-scaled free energy). This estimation does not suffor from the same WARNING as for ``mle_p``. Furthermore, in case of high probability and low variance, the error estimation using ``mle_f`` and ``mle_p`` are consistent (i.e. one can be computed from the other using f=-log(p)).
+				*  **None** -- do not estimate the error.
+			
+			:type error_estimate: str, optional, default=None
+
+			:param nsigma: only relevant when error estimation is turned on (i.e. when keyword ``error_estimate`` is not None), this option defines how large the error interval should be in terms of the standard deviation sigma. A ``nsigma=2`` implies a 2-sigma error bar (corresponding to 95% confidence interval) will be returned. Defaults to 2
+			:type nsigma: int, optional
+			
+			:param bias_subgrid_num: the number of grid points along each CV for the sub-grid used to compute the integrated boltzmann factor of the bias in each CV1,...,CVN bin. Either a single integer is given, corresponding to identical number of subgrid points for both CVs, or a list of two integers corresponding the number of grid points in the two CVs respectively.
+			:type bias_subgrid_num: optional, defaults to [20,20]
+
+			:param Nscf: the maximum number of steps in the self-consistent loop to solve the WHAM equations
+			:type Nscf: int, defaults to 1000
+
+			:param convergence: convergence criterium for the WHAM self consistent solver. The SCF loop will stop whenever the integrated absolute difference between consecutive probability densities is less then the specified value.
+			:type convergence: float, defaults to 1e-6
+
+			:param cv_output_units: list the units in which the collective variable will be plotted/printed
+			:type cv_output_units: list[str], optional, default='au'
+
+			:param cv_label: the label of the first collective variable that will be used on plots
+			:type cv_label: str, optional, default='CV1'
+
+			:param plot_biases: if set to True, a 2D plot of the boltzmann factor of the bias integrated over each bin will be made.
+			:type plot_biases: bool, optional, default=False
+
+			:return: ND probability histogram
+			:rtype: HistogramND
+		'''
+		timings = {}
+		timings['start'] = time.time()
+
+		if verbosity.lower() in ['medium', 'high']:
+			print('Initialization ...')
+		
+		if cv_output_units is None:
+			cv_output_units = ["au"]*len(bins)
+
+
+		#checks and initialization
+		assert len(biasses)==len(trajectories), 'The arguments trajectories and biasses should be of the same length.'
+		beta = 1/(boltzmann*temp)
+		Nsims = len(biasses)
+		Ncv = len(bins)
+		if isinstance(bias_subgrid_num, int):
+			bias_subgrid_num = [bias_subgrid_num]*Ncv 
+		else:
+			assert isinstance(bias_subgrid_num,list) or isinstance(bias_subgrid_num,np.ndarray), 'bias_subgrid_num argument should be an integer or a list of two integers'
+			assert len(bias_subgrid_num)==Ncv, f'bias_subgrid_num argument should be an integer or a list of {Ncv} integers'
+			for i in range(Ncv):
+				assert isinstance(bias_subgrid_num[i],int), f'bias_subgrid_num argument should be an integer or a list of {Ncv} integers'
+		
+		#Preprocess trajectory argument: load files if file names are given instead of raw data, determine and store the number of simulation steps in each simulation:
+		if verbosity.lower() in ['high']:
+			print('  processing trajectories')
+		Nis = []
+		data = []
+		for i, trajectory in enumerate(trajectories):
+			if isinstance(trajectory, str):
+				trajectory = np.loadtxt(trajectory)[:,1:3] #first column is the time, second column is the CV1, third column is the CV2
+			Nis.append(len(trajectory))
+			data.append(trajectory)
+		Nis = np.array(Nis)
+		
+		#Preprocess the bins argument and redefine it to represent the bin_edges. We need to do this beforehand to make sure that when calling the numpy.histogram routine with this bins argument, each histogram will have a consistent bin_edges array and hence consistent histogram.
+		if verbosity.lower() in ['high']:
+			print('  processing bins')
+		assert isinstance(bins,list), f"Bins argument should be a list of {Ncv} numpy arrays with the corresponding bin edges. Current definition is not a list, but an object of type {bins.__class__.__name__}."
+		assert len(bins)==Ncv, f"Bins argument should be a list of {Ncv} numpy arrays with the corresponding bin edges. Current list definition does not have two elements, but {len(bins)}."
+		for i in range(Ncv):
+			assert isinstance(bins[i],np.ndarray), f"Bins argument should be a list of {Ncv} numpy arrays with the corresponding bin edges. The first element in the current definition is not a numpy array but an object of type {bins[i].__class__.__name__}"
+		
+
+		bins = bins
+		bin_centers = [ 0.5*(x[:-1]+x[1:]) for x in bins]
+		deltas = [x[1:]-x[:-1]  for x in bins]
+		grid_non_uniformity =  [ np.std(delta) / np.mean(delta) for delta in deltas ]
+		for i,gnu in enumerate( grid_non_uniformity):
+			assert (gnu < 1e-6).all(), f'CV{i} grid defined by bins argument should be of uniform spacing! Non-uniform grids not implemented.'
+		delta = [np.mean(delta) for delta in deltas]
+		Ngrid = np.array([ len(bi)  for bi in bin_centers ])
+		prodNgrid = np.prod(Ngrid)
+		timings['init'] = time.time()
+		
+		#generate the individual histograms using numpy.histogram
+		if verbosity.lower() in ['medium', 'high']:
+			print('Constructing individual histograms for each biased simulation ...')
+		
+		Hs = np.zeros([Nsims,*Ngrid])
+		for i, traj in enumerate(data):
+			ns, edges = np.histogramdd(  traj,bins=bins,density=False  )
+			for b,e in zip(bins,edges):
+				assert (b==e).all()
+
+			Hs[i,:] = ns.copy()
+			N = ns.sum()
+			if not Nis[i]==N:
+				print('WARNING: Histogram of trajectory %i should have total count of %i (=number of simulation steps), but found %f (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.' %(i,Nis[i],N))
+				Nis[i] = N
+		timings['hist'] = time.time()
+		
+		#compute the boltzmann factors of the biases in each grid interval
+		#b_ikl = 1/(delta1*delta2)*int(exp(-beta*W_i(q1,q2)), q1=Q_k-delta1/2...Q_k+delta1/2, q2=Q_l-delta2/2...Q_l+delta2/2)
+		if verbosity.lower() in ['medium', 'high']:
+			print('Computing bias on grid ...')
+
+		bs = np.zeros([Nsims, *Ngrid])
+
+		for i, bias in enumerate(biasses):
+			subdelta =   [   d/bsn for d,bsn in zip(delta,bias_subgrid_num)]
+			
+			for idx in itertools.product(*(range(x) for x in Ngrid)):
+				center = [bin_centers[j][k] for j,k in  enumerate(idx) ]	
+				subgrid = [np.arange(c -d/2, c+d/2 + sd, sd) for c,d,sd in zip(center,delta,subdelta )]
+				CV = np.meshgrid( *subgrid  , indexing='ij')
+				Ws = np.exp(-beta*bias( *CV  ))
+
+				for sd,d in zip(subdelta,delta):
+					Ws = np.trapz(Ws, dx=sd ,axis=0)/d
+				bs[(i,*idx) ] = Ws
+
+			if plot_biases:
+				bias.plot('bias_%i.png' %i, bin_centers[0], bin_centers[1])
+	
+
+		##########################todo
+
+		timings['bias'] = time.time()
+
+
+
+		#some init printing
+		if verbosity == 'high':
+			print()
+			print('---------------------------------------------------------------------')
+			print('WHAM SETUP')
+			print('  number of simulations = ', Nsims)
+			for i, Ni in enumerate(Nis):
+				print('    simulation %i has %i steps' %(i,Ni))
+			for i, (cvu, b,d, n) in  enumerate(zip ( cv_output_units, bins,delta,Ngrid )):
+				print('  CV%d grid [%s]: start = %.3f    end = %.3f    delta = %.3f    N = %i' %(i,cvu, b.min()/parse_unit(cvu), b.max()/parse_unit(cvu), d/parse_unit(cvu), n))
+			print('---------------------------------------------------------------------')
+			print()
+		
+		if verbosity.lower() in ['medium', 'high']:
+			print('Solving WHAM equations (SCF loop) ...')
+
+		#self consistent loop to solve the WHAM equations
+		##initialize probability density array (which should sum to 1)
+		if pinit is None:
+			as_old = np.ones( Ngrid )/prodNgrid
+		else:
+			#it is assumed pinit is given in 'xy'-indexing convention (such as for example when using the ps attribute of another Histogram2D instance)
+			#however, this routine is written in the 'ij'-indexing convention, therefore, we transpose pinit here.
+
+			assert pinit.T.shape == Ngrid,f'Specified initial guess should be of shape ({Ngrid}), got ({pinit.T.shape})'
+			as_old = pinit.T/pinit.sum()
+
+		nominator = Hs.sum(axis=0) #precomputable factor in WHAM update equations
+		for iscf in range(Nscf):
+			#compute new normalization factors
+			fs = 1.0/np.tensordot(  bs, as_old, axes=len(Ngrid) )
+			#compute new probabilities
+			as_new = np.zeros(as_old.shape)
+
+
+			denominator = np.einsum(  "i,i,i...",Nis,fs,bs )
+			as_new = nominator / denominator		
+			as_new /= as_new.sum() #enforce normalization
+			
+			#check convergence
+			integrated_diff = np.abs(as_new-as_old).sum()
+			if verbosity == "High":
+				max = as_new.max()
+				print('cycle %i/%i' %(iscf+1,Nscf))
+				print('  norm prob. dens. = %.3e au' %as_new.sum())
+				print('  max prob. dens.  = %.3e au' %max)
+				for i,imax in  enumerate( [indices[0] for indices in np.where(as_new==as_new.max())]):
+					print('  cv1,cv2 for max  = %.3e %s , %.3f %s' %(bin_centers[i][imax]/parse_unit(cv_output_units[i]), cv_output_units[i]))
+				print('  Integr. Diff.    = %.3e au' %integrated_diff)
+				print('')
+			if integrated_diff<convergence:
+				print('  SCF Converged!')
+				break
+			else:
+				if iscf==Nscf-1:
+					print('  SCF did not converge!')
+			as_old = as_new.copy()
+		
+		#finalization
+		cvs = [  bc.copy() for bc in bin_centers  ]
+		ps = as_new.copy()
+		fs = 1.0/np.tensordot(  bs, as_new, axes=len(Ngrid) )
+		timings['scf'] = time.time()
+
+		#error estimation
+		if error_estimate is not None:
+			if verbosity.lower() in ['medium', 'high']:
+				print('Estimating error ...')
+			pupper, plower = cls._estimate_WHAM_error_ND(ps, fs, bs, Nis, method=error_estimate, nsigma=nsigma)
+		else:
+			pupper, plower = None, None
+		
+		#For consistency with how FreeEnergySurface2D is implemented (using 'xy'-indexing), ps (and plower, pupper) need to be transposed
+		ps = ps.T
+		if plower is not None: plower = plower.T
+		if pupper is not None: pupper = pupper.T
+
+		timings['error'] = time.time()
+
+		if verbosity.lower() in ['low', 'medium', 'high']:
+			print()
+			print('---------------------------------------------------------------------')
+			print('TIMING SUMMARY')
+			t = timings['init'] - timings['start']
+			print('  initializing: %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+			t = timings['hist'] - timings['init']
+			print('  histograms  : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+			t = timings['bias'] - timings['hist']
+			print('  bias poten. : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+			t = timings['scf'] - timings['bias']
+			print('  solve scf   : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+			t = timings['error'] - timings['scf']
+			print('  error est.  : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+			t = timings['error'] - timings['init']
+			print('  TOTAL       : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+			print('---------------------------------------------------------------------')
+
+		return cls(cvs, ps, plower=plower, pupper=pupper, cv_output_units=cv_output_units, cv_labels=cv_labels)
+	
+
+	@classmethod
+	def _estimate_WHAM_error_ND(cls, ps, fs, bs, Nis, method='mle_f', nsigma=2):
+		'''
+			Internal routine to compute the error assiciated with solving the 2D WHAM equations using the Fisher information comming from the Maximum Likelihood Estimator. The procedure is as follows:
+
+			* construct the extended Fisher information matrix by taking the weighted sum of the Fisher information matrix of each simulation. This is very similar as in the 1D case. However, we first have to flatten the CV1,CV2 2D grid to a 1D CV12 grid. This is achieved with the flatten function (which flattens a 2D index to a 1D index). Deflattening of the CV12 grid to a 2D CV1,CV2 grid is achieved with the deflatten function (which deflattens a 1D index to a 2D index). Using the flatten function, the ps array is flattened and a conventional Fisher matrix can be constructed and inverted. Afterwards the covariance matrix is deflattened using the deflatten function to arrive to a multidimensional matrix giving (co)variances on the 2D probability array.
+			* filter out the zero-rows and columns corresponding to absent histogram counts using the masking procedure
+			* invert the masked extended Fisher matrix and use the square root of its diagonal elements to compute errors
+
+			:param ps: the final unbiased probability density as computed by solving the WHAM equations. 
+			:type fs: np.ndarray(Ngrid1, Ngrid2)
+
+			:param fs: the final normalization factor for the biased probability density of each simulation as computed by solving the WHAM equations
+			:type fs: np.ndarray(Nsim)
+
+			:param bs: the biasses (for each simulation) precomputed on the 2D CV grid
+			:type bs: np.ndarray(Nsim,Ngrid1,Ngrid2)
+
+			:param Nis: the number of simulation steps in each simulation
+			:type Nis: np.ndarray(Nsims)
+
+			:param method: Define the method for computing the error:
+			
+				* *mle_p*: the error is computed on the probability density directly. This method corresponds to ignoring the positivity constraints of the histogram 			 parameters.
+				* *mle_f*: the error is first computed on minus of the logarithm of the probability density (corresponding to the scaled free energy) and afterwards 			propagated to the probability density. This method corresponds to taking the positivity constraints of the histogram parameters explicitly 			   into account.
+			
+			:type method: str, optional, default='mle_f'
+			
+			:param nsigma: specify the length of the error bar in terms of the number of sigmas. For example, a 2-sigma error bar (i.e. nsigma=2) would correspond to a 95% confidence interval.
+			:type nsimga: float, optional, default=2
+
+			:return: pupper, plower corresponding to the upper and lower value of the nsigma error bar
+			:rtype: np.ndarray, np.ndarray
+		'''
+		#initialization
+		Nsims = bs.shape[0]
+		Ngrid = bs.shape[1:]
+
+		Ngridprod = np.prod(Ngrid)
+
+		def flatten(idx):
+			return np.ravel_multi_index( idx,dims=Ngrid  )
+		def deflatten(K):
+			return  np.unravel_index( K, Ngrid)
+		
+		#Compute the extended Fisher matrix
+		I = np.zeros([Ngridprod+2*Nsims+1, Ngridprod+2*Nsims+1])
+		for i in range(Nsims):
+			Ii = np.zeros([Ngridprod+2*Nsims+1, Ngridprod+2*Nsims+1])
+			for idx in itertools.product( *[range(j)  for j in Ngrid]):
+				K = flatten(idx=idx)
+
+				if method in ['mle_p']:
+					if ps[idx]>0: #see below where we define mask to filter out rows/columns corresponding to histogram counts of zero
+						Ii[K,K] = fs[i]*bs[ (i,*idx) ]/ps[idx]
+					Ii[K, Ngridprod+i] = bs[(i,*idx)]
+					Ii[Ngridprod+i, K] = bs[(i,*idx)]
+					Ii[K, Ngridprod+Nsims+i] = fs[i]*bs[(i,*idx)]
+					Ii[Ngridprod+Nsims+i, K] = fs[i]*bs[(i,*idx)]
+					Ii[K,-1] = 1
+					Ii[-1,K] = 1
+				elif method in ['mle_f']:
+					Ii[K,K] = ps[idx]*fs[i]*bs[(i,*idx)]
+					Ii[K, Ngridprod+i] = -ps[idx]*bs[(i,*idx)]
+					Ii[Ngridprod+i, K] = -ps[idx]*bs[(i,*idx)]
+					Ii[K, Ngridprod+Nsims+i] = -ps[idx]*fs[i]*bs[(i,*idx)]
+					Ii[Ngridprod+Nsims+i, K] = -ps[idx]*fs[i]*bs[(i,*idx)]
+					Ii[K,-1] = -ps[idx]
+					Ii[-1,K] = -ps[idx]
+				else:
+					raise IOError('Recieved invalid argument for method, recieved %s. Check routine signiture for more information on allowed values.' %method)
+
+			Ii[Ngridprod+i, Ngridprod+i] = 1/fs[i]**2
+			Ii[Ngridprod+i, Ngridprod+Nsims+i] = 1/fs[i]
+			Ii[Ngridprod+Nsims+i, Ngridprod+i] = 1/fs[i]
+			I += Nis[i]*Ii
+		
+		#Define and apply mask to filter out zero counts in histogram (as no error can be computed on them)
+		mask = np.ones([Ngridprod+2*Nsims+1, Ngridprod+2*Nsims+1], dtype=bool)
+		for idx in itertools.product( *[range(j)  for j in Ngrid]):
+				K = flatten(idx=idx)
+				if ps[idx]==0:
+					mask[K,:] = np.zeros(Ngridprod+2*Nsims+1, dtype=bool)
+					mask[:,K] = np.zeros(Ngridprod+2*Nsims+1, dtype=bool)
+		Nmask2 = len(I[mask])
+		assert abs(int(np.sqrt(Nmask2))-np.sqrt(Nmask2))==0 #consistency check, sqrt(Nmask2) should be integer valued
+		Nmask = int(np.sqrt(Nmask2))
+		Imask = I[mask].reshape([Nmask,Nmask])
+		#Compute the inverse of the masked Fisher information matrix. Rows or columns corresponding to a histogram count of zero will have a (co)variance set to nan
+		sigma = np.zeros([Ngridprod+2*Nsims+1, Ngridprod+2*Nsims+1])*np.nan
+		sigma[mask] = np.linalg.inv(Imask).reshape([Nmask2])
+		
+		#the error bar on the probability of bin (k,l) is now simply the [K,K]-diagonal element of sigma (with K corresponding to the flattend (k,l))
+		err = np.zeros(Ngrid)
+		for K in range(Ngridprod):
+			idx = deflatten(K)
+			err[idx] = np.sqrt(sigma[K,K])
+		if method in ['mle_p']:
+			plower = ps - nsigma*err
+			plower[plower<0] = 0.0
+			pupper = ps + nsigma*err
+		elif method in ['mle_f']:
+			plower = ps*np.exp(-nsigma*err)
+			pupper = ps*np.exp(nsigma*err)
+		else:
+			raise IOError('Recieved invalid argument for method, recieved %s. Check routine signiture for more information on allowed values.' %method)
+		
+		return pupper, plower
+
+
 
 
 def plot_histograms(fn, histograms, temp=None, labels=None, flims=None, colors=None, linestyles=None, linewidths=None, set_ref='min'):
