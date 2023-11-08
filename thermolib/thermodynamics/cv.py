@@ -35,12 +35,13 @@ class CollectiveVariable(object):
     def _default_name(self):
         return 'CV'
     
-    def _unwrap(self, coords):
+    def _unwrap(self, coords, ref=None):
         if self.unit_cell is None:
             return coords.copy()
         else:
+            if ref is None:
+                ref = coords[0,:].copy()
             unwrapped = np.zeros(coords.shape, float)
-            ref = coords[0,:]
             unwrapped[0,:] = coords[0,:].copy()
             for i, r in enumerate(coords):
                 if i>0:
@@ -57,7 +58,7 @@ class CenterOfMass(CollectiveVariable):
         CollectiveVariable.__init__(self, name=name, unit_cell_pars=unit_cell_pars)
 
     def _default_name(self):
-        return 'COM(%s)' %('-'.join(self.indices))
+        return 'COM(%s)' %('-'.join([str(i) for i in self.indices]))
     
     def compute(self, coords, deriv=True):
         #unwrap guest coords with periodic boundary conditions if unit_cell is specified
@@ -67,7 +68,7 @@ class CenterOfMass(CollectiveVariable):
         com = np.zeros(3, float)
         if deriv:
             grad = np.zeros([3, len(rs), 3], float)
-        for index, r in zip(self.guest_indices, rs):
+        for index, r in zip(self.indices, rs):
             mass += self.masses[index]
             com += self.masses[index]*r
             if deriv:
@@ -85,14 +86,14 @@ class CenterOfPosition(CollectiveVariable):
         CollectiveVariable.__init__(self, name=name, unit_cell_pars=unit_cell_pars)
     
     def _default_name(self):
-        return 'COP(%s)' %('-'.join(self.indices))
+        return 'COP(%s)' %('-'.join([str(i) for i in self.indices]))
     
     def compute(self, coords, deriv=True):
         #unwrap ring coords with periodic boundary conditions if unit_cell is specified
         rs = self._unwrap(coords[self.indices,:])
         cop = rs.mean(axis=0)
         if not deriv:
-            return cop, None
+            return cop
         else:
             grad = np.zeros([3, len(rs), 3], float)
             grad[0, self.indices, 0] = 1/len(self.indices)
@@ -106,7 +107,7 @@ class NormalToPlane(CollectiveVariable):
         CollectiveVariable.__init__(self, name=name, unit_cell_pars=unit_cell_pars)
     
     def _default_name(self):
-        return 'NormalToPlane(%s)' %('-'.join(self.indices))
+        return 'NormalToPlane(%s)' %('-'.join([str(i) for i in self.indices]))
 
     def compute(self, coords, deriv=True):
         #this routine to compute the normal to the ring plane assumes that the n atoms that constitute
@@ -262,8 +263,6 @@ class OrthogonalDistanceToPore(CollectiveVariable):
         other hand.
     '''
     def __init__(self, ring_indices, guest_indices, masses, unit_cell_pars=None, name=None):
-        self.ring_indices = np.array(ring_indices)
-        self.guest_indices = np.array(guest_indices)
         self.com  = CenterOfMass(guest_indices, masses, unit_cell_pars=unit_cell_pars)
         self.cop  = CenterOfPosition(ring_indices, unit_cell_pars=unit_cell_pars)
         self.norm = NormalToPlane(ring_indices, unit_cell_pars=unit_cell_pars)
@@ -271,8 +270,8 @@ class OrthogonalDistanceToPore(CollectiveVariable):
     
     def _default_name(self):
         return 'OrthogonalDistanceToPore(ring=[%s],guest=[%s])' %(
-            ','.join([str(i) for i in self.ring_indices]), 
-            ','.join([str(i) for i in self.guest_indices])
+            ','.join([str(i) for i in self.cop.indices]), 
+            ','.join([str(i) for i in self.com.indices])
         )
 
     def compute(self, coords, deriv=True):
@@ -424,23 +423,22 @@ class AxisDoubleRingDistance(CollectiveVariable):
     other hand.
     '''
     def __init__(self, ring1_indices, ring2_indices, guest_indices, masses, name=None, unit_cell_pars=None):
-        self.ring1_indices = np.array(ring1_indices)
-        self.ring2_indices = np.array(ring2_indices)
-        self.guest_indices = np.array(guest_indices)
-        self.masses = masses
-        self.com = CenterOfMass(guest_indices, masses, unit_cell_pars=unit_cell_pars)
-        self.c1 = CenterOfPosition(ring1_indices, unit_cell_pars=unit_cell_pars)
-        self.c2 = CenterOfPosition(ring2_indices, unit_cell_pars=unit_cell_pars)
+        #do not set the unit_cell_pars of the com, c1 and c2 intermediate CVs as we will use the wrapper of the current class to wrap the coordinates once before feeding them to the compute routines of com, c1 and c2.
+        self.com = CenterOfMass(guest_indices, masses, unit_cell_pars=None)
+        self.c1 = CenterOfPosition(ring1_indices, unit_cell_pars=None)
+        self.c2 = CenterOfPosition(ring2_indices, unit_cell_pars=None)
         CollectiveVariable.__init__(self, name=name, unit_cell_pars=unit_cell_pars)
 
     def _default_name(self):
         return 'AxisDoubleRingDistance(ring1=[%s],ring2=[%s],guest=[%s])' %(
-            ','.join([str(i) for i in self.ring1_indices]), 
-            ','.join([str(i) for i in self.ring2_indices]), 
-            ','.join([str(i) for i in self.guest_indices])
+            ','.join([str(i) for i in self.c1.indices]), 
+            ','.join([str(i) for i in self.c2.indices]), 
+            ','.join([str(i) for i in self.com.indices])
             )
 
     def compute(self, coords, deriv=True):
+        #set wrapping reference
+        coords = self._unwrap(coords, ref=coords[self.com.indices[0],:])
         if deriv:
             com, grad_com = self.com.compute(coords, deriv=True)
             c1 , grad_c1  = self.c1.compute(coords, deriv=True)
