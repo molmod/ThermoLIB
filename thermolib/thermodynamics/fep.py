@@ -17,7 +17,7 @@ from molmod.constants import *
 
 import numpy as np, sys
 
-from thermolib.tools import integrate, integrate2d, format_scientific, integrate_nd
+from thermolib.tools import integrate, integrate2d, format_scientific
 
 import matplotlib.pyplot as pp
 import matplotlib.cm as cm
