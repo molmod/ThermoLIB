@@ -250,22 +250,18 @@ def read_wham_input(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1,
         .. code-block:: python
 
             T = XXXK
-            NAME1 Q1 KAPPA1
-            NAME2 Q2 KAPPA2
-            NAME3 Q3 KAPPA3
+            NAME_1 Q0_1 KAPPA_1
+            NAME_2 Q0_2 KAPPA_2
+            NAME_3 Q0_3 KAPPA_3
             ...
 
-        when a line starts with a T, it is supposed to specify the temperature. If no temperature line is found, a temperature of None will be returned. All other lines define the bias potential for each simulation as a parabola centered around ``Qi`` and with force constant ``KAPPAi`` (the units used in this file can be specified the keyword arguments ``kappa_unit`` and ``q0_unit``). For each bias with name ``NAMEi`` defined in this file, there should be a colvar trajectory file accessible through the path given by the string 'path_template_colvar_fns %(NAMEi)'. For example, if path_template_colvar_fns is defined as 'trajectories/%s/COLVAR' and the wham input file contains the following lines:
-
+        when a line starts with a T, it is supposed to specify the temperature. If no temperature line is found, a temperature of None will be returned. All other lines define the bias potential for each simulation as a parabola centered around ``Q0_i`` and with force constants ``KAPPA_i``(the units used in this file can be specified the keyword arguments ``q0_unit`` and ``kappa_unit``). For each bias with name ``NAME_i`` defined in this file, there should be a colvar trajectory file accessible through the path given by the string:
+        
         .. code-block:: python
-
-            T = 300K
-            Window1/r1 1.40 1000.0
-            Window2/r2 1.45 1000.0
-            Window3/r1 1.50 1000.0
-            ...
-
-        Then the colvar trajectory file of the first potential can be found through the path (relative to the wham input file) 'Window1/r1/COLVAR' and so on. These colvar files contain the trajectory of the relevant collective variable during the biased simulation. Finally, these trajectory files should be formatted as outputted by PLUMED:
+        
+            os.path.join(root, path_template_colvar_fns %name)
+        
+        For example, if path_template_colvar_fns is defined as 'trajectories/%s/COLVAR' and the wham input file contains a line 'Window1/r1 1.40 1000.0', then the trajectory file containing the CV values of the biased simulation with bias name 'Window1/r1' can be found in the directory trajectories/Window1/r1/COLVAR. Finally, these trajectory files should be formatted as outputted by PLUMED:
 
         .. code-block:: python
 
@@ -355,7 +351,7 @@ def read_wham_input(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1,
                 else:
                     data = data[start:end:stride,colvar_cv_column_index]
                 if len(data)>0:
-                    trajectories.append(data)
+                    trajectories.append(data*parse_unit(q0_unit))
                 else:
                     raise ValueError('No data could be read from trajectory %s. Are you sure you did not choose start:end:stride to restrictive?' %fn_traj)
                 if verbose:
@@ -376,31 +372,18 @@ def read_wham_input_h5(fn, h5_cv_path, path_template_h5_fns='%s', kappa_unit='kj
         .. code-block:: python
 
             T = XXXK
-            NAME1 Q1 KAPPA1
-            NAME2 Q2 KAPPA2
-            NAME3 Q3 KAPPA3
+            NAME_1 Q0_1 KAPPA_1
+            NAME_2 Q0_2 KAPPA_2
+            NAME_3 Q0_3 KAPPA_3
             ...
 
-        when a line starts with a T, it is supposed to specify the temperature. If no temperature line is found, a temperature of None will be returned. All other lines define the bias potential for each simulation as a parabola centered around ``Qi`` and with force constant ``KAPPAi`` (the units used in this file can be specified the keyword arguments ``kappa_unit`` and ``q0_unit``). For each bias with name ``NAMEi`` defined in this file, there should be a colvar trajectory file accessible through the path given by the string 'path_template_colvar_fns %(NAMEi)'. For example, if path_template_colvar_fns is defined as 'trajectories/%s/COLVAR' and the wham input file contains the following lines:
-
-        .. code-block:: python
-
-            T = 300K
-            Window1/r1 1.40 1000.0
-            Window2/r2 1.45 1000.0
-            Window3/r1 1.50 1000.0
-            ...
+        when a line starts with a T, it is supposed to specify the temperature. If no temperature line is found, a temperature of None will be returned. All other lines define the bias potential for each simulation as a parabola centered around ``Q0_i`` and with force constants ``KAPPA_i``(the units used in this file can be specified the keyword arguments ``q0_unit`` and ``kappa_unit``). For each bias with name ``NAME_i`` defined in this file, there should be a colvar trajectory file accessible through the path given by the string:
         
-        Then the colvar trajectory file of the first potential can be found through the path (relative to the wham input file) 'Window1/r1/COLVAR' and so on. These colvar files contain the trajectory of the relevant collective variable during the biased simulation. Finally, these trajectory files should be formatted as outputted by PLUMED:
-
         .. code-block:: python
-
-            time_1 cv_value_1
-            time_2 cv_value_2
-            time_3 cv_value_3
-            ...
         
-        where the cv values again have a unit that can be specified by the keyword argument ``q0_unit``.
+            os.path.join(root, path_template_h5_fns %name)
+        
+        For example, if path_template_h5_fns is defined as 'trajectories/%s/traj.h5' and the wham input file contains a line 'Window1/r1 1.40 1000.0', then the trajectory file with path trajectories/Window1/r1/traj.h5 contains a dataset given by ``h5_cv_path`` that represents the cv values of the biased simulation with bias name 'Window1/r1'. Finally, the cv values again have a unit that can be specified by the keyword argument ``q0_unit``.
 
         :param fn: file name of the wham input file
         :type fn: str
@@ -408,7 +391,7 @@ def read_wham_input_h5(fn, h5_cv_path, path_template_h5_fns='%s', kappa_unit='kj
         :param h5_cv_path: the path of the dataset corresponding to the cv values in the h5 file.
         :type h5_cv_path: str
 
-        :param path_template_h5_fns: Template for defining the path (relative to the directory containing the wham input file given by argument fn) to the HDF5 trajectory file corresponding to each bias. See documentation above for more details. This argument should be string containing a single '%s' substring. 
+        :param path_template_h5_fns: Template for defining the path (relative to the directory containing the wham input file given by argument fn) to the HDF5 trajectory file corresponding to each biased simulation. See documentation above for more details. This argument should be string containing a single '%s' substring. 
         :type path_template_h5_fns: str. Defaults to '%s'
 
         :param kappa_unit: unit used to express kappa in the wham input file, defaults to 'kjmol'
@@ -487,7 +470,7 @@ def read_wham_input_h5(fn, h5_cv_path, path_template_h5_fns='%s', kappa_unit='kj
                 else:
                     data = data[start:end:stride]
                 if len(data)>0:
-                    trajectories.append(data)
+                    trajectories.append(data*parse_unit(q0_unit))
                 else:
                     raise ValueError('No data could be read from trajectory %s. Are you sure you did not choose start:end:stride to restrictive?' %fn_traj)
                 if verbose:
@@ -503,7 +486,7 @@ def read_wham_input_h5(fn, h5_cv_path, path_template_h5_fns='%s', kappa_unit='kj
 
 def read_wham_input_2D(fn, path_template_colvar_fns='%s', colvar_cv1_column_index=1, colvar_cv2_column_index=2, kappa1_unit='kjmol', kappa2_unit='kjmol', q01_unit='au', q02_unit='au', start=0, end=-1, stride=1, bias_potential='Parabola2D',additional_bias=None,additional_bias_dimension='q1',inverse_cv1=False,inverse_cv2=False, verbose=False):
     '''
-        Read the input for a WHAM reconstruction of the 2D free energy surface from a set of Umbrella Sampling simulations. The file specified by fn should have the following format:
+        Read the input for a WHAM reconstruction of the 2D free energy surface from a set of Umbrella Sampling simulations. The wham input file specified by fn should have the following format:
 
         .. code-block:: python
 
@@ -513,17 +496,13 @@ def read_wham_input_2D(fn, path_template_colvar_fns='%s', colvar_cv1_column_inde
             NAME_3 Q01_3 Q02_3 KAPPA1_3 KAPPA1_3
             ...
 
-        when a line starts with a T, it is supposed to specify the temperature. If no temperature line is found, a temperature of None will be returned. All other lines define the bias potential for each simulation as a parabola centered around (``Q01_i``,``Q02_i``) and with force constants (``KAPPA1_i``,``KAPPA2_i``) (the units used in this file can be specified the keyword arguments ``kappa1_unit``, ``kappa2_unit``, ``q01_unit`` and ``q02_unit``). For each bias with name ``NAME_i`` defined in this file, there should be a colvar trajectory file accessible through the path given by the string 'path_template_colvar_fns %(NAME_i)'. For example, if path_template_colvar_fns is defined as 'trajectories/%s/COLVAR' and the wham input file contains the following lines:
-
+        when a line starts with a T, it is supposed to specify the temperature. If no temperature line is found, a temperature of None will be returned. All other lines define the bias potential for each simulation as a parabola centered around (``Q01_i``,``Q02_i``) and with force constants (``KAPPA1_i``,``KAPPA2_i``) (the units used in this file can be specified the keyword arguments ``kappa1_unit``, ``kappa2_unit``, ``q01_unit`` and ``q02_unit``). For each bias with name ``NAME_i`` defined in this file, there should be a colvar trajectory file accessible through the path given by the string:
+        
         .. code-block:: python
-
-            T = 300K
-            Window1/r1 1.40 -0.2 1000.0 1000.0
-            Window2/r2 1.45 -0.2 1000.0 1000.0
-            Window3/r1 1.50 -0.2 1000.0 1000.0
-            ...
-
-        Then the colvar trajectory file of the first potential can be found through the path (relative to the wham input file) 'Window1/r1/COLVAR' and so on. These colvar files contain the trajectory of the relevant collective variable during the biased simulation. Finally, these trajectory files should be formatted as outputted by PLUMED (if the desired collective variable columns are not the default second and third, these can be specified with colvar_cv1_column_index and colvar_cv2_column_index):
+        
+            os.path.join(root, path_template_colvar_fns %name)
+        
+        For example, if path_template_colvar_fns is defined as 'trajectories/%s/COLVAR' and the wham input file contains a line 'Window1/r1 1.40 -0.2 1000.0 1000.0', then the trajectory file containing the CV values of the biased simulation with bias name 'Window1/r1' has the path trajectories/Window1/r1/COLVAR. Finally, these trajectory files should be formatted as outputted by PLUMED (if the desired collective variable columns are not the default second and third, these can be specified with colvar_cv1_column_index and colvar_cv2_column_index):
 
         .. code-block:: python
 
@@ -627,6 +606,8 @@ def read_wham_input_2D(fn, path_template_colvar_fns='%s', colvar_cv1_column_inde
                         print('     additional bias is applied to the %s dimension' % additional_bias_dimension)
                     bias = MultipleBiasses2D([bias, additional_bias],additional_bias_dimension)
                 data = np.loadtxt(fn_traj)
+                data[:,colvar_cv1_column_index] *= parse_unit(q01_unit)
+                data[:,colvar_cv2_column_index] *= parse_unit(q02_unit)
                 biasses.append(bias)
                 if end==-1:
                     trajectories.append(data[start::stride,[colvar_cv1_column_index,colvar_cv2_column_index]])#COLVAR format: CV1 is column colvar_cv1_column_index and CV2 is column colvar_cv2_column_index
@@ -643,7 +624,6 @@ def read_wham_input_2D(fn, path_template_colvar_fns='%s', colvar_cv1_column_inde
     if temp is None:
         print('WARNING: temperature could not be read from %s' %fn)
     return temp, biasses, trajectories
-
 
 def read_wham_input_2D_h5(fn, h5_cv1_path, h5_cv2_path, path_template_h5_fns='%s', kappa1_unit='kjmol', kappa2_unit='kjmol', q01_unit='au', q02_unit='au', start=0, end=-1, stride=1, bias_potential='Parabola2D',additional_bias=None,additional_bias_dimension='q1',inverse_cv1=False,inverse_cv2=False, verbose=False):
     '''
@@ -667,16 +647,13 @@ def read_wham_input_2D_h5(fn, h5_cv1_path, h5_cv2_path, path_template_h5_fns='%s
             Window3/r1 1.50 -0.2 1000.0 1000.0
             ...
         
-        Then the colvar trajectory file of the first potential can be found through the path (relative to the wham input file) 'Window1/r1/COLVAR' and so on. These colvar files contain the trajectory of the relevant collective variable during the biased simulation. Finally, these trajectory files should be formatted as outputted by PLUMED (if the desired collective variable columns are not the default second and third, these can be specified with colvar_cv1_column_index and colvar_cv2_column_index):
-
-        .. code-block:: python
-
-            time_1 cv1_value_1 cv2_value_1
-            time_2 cv1_value_2 cv2_value_2
-            time_3 cv1_value_3 cv2_value_3
-            ...
+        when a line starts with a T, it is supposed to specify the temperature. If no temperature line is found, a temperature of None will be returned. All other lines define the bias potential for each simulation as a parabola centered around (``Q01_i``,``Q02_i``) and with force constants (``KAPPA1_i``,``KAPPA2_i``) (the units used in this file can be specified the keyword arguments ``kappa1_unit``, ``kappa2_unit``, ``q01_unit`` and ``q02_unit``). For each bias with name ``NAME_i`` defined in this file, there should be a colvar trajectory dataset accessible in the HDF5 file with path given by the string:
         
-        where the cv1 and cv2 values again have a unit that can be specified by the keyword arguments ``q01_unit`` and ``q02_unit`` respectively.
+        .. code-block:: python
+        
+            os.path.join(root, path_template_h5_fns %name)
+        
+        For example, if path_template_h5_fns is defined as 'trajectories/%s/traj.h5' and the wham input file contains a line 'Window1/r1 1.40 -0.2 1000.0 1000.0', then the trajectory HDF5 file 'trajectories/Window1/r1/traj.h5' contains a dataset with path ``h5_cv1_path`` representing the CV1 values of the biased simulation with bias name 'Window1/r1' (and similar for the CV2 values). The units of the cv1 and cv2 values can be specified by the keyword arguments ``q01_unit`` and ``q02_unit`` respectively.
 
         :param fn: file name of the wham input file
         :type fn: str
@@ -688,7 +665,7 @@ def read_wham_input_2D_h5(fn, h5_cv1_path, h5_cv2_path, path_template_h5_fns='%s
         :type h5_cv2_path: str
 
         :param path_template_h5_fns: Template for defining the path (relative to the directory containing the wham input file given by argument fn) to the colvar trajectory file corresponding to each bias. See documentation above for more details. This argument should be string containing a single '%s' substring. 
-        :type path_template_colvar_fns: str. Defaults to '%s'
+        :type path_template_h5_fns: str. Defaults to '%s'
 
         :param kappa1_unit: unit used to express the CV1 force constant kappa1 in the wham input file, defaults to 'kjmol'
         :type kappa1_unit: str, optional
@@ -777,20 +754,15 @@ def read_wham_input_2D_h5(fn, h5_cv1_path, h5_cv2_path, path_template_h5_fns='%s
                     if verbose:
                         print('     additional bias is applied to the %s dimension' % additional_bias_dimension)
                     bias = MultipleBiasses2D([bias, additional_bias],additional_bias_dimension)
-                
-                if end==-1:
-                    data1 = np.array(f_h5_1[h5_cv1_path][start::stride])
-                    data2 = np.array(f_h5_1[h5_cv2_path][start::stride])
-                else:
-                    data1 = np.array(f_h5_1[h5_cv1_path][start:end:stride])
-                    data2 = np.array(f_h5_1[h5_cv2_path][start:end:stride])
-
-                print(data1)
-                print(data2)
-
-                data = np.concatenate([[data1],[data2]]).T
-
                 biasses.append(bias)
+
+                if end==-1:
+                    data1 = np.array(f_h5_1[h5_cv1_path][start::stride])*parse_unit(q01_unit)
+                    data2 = np.array(f_h5_1[h5_cv2_path][start::stride])*parse_unit(q02_unit)
+                else:
+                    data1 = np.array(f_h5_1[h5_cv1_path][start:end:stride])*parse_unit(q01_unit)
+                    data2 = np.array(f_h5_1[h5_cv2_path][start:end:stride])*parse_unit(q02_unit)
+                data = np.array([data1,data2]).T
                 trajectories.append(data)
                 
                 if verbose:
