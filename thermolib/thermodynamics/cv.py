@@ -18,11 +18,14 @@ from molmod.unit_cells import UnitCell
 import numpy as np
 
 __all__ = [
-    'CenterOfMass', 'CenterOfPosition', 'NormalToPlane', 'Distance', 'DistanceCOP', 'CoordinationNumber', 'OrthogonalDistanceToPore',
-    'Average', 'Difference', 'Minimum', 'LinearCombination', 'AxisDoubleRingDistance'
+    'CenterOfMass', 'CenterOfPosition', 'NormalizedAxis', 'NormalToPlane', 'Distance', 'DistanceCOP', 'CoordinationNumber', 'OrthogonalDistanceToPore',
+    'Average', 'Difference', 'Minimum', 'LinearCombination', 'DotProduct', 'DistOrthProjOrig'
 ]
 
 class CollectiveVariable(object):
+
+    type = None
+
     def __init__(self, name=None, unit_cell_pars=None):
         if name is None:
             name = self._default_name()
@@ -36,6 +39,7 @@ class CollectiveVariable(object):
         return 'CV'
     
     def _unwrap(self, coords, ref=None):
+        'This routine will unwrap the PBC conditions around the given ref, i.e. make sure that for each r in coords, r-ref is the shortest vec'
         if self.unit_cell is None:
             return coords.copy()
         else:
@@ -52,6 +56,9 @@ class CollectiveVariable(object):
         raise NotImplementedError
 
 class CenterOfMass(CollectiveVariable):
+
+    type = 'vector'
+
     def __init__(self, indices, masses, name=None, unit_cell_pars=None):
         self.indices = indices
         self.masses = masses
@@ -61,8 +68,8 @@ class CenterOfMass(CollectiveVariable):
         return 'COM(%s)' %('-'.join([str(i) for i in self.indices]))
     
     def compute(self, coords, deriv=True):
-        #unwrap guest coords with periodic boundary conditions if unit_cell is specified
-        rs = self._unwrap(coords[self.indices,:])
+        #unwrap coords of given indices with periodic boundary conditions if unit_cell is specified
+        rs = self._unwrap(coords[self.indices])
         #Compute center of mass
         mass = 0.0
         com = np.zeros(3, float)
@@ -81,6 +88,9 @@ class CenterOfMass(CollectiveVariable):
             return com, grad
 
 class CenterOfPosition(CollectiveVariable):
+
+    type = 'vector'
+
     def __init__(self, indices, name=None, unit_cell_pars=None):
         self.indices = indices
         CollectiveVariable.__init__(self, name=name, unit_cell_pars=unit_cell_pars)
@@ -89,7 +99,7 @@ class CenterOfPosition(CollectiveVariable):
         return 'COP(%s)' %('-'.join([str(i) for i in self.indices]))
     
     def compute(self, coords, deriv=True):
-        #unwrap ring coords with periodic boundary conditions if unit_cell is specified
+        #unwrap coords of given indices with periodic boundary conditions if unit_cell is specified
         rs = self._unwrap(coords[self.indices,:])
         cop = rs.mean(axis=0)
         if not deriv:
@@ -101,7 +111,37 @@ class CenterOfPosition(CollectiveVariable):
             grad[2, self.indices, 2] = 1/len(self.indices)
             return cop, grad
 
+class NormalizedAxis(CollectiveVariable):
+    '''Class to implement a vectorial CV that defines a normalized axis between two points, i.e. as the normalized difference of two input vectors.
+    '''
+
+    type = 'vector'
+
+    def __init__(self, vec1, vec2, name=None, unit_cell_pars=None):
+        self.vec1 = vec1
+        self.vec2 = vec2
+        CollectiveVariable.__init__(self, name=name, unit_cell_pars=unit_cell_pars)
+
+    def _default_name(self):
+        return 'NormalAxis(%s,%s)' %(self.vec1.name, self.vec2.name)
+    
+    def compute(self, coords, deriv=True):
+        if not deriv:
+            v1 = self.vec1.compute(coords, deriv=False)
+            v2 = self.vec2.compute(self._unwrap(coords, ref=v1), deriv=False)
+            norm = np.linalg.norm(v2-v1)
+            return (v2-v1)/norm
+        if deriv:
+            v1, grad1 = self.vec1.compute(coords, deriv=True)
+            v2, grad2 = self.vec2.compute(self._unwrap(coords, ref=v1), deriv=True)
+            norm = np.linalg.norm(v2-v1)
+            tmp = grad2 - grad1 - np.einsum('a,bic,b->aic',v2-v1, grad2-grad1,v2-v1)/norm**2
+            return (v2-v1)/norm, tmp/norm
+
 class NormalToPlane(CollectiveVariable):
+    
+    type = 'vector'
+    
     def __init__(self, indices, name=None, unit_cell_pars=None):
         self.indices = indices
         CollectiveVariable.__init__(self, name=name, unit_cell_pars=unit_cell_pars)
@@ -137,11 +177,43 @@ class NormalToPlane(CollectiveVariable):
                     grad[:, index, alpha] = np.dot(tensor, cosi*np.cross(e_alpha,R2)+sini*np.cross(R1,e_alpha))
             return normal, grad
 
+class DotProduct(CollectiveVariable):
+    '''
+    Class to implement a collective variable that is the dot product of two given vectors
+    '''
+
+    type = 'scalar'
+
+    def __init__(self, vec1, vec2, name=None, unit_cell_pars=None):
+        assert isinstance(vec1, CollectiveVariable) and vec1.type=='vector'
+        assert isinstance(vec2, CollectiveVariable) and vec2.type=='vector'
+        self.vec1 = vec1
+        self.vec2 = vec2
+        CollectiveVariable.__init__(self, name=name, unit_cell_pars=unit_cell_pars)
+    
+    def _default_name(self):
+        return 'Dot(%s,%s)' %(self.vec1.name, self.vec2.name)
+    
+    def compute(self, coords, deriv=True):
+        if not deriv:
+            v1 = self.vec1.compute(coords, deriv=False)
+            v2 = self.vec2.compute(coords, deriv=False)
+            return np.dot(v1, v2)
+        else:
+            v1, grad1 = self.vec1.compute(coords, deriv=True)
+            v2, grad2 = self.vec2.compute(coords, deriv=True)
+            cv = np.dot(v1,v2)
+            grad = np.einsum('ikl,i->kl', grad1, v2) + np.einsum('i,ikl->kl', v1, grad2)
+            return cv, grad
+
 class Distance(CollectiveVariable):
     '''
         Class to implement a collective variable representing the distance
         between two atoms given by index1 and index2.
     '''
+    
+    type = 'scalar'
+    
     def __init__(self, index1, index2, name=None, unit_cell_pars=None):
         self.i1 = index1
         self.i2 = index2
@@ -177,6 +249,9 @@ class DistanceCOP(CollectiveVariable):
         between an atom (index1) and the center of position (i.e. the geometric
         center) of two other atoms (index2a and index2b).
     '''
+    
+    type = 'scalar'
+    
     def __init__(self, index1, index2a, index2b, name=None, unit_cell_pars=None):
         self.i1  = index1
         self.i2a = index2a
@@ -220,6 +295,9 @@ class CoordinationNumber(CollectiveVariable):
         the user and nn and nd are integers that are set to 6,12 by default but
         can also be defined by the user.
     '''
+    
+    type = 'scalar'
+    
     def __init__(self, pairs, r0=2.0*angstrom, nn=6, nd=12, name=None, unit_cell_pars=None):
         self.pairs = pairs
         self.r0 = r0
@@ -254,7 +332,7 @@ class CoordinationNumber(CollectiveVariable):
         else:
             return value
 
-class OrthogonalDistanceToPore(CollectiveVariable):
+class OrthogonalDistanceToPore(DotProduct):
     '''
         Class to implement a collective variable that represents the orthogonal
         distance between the center of mass of a guest molecule defined by its
@@ -262,6 +340,31 @@ class OrthogonalDistanceToPore(CollectiveVariable):
         by the atom indices of its constituting atoms (ring_indices) on the
         other hand.
     '''
+    
+    type = 'scalar'
+    
+    def __init__(self, ring_indices, guest_indices, masses, unit_cell_pars=None, name=None):
+        self.guest_indices = guest_indices
+        self.ring_indices = ring_indices
+        com  = CenterOfMass(guest_indices, masses, unit_cell_pars=unit_cell_pars)
+        cop  = CenterOfPosition(ring_indices, unit_cell_pars=unit_cell_pars)
+        vec1 = Difference(cop, com)
+        vec2 = NormalToPlane(ring_indices, unit_cell_pars=unit_cell_pars)
+        DotProduct.__init__(self, vec1, vec2, name=name)
+    
+    def _default_name(self):
+        return 'OrthogonalDistanceToPore(ring=[%s],guest=[%s])' %(
+            ','.join([str(i) for i in self.ring_indices]), 
+            ','.join([str(i) for i in self.guest_indices])
+        )
+
+class OrthogonalDistanceToPore_depricated(CollectiveVariable):
+    '''
+        Old implementation of OrthogonalDistanceToPore, is depricated and will be removed soon
+    '''
+    
+    type = 'scalar'
+    
     def __init__(self, ring_indices, guest_indices, masses, unit_cell_pars=None, name=None):
         self.com  = CenterOfMass(guest_indices, masses, unit_cell_pars=unit_cell_pars)
         self.cop  = CenterOfPosition(ring_indices, unit_cell_pars=unit_cell_pars)
@@ -302,10 +405,15 @@ class Average(CollectiveVariable):
 
             CV = 0.5*(CV1 + CV2)
     '''
-    def __init__(self, cv1, cv2, name=None):
+    
+    type = None #depends on type of argument cvs
+    
+    def __init__(self, cv1, cv2, name=None, unit_cell_pars=None):
+        assert cv1.type==cv2.type
+        self.type = cv1.type
         self.cv1 = cv1
         self.cv2 = cv2
-        CollectiveVariable.__init__(self, name=name)
+        CollectiveVariable.__init__(self, name=name, unit_cell_pars=unit_cell_pars)
 
     def _default_name(self):
         return '0.5*(%s+%s)' %(self.cv1.name, self.cv2.name)
@@ -330,13 +438,18 @@ class Difference(CollectiveVariable):
 
             CV = CV2 - CV1
     '''
-    def __init__(self, cv1, cv2, name=None):
+    
+    type = None #depends on type of argument cvs
+    
+    def __init__(self, cv1, cv2, name=None, unit_cell_pars=None):
+        assert cv1.type==cv2.type
+        self.type = cv1.type
         self.cv1 = cv1
         self.cv2 = cv2
-        CollectiveVariable.__init__(self, name=name)
+        CollectiveVariable.__init__(self, name=name, unit_cell_pars=unit_cell_pars)
 
     def _default_name(self):
-        return '%s-%s' %(self.cv2.name, self.cv1.name)
+        return 'Diff(%s,%s)' %(self.cv2.name, self.cv1.name)
 
     def compute(self, coords, deriv=True):
         #computation of value
@@ -358,13 +471,16 @@ class Minimum(CollectiveVariable):
 
             CV = min(CV1,CV2)
     '''
+    
+    type = 'scalar'
+    
     def __init__(self, cv1, cv2, name=None):
         self.cv1 = cv1
         self.cv2 = cv2
         CollectiveVariable.__init__(self, name=name)
 
     def _default_name(self):
-        return 'min(%s,%s)' %(self.cv1.name, self.cv2.name)
+        return 'Min(%s,%s)' %(self.cv1.name, self.cv2.name)
 
     def compute(self, coords, deriv=True):
         #computation of value
@@ -390,8 +506,14 @@ class LinearCombination(CollectiveVariable):
         
         in which cvs is the list of involved collective variables and coeffs is list of equal length with the corresponing coefficients
     '''
+    
+    type = None #depends on type of argument cvs
+    
     def __init__(self, cvs, coeffs, name=None):
         assert len(cvs)==len(coeffs), "List of cvs and list of coefficients should be of equal length"
+        for i in range(1,len(cvs)):
+            assert cvs[i].type==cvs[0].type, 'cvs[%i] and cvs[0] are not both scalar CVS or vector CVS' %(i)
+        self.type = cv1.type
         self.cvs = cvs
         self.coeffs = coeffs
         CollectiveVariable.__init__(self, name=name)
@@ -414,57 +536,21 @@ class LinearCombination(CollectiveVariable):
                 grad += coeff*g
         return value, grad
 
-class AxisDoubleRingDistance(CollectiveVariable):
+class DistOrthProjOrig(DotProduct):
     '''
-    Class to implement a collective variable that represents the orthogonal
-    distance between the center of mass of a guest molecule defined by its
-    atom indices (guest_indices) on the one hand, and an axis defined by 2 pore rings
-    by the atom indices of its constituting atoms (ring_indices) on the
-    other hand.
+    Class to implement a collective variable that represents distance between (1) the orthogonal projection of a position (defined by a vector CV denoted as pos) on the axis (defined by a normalized vector CV denoted as axis) through an origin (defined by a vector CV denoted as orig) and (2) the origin.
     '''
-    def __init__(self, ring1_indices, ring2_indices, guest_indices, masses, name=None, unit_cell_pars=None):
-        #do not set the unit_cell_pars of the com, c1 and c2 intermediate CVs as we will use the wrapper of the current class to wrap the coordinates once before feeding them to the compute routines of com, c1 and c2.
-        self.com = CenterOfMass(guest_indices, masses, unit_cell_pars=None)
-        self.c1 = CenterOfPosition(ring1_indices, unit_cell_pars=None)
-        self.c2 = CenterOfPosition(ring2_indices, unit_cell_pars=None)
-        CollectiveVariable.__init__(self, name=name, unit_cell_pars=unit_cell_pars)
+
+    type = 'scalar'
+
+    def __init__(self, pos, axis, orig, name=None):
+        self.pos = pos
+        self.axis = axis
+        self.orig = orig
+        DotProduct.__init__(self, Difference(orig,pos), axis, name=name)
 
     def _default_name(self):
-        return 'AxisDoubleRingDistance(ring1=[%s],ring2=[%s],guest=[%s])' %(
-            ','.join([str(i) for i in self.c1.indices]), 
-            ','.join([str(i) for i in self.c2.indices]), 
-            ','.join([str(i) for i in self.com.indices])
-            )
-
-    def compute(self, coords, deriv=True):
-        #set wrapping reference
-        coords = self._unwrap(coords, ref=coords[self.com.indices[0],:])
-        if deriv:
-            com, grad_com = self.com.compute(coords, deriv=True)
-            c1 , grad_c1  = self.c1.compute(coords, deriv=True)
-            c2 , grad_c2  = self.c2.compute(coords, deriv=True)
-        else:
-            com = self.com.compute(coords, deriv=False)
-            c1  = self.c1.compute(coords, deriv=False)
-            c2  = self.c2.compute(coords, deriv=False)
-        center = 0.5*(c1+c2)
-        vec = c2-c1
-        v = np.linalg.norm(vec)
-        axis = vec/v
-        if deriv:
-            grad_center = 0.5*(grad_c1+grad_c2)
-            grad_axis = (grad_c2-grad_c1)/v - np.einsum('i,j,jkl->ikl',vec,vec,grad_c2-grad_c1)/v**3
-        #compute cv
-        if self.unit_cell is not None:
-            cv = np.dot(self.unit_cell.shortest_vector(com-center), axis)
-        else:
-            cv = np.dot(com-center, axis)
-        #compute derivative
-        if not deriv:
-            return cv
-        else:
-            grad = np.einsum('bia,b->ia', grad_com-grad_center, axis) + np.einsum('b,bia->ia', com-center, grad_axis)
-            return cv, grad
+        return 'DistOrthProjOrig(orig=%s,pos=%s,axis=%s)' %(self.orig.name, self.pos.name, self.axis.name)
 
 
 def test_CV_implementations(fn, cvs, dx=0.001*angstrom, maxframes=100):
