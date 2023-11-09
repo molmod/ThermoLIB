@@ -33,6 +33,8 @@ def wham1d_hs(int Nsims, int Ngrid, np.ndarray[object] trajectories, np.ndarray[
     cdef np.ndarray[double] data, edges
     cdef int i, N
     for i, data in enumerate(trajectories):
+        if len(data)==0:
+            raise ValueError("The trajectory of simulation %i does not contain any data anymore. Are you sure you didn't remove too much data in post processing, e.g. to get rid of equilibration steps?" %i)
         Hs[i,:], edges = np.histogram(data, bins, density=False)
         assert (bins==edges).all()
         N = Hs[i,:].sum()
@@ -221,6 +223,8 @@ def wham2d_hs(int Nsims, int Ngrid1, int Ngrid2, np.ndarray[object] trajectories
     cdef np.ndarray[double] edges
     cdef int i, N
     for i, data in enumerate(trajectories):
+        if len(data)==0:
+            raise ValueError("The trajectory of simulation %i does not contain any data anymore. Are you sure you didn't remove too much data in post processing, e.g. to get rid of equilibration steps?" %i)
         Hs[i,:,:], edges1, edges2 = np.histogram2d(data[:,0], data[:,1], [bins1, bins2], density=False)
         assert (bins1==edges1).all()
         assert (bins2==edges2).all()
