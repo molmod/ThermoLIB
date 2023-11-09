@@ -88,18 +88,14 @@ class BaseRateFactor(object):
         self.A_err = np.nan
         return self.A
 
-    def result_blav(self, fn=None, blocksizes=None, fitrange=[0,-1], exponent=1, plot=True, verbose=True, plot_ac=False, ac_range=None, acft_plot_range=None):
+    def result_blav(self, fn=None, blocksizes=None, fitrange=[0,-1], exponent=1, verbose=True, plot_ac=False, ac_range=None, acft_plot_range=None):
         'Compute rate factor A and estimate its error with block averaging'
         assert self._finished, "Reading trajectory data is not finished yet"
         As = self.As[~np.isnan(self.As)]
         print('Number of TS samples = ', len(As))
         if blocksizes is None:
             blocksizes = np.arange(1,len(As)//2+1,1)
-        if fn is not None:
-            fn_A = fn+'blav_rate_A.png'
-        else:
-            fn_A = 'blav_rate_A.png'
-        self.A, self.A_err, Acorrtime = blav(As, blocksizes=blocksizes, fitrange=fitrange, exponent=exponent, fn_plot=fn_A, unit='1e12/s', plot_ac=plot_ac, ac_range=ac_range, acft_plot_range=acft_plot_range)
+        self.A, self.A_err, Acorrtime = blav(As, blocksizes=blocksizes, fitrange=fitrange, exponent=exponent, fn_plot=fn, unit='1e12/s', plot_ac=plot_ac, ac_range=ac_range, acft_plot_range=acft_plot_range)
         if verbose:
             print('Rate factor directly with block averaging:')
             print('------------------------------------------')

@@ -149,7 +149,7 @@ def blav(data, blocksizes=None, fitrange=[0,-1], exponent=1, fn_plot=None, unit=
         :param unit: unit in which to plot the data, defaults to 'au'
         :type unit: str, optional
 
-        :param plot_ac: indicate whether or not to compute and plot the auto correlation function as well (might take some time), defaults to False
+        :param plot_ac: indicate whether or not to compute and plot the auto correlation function as well (might take some time). Is only relevant if plot will be made, i.e. if fn_plot is defined. Defaults to False
         :type plot_ac: bool, optional
 
         :param ac_range: the range for which to plot the auto correlation function, only relevant if ``plot_ac`` is set to True, defaults to np.arange(0,501,1)
