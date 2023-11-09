@@ -6,7 +6,7 @@ ThermoLIB is a library for the application of Statistical Physics, Thermodynamic
 
 Module for reading, transforming and manipulating free energy profiles. Functions include:
 
-* the construction of 1D free energy profiles and 2D free energy surfaces from a single simulation, or from multiple (pobbibly biased) simulations using WHAM     including analytical error estimation.
+* the construction of 1D free energy profiles and 2D free energy surfaces from a single simulation, or from multiple (pobbibly biased) simulations using WHAM including analytical error estimation.
 * transformation of one collective variable to another
 * projection of 2D profiles to 1D profiles
 * "de"-projection of 1D to 2D profiles
@@ -28,5 +28,5 @@ Module for computing the rate factor required in transition state theory require
 
 ThermoLIB is developed by prof. Louis Vanduyfhuys at the Center for Molecular Modeling under supervision of prof. Veronique Van Speybroeck. Usage of ThermoLIB should be requested with prof. Van Speybroeck and/or prof. Vanduyfhuys.
 
-Copyright (C) 2019 - 2021 Louis Vanduyfhuys <Louis.Vanduyfhuys@UGent.be>
+Copyright (C) 2019 - 2023 Louis Vanduyfhuys <Louis.Vanduyfhuys@UGent.be>
 Center for Molecular Modeling (CMM), Ghent University, Ghent, Belgium; all rights reserved unless otherwise stated.
