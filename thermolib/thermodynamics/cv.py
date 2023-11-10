@@ -513,7 +513,7 @@ class LinearCombination(CollectiveVariable):
         assert len(cvs)==len(coeffs), "List of cvs and list of coefficients should be of equal length"
         for i in range(1,len(cvs)):
             assert cvs[i].type==cvs[0].type, 'cvs[%i] and cvs[0] are not both scalar CVS or vector CVS' %(i)
-        self.type = cv1.type
+        self.type = cvs[0].type
         self.cvs = cvs
         self.coeffs = coeffs
         CollectiveVariable.__init__(self, name=name)
