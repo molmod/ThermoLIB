@@ -297,11 +297,14 @@ class MultipleBiasses2D(BiasPotential2D):
     '''
         A class to add multiple bias potentials together, possibly weighted by given coefficients.
     '''
-    def __init__(self, biasses, additional_bias_dimension='q1', coeffs=None):
+    def __init__(self, biasses, additional_bias_dimension='cv1', coeffs=None):
         '''
             :param biasses: list of bias potentials
             :type biasses: list(BiasPotential2D,BiasPotential1D)
 
+            :param additional_bias_dimension: For each 1D potential in the list of biasses, apply the bias along the cv defined by this parameter.
+            :type additional_bias_dimension: str, optional
+            
             :param coeffs: array of weigth coefficients. If not given, defaults to an array of ones (i.e. no weighting).
             :type coeffs: list/np.ndarray, optional
         '''
@@ -330,14 +333,14 @@ class MultipleBiasses2D(BiasPotential2D):
         result = 0.0
         for idx,bias in enumerate(self.biasses):
             if isinstance(bias, BiasPotential1D):
-                if self.additional_bias_dimension == 'q1':
+                if self.additional_bias_dimension.lower in ['q1', 'cv1']:
                     result += self.coeffs[idx]*bias(q1)
-                elif self.additional_bias_dimension == 'q2':
+                elif self.additional_bias_dimension.lower in ['q2', 'cv2']:
                     result += self.coeffs[idx]*bias(q2)
                 else:
-                    raise ArgumentError('additional bias_dimension is either q1 or q3 but you specified %s' % self.additional_bias_dimension)
+                    raise ValueError('additional bias_dimension is either cv1(/q1) or cv2(/q2) but you specified %s' % self.additional_bias_dimension)
             elif isinstance(bias, BiasPotential2D):
                 result += self.coeffs[idx]*bias(q1,q2)
             else:
-                raise ArgumentError('Additional bias is not recognized correctly')
+                raise ValueError('Additional bias is not recognized correctly')
         return result

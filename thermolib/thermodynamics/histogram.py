@@ -24,7 +24,7 @@ import time
 
 from thermolib.thermodynamics.fep import BaseFreeEnergyProfile
 from thermolib.ext import wham1d_hs, wham1d_bias, wham1d_scf, wham1d_error, wham2d_hs, wham2d_bias, wham2d_scf, wham2d_error
-from thermolib.tools import integrate, integrate2d
+from thermolib.tools import integrate, integrate2d, rolling_average
 
 __all__ = ['Histogram1D', 'Histogram2D', 'plot_histograms']
 
@@ -1351,7 +1351,36 @@ class Histogram2D(object):
 			pupper /= pupper[~np.isnan(pupper)].sum()
 			plower /= plower[~np.isnan(plower)].sum()
 		return cls(fes.cv1s, fes.cv2s, ps, pupper=pupper, plower=plower, cv1_output_unit=fes.cv1_output_unit, cv2_output_unit=fes.cv2_output_unit, cv1_label=fes.cv1_label, cv2_label=fes.cv2_label)
+	
+	def average_cv(self, index: int, rolling_average_width=None):
+		'''Routine to compute the average of one CV as function of the other CV (i.e. the other CV is contraint to be a given value, this value just iterates over the its bins of the current histogram).
 
+		:param index: definex which CV is averaged (the other is then contraint).
+		:type index: int (0 or 1)
+
+		:return: xs, ys with xs the constraint CV values and ys the averaged CV values
+		:rtype: xs, ys both np.ndarrays
+		'''
+		if index==0:
+			xs = self.cv2s
+			ys = np.zeros(len(xs))
+			for j in range(len(xs)):
+				ts = self.cv1s*self.ps[j,:]
+				ns = self.ps[j,:]
+				ys[j] = integrate(self.cv1s, ts)/integrate(self.cv1s, ns)
+		elif index==1:
+			xs = self.cv1s
+			ys = np.zeros(len(xs))
+			for j in range(len(xs)):
+				ts = self.cv2s*self.ps[:,j]
+				ns = self.ps[:,j]
+				ys[j] = integrate(self.cv2s, ts)/integrate(self.cv2s, ns)
+		else:
+			raise ValueError('Index should be 0 or 1 for 2D Histogram')
+		if rolling_average_width is not None:
+			ys = rolling_average(ys, rolling_average_width)
+		return xs, ys
+	
 	def plot(self, fn, temp=None, flim=None):
 		'''
 			Make a 2D contour plot of the probability histogram and possible the corresponding free energy (if the argument ``temp`` is specified).
