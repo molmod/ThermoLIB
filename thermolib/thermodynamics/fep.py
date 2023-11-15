@@ -1348,8 +1348,6 @@ class FreeEnergySurface2D(object):
             flower = self.flower - np.log(dfs)/self.beta
         return self.__class__(qs, fs, self.T, fupper=fupper, flower=flower, cv_output_unit=cv_output_unit, f_output_unit=self.f_output_unit, cv_label=cv_label)
 
-
-
     def project_difference(self, sign=1, cv_output_unit='au', return_class=BaseFreeEnergyProfile):
         '''
             Construct a 1D free energy profile representing the projection of the 2D FES onto the difference of collective variables:
@@ -1444,7 +1442,7 @@ class FreeEnergySurface2D(object):
         '''
             Construct a 1D free energy profile representing the projection of the 2D FES F2(CV1,CV2) onto q=CV2. This is implemented as follows:
 
-            .. math:: F1(q) = -k_B T \\log\\left( \\int_{-\infty}^{+\infty} e^{-\\beta F2(x,q}dx \\right)
+                F1(q) = -k_B T \\log\\left( \\int_{-\infty}^{+\infty} e^{-\\beta F2(x,q}dx \\right)
 
             :param return_class: The class of which an instance will finally be returned.
             :type return_class: python class object, optional, default=BaseFreeEnergyProfile

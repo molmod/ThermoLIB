@@ -1352,34 +1352,63 @@ class Histogram2D(object):
 			plower /= plower[~np.isnan(plower)].sum()
 		return cls(fes.cv1s, fes.cv2s, ps, pupper=pupper, plower=plower, cv1_output_unit=fes.cv1_output_unit, cv2_output_unit=fes.cv2_output_unit, cv1_label=fes.cv1_label, cv2_label=fes.cv2_label)
 	
-	def average_cv(self, index: int, rolling_average_width=None):
-		'''Routine to compute the average of one CV as function of the other CV (i.e. the other CV is contraint to be a given value, this value just iterates over the its bins of the current histogram).
+	def average_cv_constraint_other(self, index: int, rolling_average_width=None, do_err: bool=False):
+		'''Routine to compute the average of one CV (denoted as y/Y below, y for integration values and Y for resulting averaged values) 
+		   as function of the other CV (denoted as x below), i.e. the other CV Y is contraint to one of its bin values) using the following formula:
 
-		:param index: definex which CV is averaged (the other is then contraint).
-		:type index: int (0 or 1)
+			Y(x) = int(y*p(x,y),y)/int(p(x,y),dy)
 
-		:return: xs, ys with xs the constraint CV values and ys the averaged CV values
-		:rtype: xs, ys both np.ndarrays
+		:param index: the index of the CV which will be averaged (the other is then contraint). If index=1, then y=CV1 and x=CV2, while if index=2, then y=CV2 and x=CV1.
+		:type index: int (1 or 2)
+
+		:param rolling_average_width: when an integer (of at least 2) is given, performs a rolling averaging proceedure (to filter out noise) over a set of neighboring samples within an interval of the given width, defaults to None
+		:type rolling_average_width: int|None, optional
+
+		:param do_err: also calculates the error on the resulting average profile when set to true, defaults to False
+		:type do_err: bool, optional
+
+		:return: xs, ys (and yerrs) with xs the constraint CV values, ys the averaged CV values and yerrs the error bar on the averaged values assuming do_err was set to True
+		:rtype: xs, ys | xs, ys, yerrs all np.ndarrays
 		'''
-		if index==0:
+		#set x,y and p arrays according to chosen index
+		if index==1:
+			ys = self.cv1s
 			xs = self.cv2s
-			ys = np.zeros(len(xs))
-			for j in range(len(xs)):
-				ts = self.cv1s*self.ps[j,:]
-				ns = self.ps[j,:]
-				ys[j] = integrate(self.cv1s, ts)/integrate(self.cv1s, ns)
-		elif index==1:
+			ps = self.ps
+			if do_err:
+				perrs = (self.pupper-self.plower)/2
+		elif index==2:
+			ys = self.cv2s
 			xs = self.cv1s
-			ys = np.zeros(len(xs))
-			for j in range(len(xs)):
-				ts = self.cv2s*self.ps[:,j]
-				ns = self.ps[:,j]
-				ys[j] = integrate(self.cv2s, ts)/integrate(self.cv2s, ns)
+			ps = self.ps.T
+			if do_err:
+				perrs = (self.pupper.T-self.plower.T)/2
 		else:
-			raise ValueError('Index should be 0 or 1 for 2D Histogram')
+			raise ValueError('Index should be 1 or 2 for 2D Histogram')
+		#compute average Y (and possibly its error) on grid of x
+		Ys = np.zeros(len(xs))
+		if do_err:
+			Yerrs = np.zeros(len(xs))
+		for j in range(len(xs)):
+			if not do_err:
+				Ys[j] = integrate(ys, ys*ps[j,:])/integrate(ys, ps[j,:])
+			else:
+				T, Terr = integrate(ys, ys*ps[j,:], yerrs=ys*perrs[j,:])
+				N, Nerr = integrate(ys, ps[j,:], yerrs=perrs[j,:])
+				Ys[j] = T/N
+				Yerrs[j] = np.sqrt(Ys[j]**2*((Terr/T)**2+(Nerr/N)**2))
+		#do rolling average if required
 		if rolling_average_width is not None:
-			ys = rolling_average(ys, rolling_average_width)
-		return xs, ys
+			xs = rolling_average(xs, rolling_average_width)
+			if do_err:
+				Ys, Yerrs = rolling_average(Ys, rolling_average_width, yerrs=Yerrs)
+			else:
+				Ys = rolling_average(Ys, rolling_average_width)
+		#return
+		if do_err:
+			return xs, Ys, Yerrs
+		else:
+			return xs, Ys
 	
 	def plot(self, fn, temp=None, flim=None):
 		'''

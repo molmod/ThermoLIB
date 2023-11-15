@@ -29,7 +29,7 @@ __all__ = [
     'h5_read_dataset', 'rolling_average'
 ]
 
-def integrate(xs, ys):
+def integrate(xs, ys, yerrs=None):
     '''
         A simple integration method using the trapezoid rule
 
@@ -38,15 +38,26 @@ def integrate(xs, ys):
 
         :param ys: array containing function values on grid
         :type ys: np.ndarray
+
+        :param yerrs: array containing the error on the function values. When defined, the error on the integral will also be computed. Defaults to None
+        :type yerrs: np.ndarray, optional
     '''
     assert len(xs)==len(ys)
     result = 0.0
+    if yerrs is not None:
+        error2 = 0.0
     for i in range(len(xs)-1):
-        x = 0.5*xs[i]+0.5*xs[i+1]
         y = 0.5*ys[i]+0.5*ys[i+1]
         dx = xs[i+1]-xs[i]
         result += y*dx
-    return result
+        if yerrs is not None:
+            tmp = (yerrs[i]**2+yerrs[i+1]**2)*(dx/2)**2
+            if not np.isnan(tmp):
+                error2 += tmp
+    if yerrs is None:
+        return result
+    else:
+        return result, np.sqrt(error2)
 
 def integrate2d(z,x=None,y=None,dx=1.,dy=1.):
     '''
@@ -61,10 +72,10 @@ def integrate2d(z,x=None,y=None,dx=1.,dy=1.):
         :param y: 1D array containing the second function argument values, is used to determine grid spacing of second function argument. If not given, optional argument dy is used to define the grid spacing. Defaults to None
         :type y: np.ndarray(flt), optional
 
-        :param dx: grid spacing for first function argument. If not given, argument is used to determine grid spacing. Defaults to 1.
+        :param dx: grid spacing for first function argument. Is overwritten when argument x is defined. Defaults to 1.
         :type dx: float, optional
 
-        :param dy: grid spacing for second function argument. If not given, argument is used to determine grid spacing. Defaults to 1.
+        :param dy: grid spacing for second function argument. Is overwritten when argument y is defined. Defaults to 1.
         :type dy: float, optional
 
         :return: integral value
@@ -763,18 +774,23 @@ def h5_read_dataset(fn, dset):
         data = np.array(f[dset])
     return data
 
-def rolling_average(data, width):
+def rolling_average(ys, width, yerrs=None):
     assert isinstance(width, int), "Rolling average width needs to be an integer"
-    assert width>=2, "Rolling average width needs to be at least 2"	
-    delta = int(width/2)
-    new_data = np.zeros(len(data))
-    for i in range(len(data)):
-        new = 0
-        num = 0
-        for d in range(-delta, delta+1):
-            j = i+d
-            if 0<j<len(data)-1:
-                new += data[j]
-                num += 1
-        new_data[i] = new/num
-    return new_data
+    assert width>=2, "Rolling average width needs to be at least 2"
+    if yerrs is not None:
+        assert len(ys)==len(yerrs), "ys and its corresponding error bars yerrs should be of same length"
+    newN = int(np.ceil(len(ys)/width))
+    new_ys = np.zeros(newN)
+    if yerrs is not None:
+        new_yerrs = np.zeros(newN)
+    for i in range(newN-1):
+        new_ys[i] = ys[i*width:(i+1)*width].sum()/width
+        if yerrs is not None:
+            new_yerrs[i] = np.sqrt((yerrs[i*width:(i+1)*width]**2).sum())/width 
+    new_ys[-1] = ys[(newN-1)*width:].mean()
+    if yerrs is not None:
+        vals = yerrs[(newN-1)*width:]
+        new_yerrs[-1] = np.sqrt((vals**2).sum())/len(vals)
+        return new_ys, new_yerrs
+    else:
+        return new_ys
