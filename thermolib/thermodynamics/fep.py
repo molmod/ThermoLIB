@@ -1604,7 +1604,6 @@ def plot_feps(fn, feps, temp=None, labels=None, flims=None, colors=None, linesty
     #initialize
     linewidth_default = 2
     linestyle_default = '-'
-    nfeps = len(feps)
     pp.clf()
     if temp is None:
         fig, axs = pp.subplots(nrows=1, ncols=1, squeeze=False)
@@ -1661,7 +1660,7 @@ def plot_feps(fn, feps, temp=None, labels=None, flims=None, colors=None, linesty
     if temp is not None:
         axs[0,1].set_xlabel('%s [%s]' %(cv_label, cv_unit), fontsize=14)
         axs[0,1].set_ylabel('Relative probability [-]', fontsize=14)
-        axs[0,1].set_title('Probability histogram', fontsize=14)
+        axs[0,1].set_title('Probability histogram P/Pmax)', fontsize=14)
         axs[0,1].set_xlim(cv_range)
         axs[0,1].legend(loc='best')
     #save

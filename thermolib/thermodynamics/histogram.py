@@ -588,15 +588,15 @@ class Histogram1D(object):
 		plower = None
 		ps = np.zeros(len(fep.fs))
 		beta = 1.0/(boltzmann*temp)
-		ps = np.exp(-beta*fep.fs)
-		ps /= ps[~np.isnan(ps)].sum()
+		ps[~np.isnan(fep.fs)] = np.exp(-beta*fep.fs[~np.isnan(fep.fs)] )
+		ps /= ps.sum()
 		if fep.fupper is not None and fep.flower is not None:
 			pupper = np.zeros(len(fep.fs))
 			plower = np.zeros(len(fep.fs))
-			pupper = np.exp(-beta*fep.flower)
-			plower = np.exp(-beta*fep.fupper)
-			pupper /= pupper[~np.isnan(pupper)].sum()
-			plower /= plower[~np.isnan(plower)].sum()
+			pupper[~np.isnan(fep.fupper)] = np.exp(-beta*fep.flower[~np.isnan(fep.fupper)])
+			plower[~np.isnan(fep.flower)] = np.exp(-beta*fep.fupper[~np.isnan(fep.flower)])
+			pupper /= pupper.sum()
+			plower /= plower.sum()
 		return cls(fep.cvs, ps, pupper=pupper, plower=plower, cv_output_unit=fep.cv_output_unit, cv_label=fep.cv_label)
 
 	def plot(self, fn, temp=None, flims=None):

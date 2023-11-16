@@ -253,7 +253,7 @@ def blav(data, blocksizes=None, fitrange=[0,-1], exponent=1, fn_plot=None, unit=
         pp.savefig(fn_plot, dpi=300)
     return blavs.mean(), error, corrtime
 
-def read_wham_input(fn: str, trajectory_reader, trajectory_path_template: str='%s', bias_potential: str='None', q01_unit: str='au', kappa1_unit: str='au', q02_unit: str='au', kappa2_unit: str='au', inverse_cv1: bool=False, inverse_cv2: bool=False, additional_bias=None, additional_bias_dimension: str='cv1', verbose: bool=False):
+def read_wham_input(fn: str, trajectory_reader, trajectory_path_template: str='%s', bias_potential: str='None', q01_unit: str='au', kappa1_unit: str='au', q02_unit: str='au', kappa2_unit: str='au', inverse_cv1: bool=False, inverse_cv2: bool=False, additional_bias=None, additional_bias_dimension: str='cv1', skip_bias_names=[], verbose: bool=False):
     '''Routine to read the metadata file required to obtain all input data for a WHAM analysis.
 
     :param fn: filename of the metadata file. This file should be in the following format:
@@ -308,6 +308,9 @@ def read_wham_input(fn: str, trajectory_reader, trajectory_path_template: str='%
     :param additional_bias_dimension: The CV dimension along which the 1D additional bias potential is applied. This is only relevant when applying an additional bias to a 2D CV grid. Defaults to 'cv1'
     :type additional_bias_dimension: str, optional
 
+    :param skip_bias_names: List of bias potential names (i.e. first word of lines in the wham input file) who should be ignored, together with their corresponding trajectory data, defaults to []
+    :type skip_bias_names: list, optional
+
     :param verbose: Switch on the routine verbosity and print more logging, defaults to False
     :type verbose: bool, optional
 
@@ -332,6 +335,8 @@ def read_wham_input(fn: str, trajectory_reader, trajectory_path_template: str='%
             words = line.split()
             if line.startswith('#'):
                 continue
+            elif skip_bias_names is not None and words[0] in skip_bias_names:
+                print('Line %i (corresponding to bias %s) skipped in wham input file by user specification of skip_bias_names' %(iline, words[0]))
             elif line.startswith('T'):
                 temp = float(line.split('=')[1].rstrip('K'))
                 if verbose:
