@@ -15,7 +15,7 @@ from molmod.io.xyz import XYZReader as mmXYZReader
 
 import numpy as np, h5py as h5
 
-__all__ = ['XYZReader', 'HDF5Reader', 'ColVarReader']
+__all__ = ['CVComputer', 'HDF5Reader', 'ColVarReader']
 
 class TrajectoryReader(object):
     '''Abstract class for reading trajectory files and extracting CV values. Child classes will implement specific readers depending of the format of the trajectory files (COLVAR, HDF5, XYZ, ...)
@@ -72,18 +72,32 @@ class TrajectoryReader(object):
             return data
 
 
-class XYZReader(TrajectoryReader):
-    '''Compute the CV along an XYZ trajectory. The XYZ trajectory is assumed to be defined in a (list of subsequent) XYZ file(s).
+class CVComputer(TrajectoryReader):
+    '''Compute the specified CV along a given trajectory defined as XYZ or HDF5 files.
     '''
-    def __init__(self, CVs: list, start: int=0, stride: int=1, end: int=-1, verbose: bool=False):
+    def __init__(self, CVs: list, coords_key: str=None, start: int=0, stride: int=1, end: int=-1, verbose: bool=False,):
         '''
-        :param CVq: a list of collective variable defining how to compute the collective variable along the trajectory
+        :param CVs: a list of collective variable defining how to compute the collective variable along the trajectory
         :type CVs: list of instances from thermolib.thermodynamics.cv module
+
+        :param :coords_key string to possibly define location of the coordinates in the trajectory file (e.g. name of coords data set in HDF5 file), defaults to None
+        :type coords_key: str, optional
+
+        Other arguments are defined in the parent class TrajectoryReader.
         '''
         self.CVs = CVs
+        self.coords_key = coords_key
         TrajectoryReader.__init__(self, start=start, stride=stride, end=end, verbose=verbose)
 
     def _read(self, fn):
+        if fn.endswith('.xyz'):
+            return self._read_xyz(fn)
+        if fn.endswith('.h5'):
+            return self._read_h5(fn)
+        else:
+            raise NotImplementedError('Extension in file %s not recognized or supported (yet).' %(fn))
+    
+    def _read_xyz(self, fn):
         cvdata = None
         xyz = mmXYZReader(fn)
         for i, CV in enumerate(self.CVs):
@@ -102,8 +116,33 @@ class XYZReader(TrajectoryReader):
                 cvdata[:,i] = col
         return cvdata
 
+    def _read_h5(self, fn):
+        cvdata = None
+        f = h5.File(fn, mode = 'r')
+        Nsteps = len(f['/trajectory/time'])
+        for i, CV in enumerate(self.CVs):
+            data = []
+            for itime in range(Nsteps):
+                if self.coords_key is not None:
+                    coords = f[self.coords_key][itime,:,:]
+                else:
+                    coords = f['/trajectory/pos'][itime,:,:]
+                data.append(CV.compute(coords, deriv=False))
+            col = self._slice(np.array(data))
+            if len(col)==0:
+                raise ValueError('No data for CV(%s) could be read from trajectory %s. Are you sure you did not choose start:end:stride to restrictive?' %(CV.name,fn))
+            if cvdata is None:
+                assert i==0
+                cvdata = np.zeros([len(col), len(self.CVs)])
+                cvdata[:,0] = col
+            else:
+                assert len(col)==len(cvdata[:,0]), 'Trajectory for CV(%s) has %i time steps, while first CV has %i. They should both have an equal number.' %(CV.name, len(col), len(cvdata[:,0]))
+                cvdata[:,i] = col
+        return cvdata
+
 
 class HDF5Reader(TrajectoryReader):
+    '''Read the precomputed CVs from datasets stored in HDF5 file(s)'''
     def __init__(self, keys: list, units: list=[], start: int=0, stride: int=1, end: int=-1, verbose: bool=False):
         '''
         :param keys: Represent the keys of datasets in HDF5 from which to read CV values.

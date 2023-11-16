@@ -325,9 +325,8 @@ def read_wham_input(fn: str, trajectory_reader, trajectory_path_template: str='%
     temp = None
     biasses = []
     trajectories = []
-    #
+    #iterate over lines in fn and extract temp, biasses and trajectories
     root = os.path.split(fn)[0]
-    traj_fns = []
     with open(fn, 'r') as f:
         iline = 0
         for line in f.readlines():
