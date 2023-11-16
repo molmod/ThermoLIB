@@ -74,7 +74,7 @@ class CenterOfMass(CollectiveVariable):
         mass = 0.0
         com = np.zeros(3, float)
         if deriv:
-            grad = np.zeros([3, len(rs), 3], float)
+            grad = np.zeros([3, len(coords), 3], float)
         for index, r in zip(self.indices, rs):
             mass += self.masses[index]
             com += self.masses[index]*r
@@ -105,7 +105,7 @@ class CenterOfPosition(CollectiveVariable):
         if not deriv:
             return cop
         else:
-            grad = np.zeros([3, len(rs), 3], float)
+            grad = np.zeros([3, len(coords), 3], float)
             grad[0, self.indices, 0] = 1/len(self.indices)
             grad[1, self.indices, 1] = 1/len(self.indices)
             grad[2, self.indices, 2] = 1/len(self.indices)
@@ -166,7 +166,7 @@ class NormalToPlane(CollectiveVariable):
         if not deriv:
             return normal, None
         else:
-            grad = np.zeros([3, len(self.masses), 3], float)
+            grad = np.zeros([3, len(coords), 3], float)
             tensor = (np.identity(3)-np.outer(vec, vec)/v**2)/v
             for i, index in enumerate(self.indices):
                 cosi = np.cos((i+1)*theta)
