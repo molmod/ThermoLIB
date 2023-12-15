@@ -26,7 +26,7 @@ import sys, os
 __all__ = [
     'integrate', 'integrate2d', 'format_scientific',
     'trajectory_xyz_to_CV', 'blav', 'read_wham_input',
-    'h5_read_dataset', 'rolling_average'
+    'h5_read_dataset', 'rolling_average', 'decorrelate'
 ]
 
 def integrate(xs, ys, yerrs=None):
@@ -249,11 +249,10 @@ def blav(data, blocksizes=None, fitrange=[0,-1], exponent=1, fn_plot=None, unit=
         axs[0,1].set_ylabel('Error [%s]' %unit)
 
         fig.set_size_inches([12,6*nrows])
-        pp.show()
         pp.savefig(fn_plot, dpi=300)
     return blavs.mean(), error, corrtime
 
-def read_wham_input(fn: str, trajectory_reader, trajectory_path_template: str='%s', bias_potential: str='None', q01_unit: str='au', kappa1_unit: str='au', q02_unit: str='au', kappa2_unit: str='au', inverse_cv1: bool=False, inverse_cv2: bool=False, additional_bias=None, additional_bias_dimension: str='cv1', skip_bias_names=[], verbose: bool=False):
+def read_wham_input(fn: str, trajectory_readers, trajectory_path_templates, bias_potential: str='None', q01_unit: str='au', kappa1_unit: str='au', q02_unit: str='au', kappa2_unit: str='au', inverse_cv1: bool=False, inverse_cv2: bool=False, additional_bias=None, additional_bias_dimension: str='cv1', skip_bias_names=[], verbose: bool=False):
     '''Routine to read the metadata file required to obtain all input data for a WHAM analysis.
 
     :param fn: filename of the metadata file. This file should be in the following format:
@@ -270,11 +269,11 @@ def read_wham_input(fn: str, trajectory_reader, trajectory_path_template: str='%
 
     :type fn: str
 
-    :param trajectory_reader: an instance of the TrajectoryReader class that implements how to read the CV values from the trajectory files. For information on how these trajectory files are determined, see description of :param trajectory_path_template:.
-    :type trajectory_reader: TrajectoryReader
+    :param trajectory_readers: an instance (or list of instances) of the TrajectoryReader class that implements how to read the CV values from the trajectory files. If a list of readers is given, each reader should have its corresponding trajectory_path_template defined in the list of trajectory_path_templates. For information on how these trajectory files are determined, see description of :param trajectory_path_templates:.
+    :type trajectory_readers: TrajectoryReader or list of TrajectoryReader instances
 
-    :param trajectory_path_template: Template for defining the path (relative to the directory containing fn) to the trajectory file corresponding to each bias. This argument should be string containing a single '%s' substring which gets replaced with the name of the biases defined in fn. For example, if trajectory_path_template is given by 'trajectories/%s/colvar', then the trajectory for the simulation biased with the potential named NAME_2 in the file fn (see above) is given by the path 'trajectories/NAME_2/colvar' relative to the directory containing fn. Defaults to '%s'
-    :type trajectory_path_template: str, optional
+    :param trajectory_path_templates: Template (or list of templates) for defining the path (relative to the directory containing fn) to the trajectory file corresponding to each bias. Such template argument should be string containing a single '%s' substring which gets replaced with the name of the biases defined in fn. For example, if trajectory_path_templates is given by 'trajectories/%s/colvar', then the trajectory for the simulation biased with the potential named NAME_2 in the file fn (see above) is given by the path 'trajectories/NAME_2/colvar' relative to the directory containing fn. Defaults to '%s'. If a list of templates is given, each template corresponds to a given trajectory reader defined in the trajectory_readers argument.
+    :type trajectory_path_templates: str or list of strings, optional
 
     :param bias_potential: mathematical form of the bias potential used, allowed values are
 
@@ -321,10 +320,18 @@ def read_wham_input(fn: str, trajectory_reader, trajectory_path_template: str='%
     :rtype: a tuple of the form (temp, biasses, trajectories), with temp a float (or None), biasses a list of instances from classes defined in the bias.py module and trajectories is a list of numpy arrays.
     '''
     from thermolib.thermodynamics.bias import Parabola1D, Parabola2D, MultipleBiasses1D, MultipleBiasses2D
+    #some argument dressing
+    if not isinstance(trajectory_readers, list) and not isinstance(trajectory_path_templates, list):
+        trajectory_readers = [trajectory_readers]
+        trajectory_path_templates = [trajectory_path_templates]
+    else:
+        assert len(trajectory_readers)==len(trajectory_path_templates), 'Trajectory_readers and trajectory_path_templates need to be lists of matching length!'
     #initialize the three properties we need to extract
     temp = None
     biasses = []
     trajectories = []
+    #determine number of CVS to be extracted
+    ncvs = sum([reader.ncvs for reader in trajectory_readers])
     #iterate over lines in fn and extract temp, biasses and trajectories
     root = os.path.split(fn)[0]
     with open(fn, 'r') as f:
@@ -335,7 +342,8 @@ def read_wham_input(fn: str, trajectory_reader, trajectory_path_template: str='%
             if line.startswith('#'):
                 continue
             elif skip_bias_names is not None and words[0] in skip_bias_names:
-                print('Line %i (corresponding to bias %s) skipped in wham input file by user specification of skip_bias_names' %(iline, words[0]))
+                if verbose:
+                    print('Line %i (corresponding to bias %s) skipped in wham input file by user specification of skip_bias_names' %(iline, words[0]))
             elif line.startswith('T'):
                 temp = float(line.split('=')[1].rstrip('K'))
                 if verbose:
@@ -344,12 +352,31 @@ def read_wham_input(fn: str, trajectory_reader, trajectory_path_template: str='%
                 name = words[0]
                 q0 = float(words[1])*parse_unit(q01_unit)
                 kappa = float(words[2])*parse_unit(kappa1_unit)
-                fn_traj = os.path.join(root, trajectory_path_template %name)
-                if not os.path.isfile(fn_traj):
-                    print("WARNING: could not read trajectory file for bias with name %s, skipping line in wham input." %name)
-                    continue
+                #read trajectory cv data
+                icv = 0
+                nsamples = None
+                for trajectory_reader, trajectory_path_template in zip(trajectory_readers, trajectory_path_templates):
+                    fn_traj = os.path.join(root, trajectory_path_template %name)
+                    if not os.path.isfile(fn_traj):
+                        print("WARNING: could not read trajectory file %s, SKIPPING!" %fn_traj)
+                        continue
+                    else:
+                        data = trajectory_reader(fn_traj)
+                        if nsamples is None:
+                            nsamples = len(data)
+                            trajdata = np.zeros([nsamples, ncvs])
+                        else:
+                            assert nsamples==len(data), 'Various readers do not have consistent number of samples: %i<==>%i' %(nsamples,len(data))
+                        if trajectory_reader.ncvs==1:
+                            trajdata[:,icv] = data
+                        else:
+                            trajdata[:,icv:icv+trajectory_reader.ncvs] = data
+                        icv += trajectory_reader.ncvs
+                if ncvs==1:
+                    trajectories.append(trajdata[:,0])
                 else:
-                    trajectories.append(trajectory_reader(fn_traj))
+                    trajectories.append(trajdata)
+                #set bias
                 if bias_potential.lower() in ['parabola1d', 'none']:
                     bias = Parabola1D(name, q0, kappa, inverse_cv=inverse_cv1)
                     if additional_bias is not None:
@@ -373,12 +400,31 @@ def read_wham_input(fn: str, trajectory_reader, trajectory_path_template: str='%
                 q02 = float(words[2])*parse_unit(q02_unit)
                 kappa1 = float(words[3])*parse_unit(kappa1_unit)
                 kappa2 = float(words[4])*parse_unit(kappa2_unit)
-                fn_traj = os.path.join(root, trajectory_path_template %name)
-                if not os.path.isfile(fn_traj):
-                    print("WARNING: could not read trajectory file for bias with name %s, skipping line in wham input." %name)
-                    continue
+                #read trajectory cv data
+                icv = 0
+                nsamples = None
+                for trajectory_reader, trajectory_path_template in zip(trajectory_readers, trajectory_path_templates):
+                    fn_traj = os.path.join(root, trajectory_path_template %name)
+                    if not os.path.isfile(fn_traj):
+                        print("WARNING: could not read trajectory file %s, SKIPPING!" %fn_traj)
+                        continue
+                    else:
+                        data = trajectory_reader(fn_traj)
+                        if nsamples is None:
+                            nsamples = len(data)
+                            trajdata = np.zeros([nsamples, ncvs])
+                        else:
+                            assert nsamples==len(data), 'Various readers do not have consistent number of samples: %i<==>%i' %(nsamples,len(data))
+                        if trajectory_reader.ncvs==1:
+                            trajdata[:,icv] = data
+                        else:
+                            trajdata[:,icv:icv+trajectory_reader.ncvs] = data
+                        icv += trajectory_reader.ncvs
+                if ncvs==1:
+                    trajectories.append(trajdata[:,0])
                 else:
-                    trajectories.append(trajectory_reader(fn_traj))
+                    trajectories.append(trajdata)
+                #set bias
                 if bias_potential.lower() in ['parabola2d', 'none']:
                     bias = Parabola2D(name, q01, q02, kappa1, kappa2, inverse_cv1=inverse_cv1, inverse_cv2=inverse_cv2)
                     if additional_bias is not None:
@@ -798,3 +844,63 @@ def rolling_average(ys, width, yerrs=None):
         return new_ys, new_yerrs
     else:
         return new_ys
+
+def decorrelate(trajectories, units=None, decorrelate_only=None, max_block_size=None, fn_plot=None, verbose=False):
+    if verbose:
+        print('Decorrelating trajectory data')
+    if max_block_size is None:
+        min_traj_length = min([len(traj) for traj in trajectories])
+        max_block_size = int(min_traj_length/5)
+        if verbose:
+            print('  max_block_size set to %i' %max_block_size)
+    #determine the number of trajectories as well as cvs present in trajectory data
+    ntrajs = len(trajectories)
+    if len(trajectories[0].shape)==1:
+        ncvs = 1
+    else:
+        ncvs = trajectories[0].shape[1]
+    if units is None: units = ['au',]*ncvs
+    #intialize arrays with number of rows equal to number of simulation trajectories and number of columns equal to number of CVs
+    cvs       = np.zeros([ntrajs,ncvs])
+    cv_errors = np.zeros([ntrajs,ncvs])
+    corrtimes = np.zeros([ntrajs,ncvs])
+    for itraj, traj in enumerate(trajectories):
+        if verbose:
+            print('  applying block-averaging on trajectory %i/%i ...' %(itraj+1,ntrajs))
+        for icv in range(ncvs):
+            if len(trajectories[0].shape)==1:
+                cvs[itraj,icv], cv_errors[itraj,icv], corrtimes[itraj,icv] = blav(traj, blocksizes=np.arange(1,max_block_size+1,1))
+            else:
+                cvs[itraj,icv], cv_errors[itraj,icv], corrtimes[itraj,icv] = blav(traj[:,icv], blocksizes=np.arange(1,max_block_size+1,1))
+    if fn_plot is not None:
+        pp.clf()
+        fig, axs = pp.subplots(nrows=2, ncols=cvs.shape[1], sharex=True, squeeze=False)
+        for icv in range(ncvs):
+            axs[0,icv].errorbar(range(ntrajs), cvs[:,icv]/parse_unit(units[icv]), yerr=cv_errors[:,icv], marker='o',  color='b')
+            axs[1,icv].plot(corrtimes[:,icv], marker='o', color='b')
+            axs[0,icv].set_ylabel('CV Mean [%s]' %units[icv], fontsize=14)
+            axs[1,icv].set_ylabel('Correlation time in CV data', fontsize=14)
+            axs[1,icv].set_xlabel('Trajectory number', fontsize=14)
+        fig.tight_layout()
+        fig.set_size_inches([8*ncvs,12])
+        pp.savefig(fn_plot)
+    #decorrelate trajectory by averaging over a number of samples equal to the correlation time
+    trajectories_decor = []
+    for i, traj in enumerate(trajectories):
+        if decorrelate_only is None:
+            stride = int(np.ceil(corrtimes[i,:].max()))
+        else:
+            stride = int(np.ceil(corrtimes[i,decorrelate_only]))
+        nblocks = len(traj)//stride
+        if len(traj.shape)==1:
+            new_traj = np.zeros(nblocks)
+            for iblock in range(nblocks):
+                new_traj[iblock] = traj[iblock*stride:(iblock+1)*stride].mean()
+            trajectories_decor.append(new_traj)
+        else:
+            new_traj = np.zeros([nblocks,traj.shape[1]])
+            for index in range(traj.shape[1]):
+                for iblock in range(nblocks):
+                    new_traj[iblock,index] = traj[iblock*stride:(iblock+1)*stride,index].mean()
+            trajectories_decor.append(new_traj)
+    return trajectories_decor, corrtimes

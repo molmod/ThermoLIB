@@ -10,8 +10,6 @@
 # Van Speybroeck. Usage of this package should be authorized by prof. Van
 # Van Speybroeck.
 
-import itertools
-from typing import  List
 
 from molmod.units import *
 from molmod.constants import *
@@ -22,14 +20,15 @@ import numpy as np
 import time
 
 
-from thermolib.thermodynamics.fep import BaseFreeEnergyProfile
+from thermolib.thermodynamics.fep import BaseProfile, BaseFreeEnergyProfile
 from thermolib.ext import wham1d_hs, wham1d_bias, wham1d_scf, wham1d_error, wham2d_hs, wham2d_bias, wham2d_scf, wham2d_error
-from thermolib.tools import integrate, integrate2d, rolling_average
+from thermolib.tools import integrate
+from thermolib.error import GaussianDistribution, LogGaussianDistribution, Propagator
 
 __all__ = ['Histogram1D', 'Histogram2D', 'plot_histograms']
 
 class Histogram1D(object):
-	def __init__(self, cvs, ps, plower=None, pupper=None, cv_output_unit='au', cv_label='CV'):
+	def __init__(self, cvs, ps, error=None, cv_output_unit='au', cv_label='CV'):
 		'''
 			Class to implement the estimation of a probability histogram in terms of a collective variable from a trajectory series corresponding to that collective variable.
 
@@ -39,11 +38,8 @@ class Histogram1D(object):
 			:param ps: array corresponding to the histogram probability values at the grid points, which should be in atomic units.
 			:type bins: np.ndarray
 
-			:param plower: lower bound of the error on the probability histogram values, which should be in atomic units.
-			:type do_error: np.ndarray, optional, default=None
-
-			:param pupper: upper bound of the error on the probability histogram values, which should be in atomic units.
-			:type pupper: np.ndarray, optional, default=None
+			:param error: error distribution on the histogram, defaults to None
+			:type error: Distribution child class, optional
 
 			:param cv_output_unit: the unit in which cv will be plotted/printed
 			:type cv_output_unit: str, optional, default='au'
@@ -53,22 +49,31 @@ class Histogram1D(object):
 		'''
 		self.cvs = cvs.copy()
 		self.ps = ps.copy()
-		self.plower = plower
-		self.pupper = pupper
+		self.error = None
+		if error is not None:
+			self.error = error.copy()
 		self.cv_output_unit = cv_output_unit
 		self.cv_label = cv_label
 
+	def plower(self, nsigma=2):
+		assert self.error is not None, 'Plower cannot be computed because no error distribution was defined in the error attribute'
+		plower, pupper = self.error.nsigma_conf_int(nsigma)
+		return plower
+
+	def pupper(self, nsigma=2):
+		assert self.error is not None, 'Pupper cannot be computed because no error distribution was defined in the error attribute'
+		plower, pupper = self.error.nsigma_conf_int(nsigma)
+		return pupper
+
 	def copy(self):
-		plower = None
-		if self.plower is not None:
-			plower = self.plower.copy()
-		pupper = None
-		if self.pupper is not None:
-			pupper = self.pupper.copy()
-		return Histogram1D(self.cvs.copy(), self.ps.copy(), plower=plower, pupper=pupper, cv_output_unit=self.cv_output_unit, cv_label=self.cv_label)
+		if self.error is not None:
+			error = self.error.copy()
+		else:
+			error = None
+		return Histogram1D(self.cvs.copy(), self.ps.copy(), error=error, cv_output_unit=self.cv_output_unit, cv_label=self.cv_label)
 
 	@classmethod
-	def from_average(cls, histograms, error_estimate=None, nsigma=2, cv_output_unit=None, cv_label=None):
+	def from_average(cls, histograms, error_estimate=None, cv_output_unit=None, cv_label=None):
 		'''
 			Start from a set of histograms and compute and return the averaged histogram. If error_estimate is set to 'std', an error on the histogram will be computed from the standard deviation within the set of histograms.
 
@@ -112,16 +117,14 @@ class Histogram1D(object):
 		#average histograms
 		ps = pss.mean(axis=0)
 		#compute error if requested
-		plower, pupper = None, None
+		error = None
 		if error_estimate is not None and error_estimate.lower() in ['std']:
 			perr = pss.std(axis=0,ddof=1)
-			plower = ps - nsigma*perr
-			plower[plower<0] = 0.0
-			pupper = ps + nsigma*perr
-		return cls(cvs, ps, plower=plower, pupper=pupper, cv_output_unit=cv_output_unit, cv_label=cv_label)
+			error = GaussianDistribution(ps, perr)
+		return cls(cvs, ps,error=error, cv_output_unit=cv_output_unit, cv_label=cv_label)
 
 	@classmethod
-	def from_single_trajectory(cls, data, bins, error_estimate=None, nsigma=2, cv_output_unit='au', cv_label='CV'):
+	def from_single_trajectory(cls, data, bins, error_estimate=None, cv_output_unit='au', cv_label='CV'):
 		'''
 			Routine to estimate of a probability histogram in terms of a collective variable from a trajectory series corresponding to that collective variable.
 
@@ -157,32 +160,63 @@ class Histogram1D(object):
 		cvs = 0.5*(bin_edges[:-1]+bin_edges[1:]) # bin centers
 		ps = ns/Ntot
 		#estimate of upper and lower boundary of n-sigma confidence interval
-		plower = None
-		pupper = None
+		error = None
 		if error_estimate=='mle_p':
-			perrors = np.sqrt(ps*(1-ps)/Ntot)
-			plower = ps - nsigma*perrors
-			plower[plower<0] = 0.0
-			pupper = ps + nsigma*perrors
+			perr = np.sqrt(ps*(1-ps)/Ntot)
+			error = GaussianDistribution(ps, perr)
 		elif error_estimate=='mle_f':
 			#we first compute the error bar interval on f=-log(p) and then transform it to one on p itself.
-			fs, ferrors = np.zeros(len(ps))*np.nan, np.zeros(len(ps))*np.nan
+			fs, ferr = np.zeros(len(ps))*np.nan, np.zeros(len(ps))*np.nan
 			fs[ps>0] = -np.log(ps[ps>0])
-			ferrors[ps>0] = np.sqrt((np.exp(fs[ps>0])-1)/Ntot)
-			fupper  = fs + nsigma*ferrors
-			flower  = fs - nsigma*ferrors
-			pupper, plower = np.zeros(len(ps))*np.nan, np.zeros(len(ps))*np.nan
-			pupper[ps>0] = np.exp(-flower[ps>0])
-			plower[ps>0] = np.exp(-fupper[ps>0])
-			pupper[np.isinf(pupper)] = np.nan
+			ferr[ps>0] = np.sqrt((np.exp(fs[ps>0])-1)/Ntot)
+			error = LogGaussianDistribution(ps, ferr)
 		elif error_estimate is not None:
 			raise ValueError('Invalid value for error_estimate argument, received %s. Check documentation for allowed values.' %error_estimate)
-		return cls(cvs, ps, plower=plower, pupper=pupper, cv_output_unit=cv_output_unit, cv_label=cv_label)
+		return cls(cvs, ps, error=error, cv_output_unit=cv_output_unit, cv_label=cv_label)
 
 	@classmethod
-	def from_wham(cls, bins, traj_input, biasses, temp, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, bias_thress=1e-3, cv_output_unit='au', cv_label='CV', verbose=None, verbosity='low'):
+	def from_wham(cls, bins, traj_input, biasses, temp, error_estimate=None, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, bias_thress=1e-3, cv_output_unit='au', cv_label='CV', verbose=None, verbosity='low'):
 		'''
-			This routine does the same as the from_wham routine (see documentation there) but this version used the cythonized helper routines wham_XXX defined in ext.pyx.
+			Routine that implements the Weighted Histogram Analysis Method (WHAM) for reconstructing the overall probability histogram from a series of biased molecular simulations.
+
+			:param bins: number of bins for the CV grid or array representing the bin edges for th CV grid.
+			:type bins: int or np.ndarray(float)
+
+			:param trajectories: list or array of numpy arrays containing the CV trajectory data for each simulation. Alternatively, a list of PLUMED file names containing the trajectory data can be specified as well. The arguments trajectories and biasses should be of the same length.
+			:type trajectories: list(np.ndarray)/np.ndarray(np.ndarray)
+
+			:param biasses: list of callables, each representing a function to compute the bias at a given value of the collective variable. The arguments trajectories and biasses should be of the same length.
+			:type biasses: list(callable)
+
+			:param temp: the temperature at which all simulations were performed
+			:type temp: float
+
+			:param error_estimate: indicate if and how to perform error analysis. One of following options is available:
+				*  **mle_p** -- compute error through the asymptotic normality of the maximum likelihood estimator for the probability itself. WARNING: due to positivity constraint of the probability, this only works for high probability and low variance. Otherwise the standard error interval for the normal distribution (i.e. mle +- n*sigma) might give rise to negative lower error bars.
+				*  **mle_f** -- compute error through the asymptotic normality of the maximum likelihood estimator for -log(p) (hence for the beta-scaled free energy). This estimation does not suffor from the same WARNING as for ``mle_p``. Furthermore, in case of high probability and low variance, the error estimation using ``mle_f`` and ``mle_p`` are consistent (i.e. one can be computed from the other using f=-log(p)).
+				*  **None** -- do not estimate the error.
+			:type error_estimate: str, optional, default=None
+
+			:param bias_subgrid_num: the number of grid points for the sub-grid used to compute the integrated boltzmann factor of the bias in each CV bin.
+			:type bias_subgrid_num: optional, default=20
+
+			:param Nscf: the maximum number of steps in the self-consistent loop to solve the WHAM equations
+			:type Nscf: int, default=1000
+
+			:param convergence: convergence criterium for the WHAM self consistent solver. The SCF loop will stop whenever the integrated absolute difference between consecutive probability densities is less then the specified value.
+			:type convergence: float, default=1e-6
+
+			:param verbose: set to True to turn on more verbosity during the self consistent solution cycles of the WHAM equations.
+			:type verbose: bool, optional, default=False
+
+			:param cv_output_unit: the unit in which cv will be plotted/printed
+			:type cv_output_unit: str, optional, default='au'
+
+			:param cv_label: the label of the cv that will be used on plots
+			:type cv_label: str, optional, default='CV'
+
+			:return: probability histogram
+			:rtype: Histogram1D
 		'''
 		timings = {}
 		timings['start'] = time.time()
@@ -219,15 +253,11 @@ class Histogram1D(object):
 			print('  processing bins')
 		if isinstance(bins, int):
 			raise NotImplementedError
-			cv_min = None #TODO
-			cv_max = None #TODO
-			cv_delta = (cv_max-cv_min)/bins #this
-			bins = np.arange(cv_min, cv_max+cv_delta, cv_delta)
 		bin_centers = 0.5*(bins[:-1]+bins[1:])
 		deltas = bins[1:]-bins[:-1]
 		grid_non_uniformity = deltas.std()/deltas.mean()
 		assert grid_non_uniformity<1e-6, 'CV grid defined by bins argument should be of uniform spacing!'
-		delta =deltas.mean()
+		delta = deltas.mean()
 		Ngrid = len(bin_centers)
 		timings['init'] = time.time()
 
@@ -265,11 +295,11 @@ class Histogram1D(object):
 				print('SCF did not converge!')
 		timings['scf'] = time.time()
 
-		plower, pupper = None, None
+		error = None
 		if error_estimate is not None and error_estimate in ['mle_p', 'mle_f']:
 			if verbosity.lower() in ['medium', 'high']:
 				print('Estimating error ...')
-			plower, pupper = wham1d_error(Nsims, Ngrid, Nis, ps, fs, bs, method=error_estimate, nsigma=nsigma)
+			error = wham1d_error(Nsims, Ngrid, Nis, ps, fs, bs, method=error_estimate)
 		elif error_estimate is not None and error_estimate not in ["None"]:
 			raise ValueError('Received invalid value for keyword argument error_estimate, got %s. See documentation for valid choices.' %error_estimate)
 		timings['error'] = time.time()
@@ -291,15 +321,15 @@ class Histogram1D(object):
 			print('  TOTAL       : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
 			print('---------------------------------------------------------------------')
 
-		return cls(bin_centers.copy(), ps, plower=plower, pupper=pupper, cv_output_unit=cv_output_unit, cv_label=cv_label)
+		return cls(bin_centers.copy(), ps, error=error, cv_output_unit=cv_output_unit, cv_label=cv_label)
 
 	@classmethod
-	def from_wham_c(cls, bins, trajectories, biasses, temp, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, cv_output_unit='au', cv_label='CV', verbose=None, verbosity='low'):
+	def from_wham_c(cls, bins, trajectories, biasses, temp, error_estimate=None, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, cv_output_unit='au', cv_label='CV', verbosity='low'):
 		'''This routine sole purpose is backward compatibility and serves as an alias for from_wham. 
 		
 		There used to be a distinction between the from_wham and from_wham_c routine (former was full python implementation, latter used Cython for speed up). This distinction has been removed after deliberate testing confirmed that both routines gave identical results. As a result, only the former from_wham_c routine (which is faster) remains, but it has been renamed to from_wham, while the current from_wham_c routine remains in place for backward compatibility.
 		'''
-		return cls.from_wham(bins, trajectories, biasses, temp, error_estimate=error_estimate, nsigma=nsigma, bias_subgrid_num=bias_subgrid_num, Nscf=Nscf, convergence=convergence, cv_output_unit=cv_output_unit, cv_label=cv_label, verbosity=verbosity)
+		return cls.from_wham(bins, trajectories, biasses, temp, error_estimate=error_estimate, bias_subgrid_num=bias_subgrid_num, Nscf=Nscf, convergence=convergence, cv_output_unit=cv_output_unit, cv_label=cv_label, verbosity=verbosity)
 
 	@classmethod
 	def from_fep(cls, fep, temp):
@@ -315,20 +345,17 @@ class Histogram1D(object):
 			:return: probability histogram corresponding to the given free energy profile
 			:rtype: Histogram1D
 		'''
-		pupper = None
-		plower = None
 		ps = np.zeros(len(fep.fs))
 		beta = 1.0/(boltzmann*temp)
 		ps[~np.isnan(fep.fs)] = np.exp(-beta*fep.fs[~np.isnan(fep.fs)] )
-		ps /= ps.sum()
-		if fep.fupper is not None and fep.flower is not None:
-			pupper = np.zeros(len(fep.fs))
-			plower = np.zeros(len(fep.fs))
-			pupper[~np.isnan(fep.flower)] = np.exp(-beta*fep.flower[~np.isnan(fep.flower)])
-			plower[~np.isnan(fep.fupper)] = np.exp(-beta*fep.fupper[~np.isnan(fep.fupper)])
-			pupper /= pupper.sum()
-			plower /= plower.sum()
-		return cls(fep.cvs, ps, pupper=pupper, plower=plower, cv_output_unit=fep.cv_output_unit, cv_label=fep.cv_label)
+		norm = ps.sum()
+		ps /= norm
+		error = None
+		if fep.error is not None:
+			means = -beta*fep.error.means-np.log(norm) #last term is to assure normalization consistent with that of ps attribute
+			stds = beta*fep.error.stds
+			error = LogGaussianDistribution(means, stds, ncycles=fep.error.ncycles)
+		return cls(fep.cvs, ps, error=error, cv_output_unit=fep.cv_output_unit, cv_label=fep.cv_label)
 
 	def plot(self, fn, temp=None, flims=None):
 		'''
@@ -347,7 +374,7 @@ class Histogram1D(object):
 
 
 class Histogram2D(object):
-	def __init__(self, cv1s, cv2s, ps, plower=None, pupper=None, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2'):
+	def __init__(self, cv1s, cv2s, ps, error=None, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2'):
 		'''
 			Class to implement the estimation of a probability histogram in terms of a collective variable from a trajectory series corresponding to that collective variable.
 
@@ -360,11 +387,8 @@ class Histogram2D(object):
 			:param ps: 2D array corresponding to the histogram probability values at the (CV1,CV2) grid points, which should be in atomic units.
 			:type bins: np.ndarray
 
-			:param plower: lower bound of the error on the probability histogram values, which should be in atomic units.
-			:type do_error: np.ndarray, optional, default=None
-
-			:param pupper: upper bound of the error on the probability histogram values, which should be in atomic units.
-			:type pupper: np.ndarray, optional, default=None
+			:param error: error distribution on the histogram, defaults to None
+            :type error: Distribution child class, optional
 
 			:param cv1_output_unit: the unit in which the first collective variable will be plotted/printed.
 			:type cv_output_unit: str, optional, default='au'
@@ -381,34 +405,44 @@ class Histogram2D(object):
 		self.cv1s = cv1s.copy()
 		self.cv2s = cv2s.copy()
 		self.ps = ps.copy()
-		self.plower = plower
-		self.pupper = pupper
+		self.error = None
+		if error is not None:
+			self.error = error.copy()
 		self.cv1_output_unit = cv1_output_unit
 		self.cv2_output_unit = cv2_output_unit
 		self.cv1_label = cv1_label
 		self.cv2_label = cv2_label
 
+	def plower(self, nsigma=2):
+		assert self.error is not None, 'Plower cannot be computed because no error distribution was defined in the error attribute'
+		plower, pupper = self.error.nsigma_conf_int(nsigma)
+		plower /= plower.sum()
+		return plower
+
+	def pupper(self, nsigma=2):
+		assert self.error is not None, 'Pupper cannot be computed because no error distribution was defined in the error attribute'
+		plower, pupper = self.error.nsigma_conf_int(nsigma)
+		pupper /= pupper.sum()
+		return pupper
+
 	def copy(self):
 		'''
-			Make and return a copy of the current instance.
+		Make and return a copy of the current instance.
 
-			:return: copy of the current instance
-			:rtype: Histogram2D
+		:return: copy of the current instance
+		:rtype: Histogram2D
 		'''
-		plower = None
-		if self.plower is not None:
-			plower = self.plower.copy()
-		pupper = None
-		if self.pupper is not None:
-			pupper = self.pupper.copy()
-		return Histogram1D(
-			self.cvs1.copy(), self.cvs2.copy(), self.ps.copy(), plower=plower, pupper=pupper,
+		error = None
+		if self.error is not None:
+			error = self.error.copy()
+		return Histogram2D(
+			self.cvs1.copy(), self.cvs2.copy(), self.ps.copy(), error=error,
 			cv1_output_unit=self.cv1_output_unit, cv2_output_unit=self.cv2_output_unit,
 			cv1_label=self.cv1_label, cv2_label=self.cv2_label
 		)
 
 	@classmethod
-	def from_average(cls, histograms, error_estimate=None, nsigma=2, cv1_output_unit=None, cv2_output_unit=None, cv1_label=None, cv2_label=None):
+	def from_average(cls, histograms, error_estimate=None, cv1_output_unit=None, cv2_output_unit=None, cv1_label=None, cv2_label=None):
 		'''
 			Start from a set of histograms and compute and return the averaged histogram. If error_estimate is set to 'std', an error on the histogram will be computed from the standard deviation within the set of histograms.
 
@@ -464,13 +498,11 @@ class Histogram2D(object):
 		#average histograms
 		ps = pss.mean(axis=0)
 		#compute error if requested
-		plower, pupper = None, None
+		error = None
 		if error_estimate is not None and error_estimate.lower() in ['std']:
 			perr = pss.std(axis=0,ddof=1)
-			plower = ps - nsigma*perr
-			plower[plower<0] = 0.0
-			pupper = ps + nsigma*perr
-		return cls(cv1s, cv2s, ps, plower=plower, pupper=pupper, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, cv1_label=cv1_label, cv2_label=cv2_label)
+			error = GaussianDistribution(ps, perr)
+		return cls(cv1s, cv2s, ps, error=error, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, cv1_label=cv1_label, cv2_label=cv2_label)
 
 	@classmethod
 	def from_single_trajectory(cls, data, bins, error_estimate=None, nsigma=2, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2'):
@@ -517,40 +549,90 @@ class Histogram2D(object):
 		cv2s = 0.5*(cv2_edges[:-1]+cv2_edges[1:]) # bin centers vor CV2
 		ps = ns/Ntot
 		#estimate of upper and lower boundary of n-sigma confidence interval
-		plower = None
-		pupper = None
+		error = None
 		if error_estimate=='mle_p':
-			perrors = np.sqrt(ps*(1-ps)/Ntot)
-			plower = ps - nsigma*perrors
-			plower[plower<0] = 0.0
-			pupper = ps + nsigma*perrors
+			perrs = np.sqrt(ps*(1-ps)/Ntot)
+			error = GaussianDistribution(ps, perrs)
 		elif error_estimate=='mle_f':
-			#we first compute the error bar interval on f=-log(p) and then transform it to one on p itself.
+			#we first compute the error bar interval on f=-log(p) using the MLE-F method...
 			fs, ferrors = np.zeros(len(ps))*np.nan, np.zeros(len(ps))*np.nan
 			fs[ps>0] = -np.log(ps[ps>0])
 			ferrors[ps>0] = np.sqrt((np.exp(fs[ps>0])-1)/Ntot)
-			fupper  = fs + nsigma*ferrors
-			flower  = fs - nsigma*ferrors
-			pupper, plower = np.zeros(len(ps))*np.nan, np.zeros(len(ps))*np.nan
-			pupper[ps>0] = np.exp(-flower[ps>0])
-			plower[ps>0] = np.exp(-fupper[ps>0])
-			pupper[np.isinf(pupper)] = np.nan
+			#...and then use it to define a Log-Normal distributed error on p as a Normal distributed error on log(p)=-f
+			error = LogGaussianDistribution(-fs, ferrors)
 		elif error_estimate is not None:
 			raise ValueError('Invalid value for error_estimate argument, received %s. Check documentation for allowed values.' %error_estimate)
-		return cls(cv1s, cv2s, ps, plower=plower, pupper=pupper, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, cv1_label=cv1_label, cv2_label=cv2_label)
+		return cls(cv1s, cv2s, ps, error=error, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, cv1_label=cv1_label, cv2_label=cv2_label)
 	
 	@classmethod
 	def from_wham(cls, bins, traj_input, biasses, temp, pinit=None, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, bias_thress=1e-3, overflow_threshold=1e-150, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2', plot_biases=False, verbose=None, verbosity='low'):
 		'''
-			This routine implements the exact same thing as the from_wham routine, but now using the cythonized wham2D_XXX routines from ext.pyx for increased calculation speed. For more documentation on the arguments and algorithm in this routine, see the doc of the :meth:`from_wham routine <Histogram2D.from_wham>`.
+		Routine that implements the Weighted Histogram Analysis Method (WHAM) for reconstructing the overall 2D probability histogram from a series of biased molecular simulations in terms of two collective variables CV1 and CV2.
+		
+		:param data: 2D array corresponding to the trajectory series of the two collective variables. The first column is assumed to correspond to the first collective variable, the second column to the second CV.
+		:type data: np.ndarray([N,2])
 
-			Two additional keywords are available in this routine with respect to the pure python version, the bias_thress and overflow_threshold keyword. See description below.
+		:param bins: list of the form [bins1, bins2] where bins1 and bins2 are numpy arrays each representing the bin edges of their corresponding CV for which a histogram will be constructed. For example the following definition: 	[np.arange(-1,1.05,0.05), np.arange(0,5.1,0.1)]
+		will result in a 2D histogram with bins of width 0.05 between -1 and 1 for CV1 and bins of width 0.1 between 0 and 5 for CV2.
+		:type bins: np.ndarray
 
-			:param bias_thress: threshold for determining whether the exact bin integration of the bias boltzmann factors is required, or the boltzmann factor of the bin center suffices as an approximation. Setting the threshold to 0 implies exact integration for all bins, setting the threshold to 1 implies the bin center approximation for all cells and setting the threshold to x implies that only those bins with a center approximation higher than x will be integrated exactly.
-			:type bias_thress: double, optional, default=1e-3
+		:param trajectories: list or array of 2D numpy arrays containing the [CV1,CV2] trajectory data for each simulation. Alternatively, a list of PLUMED file names containing the trajectory data can be specified as well. The arguments trajectories and biasses should be of the same length.
+		:type trajectories: list(np.ndarray([Nmd,2]))/np.ndarray([Ntraj,Nmd,2])
 
-            :param overflow_threshold: threshold used in the scf procedure to avoid overflow errors, this determines which simulations and which grid points to ignore. Decreasing it results in a FES with a larger maximum free energy (lower unbiased probability). If it is too low, imaginary errors (sigma^2) arise, so increase if necessary.
-			:type overflow_threshold: double, optional, default=1e-150
+		:param biasses: list of callables, each representing a function to compute the bias at a given value of the collective variables CV1 and CV2. The arguments trajectories and biasses should be of the same length.
+		:type biasses: list(callable)
+
+		:param temp: the temperature at which all simulations were performed
+		:type temp: float
+
+		:param pinit: initial guess for the probability density, which is assumed to be in the 'xy'-indexing convention (see the "indexing" argument and the corresponding "Notes" section in `the numpy online documentation of the meshgrid routine <https://numpy.org/doc/stable/reference/generated/numpy.meshgrid.html>`_). If None is given, a uniform distribution is used as initial guess.
+		:type pinit: np.ndarray, optional, default=None
+
+		:param error_estimate: indicate if and how to perform error analysis. One of following options is available:
+
+			* `mle_p` -- compute error through the asymptotic normality of the maximum likelihood estimator for the probability itself. WARNING: due to positivity constraint of the probability, this only works for high probability and low variance. Otherwise the standard error interval for the normal distribution (i.e. mle +- n*sigma) might give rise to negative lower error bars.
+			
+			* `mle_f` -- compute error through the asymptotic normality of the maximum likelihood estimator for -log(p) (hence for the beta-scaled free energy). This estimation does not suffer from the same WARNING as for ``mle_p``. Furthermore, in case of high probability and low variance, the error estimation using ``mle_f`` and ``mle_p`` are consistent (i.e. one can be computed from the other using f=-log(p)).
+			
+			* `None` -- do not estimate the error.
+
+		:type error_estimate: str, optional, default=None
+
+		:param bias_subgrid_num: the number of grid points along each CV for the sub-grid used to compute the integrated boltzmann factor of the bias in each CV1,CV2 bin. Either a single integer is given, corresponding to identical number of subgrid points for both CVs, or a list of two integers corresponding the number of grid points in the two CVs respectively.
+		:type bias_subgrid_num: optional, defaults to [20,20]
+
+		:param Nscf: the maximum number of steps in the self-consistent loop to solve the WHAM equations
+		:type Nscf: int, defaults to 1000
+
+		:param convergence: convergence criterium for the WHAM self consistent solver. The SCF loop will stop whenever the integrated absolute difference between consecutive probability densities is less then the specified value.
+		:type convergence: float, defaults to 1e-6
+
+		:param verbose: set to True to turn on more verbosity during the self consistent solution cycles of the WHAM equations, defaults to False.
+		:type verbose: bool, optional
+
+		:param cv1_output_unit: the unit in which the first collective variable will be plotted/printed
+		:type cv1_output_unit: str, optional, default='au'
+
+		:param cv2_output_unit: the unit in which the second collective variable will be plotted/printed
+		:type cv2_output_unit: str, optional, default='au'
+
+		:param cv1_label: the label of the first collective variable that will be used on plots
+		:type cv1_label: str, optional, default='CV1'
+
+		:param cv2_label: the label of the first collective variable that will be used on plots
+		:type cv2_label: str, optional, default='CV2'
+
+		:param plot_biases: if set to True, a 2D plot of the boltzmann factor of the bias integrated over each bin will be made.
+		:type plot_biases: bool, optional, default=False
+
+		:param bias_thress: threshold for determining whether the exact bin integration of the bias boltzmann factors is required, or the boltzmann factor of the bin center suffices as an approximation. Setting the threshold to 0 implies exact integration for all bins, setting the threshold to 1 implies the bin center approximation for all cells and setting the threshold to x implies that only those bins with a center approximation higher than x will be integrated exactly.
+		:type bias_thress: double, optional, default=1e-3
+
+		:param overflow_threshold: threshold used in the scf procedure to avoid overflow errors, this determines which simulations and which grid points to ignore. Decreasing it results in a FES with a larger maximum free energy (lower unbiased probability). If it is too low, imaginary errors (sigma^2) arise, so increase if necessary.
+		:type overflow_threshold: double, optional, default=1e-150
+
+		:return: 2D probability histogram
+		:rtype: Histogram2D
 		'''
 		timings = {}
 		timings['start'] = time.time()
@@ -644,8 +726,9 @@ class Histogram2D(object):
 		else:
 			#it is assumed pinit is given in 'xy'-indexing convention (such as for example when using the ps attribute of another Histogram2D instance)
 			#however, this routine is written in the 'ij'-indexing convention, therefore, we transpose pinit here.
-			assert pinit.T.shape[0]==Ngrid1, 'Specified initial guess should be of shape (%i,%i), got (%i,%i)' %(Ngrid1,Ngrid2,pinit.shape[0],pinit.shape[1])
-			assert pinit.T.shape[1]==Ngrid2, 'Specified initial guess should be of shape (%i,%i), got (%i,%i)' %(Ngrid1,Ngrid2,pinit.shape[0],pinit.shape[1])
+			pinit = pinit.T
+			assert pinit.shape[0]==Ngrid1, 'Specified initial guess should be of shape (%i,%i), got (%i,%i)' %(Ngrid1,Ngrid2,pinit.shape[0],pinit.shape[1])
+			assert pinit.shape[1]==Ngrid2, 'Specified initial guess should be of shape (%i,%i), got (%i,%i)' %(Ngrid1,Ngrid2,pinit.shape[0],pinit.shape[1])
 			pinit /= pinit.sum()
 		ps, fs, converged = wham2d_scf(Nis, Hs, bs, pinit, Nscf=Nscf, convergence=convergence, verbose=verbosity.lower() in ['high'], overflow_threshold=overflow_threshold)
 		if verbosity.lower() in ['low', 'medium', 'high']:
@@ -657,17 +740,20 @@ class Histogram2D(object):
 		timings['scf'] = time.time()
 
 		#error estimation
+		error = None
 		if error_estimate is not None:
 			if verbosity.lower() in ['medium', 'high']:
 				print('Estimating error ...')
-			pupper, plower = wham2d_error(ps, fs, bs, Nis, method=error_estimate, nsigma=nsigma, verbose=verbosity.lower() in ['medium', 'high'])
-		else:
-			pupper, plower = None, None
+			error = wham2d_error(ps, fs, bs, Nis, method=error_estimate, verbose=verbosity.lower() in ['medium', 'high'])
 
-		#For consistency with how FreeEnergySurface2D is implemented (using 'xy'-indexing), ps (and plower, pupper) need to be transposed
+		#For consistency with how FreeEnergySurface2D is implemented (using 'xy'-indexing), ps (and error attributes) need to be transposed
 		ps = ps.T
-		if plower is not None: plower = plower.T
-		if pupper is not None: pupper = pupper.T
+		if error is not None:
+			error.transpose()
+			if hasattr(error, 'means'):
+				diff = np.abs(ps[ps>0]-error.means[ps>0])
+				if not (diff<1e-6).all():
+					print('WARNING: Inconsistency detected in ps and error.means upon transposing. ps-error.means has min, mean, std, max = ', diff.min(), diff.mean(), diff.std(), diff.max())
 
 		timings['error'] = time.time()
 
@@ -689,15 +775,15 @@ class Histogram2D(object):
 			print('  TOTAL       : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
 			print('---------------------------------------------------------------------')
 
-		return cls(bin_centers1.copy(), bin_centers2.copy(), ps, plower=plower, pupper=pupper, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, cv1_label=cv1_label, cv2_label=cv2_label)
+		return cls(bin_centers1.copy(), bin_centers2.copy(), ps, error=error, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, cv1_label=cv1_label, cv2_label=cv2_label)
 
 	@classmethod
-	def from_wham_c(cls, bins, trajectories, biasses, temp, pinit=None, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2', plot_biases=False, verbose=None, verbosity='low'):
+	def from_wham_c(cls, bins, trajectories, biasses, temp, pinit=None, error_estimate=None, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2', plot_biases=False, verbose=None, verbosity='low'):
 		'''This routine sole purpose is backward compatibility and serves as an alias for from_wham. 
 		
 		There used to be a distinction between the from_wham and from_wham_c routine (former was full python implementation, latter used Cython for speed up). This distinction has been removed after deliberate testing confirmed that both routines gave identical results. As a result, only the former from_wham_c routine (which is faster) remains, but it has been renamed to from_wham, while the current from_wham_c routine remains in place for backward compatibility.
 		'''
-		return cls.from_wham(bins, trajectories, biasses, temp, pinit=pinit, error_estimate=error_estimate, nsigma=nsigma, bias_subgrid_num=bias_subgrid_num, Nscf=Nscf, convergence=convergence, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, cv1_label=cv1_label, cv2_label=cv2_label, plot_biases=plot_biases, verbose=verbose, verbosity=verbosity)
+		return cls.from_wham(bins, trajectories, biasses, temp, pinit=pinit, error_estimate=error_estimate, bias_subgrid_num=bias_subgrid_num, Nscf=Nscf, convergence=convergence, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, cv1_label=cv1_label, cv2_label=cv2_label, plot_biases=plot_biases, verbose=verbose, verbosity=verbosity)
 
 	@classmethod
 	def _estimate_WHAM_error_2D(cls, ps, fs, bs, Nis, method='mle_f', nsigma=2):
@@ -822,22 +908,16 @@ class Histogram2D(object):
 			:rtype: Histogram2D
 		'''
 		assert isinstance(fes, FreeEnergySurface2D), 'Input argument fes should be type FreeEnergySurface2D'
-		pupper = None
-		plower = None
 		ps = np.zeros(len(fes.fs))
 		beta = 1.0/(boltzmann*temp)
 		ps = np.exp(-beta*fes.fs)
 		ps /= ps[~np.isnan(ps)].sum()
-		if fes.fupper is not None and fes.flower is not None:
-			pupper = np.zeros(len(fes.fs))
-			plower = np.zeros(len(fes.fs))
-			pupper = np.exp(-beta*fes.flower)
-			plower = np.exp(-beta*fes.fupper)
-			pupper /= pupper[~np.isnan(pupper)].sum()
-			plower /= plower[~np.isnan(plower)].sum()
-		return cls(fes.cv1s, fes.cv2s, ps, pupper=pupper, plower=plower, cv1_output_unit=fes.cv1_output_unit, cv2_output_unit=fes.cv2_output_unit, cv1_label=fes.cv1_label, cv2_label=fes.cv2_label)
+		error = None
+		if fes.error is not None:
+			raise NotImplementedError #TODO
+		return cls(fes.cv1s, fes.cv2s, ps, error=error, cv1_output_unit=fes.cv1_output_unit, cv2_output_unit=fes.cv2_output_unit, cv1_label=fes.cv1_label, cv2_label=fes.cv2_label)
 	
-	def average_cv_constraint_other(self, index: int, rolling_average_width=None, do_err: bool=False):
+	def average_cv_constraint_other(self, index: int, error_estimate='propdist'):
 		'''Routine to compute the average of one CV (denoted as y/Y below, y for integration values and Y for resulting averaged values) 
 		   as function of the other CV (denoted as x below), i.e. the other CV Y is contraint to one of its bin values) using the following formula:
 
@@ -846,11 +926,8 @@ class Histogram2D(object):
 		:param index: the index of the CV which will be averaged (the other is then contraint). If index=1, then y=CV1 and x=CV2, while if index=2, then y=CV2 and x=CV1.
 		:type index: int (1 or 2)
 
-		:param rolling_average_width: when an integer (of at least 2) is given, performs a rolling averaging proceedure (to filter out noise) over a set of neighboring samples within an interval of the given width, defaults to None
-		:type rolling_average_width: int|None, optional
-
-		:param do_err: also calculates the error on the resulting average profile when set to true, defaults to False
-		:type do_err: bool, optional
+		:param error_estimate: Specify the method of error propagation, either by propagating the FES distribution samples (propdist) or by propagating the FES 2 sigma confidence interval (prop2sigma), defaults to propdist
+		:type error_estimate: str, optional
 
 		:return: xs, ys (and yerrs) with xs the constraint CV values, ys the averaged CV values and yerrs the error bar on the averaged values assuming do_err was set to True
 		:rtype: xs, ys | xs, ys, yerrs all np.ndarrays
@@ -859,59 +936,118 @@ class Histogram2D(object):
 		if index==1:
 			ys = self.cv1s
 			xs = self.cv2s
-			ps = self.ps
-			if do_err:
-				perrs = (self.pupper-self.plower)/2
+			cv_output_unit = self.cv2_output_unit
+			f_output_unit = self.cv1_output_unit
+			cv_label = self.cv2_label
+			f_label = self.cv1_label
+			def function(ps):
+				Ys = np.zeros(len(xs))
+				for j in range(len(xs)):
+					mask = ~np.isnan(ps[j,:])
+					T = (ys[mask]*ps[j,mask]).sum()
+					N = (ps[j,mask]).sum()
+					try:
+						Ys[j] = T/N
+					except (FloatingPointError, ZeroDivisionError):
+						Ys[j] = np.nan
+				return Ys
 		elif index==2:
 			ys = self.cv2s
 			xs = self.cv1s
-			ps = self.ps.T
-			if do_err:
-				perrs = (self.pupper.T-self.plower.T)/2
+			cv_output_unit = self.cv1_output_unit
+			f_output_unit = self.cv2_output_unit
+			cv_label = self.cv1_label
+			f_label = self.cv2_label
+			def function(ps):
+				Ys = np.zeros(len(xs))
+				for j in range(len(xs)):
+					mask = ~np.isnan(ps[:,j])
+					T = (ys[mask]*ps[mask,j]).sum()
+					N = (ps[mask,j]).sum()
+					try:
+						Ys[j] = T/N
+					except (FloatingPointError,ZeroDivisionError):
+						Ys[j] = np.nan
+				return Ys
 		else:
 			raise ValueError('Index should be 1 or 2 for 2D Histogram')
-		#compute average Y (and possibly its error) on grid of x
-		Ys = np.zeros(len(xs))
-		if do_err:
-			Yerrs = np.zeros(len(xs))
-		for j in range(len(xs)):
-			if not do_err:
-				Ys[j] = integrate(ys, ys*ps[j,:])/integrate(ys, ps[j,:])
-			else:
-				T, Terr = integrate(ys, ys*ps[j,:], yerrs=ys*perrs[j,:])
-				N, Nerr = integrate(ys, ps[j,:], yerrs=perrs[j,:])
-				Ys[j] = T/N
-				Yerrs[j] = np.sqrt(Ys[j]**2*((Terr/T)**2+(Nerr/N)**2))
-		#do rolling average if required
-		if rolling_average_width is not None:
-			xs = rolling_average(xs, rolling_average_width)
-			if do_err:
-				Ys, Yerrs = rolling_average(Ys, rolling_average_width, yerrs=Yerrs)
-			else:
-				Ys = rolling_average(Ys, rolling_average_width)
-		#return
-		if do_err:
-			return xs, Ys, Yerrs
-		else:
-			return xs, Ys
-	
-	def plot(self, fn, temp=None, flim=None):
-		'''
-			Make a 2D contour plot of the probability histogram and possible the corresponding free energy (if the argument ``temp`` is specified).
 
-			:param fn: file name of the resulting plot
+		#compute average Y (and possibly its error) on grid of x
+		Ys = function(self.ps)
+		error = None
+		if self.error is not None:
+			if error_estimate.lower()=='propdist':
+				propagator = Propagator(ncycles=self.error.ncycles, target_distribution=GaussianDistribution)
+				error = propagator(function, self.error)
+			elif error_estimate.lower()=='prop2sigma':
+				Ylower = function(self.plower(nsigma=2))
+				Yupper = function(self.pupper(nsigma=2))
+				Yerr = abs(Yupper-Ylower)/4
+				error = GaussianDistribution(Ys, Yerr)
+			else:
+				raise NotImplementedError('Unsupported method for error estimation, received %s but should be propdist or prop2sigma.')
+		
+		#return
+		return BaseProfile(xs, Ys, error=error, cv_output_unit=cv_output_unit, f_output_unit=f_output_unit, cv_label=cv_label, f_label=f_label)
+	
+	def plot(self, fn, cv1_lims=None, cv2_lims=None, lims=None, ncolors=8, scale='lin'):
+		'''
+			Simple routine to make a 2D contour plot of the probability distribution. The values of the CVs will be plotted in units specified by the CV1_output_unit and CV2_output_unit attributes of the self instance.
+
+			:param fn: File name to write the plot to. The extension determines the format (PNG or PDF).
 			:type fn: str
 
-			:param temp: the temperature for conversion of histogram to free energy profile. Specifying this number will add a free energy plot.
-			:type temp: float, optional, default=None
+			:param cv1_lims: range defining the plot limits of CV1
+			:type cv1_lims: tupple/list, optional, default=None
 
-			:param flim: upper limit of the free energy axis in plots.
-			:type flim: float, optional, default=None
+			:param cv2_lims: range defining the plot limits of CV1
+			:type cv2_lims: tupple/list, optional, default=None
+
+			:param lims: range defining the plot limits for the observable
+			:type lims: tupple/list, optional, default=None
+
+			:param ncolors: number of different colors included in contour plot
+			:type ncolors: int, optional, default=8
+
+			:param scale: scal for the observable, should be 'lin' for linear or 'log' for logarithmic.
+			:type scale: str, optional, choices=('lin', 'log'), default='lin'
+
+			:raises IOError: if invalid observable is given, see doc above for possible choices.
+
+			:raises IOError: if invalid scale is given, see doc above for possible choices.
 		'''
-		raise NotImplementedError
+		pp.clf()
+		obs = self.ps*(parse_unit(self.cv1_output_unit)*parse_unit(self.cv2_output_unit))
+		label = r'Probability density [(%s*%s)$^{-1}$]' %(self.cv1_output_unit, self.cv2_output_unit)
+		plot_kwargs = {}
+		if lims is None:
+			lims = [min(obs[~np.isnan(obs)]), max(obs[~np.isnan(obs)])]
+		if lims is not None:
+			if scale.lower() in ['lin', 'linear']:
+				plot_kwargs['levels'] = np.linspace(lims[0], lims[1], ncolors+1)
+			elif scale.lower() in ['log', 'logarithmic']:
+				plot_kwargs['levels'] = np.logspace(lims[0], lims[1], ncolors+1)
+				plot_kwargs['norm'] = LogNorm()
+				plot_kwargs['locator'] = LogLocator()
+			else:
+				raise IOError('recieved invalid scale value, got %s, should be lin or log' %scale)
+		contourf = pp.contourf(self.cv1s/parse_unit(self.cv1_output_unit), self.cv2s/parse_unit(self.cv2_output_unit), obs, cmap=pp.get_cmap('rainbow'), **plot_kwargs)
+		contour = pp.contour(self.cv1s/parse_unit(self.cv1_output_unit), self.cv2s/parse_unit(self.cv2_output_unit), obs, **plot_kwargs)
+		if cv1_lims is not None:
+			pp.xlim(cv1_lims)
+		if cv2_lims is not None:
+			pp.ylim(cv2_lims)
+		pp.xlabel('%s [%s]' %(self.cv1_label, self.cv1_output_unit), fontsize=16)
+		pp.ylabel('%s [%s]' %(self.cv2_label, self.cv2_output_unit), fontsize=16)
+		cbar = pp.colorbar(contourf, extend='both')
+		cbar.set_label(label, fontsize=16)
+		pp.clabel(contour, inline=1, fontsize=10)
+		fig = pp.gcf()
+		fig.set_size_inches([12,8])
+		pp.savefig(fn)
 
 
-def plot_histograms(fn, histograms, temp=None, labels=None, flims=None, colors=None, linestyles=None, linewidths=None, set_ref='min'):
+def plot_histograms(fn, histograms, temp=None, labels=None, flims=None, colors=None, linestyles=None, linewidths=None):
 	'''
 		Make a plot to compare multiple probability histograms and possible the corresponding free energy (if the argument ``temp`` is specified).
 
@@ -938,9 +1074,6 @@ def plot_histograms(fn, histograms, temp=None, labels=None, flims=None, colors=N
 
 		:param linewidths: List of matplotlib line width definitions for each entry in histograms. If an entry is None, the default line width of 1 will be chosen. Defaults to None, implying all line widths are set to the default of 2.
 		:type linewidths: List(str), optional
-
-		:param set_ref: set the reference of each corresponding free energy profile, see documentation of the set_ref routine of the free energy profile class for more information on the allowed values. Defaults to min, implying each profile is shifted vertically untill the minimum value equals zero.
-		:type set_ref: str, optional
 	'''
 	#initialize
 	linewidth_default = 2
@@ -979,18 +1112,16 @@ def plot_histograms(fn, histograms, temp=None, labels=None, flims=None, colors=N
 			linestyle = linestyle_default
 		#plot probability
 		axs[0,0].plot(hist.cvs/parse_unit(cv_unit), hist.ps/max(hist.ps), linewidth=linewidth, color=color, linestyle=linestyle, label=label)
-		if hist.plower is not None and hist.pupper is not None:
-			axs[0,0].fill_between(hist.cvs/parse_unit(cv_unit), hist.plower/max(hist.ps), hist.pupper/max(hist.ps), color=color, alpha=0.33)
+		if hist.error is not None:
+			axs[0,0].fill_between(hist.cvs/parse_unit(cv_unit), hist.plower()/max(hist.ps), hist.pupper()/max(hist.ps), color=color, alpha=0.33)
 		#free energy if requested
 		if temp is not None:
 			fep = BaseFreeEnergyProfile.from_histogram(hist, temp)
-			if set_ref is not None:
-				fep.set_ref(ref=set_ref)
 			fmax = max(fmax, np.ceil(max(fep.fs[~np.isnan(fep.fs)]/kjmol)/10)*10)
 			funit = fep.f_output_unit
 			axs[0,1].plot(fep.cvs/parse_unit(cv_unit), fep.fs/parse_unit(funit), linewidth=linewidth, color=color, linestyle=linestyle, label=label)
-			if fep.flower is not None and fep.fupper is not None:
-				axs[0,1].fill_between(fep.cvs/parse_unit(cv_unit), fep.flower/parse_unit(funit), fep.fupper/parse_unit(funit), color=color, alpha=0.33)
+			if fep.error is not None:
+				axs[0,1].fill_between(fep.cvs/parse_unit(cv_unit), fep.flower()/parse_unit(funit), fep.fupper()/parse_unit(funit), color=color, alpha=0.33)
 	#decorate
 	cv_range = [min(histograms[0].cvs/parse_unit(cv_unit)), max(histograms[0].cvs/parse_unit(cv_unit))]
 	axs[0,0].set_xlabel('%s [%s]' %(cv_label, cv_unit), fontsize=14)

@@ -18,6 +18,7 @@ from molmod.minimizer import check_delta
 from molmod.unit_cells import UnitCell
 
 from ..tools import blav, h5_read_dataset
+from ..error import GaussianDistribution, Propagator
 
 import numpy as np
 import matplotlib.pyplot as pp
@@ -53,6 +54,7 @@ class BaseRateFactor(object):
             :param CV_unit: the unit for printing the collective variable
             :type CV_unit: str
         '''
+        assert isinstance(CV_TS_lims,list) and len(CV_TS_lims)==2 and isinstance(CV_TS_lims[0],float) and isinstance(CV_TS_lims[1],float), 'CV_TS_lims needs to be list of two float values'
         self.CV = CV
         self.CV_TS_lims = CV_TS_lims
         self.CV_unit = CV_unit
@@ -61,7 +63,7 @@ class BaseRateFactor(object):
         self.Natoms = None
         self.As = []
         self.A = None
-        self.A_err = None
+        self.A_dist = None
         self._finished = False
 
     def read_results(self, fn, A_unit='1/second'):
@@ -72,7 +74,7 @@ class BaseRateFactor(object):
     def process_trajectory(self, *args, **kwargs):
         raise NotImplementedError
 
-    def compute_contribution(self, *args, **kwargs):
+    def _compute_contribution(self, *args, **kwargs):
         raise NotImplementedError
 
     def finish(self, fn=None):
@@ -85,23 +87,27 @@ class BaseRateFactor(object):
     def result_no_statistics(self):
         assert self._finished, "Reading trajectory data is not finished yet"
         self.A = self.As[~np.isnan(self.As)].mean()
-        self.A_err = np.nan
+        self.A_dist = None
         return self.A
 
     def result_blav(self, fn=None, blocksizes=None, fitrange=[0,-1], exponent=1, verbose=True, plot_ac=False, ac_range=None, acft_plot_range=None):
         'Compute rate factor A and estimate its error with block averaging'
         assert self._finished, "Reading trajectory data is not finished yet"
         As = self.As[~np.isnan(self.As)]
-        print('Number of TS samples = ', len(As))
         if blocksizes is None:
             blocksizes = np.arange(1,len(As)//2+1,1)
-        self.A, self.A_err, Acorrtime = blav(As, blocksizes=blocksizes, fitrange=fitrange, exponent=exponent, fn_plot=fn, unit='1e12/s', plot_ac=plot_ac, ac_range=ac_range, acft_plot_range=acft_plot_range)
+        #for i in range(18):
+        #    print(As[i*50:min([(i+1)*50,len(As)-1])])
+        self.A, A_std, Acorrtime = blav(As, blocksizes=blocksizes, fitrange=fitrange, exponent=exponent, fn_plot=fn, unit='1e12/s', plot_ac=plot_ac, ac_range=ac_range, 
+        acft_plot_range=acft_plot_range)
+        self.A_dist = GaussianDistribution(self.A, A_std) 
+        
         if verbose:
-            print('Rate factor directly with block averaging:')
-            print('------------------------------------------')
-            print('  A = %.3e +- %.3e %s/s (%i TS samples, int. autocorr. time = %.3f timesteps, exponent = %.3f)' %(self.A/(parse_unit(self.CV_unit)/second), self.A_err/(parse_unit(self.CV_unit)/second), self.CV_unit, len(As), Acorrtime, exponent))
+            print('Rate factor with block averaging:')
+            print('---------------------------------')
+            print('  A = %s (%i TS samples, int. autocorr. time = %.3f timesteps, exponent = %.3f)' %(self.A_dist.print(unit='1e12*%s/s' %self.CV_unit), len(As), Acorrtime, exponent))
             print()
-        return self.A, self.A_err
+        return self.A, self.A_dist
         
     def result_bootstrapping(self, nboot, verbose=True):
         'Compute rate factor A and estimate error with bootstrapping'
@@ -113,25 +119,57 @@ class BaseRateFactor(object):
             indices = np.random.random_integers(0, high=Ndata-1, size=Ndata)
             As.append(data[indices].mean())
         As = np.array(As)
-        self.A, self.A_err = As.mean(), As.std()
+        self.A, A_std = As.mean(), As.std()
+        self.A_dist = GaussianDistribution(self.A, A_std) 
         if verbose:
             print('Rate factor with bootstrapping (nboot=%i):' %nboot)
             print('------------------------------------------')
-            print('  A = %.3e +- %.3e %s/s (%i TS samples)' %(self.A/(parse_unit(self.CV_unit)/second), self.A_err/(parse_unit(self.CV_unit)/second), self.CV_unit, Ndata))
+            print('  A = %s (%i TS samples)' %(self.A_dist.print(unit='1e12*%s/s' %self.CV_unit), Ndata))
             print()
-        return self.A, self.A_err
+        return self.A, self.A_dist
     
-    def results_overview(self, nboot=1000):
+    def results_overview(self, nboot=1000, verbose=True):
         assert self._finished, "Reading trajectory data is not finished yet"
         print('###############  RESULTS  ###############')
         A = self.result_no_statistics()
-        print('Without error estimation:')
-        print('-------------------------')
-        print('  A =  %.3e %s/s' %(A/(parse_unit(self.CV_unit)/second), self.CV_unit))
-        print()
-        A, A_err = self.result_blav()
-        A, A_err = self.result_bootstrapping(nboot)
+        if verbose:
+            print('Without error estimation:')
+            print('-------------------------')
+            print('  A =  %.3e %s/s' %(A/(parse_unit(self.CV_unit)/second), self.CV_unit))
+            print()
+        A, A_dist = self.result_blav(verbose=verbose)
+        A, A_dist = self.result_bootstrapping(nboot, verbose=verbose)
+        #as the user has not specified a single method, reset the A_dist to None
+        self.A_dist = None
 
+    def compute_rate(self, fep, ncycles=1000, verbose=False):
+        if not (self.A_dist is None or fep.ts.F_dist is None or fep.R.Z_dist is None or fep.P.Z_dist is None):
+            def fun_k(A,Fts,Z):
+                return A*np.exp(-Fts/(boltzmann*fep.T))/Z
+            def fun_F(A,Fts,Z):
+                return -np.log(fep.beta*planck*fun_k(A,Fts,Z))/fep.beta
+            propagator = Propagator(ncycles=ncycles, target_distribution=GaussianDistribution)
+            k_forward   = propagator(fun_k, self.A_dist, fep.ts.F_dist, fep.R.Z_dist)
+            dF_forward  = propagator(fun_F, self.A_dist, fep.ts.F_dist, fep.R.Z_dist)
+            k_backward  = propagator(fun_k, self.A_dist, fep.ts.F_dist, fep.P.Z_dist)
+            dF_backward = propagator(fun_F, self.A_dist, fep.ts.F_dist, fep.P.Z_dist)
+            if verbose:
+                print('k_F  = %s' %k_forward.print(unit='1e8/s'))
+                print('dF_F = %s' %dF_forward.print(unit='kjmol'))
+                print('k_B  = %s' %k_backward.print(unit='1e8/s'))
+                print('dF_B = %s' %dF_forward.print(unit='kjmol'))
+            return k_forward.mean(), k_forward, dF_forward.mean(), dF_forward, k_backward.mean(), k_backward, dF_backward.mean(), dF_backward
+        else:
+            k_forward   = self.A*np.exp(-fep.ts.F/(boltzmann*fep.T))/fep.R.Z
+            k_backward  = self.A*np.exp(-fep.ts.F/(boltzmann*fep.T))/fep.P.Z
+            dF_forward  = boltzmann*fep.T*np.log(boltzmann*fep.T/(planck*k_forward ))
+            dF_backward = boltzmann*fep.T*np.log(boltzmann*fep.T/(planck*k_backward))
+            if verbose:
+                print('k_F  = %.3e 1e8/s'    %(k_forward/1e8*second))
+                print('dF_F = %.3f kJ/mol' %(dF_forward/kjmol))
+                print('k_B  = %.3e 1e8/s'    %(k_backward/1e8*second))
+                print('dF_B = %.3f kJ/mol' %(dF_backward/kjmol))
+            return k_forward, None, dF_forward, None, k_backward, None, dF_backward, None
 
 
 class RateFactorEquilibrium(BaseRateFactor):

@@ -527,6 +527,7 @@ class LinearCombination(CollectiveVariable):
             value = 0.0
             for coeff, cv in zip(self.coeffs, self.cvs):
                 value += coeff*cv.compute(coords, deriv=False)
+            return value
         else:
             value = 0.0
             grad = np.zeros(coords.shape)
@@ -534,7 +535,7 @@ class LinearCombination(CollectiveVariable):
                 v,g = cv.compute(coords, deriv=True)
                 value += coeff*v
                 grad += coeff*g
-        return value, grad
+            return value, grad
 
 class DistOrthProjOrig(DotProduct):
     '''
@@ -552,6 +553,25 @@ class DistOrthProjOrig(DotProduct):
     def _default_name(self):
         return 'DistOrthProjOrig(orig=%s,pos=%s,axis=%s)' %(self.orig.name, self.pos.name, self.axis.name)
 
+class FunctionCV(CollectiveVariable):
+    def __init__(self, CV, function, derivative, name=None, unit_cell_pars=None):
+        self.CV = CV
+        self.function = function
+        self.derivative = derivative
+        CollectiveVariable.__init__(self, name=name, unit_cell_pars=unit_cell_pars)
+
+    def _default_name(self):
+        return 'fun(%s)' %(self.CV.name)
+    
+    def compute(self, coords, deriv=True):
+        if deriv:
+            cv, grad = self.CV.compute(coords, deriv=True)
+            q = self.function(cv)
+            qgrad = self.derivative(cv)*grad
+            return q, qgrad
+        else:
+            cv = self.CV.compute(coords, deriv=False)
+            return self.function(cv)
 
 def test_CV_implementations(fn, cvs, dx=0.001*angstrom, maxframes=100):
     xyz = XYZReader(fn)

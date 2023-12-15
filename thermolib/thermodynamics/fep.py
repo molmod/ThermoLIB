@@ -18,6 +18,8 @@ from molmod.constants import *
 import numpy as np, sys
 
 from thermolib.tools import integrate, integrate2d, format_scientific
+from thermolib.thermodynamics.state import *
+from thermolib.error import GaussianDistribution, LogGaussianDistribution, Propagator
 
 import matplotlib.pyplot as pp
 import matplotlib.cm as cm
@@ -30,34 +32,24 @@ rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 
 from sklearn.cluster import DBSCAN #clustering algorithm
 
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from thermolib.thermodynamics.histogram import HistogramND
+
+__all__ = ['BaseProfile', 'BaseFreeEnergyProfile', 'SimpleFreeEnergyProfile', 'FreeEnergySurface2D', 'plot_profiles']
 
 
-__all__ = ['BaseFreeEnergyProfile', 'SimpleFreeEnergyProfile', 'FreeEnergySurface2D', 'plot_feps']
-
-
-class BaseFreeEnergyProfile(object):
+class BaseProfile(object):
     '''
-        Base class to define a free energy profile F(q) (stored in self.fs) as function of a certain collective variable (CV) denoted by q (stored in self.cvs).
+        Base class to define a 1D profile of a property X as function of a certain collective variable (CV). This class will be used as the basis for (free) energy profiles.
     '''
-    def __init__(self, cvs, fs, temp, fupper=None, flower=None, cv_output_unit='au', f_output_unit='kjmol', cv_label='CV'):
+    def __init__(self, cvs, fs, error=None, cv_output_unit='au', f_output_unit='au', cv_label='CV', f_label='X'):
         """
             :param cv: the collective variable values, which should be in atomic units!
             :type cv: np.ndarray
 
-            :param f: the free energy values, which should be in atomic units!
-            :type f: np.ndarray
+            :param fs: the values of the property X, which should be in atomic units!
+            :type fs: np.ndarray
 
-            :param temp: the temperature at which the free energy is constructed, which should be in atomic units!
-            :type temp: float
-
-            :param flower: the lower limit of the error bar on the free energy values, which should be in atomic units!
-            :type flower: np.ndarray
-
-            :param fupper: the upper limit of the error bar on the free energy values, which should be in atomic units!
-            :type fupper: np.ndarray
+            :param error: error distribution on the profile, defaults to None
+            :type flower: Distribution child class, optional
 
             :param cv_output_unit: the units for printing and plotting of CV values (not the unit of the input array, that is assumed to be in atomic units). Units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_.
             :type cv_output_unit: str, default=au
@@ -65,48 +57,43 @@ class BaseFreeEnergyProfile(object):
             :param f_output_unit: the units for printing and plotting of free energy values (not the unit of the input array, that is assumed to be in atomic units). Units are defined using `the molmod routine molmod.units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_.
             :type f_output_unit: str, default=kjmol
 
-            :param cv_label: label for the new CV
-            :type cv_label: str, optional, default='CV'
+            :param cv_label: label for the CV, defaults to 'CV'
+            :type cv_label: str, optional
+
+            :param f_label: label for the observable X, defaults to 'X'
+            :type f_label: str, optional
         """
         assert len(cvs)==len(fs), "cvs and fs array should be of same length"
         self.cvs = cvs.copy()
         self.fs = fs.copy()
-        self.T = temp
-        if fupper is not None:
-            self.fupper = fupper.copy()
-        else:
-            self.fupper = None
-        if flower is not None:
-            self.flower = flower.copy()
-        else:
-            self.flower = None
+        self.error = error
         self.cv_output_unit = cv_output_unit
         self.f_output_unit = f_output_unit
         self.cv_label = cv_label
-        self.microstates = []
-        self.macrostates = []
-        self.compute_probdens()
+        self.f_label = f_label
 
-    def _beta(self):
-        return 1.0/(boltzmann*self.T)
+    def flower(self, nsigma=2):
+        assert self.error is not None, 'Flower cannot be computed because no error distribution was defined in the error attribute'
+        flower, fupper = self.error.nsigma_conf_int(nsigma)
+        return flower
 
-    beta = property(_beta)
+    def fupper(self, nsigma=2):
+        assert self.error is not None, 'Fupper cannot be computed because no error distribution was defined in the error attribute'
+        flower, fupper = self.error.nsigma_conf_int(nsigma)
+        return fupper
 
     @classmethod
-    def from_txt(cls, fn, temp, cvcol=0, fcol=1, flowercol=None, fuppercol=None, cv_input_unit='au', f_input_unit='kjmol', cv_output_unit='au', f_output_unit='kjmol', cv_label='CV', cvrange=None, delimiter=None, reverse=False, cut_constant=False):
+    def from_txt(cls, fn, cvcol=0, fcol=1, fstdcol=None, cv_input_unit='au', f_input_unit='kjmol', cv_output_unit='au', f_output_unit='kjmol', cv_label='CV', f_label='X', cvrange=None, delimiter=None, reverse=False, cut_constant=False):
         '''
             Read the free energy profile as function of a collective variable from a txt file.
 
             :param fn: the name of the txt file containing the data
             :type fn: str
 
-            :param temp: the temperature at which the free energy is constructed
-            :type temp: float
-
             :param cvcol: the column in which the collective variable is stored
             :type cvcol: int, default=0
 
-            :param fcol: the column in which the free energy is stored.
+            :param fcol: the column in which the observable X is stored.
             :type fcol: int, default=1
 
             :param cv_input_unit: the units in which the CV values are stored in the file. Units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_. 
@@ -115,10 +102,10 @@ class BaseFreeEnergyProfile(object):
             :param cv_output_unit: the units for printing and plotting of CV values (not the unit of the input array, that is defined by cv_input_unit). Units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_. 
             :type cv_output_unit: str or float, default=au
 
-            :param f_input_unit: the units in which the free energy values are stored in the file. Units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_
+            :param f_input_unit: the units in which the observable X values are stored in the file. Units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_
             :type f_input_unit: str or float, default=kjmol
 
-            :param f_output_unit: the units for printing and plotting of free energy values (not the unit of the input array, that is defined by f_input_unit). Units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_
+            :param f_output_unit: the units for printing and plotting of observable X values (not the unit of the input array, that is defined by x_input_unit). Units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_
             :type f_output_unit: str or float, default=kjmol
 
             :param cv_label: label for the new CV
@@ -137,22 +124,19 @@ class BaseFreeEnergyProfile(object):
             :type cut_constant: bool, default=False
         '''
         #TODO: deal with inf values in input file
-
         data = np.loadtxt(fn, delimiter=delimiter, dtype=float)
         cvs = data[:,cvcol]*parse_unit(cv_input_unit)
         fs = data[:,fcol]*parse_unit(f_input_unit)
-        fupper, flower = None, None
-        if fuppercol is not None and flowercol is not None:
-            flower = data[:,flowercol]*parse_unit(f_input_unit)
-            fupper = data[:,fuppercol]*parse_unit(f_input_unit)
-        elif (fuppercol is None and flowercol is not None) or (fuppercol is not None and flowercol is None):
-            raise ValueError("For errorbars, you need to define both column indexes of the upper error limit, fuppercol, and the lower limit, flowercol.")
+        error = None
+        if fstdcol is not None:
+            ferr = data[:,fstdcol]*parse_unit(f_input_unit)
+            error = GaussianDistribution(fs, ferr)
         if reverse:
             cvs = cvs[::-1]
             fs = fs[::-1]
-            if fupper is not None:
-                fupper = fupper[::-1]
-                flower = flower[::-1]
+            if error is not None:
+                error.means = error.means[::-1]
+                error.stds = error.stds[::-1]
         if cvrange is not None:
             indexes = []
             for i, cv in enumerate(cvs):
@@ -160,9 +144,9 @@ class BaseFreeEnergyProfile(object):
                     indexes.append(i)
             cvs = cvs[np.array(indexes)]
             fs = fs[np.array(indexes)]
-            if fupper is not None:
-                fupper = fupper[np.array(indexes)]
-                flower = flower[np.array(indexes)]
+            if error is not None:
+                error.means = error.means[np.array(indexes)]
+                error.stds = error.stds[np.array(indexes)]
         if cut_constant:
             mask = np.ones(len(fs), bool)
             for i in range(len(fs)):
@@ -177,10 +161,194 @@ class BaseFreeEnergyProfile(object):
                     break
             cvs = cvs[mask]
             fs = fs[mask]
-            if fupper is not None:
-                fupper = fupper[mask]
-                flower = flower[mask]
-        return cls(cvs, fs, temp, fupper=fupper, flower=flower, cv_output_unit=cv_output_unit, f_output_unit=f_output_unit)
+            if error is not None:
+                error.means = error.means[mask]
+                error.stds = error.stds[mask]
+        return cls(cvs, fs, error=error, cv_output_unit=cv_output_unit, cv_label=cv_label, f_output_unit=f_output_unit, f_label=f_label)
+
+    def savetxt(self, fn_txt):
+        '''
+            Save the current profile as txt file. The values of CV and X are written in units specified by the cv_output_unit and f_output_unit attributes of the self instance. If the error attribute of self is not None, the corresponding std values will be written to the file as well.
+
+            :param fn_txt: name for the output file
+            :type fn_txt: str
+        '''
+        
+        if self.error is None:
+            header = '%s [%s]\t%s [%s]' %(self.cv_label, self.cv_output_unit, self.f_label, self.f_output_unit)
+            data = np.vstack((self.cvs/parse_unit(self.cv_output_unit), self.fs/parse_unit(self.f_output_unit))).T
+        else:
+            header = '%s [%s]\t%s [%s]\t error [%s]' %(self.cv_label, self.cv_output_unit, self.f_label, self.f_output_unit, self.f_output_unit)
+            data = np.vstack((self.cvs/parse_unit(self.cv_output_unit), self.fs/parse_unit(self.f_output_unit), self.error.std()/parse_unit(self.f_output_unit))).T
+        np.savetxt(fn_txt, data, header=header)
+
+    @classmethod
+    def from_average(cls, profiles, cv_output_unit=None, cv_label=None, f_output_unit=None, f_label=None, error_estimate=None):
+        '''
+            Start from a set of X-profiles and compute and return the averaged X profile. If error_estimate is set to 'std', an error on the X profile will be computed from the standard deviation within the set of profiles. 
+
+            :param profiles: set of X-profiles to be averaged
+            :type profiles: list of BaseProfile instances
+
+            :param error_estimate: indicate if and how to perform error analysis. One of following options is available:
+            
+                *  **std** -- compute error from the standard deviation within the set of profiles.
+                *  **None** -- do not estimate the error.
+            
+            :type error_estimate: str, optional, default=None
+
+            :param cv_output_unit: the units for printing and plotting of CV values. Units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_. Defaults to the cv_output_unit of the X profile given.
+            :type cv_output_unit: str or float, optional
+
+            :param cv_label: label for the collective variable in plots. Defaults to the cv_label of the first given X profile.
+            :type cv_label: str, optional
+
+            :param f_output_unit: the units for printing and plotting of X values (not the unit of the input array, that is defined by x_input_unit). Units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_. Defaults to the x_output_unit of the first X profile given.
+            :type f_output_unit: str or float, optional.
+
+            :param f_label: label for the X observable in plots. Defaults to the x_label of the first given X profile.
+            :type f_label: str, optional
+
+            :return: average X profile
+            :rtype: identical as the class of the current routine
+        '''
+        #sanity checks
+        cv_label = None
+        cvs = None
+        for prof in profiles:
+            if cvs is None:
+                cvs = prof.cvs.copy()
+            else:
+                assert (abs(cvs-prof.cvs)<1e-12*np.abs(cvs.mean())).all(), 'Cannot average the histograms as they do not have consistent CV grids'
+            if cv_output_unit is None:
+                cv_output_unit = prof.cv_output_unit
+            if f_output_unit is None:
+                f_output_unit = prof.f_output_unit
+            if cv_label is None:
+                cv_label = prof.cv_label
+            else:
+                assert cv_label==prof.cv_label, 'Inconsistent CV label definition in profiles (%s!=%s)' %(cv_label,prof.cv_label)
+            if f_label is None:
+                f_label = prof.f_label
+        #collect free energy value
+        fss = np.array([prof.fs for prof in profiles])
+        #average histograms
+        fs = fss.mean(axis=0)
+        #compute error if requested
+        error = None
+        if error_estimate is not None and error_estimate.lower() in ['std']:
+            ferr = fss.std(axis=0,ddof=1)
+            error = GaussianDistribution(fs, ferr)
+        if cls==BaseProfile:
+            return cls(cvs, fs, error=error, cv_output_unit=cv_output_unit, cv_label=cv_label, f_output_unit=f_output_unit, f_label=f_label)
+        elif cls in [BaseFreeEnergyProfile,SimpleFreeEnergyProfile]:
+            temps = np.array([prof.T for prof in profiles])
+            assert temps.std()/temps.mean()<1e-6, 'Cannot average free energy profiles because they do not have the same temperature!'
+            return cls(cvs, fs, temps.mean(), error=error, cv_output_unit=cv_output_unit, cv_label=cv_label, f_output_unit=f_output_unit, f_label=f_label)
+        else:
+            raise NotImplementedError
+
+    def set_ref(self, ref='min'):
+        '''
+            Set the energy reference of the free energy profile.
+
+            :param ref: the choice for the zero reference of X. Currently only 'min', 'max' or an integera is implemented, resulting in setting the value of the minimum, maximum or X[i] to zero respectively. Defaults to 'min'
+            :type ref: str
+        
+            :raises IOError: invalid value for keyword argument ref is given. See doc above for choices.
+        '''
+        #Find index of reference state
+        if isinstance(ref, int):
+            ref = self.fs[ref]
+        elif isinstance(ref, float):
+            pass #in this case, ref itself is the profile y value that has to shifted to zero
+        elif ref.lower() in ['min']:
+            global_minimum = Minimum('glob_min', ms_range=[MinInf(),PlusInf()] , cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
+            global_minimum.compute(self.cvs, self.fs)
+            ref = global_minimum.get_F()
+        elif ref.lower() in ['max']:
+            global_maximum = Maximum('glob_min', ms_range=[MinInf(),PlusInf()] , cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
+            global_maximum.compute(self.cvs, self.fs)
+            ref = global_maximum.get_F()
+        else:
+            raise IOError('Invalid REF specification, recieved %s and should be min or an integer' %ref)
+        #Set ref
+        self.fs -= ref
+        if self.error is not None:
+            self.error.set_ref(value=ref)
+
+    def crop(self, cvrange):
+        '''
+            Crop the profile to the limits given by cvrange and throw away cropped data. If return_new_profile is set to false, a copy of the cropped profile will be returns, otherwise the current profile will be cropped and overwritten.
+
+            :param cvrange: the range of the collective variable defining the new range to which the FEP will be cropped.
+            :type cvrange: tuple
+        '''
+        #cut off some unwanted regions
+        cvs = self.cvs.copy()
+        fs = self.fs.copy()
+        if cvrange is not None:
+            indexes = []
+            for i, cv in enumerate(cvs):
+                if cvrange[0]<=cv<=cvrange[1]:
+                    indexes.append(i)
+            cvs = cvs[np.array(indexes)]
+            fs = fs[:,np.array(indexes)]
+
+        self.cvs = cvs.copy()
+        self.fs = fs.copy()
+
+    def plot(self, fn, flims=None):
+        '''
+            Make a plot of the X profile. The values of CV and X are plotted in units specified by the cv_output_unit and x_output_unit attributes.
+
+            :param fn: Name of the file of the figure. Supported file formats are determined by the supported formats of the `matplotlib.pyplot.savefig routine <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html>`_
+            :type fn: str
+
+            :param flims: plot range for the observable x, defaults to min-max
+            :type flims: float, optional
+        '''
+        rc('text', usetex=False)
+        pp.clf()
+        fig, axs = pp.subplots(nrows=1, ncols=1)
+        axs = [axs]
+        #make free energy plot
+        axs[0].plot(self.cvs/parse_unit(self.cv_output_unit), self.fs/parse_unit(self.f_output_unit), linewidth=1, color='0.2')
+        if self.error is not None:
+            axs[0].fill_between(self.cvs/parse_unit(self.cv_output_unit), y1=self.flower()/parse_unit(self.f_output_unit), y2=self.fupper()/parse_unit(self.f_output_unit), alpha=0.33)
+        #decorate
+        axs[0].set_xlabel('%s [%s]' %(self.cv_label, self.cv_output_unit))
+        axs[0].set_ylabel('%s [%s]' %(self.f_label, self.f_output_unit))
+        axs[0].set_title('%s profile' %self.f_label)
+        axs[0].set_xlim([min(self.cvs/parse_unit(self.cv_output_unit)), max(self.cvs/parse_unit(self.cv_output_unit))])
+        if flims is not None:
+            axs[0].set_ylim(flims)
+        #save
+        fig.set_size_inches([len(axs)*8,8])
+        pp.savefig(fn)
+
+
+
+
+class BaseFreeEnergyProfile(BaseProfile):
+    '''
+        Child class of BaseProfile to define a free energy profile F(q) (stored in self.fs) as function of a certain collective variable (CV) denoted by q (stored in self.cvs). This class will set some defaults choices as well as define  additional attributes and routines specific for manipulation of free energy profiles.
+    '''
+    def __init__(self, cvs, fs, temp, error=None, cv_output_unit='au', f_output_unit='kjmol', cv_label='CV', f_label='F'):
+        """
+            See BaseProfile for documentation on meaning of most arguments.
+
+            :param temp: the temperature at which the free energy is constructed, which should be in atomic units!
+            :type temp: float
+        """
+        BaseProfile.__init__(self, cvs, fs, error=error, cv_output_unit=cv_output_unit, f_output_unit=f_output_unit, cv_label=cv_label, f_label=f_label)
+        self.T = temp
+        self.microstates = []
+        self.macrostates = []
+
+    @property
+    def beta(self):
+        return 1.0/(boltzmann*self.T)
 
     @classmethod
     def from_histogram(cls, histogram, temp, cv_output_unit=None, cv_label=None, f_output_unit='kjmol'):
@@ -205,307 +373,28 @@ class BaseFreeEnergyProfile(object):
             :return: free energy profile corresponding to the estimated probability histogram
             :rtype: BaseFreeEnergyProfile (or its inheriting child class)
         '''
-        fupper = None
-        flower = None
         fs = np.zeros(len(histogram.ps))*np.nan
         fs[histogram.ps>0] = -boltzmann*temp*np.log(histogram.ps[histogram.ps>0])
-        if histogram.pupper is not None and histogram.plower is not None:
-            fupper = np.zeros(len(histogram.ps))*np.nan
-            flower = np.zeros(len(histogram.ps))*np.nan
-            fupper[histogram.plower>0] = -boltzmann*temp*np.log(histogram.plower[histogram.plower>0])
-            flower[histogram.pupper>0] = -boltzmann*temp*np.log(histogram.pupper[histogram.pupper>0])
+        error = None
+        if histogram.error is not None:
+            kT = boltzmann*temp
+            if isinstance(histogram.error, LogGaussianDistribution):
+                error = GaussianDistribution.exp_from_loggaussian(histogram.error, scale=-kT)
+            else:
+                def function(ps):
+                    result = np.zeros(ps.shape)*np.nan
+                    result[ps>0] = -kT*np.log(ps[ps>0])
+                    return result
+                samples = np.array([histogram.error.sample() for i in range(histogram.error.ncycles)])
+                error = GaussianDistribution.from_samples(function(samples), ncycles=histogram.error.ncycles)
         if cv_output_unit is None:
             cv_output_unit = histogram.cv_output_unit
         if cv_label is None:
             cv_label = histogram.cv_label
-        return cls(histogram.cvs, fs, temp, fupper=fupper, flower=flower, cv_output_unit=cv_output_unit, f_output_unit=f_output_unit, cv_label=cv_label)
-
-    @classmethod
-    def from_average(cls, feps, cv_output_unit=None, cv_label=None, f_output_unit=None, error_estimate=None, nsigma=2):
-        '''
-            Start from a set of free energy profiles and compute and return the averaged free energy profile. If error_estimate is set to 'std', an error on the freee energy profile will be computed from the standard deviation within the set of profiles. 
-
-            :param feps: set of free energy profiles to be averaged
-            :type histograms: list(BaseFreeEnergyProfile)
-
-            :param error_estimate: indicate if and how to perform error analysis. One of following options is available:
-            
-                *  **std** -- compute error from the standard deviation within the set of profiles.
-                *  **None** -- do not estimate the error.
-            
-            :type error_estimate: str, optional, default=None
-
-            :param cv_output_unit: the units for printing and plotting of CV values. Units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_. Defaults to the cv_output_unit of the first free energy profile given.
-            :type cv_output_unit: str or float, optional
-
-            :param cv_label: label for the collective variable in plots. Defaults to the cv_label of the first given free energy profile.
-            :type cv_label: str, optional
-
-            :param f_output_unit: the units for printing and plotting of free energy values (not the unit of the input array, that is defined by f_input_unit). Units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_. Defaults to the f_output_unit of the first free energy profile given.
-            :type f_output_unit: str or float, optional.
-            
-            :param nsigma: only relevant when error estimation is turned on (i.e. when keyword ``error_estimate`` is not None), this option defines how large the error interval should be in terms of the standard deviation sigma. A ``nsigma=2`` implies a 2-sigma error bar (corresponding to 95% confidence interval) will be returned.
-            :type nsigma: int, optional, default=2
-
-            :return: averages free energy profile
-            :rtype: identical as the class of the current routine
-        '''
-        #sanity checks
-        cv_label = None
-        cvs, temp = None, None
-        for fep in feps:
-            if temp is None:
-                temp = fep.T
-            else:
-                assert temp==fep.T, 'Cannot average histograms corresponding to non-identical temperatures.'
-            if cvs is None:
-                cvs = fep.cvs.copy()
-            else:
-                assert (abs(cvs-fep.cvs)<1e-12*np.abs(cvs.mean())).all(), 'Cannot average the histograms as they do not have consistent CV grids'
-            if cv_output_unit is None:
-                cv_output_unit = fep.cv_output_unit
-            if f_output_unit is None:
-                f_output_unit = fep.f_output_unit
-            if cv_label is None:
-                cv_label = fep.cv_label
-            else:
-                assert cv_label==fep.cv_label, 'Inconsistent CV label definition in histograms (%s!=%s)' %(cv_label,fep.cv_label)
-        #collect free energy value
-        fss = np.array([fep.fs for fep in feps])
-        #average histograms
-        fs = fss.mean(axis=0)
-        #compute error if requested
-        flower, fupper = None, None
-        if error_estimate is not None and error_estimate.lower() in ['std']:
-            ferr = fss.std(axis=0,ddof=1)
-            flower = fs - nsigma*ferr
-            fupper = fs + nsigma*ferr
-        return cls(cvs, fs, temp, flower=flower, fupper=fupper, cv_output_unit=cv_output_unit, cv_label=cv_label)
-
-    def savetxt(self, fn_txt):
-        '''
-            Save the free energy profile as txt file. The values of CV and free energy are written in units specified by the cv_output_unit and f_output_unit attributes of the self instance. If both flower and fupper are defined, they will also be written as the third and fourth column respectively.
-
-            :param fn_txt: name for the output file
-            :type fn_txt: str
-        '''
-        
-        if self.flower is None or self.fupper is None:
-            header = '%s [%s]\tFree energy [%s]' %(self.cv_label, self.cv_output_unit, self.f_output_unit)
-            data = np.vstack((self.cvs/parse_unit(self.cv_output_unit), self.fs/parse_unit(self.f_output_unit))).T
-        else:
-            header = '%s [%s]\tFree energy [%s]\tLower error [%s]\tUpper error [%s]' %(self.cv_label, self.cv_output_unit, self.f_output_unit, self.f_output_unit, self.f_output_unit)
-            data = np.vstack((self.cvs/parse_unit(self.cv_output_unit), self.fs/parse_unit(self.f_output_unit), self.flower/parse_unit(self.f_output_unit), self.fupper/parse_unit(self.f_output_unit))).T
-        np.savetxt(fn_txt, data, header=header)
+        return cls(histogram.cvs, fs, temp, error=error, cv_output_unit=cv_output_unit, f_output_unit=f_output_unit, cv_label=cv_label)
 
     def process_states(self, *args, **kwargs):
         raise NotImplementedError('BaseFreeEnergyProfile has no routine process_states implemented. Try to convert the free energy profile to a SimpleFreeEnergyProfile first.')
-
-    def set_ref(self, ref='min'):
-        '''
-            Set the energy reference of the free energy profile.
-
-            :param ref: the choice for the energy reference, currently only 'min' or 'm' is implemented resulting in setting the reference to the minimum in the free energy profile. Defaults to 'min'
-            :type ref: str
-        
-            :raises IOError: invalid value for keyword argument ref is given. See doc above for choices.
-        '''
-        if ref.lower() in ['m', 'min']:
-            fmin = self.fs[~np.isnan(self.fs)].min()
-            self.fs -= fmin
-            if self.fupper is not None:
-                self.fupper -= fmin
-            if self.flower is not None:
-                self.flower -= fmin
-        else:
-            raise IOError('Invalid REF specification, recieved %s and should be min, r, ts or p' %ref)
-
-    def set_microstates(self, **kwargs):
-        raise NotImplementedError
-
-    def set_macrostates(self, **kwargs):
-        raise NotImplementedError
-
-    def compute_probdens(self):
-        '''
-            Compute the probability density profile associated with the free energy profile:
-        
-            .. math:: p(q) = \\frac{1}{q_0Z}\\exp\\left(-\\beta F(q)\\right)
-
-            with
-
-            .. math:: Z = \\frac{1}{q_0}\\int_{-\\infty}^{+\\infty}\\exp\\left(-\\beta F(q)\\right)dq
-
-            Herein, :math:`q_0` represents an arbitrary constant to account for the fact that the partition function should in principle be dimensionless. However, it can be chosen freely and has no impact on the final free energy profile (appart from meaningless a vertical shift). Therefore, in this implementation it is chosen as :math:`q_0=1`.
-        '''
-        mask = ~np.isnan(self.fs)
-        self.ps = np.zeros(self.fs.shape)
-        self.ps[mask] = np.exp(-self.beta*self.fs[mask])
-        self.ps /= integrate(self.cvs[mask], self.ps[mask])
-
-    def macrostate(self, cvrange=None, indexes=None, verbose=False, do_error=False, nsigma=2, Ncycles=100):
-        '''
-            Return the contribution to the partition function and free energy corresponding to the macrostate in the given range of cvs. This contribution is computed as follows. 
-
-            .. math::
-
-                \\begin{aligned}
-                    Z_A &= \\frac{1}{q_0}\\int_A \\exp\\left(-\\beta F(q)\\right)dq \\\\
-
-                        &= Z\\cdot\\int_A p(q)dq \\\\
-
-                    F_A &= -k_B T\\log{Z_A}
-                \\end{aligned}
-
-            :param cvrange: the range of the collective variable defining the macrostate. Either cvrange or indices should be defined, defaults to None
-            :type cvrange: np.ndarray, optional
-
-            :param indexes: the indexes of the collective variable defining the macrostate. Either cvrange or indices should be defined, defaults to None
-            :type indexes: list, optional
-
-            :param verbose: set to true to turn on verbosity, defaults to False
-            :type verbose: bool, optional
-
-            :param do_error: set to true to use the error bars defined in self.fupper and self.flower to estimate lower and upper error bars on the macrostate partition function and free energy. First a the error bar on the free energy will be reduced to a normal distribution standard deviation (std = (self.fupper-self.flower)/nsigma)). Next, the value of the partition function and free energy for the macrostates will be computed Ncycle times, where in each cycle normally distributed errors will be added to the self.fs profile. Finally, the mean and std on the resulting Ncycle estimates for Z and F will be used as mean and error bar.
-            :type verbose: bool, optional
-
-            :param nsigma: the number of sigmas used in the n-sigma interval to compute the error bars self.flower and self.fupper. This nsigma is used to recompute the normally distributed standard deviation from (self.fupper-self.flower)/nsigma, which is in term required for the error estimation on the macrostate Z and F.
-
-            :return: 
-                *  **mean** (float) - the expected (=mean) value of the collective variable in the macrostate
-                *  **std** (float) - the thermal fluctuation (=standard deviation) of the CV in the macrostate
-                *  **Z** (float) - the contribution of the macrostate to the partition function
-                *  **F** (float) - the free energy of the given macrostate
-                *  **Zerr** (float) - only returned if do_error is set to True, the estimated error bar on Z
-                *  **Ferr** (float) - only returned if do_error is set to True, the estimated error bar on F
-        '''
-        if do_error:
-            assert self.flower is not None, "flower attribute needs to be defined to be able to perform error estimation of macrostate"
-            assert self.fupper is not None, "fupper attribute needs to be defined to be able to perform error estimation of macrostate"
-        if verbose: print('Processing macrostate(indices=%s, cvrange=%s)' %(indexes, cvrange))
-        if indexes is None:
-            if cvrange is not None:
-                assert cvrange[0] is not None, "Lower limit of CV range in macrostate cannot be None"
-                assert cvrange[1] is not None, "Upper limit of CV range in macrostate cannot be None"
-                indexes = []
-                for i, cv in enumerate(self.cvs):
-                    if not np.isnan(self.fs[i]) and cvrange[0]<=cv<cvrange[1]:
-                        indexes.append(i)
-            else:
-                print('ERROR: either indexes or cvrange should be given')
-                sys.exit()
-            if not len(indexes)>1:
-                print('ERROR: cvrange should contain at least 2 data points')
-                sys.exit()
-        else:
-            if cvrange is not None:
-                print('WARNING: both indexes and cvrange given, cvrange was ignored')
-        cvs = self.cvs[np.array(indexes)]
-        fs = self.fs[np.array(indexes)]
-        if do_error:
-            flowers = self.flower[np.array(indexes)]
-            fuppers = self.fupper[np.array(indexes)]
-        ps = self.ps[np.array(indexes)]
-        if do_error:
-            Ps, Zs, Fs = np.zeros(Ncycles, dtype=float)
-            for icycle in range(Ncycles):
-                fs_err =  fs + np.random.normal(fs, (fuppers-flowers)/nsigma)
-                Zs[i] = integrate(cvs, np.exp(-self.beta*fs_err))
-                Fs[i] = -np.log(Zs[i])/self.beta
-                Ps[i] = Zs[i]/(np.exp(-self.beta*fs_err).sum())
-            P, Perr = Ps.mean(), Ps.std()
-            Z, Zerr = Zs.mean(), Zs.std()
-            F, Ferr = Fs.mean(), Fs.std()
-        else:
-            P = integrate(cvs, ps)
-            Z = integrate(cvs, np.exp(-self.beta*fs))
-            F = -np.log(Z)/self.beta
-        mean = integrate(cvs, ps*cvs)/P
-        std = np.sqrt(integrate(cvs, ps*(cvs-mean)**2)/P)
-        if verbose:
-            print('VALUES:')
-            print('  CV Mean [%s] = ' %self.cv_output_unit, mean/parse_unit(self.cv_output_unit))
-            print('  CV Min  [%s] = ' %self.cv_output_unit, min(cvs)/parse_unit(self.cv_output_unit))
-            print('  CV Max  [%s] = ' %self.cv_output_unit, max(cvs)/parse_unit(self.cv_output_unit))
-            print('  CV Std  [%s] = ' %self.cv_output_unit, std/parse_unit(self.cv_output_unit))
-            print('')
-            print('  F(CV min) [%s] = ' %self.f_output_unit, fs[np.where(cvs==min(cvs))[0][0]]/parse_unit(self.f_output_unit))
-            print('  F(CV max) [%s] = ' %self.f_output_unit, fs[np.where(cvs==max(cvs))[0][0]]/parse_unit(self.f_output_unit))
-            print('  F min     [%s] = ' %self.f_output_unit, min(fs)/parse_unit(self.f_output_unit))
-            print('  F max     [%s] = ' %self.f_output_unit, max(fs)/parse_unit(self.f_output_unit))
-            print('')
-            if do_error:
-                raise NotImplementedError
-                print('  F [%s] = %.3f +- %.3f' %(F/parse_unit(self.f_output_unit), Ferr/parse_unit(self.f_output_unit)))
-                print('  Z [-] = %.3e +- %.3e', Z)
-                print('  P [-] = %.3f +- %.3f', P*100)
-            else:
-                print('  F [%s] = ' %self.f_output_unit, F/parse_unit(self.f_output_unit))
-                print('  Z [-] = ', Z)
-                print('  P [-] = ', P*100)
-        if not do_error:
-            return mean, std, Z, F
-        else:
-            return mean, std, Z, F, Zerr, Ferr
-
-    def plot(self, fn, flim=None):
-        '''
-            Make a plot of the free energy profile. The values of CV and free energy are plotted in units specified by the cv_output_unit and f_output_unit attributes of the self instance.
-
-            :param fn: Name of the file of the figure. Supported file formats are determined by the supported formats of the `matplotlib.pyplot.savefig routine <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html>`_
-            :type fn: str
-
-            :param flim: plot range for the free energy
-            :type flim: float, optional, defaults to min-max.
-        '''
-        rc('text', usetex=False)
-        pp.clf()
-        fig, axs = pp.subplots(nrows=1, ncols=1)
-        axs = [axs]
-        #make free energy plot
-        axs[0].plot(self.cvs/parse_unit(self.cv_output_unit), self.fs/parse_unit(self.f_output_unit), linewidth=1, color='0.2')
-        if self.flower is not None and self.fupper is not None:
-            axs[0].fill_between(self.cvs/parse_unit(self.cv_output_unit), self.flower/parse_unit(self.f_output_unit), self.fupper/parse_unit(self.f_output_unit), alpha=0.33)
-        #decorate
-        axs[0].set_xlabel('%s [%s]' %(self.cv_label, self.cv_output_unit))
-        axs[0].set_ylabel('F [%s]' %self.f_output_unit)
-        axs[0].set_title('Free energy profile')
-        axs[0].set_xlim([min(self.cvs/parse_unit(self.cv_output_unit)), max(self.cvs/parse_unit(self.cv_output_unit))])
-        if flim is not None:
-            axs[0].set_ylim([0, flim/parse_unit(self.f_output_unit)])
-        #save
-        fig.set_size_inches([len(axs)*8,8])
-        pp.savefig(fn)
-        return
-
-    def crop(self, cvrange, return_new_fes=False):
-        '''
-            Crop the free energy profile to the limits given by cvrange and throw away cropped data. If return_new_fes is set to false, a copy of the cropped profile will be returns, otherwise the current profile will be cropped and overwritten.
-
-            :param cvrange: the range of the collective variable defining the new range to which the FEP will be cropped.
-            :type cvrange: tuple
-            
-            :param return_new_fes: If set to False, the cropped data will be written to the current instance (overwritting the original data). If set to True, a new instance will be initialized with the cropped data, defaults to False
-            :type return_new_fes: bool, optional
-            
-            :return: an instance of the current class if the keyword argument `return_new_fes` is set to True. Otherwise, None is returned.
-        '''
-        #cut off some unwanted regions
-        cvs = self.cvs.copy()
-        fs = self.fs.copy()
-        if cvrange is not None:
-            indexes = []
-            for i, cv in enumerate(cvs):
-                if cvrange[0]<=cv<=cvrange[1]:
-                    indexes.append(i)
-            cvs = cvs[np.array(indexes)]
-            fs = fs[:,np.array(indexes)]
-        if return_new_fes:
-            return self.__class__(cvs, fs, self.T, cv_output_unit=self.cv_output_unit, f_output_unit=self.f_output_unit, cv_label=self.cv_label)
-        else:
-            self.cvs = cvs.copy()
-            self.fs = fs.copy()
-            self.compute_probdens()
 
     def recollect(self, new_cvs, fn_plt=None, return_new_fes=False):
         '''
@@ -570,7 +459,6 @@ class BaseFreeEnergyProfile(object):
         else:
             self.cvs = new_cvs[~np.isnan(new_fs)].copy()
             self.fs = new_fs[~np.isnan(new_fs)].copy()
-            self.compute_probdens()
 
     def transform_function(self, function, derivative=None, cv_label='Q', cv_output_unit='au'):
         '''
@@ -591,20 +479,20 @@ class BaseFreeEnergyProfile(object):
             :return: transformed free energy profile
             :rtype: the same class as the instance this routine is called upon
         '''
-        #TODO: not tested yet!
         qs = function(self.cvs)
         if derivative is None:
             eps = min(qs[1:]-qs[:-1])*0.001
             def derivative(q):
                 return (function(q+eps/2)-function(q-eps/2))/eps
         dfs = derivative(qs)
-        fs = self.fs - np.log(dfs)/self.beta
-        fupper, flower = None, None
-        if self.fupper is not None:
-            fupper = self.fupper - np.log(dfs)/self.beta
-        if self.flower is not None:
-            flower = self.flower - np.log(dfs)/self.beta
-        return self.__class__(qs, fs, self.T, fupper=fupper, flower=flower, cv_output_unit=cv_output_unit, f_output_unit=self.f_output_unit, cv_label=cv_label)
+        fs = self.fs + np.log(abs(dfs))/self.beta
+        error = None
+        if self.error is not None:
+            #as the transformation is (1) exactly known, (2) it transforms CV values and (3) doesn't change the error on the f
+            error = GaussianDistribution(fs, self.error.std())
+        return self.__class__(qs, fs, self.T, error=error, cv_output_unit=cv_output_unit, f_output_unit=self.f_output_unit, cv_label=cv_label)
+
+
 
 
 class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
@@ -615,27 +503,23 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
             
         See :meth:`BaseFreeEnergyProfile` for constructor arguments and documentation.
     '''
-    def __init__(self, cvs, fs, temp, fupper=None, flower=None, cv_output_unit='au', f_output_unit='kjmol', cv_label='CV'):
-        BaseFreeEnergyProfile.__init__(self, cvs, fs, temp, fupper=fupper, flower=flower, cv_output_unit=cv_output_unit, f_output_unit=f_output_unit, cv_label=cv_label)
-        self.ir  = None
-        self.its = None
-        self.ip  = None
+    def __init__(self, cvs, fs, temp, error=None, cv_output_unit='au', f_output_unit='kjmol', cv_label='CV', f_label='F'):
+        BaseFreeEnergyProfile.__init__(self, cvs, fs, temp, error=error, cv_output_unit=cv_output_unit, f_output_unit=f_output_unit, cv_label=cv_label, f_label=f_label)
+        self.r  = None
+        self.ts = None
+        self.p  = None
+        self.R = None
+        self.P = None
 
-    def process_states(self, ts_range=[-np.inf,np.inf], verbose=False):
-        '''
-            Routine to find the reactant (R), transition state (TS) and product state (P) through application of the :meth:`_find_R_TS_P` routine and add the corresponding micro and macrostates. These will afterwards be shown on the free energy plot using the :meth:`plot` routine.
+    @classmethod
+    def from_base(cls, base):
+        '''Simple class method to transform a given instance of BaseFreeEnergyProfile to an instance of SimpleFreeEnergyProfile'''
+        error = None
+        if base.error is not None:
+            error = base.error.copy()
+        return SimpleFreeEnergyProfile(base.cvs, base.fs, base.T, error=error, cv_label=base.cv_label, cv_output_unit=base.cv_output_unit, f_output_unit=base.f_output_unit)
 
-            :param ts_range: range for the cv in which to look for the transition state as a local maximum.
-            :type ts_range: list, optional, default=[-np.inf,np.inf]
-
-            :param verbose: set to True to increase verbosity.
-            :type verbose: bool, optional, default=False
-        '''
-        self._find_R_TS_P(ts_range=ts_range)
-        self.set_microstates([self.ir, self.its, self.ip])
-        self.set_macrostates([-np.inf, self.cvs[self.its], np.inf], verbose=verbose)
-
-    def _find_R_TS_P(self, ts_range=[-np.inf,np.inf]):
+    def process_states(self, ts_range=[-np.inf,np.inf]):
         '''
             Internal routine called by :meth:`process_states` to find:
             
@@ -648,31 +532,21 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
 
             :raises ValueError: the transition state cannot be found in the range defined by ts_range.
         '''
-        self.ir  = None
-        self.its = None
-        self.ip  = None
-        cv_upper = None
-        #find transition state
-        for i, (cv, f) in enumerate(zip(self.cvs, self.fs)):
-            if ts_range[0]<=cv<=ts_range[1]:
-                cv_upper = cv
-                if self.its is None or f>self.fs[self.its]:
-                    self.its = i
-        if self.its is None:
-            raise ValueError('Could not find transition state, are you sure it is within the given range %.6f<=CV<=%.6f?' %(ts_range[0], ts_range[1]))
-        #check that self.its is not simply the largest cv in the given range (indicating it is not a local maximum)
-        if self.cvs[self.its]==cv_upper:
-            print('WARNING: The transition state corresponds with the upper boundary of the given ts_range, hence it might not be a local maximum!')
-        #find reactant
-        for i, (cv, f) in enumerate(zip(self.cvs, self.fs)):
-            if cv<self.cvs[self.its]:
-                if self.ir is None or np.isnan(self.fs[self.ir]) or f<self.fs[self.ir]:
-                    self.ir = i
-        #find product
-        for i, (cv, f) in enumerate(zip(self.cvs, self.fs)):
-            if self.cvs[self.its]<cv:
-                if self.ip is None or np.isnan(self.fs[self.ip]) or f<self.fs[self.ip]:
-                    self.ip = i
+        #define microstates
+        self.ts = Maximum('TS', cv_range=ts_range, cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
+        self.r = Minimum('r', ms_range=[MinInf(),self.ts] , cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
+        self.p = Minimum('p', ms_range=[self.ts,PlusInf()], cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
+        self.microstates = [self.r, self.ts, self.p]
+        #process free energy profile to calculate microstates
+        for state in self.microstates:
+            state.compute(self.cvs, self.fs, fdist=self.error)
+        #define macrostates
+        self.R = Integrate('R', [MinInf(),self.ts] , beta=self.beta, cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
+        self.P = Integrate('P', [self.ts,PlusInf()], beta=self.beta, cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
+        self.macrostates = [self.R, self.P]
+        #process free energy profile to calculate macrostates
+        for state in self.macrostates:
+            state.compute(self.cvs, self.fs, fdist=self.error)
 
     def set_ref(self, ref='min'):
         ''' 
@@ -685,62 +559,55 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
                 *  *ts*, *trans_state* or *transition* for the transition state maximum
                 *  *p* or *product* for the product minimum
 
-                The options r, ts and p are only available if the reactant, transition state and product have already been found by the routine find_states.
+                The options r, ts and p are only available if the reactant, transition state and product have already been found by the routine process_states.
             :type ref: str, optional, default=min
             
             :raises IOError: invalid value for keyword argument ref is given. See doc above for choices.
         '''
-        fref = 0.0
-        if ref.lower() in ['r', 'reactant']:
-            assert self.ir is not None, 'Reactant state not defined yet, did you already apply the find_states routine?'
-            fref = self.fs[self.ir]
+        #Find index of reference state
+        if isinstance(ref, int):
+            ref = self.fs[ref]
+        elif isinstance(ref, float):
+            pass #in this case, ref itself is the profile y value that has to shifted to zero
+        elif ref.lower() in ['r', 'reactant']:
+            assert self.r is not None, 'Reactant state not defined yet, did you already apply the process_states routine?'
+            self.r.compute(self.cvs, self.fs)
+            ref = self.r.get_F()
         elif ref.lower() in ['p', 'product']:
-            assert self.ip is not None, 'Product state not defined yet, did you already apply the find_states routine?'
-            fref = self.fs[self.ip]
+            assert self.p is not None, 'Product state not defined yet, did you already apply the process_states routine?'
+            self.p.compute(self.cvs, self.fs)
+            ref = self.p.get_F()
         elif ref.lower() in ['ts', 'trans_state', 'transition']:
-            assert self.its is not None, 'Transition state not defined yet, did you already apply the find_states routine?'
-            fref = self.fs[self.its]
-        elif ref.lower() in ['m', 'min']:
-            fref = self.fs[~np.isnan(self.fs)].min()
+            assert self.ts is not None, 'Transition state not defined yet, did you already apply the process_states routine?'
+            self.ts.compute(self.cvs, self.fs)
+            ref = self.ts.get_F()
+        elif ref.lower() in ['min']:
+            global_minimum = Minimum('glob_min', ms_range=[MinInf(),PlusInf()] , cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
+            global_minimum.compute(self.cvs, self.fs)
+            ref = global_minimum.get_F()
+        elif ref.lower() in ['max']:
+            global_maximum = Maximum('glob_min', ms_range=[MinInf(),PlusInf()] , cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
+            global_maximum.compute(self.cvs, self.fs)
+            ref = global_maximum.get_F()
         else:
-            raise IOError('Invalid REF specification, recieved %s and should be min, r, ts or p' %ref)
-        self.fs -= fref
-        if self.fupper is not None:
-            self.fupper -= fref
-        if self.flower is not None:
-            self.flower -= fref
+            raise IOError('Invalid REF specification, recieved %s and should be min, max, r, ts, p or an integer' %ref)
+        #Set ref
+        self.fs -= ref
+        if self.error is not None:
+            self.error.set_ref(value=ref)
         #Micro and macrostates need to be updated
-        if self.ir is not None and self.its is not None and self.ip is not None:
-            self.microstates = []
-            self.macrostates = []
-            self.set_microstates([self.ir, self.its, self.ip])
-            self.set_macrostates([-np.inf, self.cvs[self.its], np.inf])
+        if self.r is not None and self.ts is not None and self.p is not None:
+            cv_delta = (self.cvs[1:]-self.cvs[:-1]).mean()
+            ts_range = [self.ts.get_cv()-10*cv_delta,self.ts.get_cv()+10*cv_delta]
+            self.process_states(ts_range=ts_range)
 
-    def set_microstates(self, indices):
-        '''
-            Routine to define microstates, i.e. points on the 1D FEP. This routine is called by :meth:`process_states` to add the microstates found by the latter. These microstates will be visualized as points with corresponding free energy value on a plot made by the :meth:`plot` routine.
+    def print_states(self):
+        for microstate in self.microstates:
+            microstate.print()
+        for macrostate in self.macrostates:
+            macrostate.print()
 
-            :param indices: list of indices corresponding to the index of the microstates in the self.cvs and self.fs arrays 
-            :type indices: list(int)
-        '''
-        for index in indices:
-            if index is not None:
-                self.microstates.append([index, self.cvs[index], self.fs[index]])
-
-    def set_macrostates(self, cvs, verbose=False):
-        '''
-            Routine to define macrostates, i.e. regions on the 1D FEP. This routine is called by :meth:`process_states` to add the macrostates found by the latter. These macrostates will be visualized as horizontal linesegments on a plot made by the :meth:`plot` routine with free energy contributions as computed by the :meth:`macrostate` routine.
-
-            :param cvs: list of integers giving defining the index of the boundaries between subsequent macrostates.
-            :type cvs: list(int)
-
-            :param verbose: set to True to increase verbosity
-            :type verbose: bool, optional, default=False
-        '''
-        for i in range(len(cvs)-1):
-            self.macrostates.append(self.macrostate(cvrange=cvs[i:i+2], verbose=verbose))
-
-    def plot(self, fn, rate=None, micro_marker='s', micro_color='r', micro_size='4', macro_linestyle='-', macro_color='b', do_latex=False, fig_size=[16,8]):
+    def plot(self, fn, rate=None, micro_marker='s', micro_color='r', micro_size='4', micro_linestyle='--', macro_linestyle='-', macro_color='b', do_latex=False, fig_size=[16,8], flims=None):
         '''
             Plot the free energy profile including visualization of the microstates (markers) and macrostates (lines) defined by :meth:`set_microstates` and :meth:`set_macrostates` respectively. The values of CV and free energy are plotted in units specified by the cv_unit and f_output_unit attributes of the self instance.
 
@@ -773,90 +640,120 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
         axs = [ax]
         #make free energy plot
         axs[0].plot(self.cvs/parse_unit(self.cv_output_unit), self.fs/parse_unit(self.f_output_unit), linewidth=1, color='0.2')
-        if self.flower is not None and self.fupper is not None:
-            axs[0].fill_between(self.cvs/parse_unit(self.cv_output_unit), self.flower/parse_unit(self.f_output_unit), self.fupper/parse_unit(self.f_output_unit), alpha=0.33)
+        if self.error is not None:
+            axs[0].fill_between(self.cvs/parse_unit(self.cv_output_unit), self.flower()/parse_unit(self.f_output_unit), self.fupper()/parse_unit(self.f_output_unit), alpha=0.33)
         #plot vline for transition state if defined
         cv_width = max(self.cvs)-min(self.cvs)
-        ylower = -1+min([state[3]/kjmol for state in self.macrostates]+[0])
-        if self.its is not None:
-            axs[0].axvline(x=self.cvs[self.its]/parse_unit(self.cv_output_unit), linestyle='--', color='k', linewidth=1)
-            axs[0].text((self.cvs[self.its]+0.01*cv_width)/parse_unit(self.cv_output_unit), 0, '%.3f' %(self.cvs[self.its]/parse_unit(self.cv_output_unit)), color='k', fontsize=12)
-            #plot lines for the limits defining the TS region
+        ylower = -1+min([state.get_F()/kjmol for state in self.macrostates]+[0])
+        yupper = max(self.fs[~np.isnan(self.fs)])/kjmol+10
+        #plot microstates
+        for microstate in self.microstates:
+            axs[0].plot(microstate.get_cv()/parse_unit(self.cv_output_unit), microstate.get_F()/parse_unit(self.f_output_unit), linestyle='none', marker=micro_marker, color=micro_color, markersize=micro_size)
+            axs[0].text((microstate.get_cv()+0.01*cv_width)/parse_unit(self.cv_output_unit), microstate.get_F()/parse_unit(self.f_output_unit), microstate.text('f'), color=micro_color, fontsize=12)
+            axs[0].axvline(x=microstate.get_cv()/parse_unit(self.cv_output_unit), ymin=0, ymax=(microstate.get_F()/parse_unit(self.f_output_unit))/yupper, linestyle=micro_linestyle, color=micro_color, linewidth=1)
             if rate is not None:
                 axs[0].fill_betweenx([ylower, max(self.fs)/kjmol], x1=rate.CV_TS_lims[0]/parse_unit(self.cv_output_unit), x2=rate.CV_TS_lims[1]/parse_unit(self.cv_output_unit), alpha=0.33, color='k')
-        #plot microstates
-        for i, cv, f in self.microstates:
-            axs[0].plot(cv/parse_unit(self.cv_output_unit), f/parse_unit(self.f_output_unit), linestyle='none', marker=micro_marker, color=micro_color, markersize=micro_size)
-            axs[0].text((cv+0.01*cv_width)/parse_unit(self.cv_output_unit), f/parse_unit(self.f_output_unit), '%.1f' %(f/parse_unit(self.f_output_unit)), color=micro_color, fontsize=12)
         #plot macrostates
-        for mean, std, Z, F in self.macrostates:
-            xcen = (mean-min(self.cvs))/cv_width
-            axs[0].axhline(y=F/parse_unit(self.f_output_unit), xmin=xcen-0.075, xmax=xcen+0.075, linestyle=macro_linestyle, color=macro_color, linewidth=2)
-            axs[0].text((mean+0.075*cv_width)/parse_unit(self.cv_output_unit), F/parse_unit(self.f_output_unit), '%.1f' %(F/parse_unit(self.f_output_unit)), color=macro_color, fontsize=12)
+        for macrostate in self.macrostates:
+            xcen = (macrostate.get_cv()-min(self.cvs))/cv_width
+            xwidth = macrostate.cvstd/cv_width
+            ycen = macrostate.get_F()/parse_unit(self.f_output_unit)
+            axs[0].axhline(y=ycen, xmin=xcen-xwidth, xmax=xcen+xwidth, linestyle=macro_linestyle, color=macro_color, linewidth=2)
+            axs[0].text((macrostate.get_cv())/parse_unit(self.cv_output_unit), ycen+0.5, macrostate.text('f'), color=macro_color, fontsize=12)
         #cv_output_unit
         axs[0].set_xlabel('%s [%s]' %(self.cv_label, self.cv_output_unit), fontsize=14)
         axs[0].set_ylabel('Energy [%s]' %self.f_output_unit, fontsize=14)
         axs[0].set_title('Free energy profile F(CV)', fontsize=16)
         axs[0].set_xlim([min(self.cvs/parse_unit(self.cv_output_unit)), max(self.cvs/parse_unit(self.cv_output_unit))])
-        axs[0].set_ylim([ylower, max(self.fs[~np.isnan(self.fs)])/kjmol+10])
+        if flims is not None:
+            axs[0].set_ylim(flims)
+        else:
+            axs[0].set_ylim([ylower, yupper])
         axs[0].axhline(y=0, xmin=0, xmax=1, linestyle='--', color='k', linewidth=1)
 
         if len(self.macrostates)>0:
             assert len(self.macrostates)==2, 'The plotter assumes two macrostates (if any), i.e. R and P, but found %i' %(len(self.macrostates))
-            Zr,Fr = self.macrostates[0][2], self.macrostates[0][3]
-            Zp,Fp = self.macrostates[1][2], self.macrostates[1][3]
-            Fts = self.fs[self.its]
             if do_latex:
                 fig.text(0.65, 0.88, r'\textit{Thermodynamic properties}', fontsize=16)
                 fig.text(0.65, 0.86, '-------------------------------------', fontsize=16)
-                fig.text(0.65, 0.82, r'$Z_{R} =\ $'+format_scientific(Zr/parse_unit(self.cv_output_unit))+'  %s' %(self.cv_output_unit), fontsize=16)
-                fig.text(0.65, 0.78, r'$F_{R} = -k_B T \log(Z_{R}) = %.3f\ \ $ kJ.mol$^{-1}$' %(Fr/kjmol), fontsize=16)
-                fig.text(0.65, 0.74, r'$Z_{P} =\ $'+format_scientific(Zp/parse_unit(self.cv_output_unit))+'  %s' %(self.cv_output_unit), fontsize=16)
-                fig.text(0.65, 0.70, r'$F_{P} = -k_B T \log(Z_{P}) = %.3f\ \ $ kJ.mol$^{-1}$' %(Fp/kjmol), fontsize=16)
-                fig.text(0.65, 0.66, r'$F(q_{TS}) = %.3f\ \ $ kJ.mol$^{-1}$' %(Fts/kjmol), fontsize=16)
+                fig.text(0.65, 0.82, r'$F_{R}     = $ %s'                          %(self.R.text('f'))    , fontsize=16)
+                fig.text(0.65, 0.78, r'$\left\langle CV \right\rangle_{R}  = $ %s' %(self.R.text('cv'))   , fontsize=16)
+                fig.text(0.65, 0.74, r'$\Delta(CV)_{R} = $ %s'                     %(self.R.text('cvstd')), fontsize=16)
+                fig.text(0.65, 0.70, r'$F_{P}     = $ %s'                          %(self.P.text('f'))    , fontsize=16)
+                fig.text(0.65, 0.66, r'$\left\langle CV \right\rangle_{P}  = $ %s' %(self.P.text('cv'))   , fontsize=16)
+                fig.text(0.65, 0.62, r'$\Delta(CV)_{P} =  $ %s'                    %(self.P.text('cvstd')), fontsize=16)
+                fig.text(0.65, 0.58, r'$F_{TS}    = $ %s'                          %(self.ts.text('f'))   , fontsize=16)
+                fig.text(0.65, 0.54, r'$CV_{TS}   = $ %s'                          %(self.ts.text('cv'))  , fontsize=16)
+
             else:
                 fig.text(0.65, 0.88, 'Thermodynamic properties', fontsize=16)
                 fig.text(0.65, 0.86, '-------------------------------------', fontsize=16)
-                fig.text(0.65, 0.82, 'ZR = ' + format_scientific(Zr/parse_unit(self.cv_output_unit))+'%s' %(self.cv_output_unit), fontsize=16)
-                fig.text(0.65, 0.78, 'FR = -kT log(ZR) = %.3f kJ/mol' %(Fr/kjmol), fontsize=16)
-                fig.text(0.65, 0.74, 'ZP = '+format_scientific(Zp/parse_unit(self.cv_output_unit))+'%s' %(self.cv_output_unit), fontsize=16)
-                fig.text(0.65, 0.70, 'FP = -kT log(ZP) = %.3f kJ/mol' %(Fp/kjmol), fontsize=16)
-                fig.text(0.65, 0.66, 'F(q_TS) = %.3f kJ/mol' %(Fts/kjmol), fontsize=16)
+                fig.text(0.65, 0.82, 'F_R     = %s' %(self.R.text('f'))    , fontsize=16)
+                fig.text(0.65, 0.78, '<CV>_R  = %s' %(self.R.text('cv'))   , fontsize=16)
+                fig.text(0.65, 0.74, 'd(CV)_R = %s' %(self.R.text('cvstd')), fontsize=16)
+                fig.text(0.65, 0.70, 'F_P     = %s' %(self.P.text('f'))    , fontsize=16)
+                fig.text(0.65, 0.66, '<CV>_P  = %s' %(self.P.text('cv'))   , fontsize=16)
+                fig.text(0.65, 0.62, 'd(CV)_P = %s' %(self.P.text('cvstd')), fontsize=16)
+                fig.text(0.65, 0.58, 'F_TS    = %s' %(self.ts.text('f'))   , fontsize=16)
+                fig.text(0.65, 0.54, 'CV_TS   = %s' %(self.ts.text('cv'))  , fontsize=16)
+
         if rate is not None:
-            k_forward = rate.A*np.exp(-Fts/(boltzmann*self.T))/Zr
-            k_backward = rate.A*np.exp(-Fts/(boltzmann*self.T))/Zp
-            dF_forward = Fts+boltzmann*self.T*np.log(boltzmann*self.T*Zr/(planck*rate.A))
-            dF_backward = Fts+boltzmann*self.T*np.log(boltzmann*self.T*Zp/(planck*rate.A))
+            #TODO: update to new style already implemented for thermodynamic properties, code below will now still give errors
+            A, A_dist = rate.A, rate.A_dist
+            k_for, k_for_dist, dF_for, dF_for_dist, k_back, k_back_dist, dF_back, dF_back_dist = rate.compute_rate(self)
+            Aunit = '%s/s' %self.cv_output_unit
             if do_latex:
-                fig.text(0.65, 0.58, r'\textit{Kinetic properties}', fontsize=16)
-                fig.text(0.65, 0.56, '-------------------------------------', fontsize=16)
-                fig.text(0.65, 0.50, r'$A  =\ $' + format_scientific(rate.A/(parse_unit(self.cv_output_unit)/second)) + r' %s.s$^{-1}$' %(self.cv_output_unit), fontsize=16)
-                fig.text(0.65, 0.44, r'$k_{F} = A \frac{e^{-\beta\cdot F(q_{TS})}}{Z_{R} } =\ $ ' +format_scientific(k_forward*second)  + r' s$^{-1}$', fontsize=16)
-                fig.text(0.65, 0.38, r'$k_{B} = A \frac{e^{-\beta\cdot F(q_{TS})}}{Z_{P} } =\ $ ' +format_scientific(k_backward*second) + r' s$^{-1}$', fontsize=16)
-                fig.text(0.65, 0.30, r'\textit{Phenomenological barrier}', fontsize=16)
-                fig.text(0.65, 0.28, '-------------------------------------', fontsize=16)
-                fig.text(0.65, 0.22, r'$k = \frac{k_B T}{h}e^{-\beta\cdot\Delta F}$', fontsize=16)
-                fig.text(0.65, 0.18, r'$\Delta F_{F}  = %.3f\ \ $ kJ.mol$^{-1}$' %(dF_forward/kjmol), fontsize=16)
-                fig.text(0.65, 0.14, r'$\Delta F_{B}  = %.3f\ \ $ kJ.mol$^{-1}$' %(dF_backward/kjmol), fontsize=16)
+                if k_for_dist is None:
+                    fig.text(0.65, 0.50, r'\textit{Kinetic properties}', fontsize=16)
+                    fig.text(0.65, 0.48, '-------------------------------------', fontsize=16)
+                    fig.text(0.65, 0.44, r'$A     = $ %s $ %s.s^{-1}$' %(format_scientific(A/(parse_unit(self.cv_output_unit)/second)), self.cv_output_unit), fontsize=16)
+                    fig.text(0.65, 0.40, r'$k_{F} = $ %s $ s^{-1}$' %(format_scientific(k_for*second)), fontsize=16)
+                    fig.text(0.65, 0.36, r'$k_{B} = $ %s $ s^{-1}$' %(format_scientific(k_back*second)), fontsize=16)
+                    fig.text(0.65, 0.32, r'\textit{Phenomenological barrier}'   , fontsize=16)
+                    fig.text(0.65, 0.28, '-------------------------------------', fontsize=16)
+                    fig.text(0.65, 0.24, r'$\Delta F_{F}  = %.3f\ \ $ %s' %(dF_for/parse_unit(self.f_output_unit),self.f_output_unit), fontsize=16)
+                    fig.text(0.65, 0.20, r'$\Delta F_{B}  = %.3f\ \ $ %s' %(dF_back/parse_unit(self.f_output_unit),self.f_output_unit), fontsize=16)
+                else:
+                    fig.text(0.65, 0.48, r'\textit{Kinetic properties}', fontsize=16)
+                    fig.text(0.65, 0.46, '-------------------------------------', fontsize=16)
+                    fig.text(0.65, 0.42, r'$A     = $ %s' %A_dist.print(unit=Aunit, do_scientific=True), fontsize=16)
+                    fig.text(0.65, 0.38, r'$k_{F} = $ %s' %k_for_dist.print(unit='1/s', do_scientific=True), fontsize=16)
+                    fig.text(0.65, 0.34, r'$k_{B} = $ %s' %k_back_dist.print(unit='1/s', do_scientific=True), fontsize=16)
+                    fig.text(0.65, 0.28, r'\textit{Phenomenological barrier}'   , fontsize=16)
+                    fig.text(0.65, 0.26, '-------------------------------------', fontsize=16)
+                    fig.text(0.65, 0.22, r'$\Delta F_{F}  = $ %s' %dF_for_dist.print(unit=self.f_output_unit), fontsize=16)
+                    fig.text(0.65, 0.18, r'$\Delta F_{B}  = $ %s' %dF_back_dist.print(unit=self.f_output_unit), fontsize=16)
             else:
-                fig.text(0.65, 0.58, 'Kinetic properties', fontsize=16)
-                fig.text(0.65, 0.56, '-------------------------------------', fontsize=16)
-                fig.text(0.65, 0.50, 'A  = ' + format_scientific(rate.A/(parse_unit(self.cv_output_unit)/second)) + r' %s/s' %(self.cv_output_unit), fontsize=16)
-                fig.text(0.65, 0.44, 'kF = A exp(-F(q_TS)/kT)/ZR = ' +format_scientific(k_forward*second)  + r' 1/s', fontsize=16)
-                fig.text(0.65, 0.38, 'kB = A exp(-F(q_TS)/kT)/ZP = ' +format_scientific(k_backward*second) + r' 1/s', fontsize=16)
-                fig.text(0.65, 0.30, 'Phenomenological barrier', fontsize=16)
-                fig.text(0.65, 0.28, '-------------------------------------', fontsize=16)
-                fig.text(0.65, 0.22, 'k = kT/h exp(-dF/kT)', fontsize=16)
-                fig.text(0.65, 0.18, 'dF_F = %.3f kJ/mol' %(dF_forward/kjmol), fontsize=16)
-                fig.text(0.65, 0.14, 'dF_B = %.3f kJ/mol' %(dF_backward/kjmol), fontsize=16)
+                if k_for_dist is None:
+                    fig.text(0.65, 0.48, 'Kinetic properties', fontsize=16)
+                    fig.text(0.65, 0.46, '-------------------------------------', fontsize=16)
+                    fig.text(0.65, 0.42, 'A  = %s %s/s' %(format_scientific(rate.A/(parse_unit(self.cv_output_unit)/second)), self.cv_output_unit), fontsize=16)
+                    fig.text(0.65, 0.38, 'kF = %s 1/s' %(format_scientific(k_for*second)), fontsize=16)
+                    fig.text(0.65, 0.34, 'kB = %s 1/s' %(format_scientific(k_back*second)), fontsize=16)
+                    fig.text(0.65, 0.28, 'Phenomenological barrier', fontsize=16)
+                    fig.text(0.65, 0.26, '-------------------------------------'  , fontsize=16)
+                    fig.text(0.65, 0.22, 'dF_F = %.3f %s' %(dF_for/parse_unit(self.f_output_unit),self.f_output_unit) , fontsize=16)
+                    fig.text(0.65, 0.18, 'dF_B = %.3f %s' %(dF_back/parse_unit(self.f_output_unit),self.f_output_unit), fontsize=16)
+                else:
+                    fig.text(0.65, 0.48, 'Kinetic properties', fontsize=16)
+                    fig.text(0.65, 0.46, '-------------------------------------', fontsize=16)
+                    fig.text(0.65, 0.42, 'A  = %s' %A_dist.print(unit='1e12*%s' %Aunit), fontsize=16)
+                    fig.text(0.65, 0.38, 'kF = %s' %k_for_dist.print(unit='1e8/s'), fontsize=16)
+                    fig.text(0.65, 0.34, 'kB = %s' %k_back_dist.print(unit='1e8/s'), fontsize=16)
+                    fig.text(0.65, 0.28, 'Phenomenological barrier', fontsize=16)
+                    fig.text(0.65, 0.26, '-------------------------------------'  , fontsize=16)
+                    fig.text(0.65, 0.22, 'dF_F = %s' %dF_for_dist.print(unit=self.f_output_unit), fontsize=16)
+                    fig.text(0.65, 0.18, 'dF_B = %s' %dF_back_dist.print(unit=self.f_output_unit), fontsize=16)
         #save
         fig.set_size_inches(fig_size)
         pp.savefig(fn)
         return
 
 
+
+
 class FreeEnergySurface2D(object):
-    def __init__(self, cv1s, cv2s, fs, temp, fupper=None, flower=None, cv1_output_unit='au', cv2_output_unit='au', f_output_unit='kjmol', cv1_label='CV1', cv2_label='CV2'):
+    def __init__(self, cv1s, cv2s, fs, temp, error=None, cv1_output_unit='au', cv2_output_unit='au', f_output_unit='kjmol', cv1_label='CV1', cv2_label='CV2'):
         '''
             Class implementing a 2D free energy surface F(cv1,cv2) (stored in self.fs) as function of two collective variables (CV) denoted by cv1 (stored in self.cv1s) and cv2 (stored in self.cv2s).
 
@@ -866,17 +763,14 @@ class FreeEnergySurface2D(object):
             :param cv2s: array the values for the second collective variable CV2 in atomic units.
             :type cv2s: np.ndarray
 
-            :param fs: 2D array containing the free energy values corresponding to the given values of CV1 and CV2  in atomic units. 
+            :param fs: 2D array containing the free energy values corresponding to the given values of CV1 and CV2 in xy indexing in atomic units. 
             :type fs: np.ndarray
 
             :param temp: temperature at which the free energy is given in atomic units.
             :type temp: float
 
-            :param fupper: upper value of error bar on free energy in atomic units.
-            :type fupper: np.ndarray
-
-            :param flower: lower value of error bar on free energy in atomic units.
-            :type flower: np.ndarray
+            :param error: error distribution on the free energy profile, defaults to None
+            :type error: Distribution child class, optional
 
             :param cv1_output_unit: unit in which the CV1 values will be printed/plotted, not the unit in which the input array is given (which is assumed to be atomic units). Units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_.
             :type cv1_output_unit: str, optional, defaults to 'au'
@@ -896,26 +790,29 @@ class FreeEnergySurface2D(object):
         self.cv1s = cv1s.copy()
         self.cv2s = cv2s.copy()
         self.fs   = fs.copy()
-        if fupper is not None:
-            self.fupper = fupper.copy()
-        else:
-            self.fupper = None
-        if flower is not None:
-            self.flower = flower.copy()
-        else:
-            self.flower = None
+        self.error = None
+        if error is not None:
+            self.error = error.copy()
         self.T = temp
         self.cv1_output_unit = cv1_output_unit
         self.cv2_output_unit = cv2_output_unit
         self.f_output_unit = f_output_unit
         self.cv1_label = cv1_label
         self.cv2_label = cv2_label
-        self.compute_probdens()
 
-    def _beta(self):
+    def flower(self, nsigma=2):
+        assert self.error is not None, 'Flower cannot be computed because no error distribution was defined in the error attribute'
+        flower, fupper = self.error.nsigma_conf_int(nsigma)
+        return flower
+
+    def fupper(self, nsigma=2):
+        assert self.error is not None, 'Fupper cannot be computed because no error distribution was defined in the error attribute'
+        flower, fupper = self.error.nsigma_conf_int(nsigma)
+        return fupper
+
+    @property
+    def beta(self):
         return 1.0/(boltzmann*self.T)
-
-    beta = property(_beta)
 
     def copy(self):
         '''
@@ -936,7 +833,7 @@ class FreeEnergySurface2D(object):
         return fes
 
     @classmethod
-    def from_txt(cls, fn, temp, cv1_col=0, cv2_col=1, f_col=2, cv1_input_unit='au', cv1_output_unit='au', cv2_input_unit='au', cv2_output_unit='au', f_output_unit='kjmol', f_input_unit='kjmol', cv1_label='CV1', cv2_label='CV2', cv1_range=None, cv2_range=None, delimiter=None, verbose=False):
+    def from_txt(cls, fn, temp, cv1_col=0, cv2_col=1, f_col=2, cv1_input_unit='au', cv1_output_unit='au', cv2_input_unit='au', cv2_output_unit='au', f_output_unit='kjmol', f_input_unit='kjmol', cv1_label='CV1', cv2_label='CV2', delimiter=None, verbose=False):
         '''
             Read the free energy surface on a 2D grid as function of two collective variables from a txt file. 
 
@@ -978,12 +875,6 @@ class FreeEnergySurface2D(object):
 
             :param cv2_label: the label for the CV2 axis in plots, defaults to 'CV2'
             :type cv2_label: str, optional, default='CV2'
-
-            :param cv1_range: [CVmin,CVmax] indicating to only read free energy for which the first CV in the given range
-            :type cv1_range: tuple/list, optional, default=None
-
-            :param cv2_range: [CVmin,CVmax] indicating to only read free energy for which the second CV in the given range
-            :type cv2_range: tuple/list, optional, default=None
 
             :param delimiter: the delimiter used in the numpy input file, this argument is parsed to the numpy.loadtxt routine.
             :type delimiter: str, optional, default=None
@@ -1039,16 +930,18 @@ class FreeEnergySurface2D(object):
             :return: free energy profile corresponding to the estimated probability histogram
             :rtype: cls
         '''
-        fupper = None
-        flower = None
         fs = np.zeros(histogram.ps.shape)*np.nan
         fs[histogram.ps>0] = -boltzmann*temp*np.log(histogram.ps[histogram.ps>0])
-        if histogram.pupper is not None and histogram.plower is not None:
-            fupper = np.zeros(histogram.ps.shape)*np.nan
-            flower = np.zeros(histogram.ps.shape)*np.nan
-            fupper[histogram.plower>0] = -boltzmann*temp*np.log(histogram.plower[histogram.plower>0])
-            flower[histogram.pupper>0] = -boltzmann*temp*np.log(histogram.pupper[histogram.pupper>0])
-        return cls(histogram.cv1s, histogram.cv2s, fs, temp, fupper=fupper, flower=flower, cv1_output_unit=histogram.cv1_output_unit, cv2_output_unit=histogram.cv2_output_unit, cv1_label=histogram.cv1_label, cv2_label=histogram.cv2_label)
+        error = None
+        if histogram.error is not None:
+            beta = 1.0/(boltzmann*temp)
+            def function(ps):
+                result = np.zeros(ps.shape)*np.nan
+                result[ps>0] = -np.log(ps[ps>0])/beta
+                return result
+            propagator = Propagator(ncycles=histogram.error.ncycles)
+            error = propagator(function, histogram.error)
+        return cls(histogram.cv1s, histogram.cv2s, fs, temp, error=error, cv1_output_unit=histogram.cv1_output_unit, cv2_output_unit=histogram.cv2_output_unit, cv1_label=histogram.cv1_label, cv2_label=histogram.cv2_label)
 
     def savetxt(self, fn_txt):
         '''
@@ -1057,16 +950,6 @@ class FreeEnergySurface2D(object):
         header = '%s [%s]\t %s [%s]\t Free energy [%s]' %(self.cv1_label, self.cv1_output_unit,self.cv2_label, self.cv2_output_unit, self.f_output_unit)
         xv,yv = np.meshgrid(self.cv1s,self.cv2s)
         np.savetxt(fn_txt, np.vstack((yv.flatten()/parse_unit(self.cv1_output_unit),xv.flatten()/parse_unit(self.cv2_output_unit), self.fs.flatten()/parse_unit(self.f_output_unit))).T, header=header,fmt='%f')
-
-    def compute_probdens(self):
-        '''
-            Compute the probability density profile associated with the free energy profile as given below and store internally in `self.ps`
-
-            .. math:: p(q) = \\frac{\\exp\\left(-\\beta F(q)\\right)}{\\int_{-\\infty}^{+\\infty}\\exp\\left(-\\beta F(q)\\right)dq}
-        '''
-        self.ps = np.exp(-self.beta*self.fs)
-        self.ps[np.isnan(self.ps)] = 0.0
-        self.ps /= integrate2d(self.ps, x=self.cv1s, y=self.cv2s)
 
     def set_ref(self, ref='min'):
         '''
@@ -1077,15 +960,17 @@ class FreeEnergySurface2D(object):
             
             :raises IOError: invalid value for keyword argument ref is given. See doc above for choices.
         '''
+        #find reference
         if ref.lower() in ['m', 'min']:
-            fref = self.fs[~np.isnan(self.fs)].min()
+            data = self.fs.copy()
+            data[np.isnan(data)] = np.inf
+            index = np.unravel_index(np.argmin(data), data.shape)
         else:
             raise IOError('Invalid REF specification, recieved %s and should be min' %ref)
-        self.fs -= fref
-        if self.fupper is not None:
-            self.fupper -= fref
-        if self.flower is not None:
-            self.flower -= fref
+        #set reference
+        self.fs -= self.fs[index]
+        if self.error is not None:
+            self.error.set_ref(index=index)
 
     def detect_clusters(self, eps=1.5, min_samples=8, metric='euclidean', fn_plot=None, delete_clusters=[-1]):
         '''
@@ -1158,7 +1043,6 @@ class FreeEnergySurface2D(object):
             cluster = data[labels==dlabel]
             for i1,i2 in cluster:
                 self.fs[i2,i1] = np.nan
-            self.compute_probdens()
 
     def crop(self, cv1range=None, cv2range=None, return_new_fes=False):
         '''
@@ -1199,7 +1083,6 @@ class FreeEnergySurface2D(object):
             self.cv1s = cv1s.copy()
             self.cv2s = cv2s.copy()
             self.fs = fs.copy()
-            self.compute_probdens()
 
     def rotate(self, interpolate=True):
         '''
@@ -1224,6 +1107,8 @@ class FreeEnergySurface2D(object):
             :return: rotated free energy surface
             :rtype: FreeEnergySurface2D
         '''
+        raise NotImplementedError('Rotate function not yet implemented')
+        #TODO: code below is from previous ThermoLIB version, needs to be updated with respect to error propagation
         #First make unique list of us and vs
         print('Making unique arrays for u=0.5*(cv1+cv2) and v=cv2-cv1')
         us = []
@@ -1298,57 +1183,7 @@ class FreeEnergySurface2D(object):
             v_unit = 'au'
         return FreeEnergySurface2D(vs, us, fs, self.T, fupper=fupper, flower=flower, cv1_output_unit=v_unit, cv2_output_unit=u_unit, f_output_unit=self.f_output_unit, cv1_label='CV2-CV1', cv2_label='0.5*(CV1+CV2)')
 
-    def transform(self, function, derivative=None, Q1_label='Q1', Q2_label='Q2', Q1_output_unit='au', Q2_output_unit='au'):
-        '''
-            Routine to transform the current free energy surface in terms of the original (CV1,CV2) towards a free energy profile in terms of the new collective variables (Q1,Q2).
-
-            :param function: The transformation function (Q1,Q2) = f_1(CV1,CV2),f_2(CV1,CV2)
-            :type function: callable
-
-            :param derivative: The analytical derivative of the transformation function, i.e. the Jacobian J = [[J_11(CV1,CV2),J_12(CV1,CV2)],[J_21(CV1,CV2),J_22(CV1,CV2)]] given by J_mn(CV1,CV2) = df_m/dCV_n. If set to None, the derivative will be estimated through numerical differentiation. Defaults to None
-            :type derivative: np.array(callable), optional
-
-            :param Q1_label: The label of the new collective variable Q1 used in plotting etc, defaults to 'Q1'
-            :type Q1_label: str, optional
-
-            :param Q2_label: The label of the new collective variable Q2 used in plotting etc, defaults to 'Q2'
-            :type Q2_label: str, optional
-
-            :param Q1_output_unit: The unit of the new collective variable Q1 used in plotting and printing, defaults to 'au'
-            :type Q1_output_unit: str, optional
-
-            :param Q2_output_unit: The unit of the new collective variable Q2 used in plotting and printing, defaults to 'au'
-            :type Q2_output_unit: str, optional
-
-            :return: transformed free energy surface
-            :rtype: the same class as the instance this routine is called upon
-        '''
-        raise NotImplementedError
-        #TODO: not tested yet!
-        f1,f2 = function
-        q1s, q2s = f1(self.cv1s,self.cv2s), f2(self.cv1s,self.cv2s)
-        if derivative is None:
-            eps = min(qs[1:]-qs[:-1])*0.001
-            def J11(cv1,cv2):
-                return (f1(cv1+eps/2,cv2)-f1(cv1-eps/2,cv2))/eps
-            def J12(cv1,cv2):
-                return (f1(cv1,cv2+eps/2)-f1(cv1,cv2-eps/2))/eps
-            def J21(cv1,cv2):
-                return (f2(cv1+eps/2,cv2)-f2(cv1-eps/2,cv2))/eps
-            def J22(cv1,cv2):
-                return (f2(cv1,cv2+eps/2)-f2(cv1,cv2-eps/2))/eps
-            def jacobian(cv1,cv2):
-                raise NotImplementedError
-        dfs = derivative(qs)
-        fs = self.fs - np.log(dfs)/self.beta
-        fupper, flower = None, None
-        if self.fupper is not None:
-            fupper = self.fupper - np.log(dfs)/self.beta
-        if self.flower is not None:
-            flower = self.flower - np.log(dfs)/self.beta
-        return self.__class__(qs, fs, self.T, fupper=fupper, flower=flower, cv_output_unit=cv_output_unit, f_output_unit=self.f_output_unit, cv_label=cv_label)
-
-    def project_difference(self, sign=1, cv_output_unit='au', return_class=BaseFreeEnergyProfile):
+    def project_difference(self, sign=1, cv_output_unit='au', return_class=BaseFreeEnergyProfile, error_estimate='propdist'):
         '''
             Construct a 1D free energy profile representing the projection of the 2D FES onto the difference of collective variables:
 
@@ -1390,9 +1225,9 @@ class FreeEnergySurface2D(object):
                 if (abs(np.array(cvs)-q)>1e-6).all():
                     cvs.append(q)
         cvs = np.array(sorted(cvs))
-        return self.project_function(function, cvs, cv_label=cv_label, cv_output_unit=cv_output_unit, return_class=return_class)
+        return self.project_function(function, cvs, cv_label=cv_label, cv_output_unit=cv_output_unit, return_class=return_class, error_estimate=error_estimate)
 
-    def project_average(self, cv_output_unit='au', return_class=BaseFreeEnergyProfile):
+    def project_average(self, cv_output_unit='au', return_class=BaseFreeEnergyProfile, error_estimate='propdist'):
         '''
             Construct a 1D free energy profile representing the projection of the 2D FES F2(CV1,CV2) onto the average q=(CV1+CV2)/2 of the collective variables:
 
@@ -1420,9 +1255,9 @@ class FreeEnergySurface2D(object):
         cvs = np.array(sorted(cvs))
         def function(q1,q2):
             return 0.5*(q1+q2)
-        return self.project_function(function, cvs, cv_label='0.5*(%s+%s)' %(self.cv1_label,self.cv1_label), cv_output_unit=cv_output_unit, return_class=return_class)
+        return self.project_function(function, cvs, cv_label='0.5*(%s+%s)' %(self.cv1_label,self.cv1_label), cv_output_unit=cv_output_unit, return_class=return_class, error_estimate=error_estimate)
 
-    def project_cv1(self, return_class=BaseFreeEnergyProfile):
+    def project_cv1(self, return_class=BaseFreeEnergyProfile, error_estimate='propdist'):
         '''
             Construct a 1D free energy profile representing the projection of the 2D FES F2(CV1,CV2) onto q=CV1. This is implemented as follows:
 
@@ -1436,9 +1271,9 @@ class FreeEnergySurface2D(object):
         '''
         def function(q1,q2):
             return q1
-        return self.project_function(function, self.cv1s.copy(), cv_label=self.cv1_label, cv_output_unit=self.cv1_output_unit, return_class=return_class)
+        return self.project_function(function, self.cv1s.copy(), cv_label=self.cv1_label, cv_output_unit=self.cv1_output_unit, return_class=return_class, error_estimate=error_estimate)
 
-    def project_cv2(self, return_class=BaseFreeEnergyProfile):
+    def project_cv2(self, return_class=BaseFreeEnergyProfile, error_estimate='propdist'):
         '''
             Construct a 1D free energy profile representing the projection of the 2D FES F2(CV1,CV2) onto q=CV2. This is implemented as follows:
 
@@ -1452,9 +1287,9 @@ class FreeEnergySurface2D(object):
         '''
         def function(q1,q2):
             return q2
-        return self.project_function(function, self.cv2s.copy(), cv_label=self.cv2_label, cv_output_unit=self.cv2_output_unit, return_class=return_class)
+        return self.project_function(function, self.cv2s.copy(), cv_label=self.cv2_label, cv_output_unit=self.cv2_output_unit, return_class=return_class, error_estimate=error_estimate)
 
-    def project_function(self, function, cvs, delta=1e-3, cv_label='CV', cv_output_unit='au', return_class=BaseFreeEnergyProfile):
+    def project_function(self, function, cvs, delta=1e-3, cv_label='CV', cv_output_unit='au', return_class=BaseFreeEnergyProfile, error_estimate='propdist'):
         '''
             Routine to implement the general projection of a 2D FES onto a collective variable defined by the given function (which takes the original two CVs as arguments).
 
@@ -1475,6 +1310,9 @@ class FreeEnergySurface2D(object):
 
             :param return_class: The class of which an instance will finally be returned
             :type return_class: python class object, optional, default=BaseFreeEnergyProfile
+
+            :param error_estimate: Specify the method of error propagation, either by propagating the FES distribution samples (propdist) or by propagating the FES 2 sigma confidence interval (prop2sigma), defaults to propdist
+            :type error_estimate: str, optional
 
             :returns: projected 1D free energy profile
             :rtype: see return_class argument
@@ -1498,22 +1336,26 @@ class FreeEnergySurface2D(object):
             fqs[pqs>0] = -np.log(pqs[pqs>0])/self.beta
             return fqs
         fs = project(self.fs)
-        flower, fupper = None, None
-        if self.fupper is not None:
-            fupper = project(self.fupper)
-        if self.flower is not None:
-            flower = project(self.flower)
-        return return_class(cvs, fs, self.T, fupper=fupper, flower=flower, cv_output_unit=cv_output_unit, f_output_unit=self.f_output_unit, cv_label=cv_label)
+        error = None
+        if self.error is not None:
+            if error_estimate.lower()=='propdist':
+                propagator = Propagator(ncycles=self.error.ncycles)
+                error = propagator(project, self.error)
+            elif error_estimate.lower()=='prop2sigma':
+                flower = project(self.flower())
+                fupper = project(self.fupper())
+                ferr = (fupper-flower)/4
+                error = GaussianDistribution(fs, ferr)
+            else:
+                raise NotImplementedError('Unsupported method for error estimation, received %s but should be propdist or prop2sigma.')
+        return return_class(cvs, fs, self.T, error=error, cv_output_unit=cv_output_unit, f_output_unit=self.f_output_unit, cv_label=cv_label)
 
-    def plot(self, fn_png, obs='F', cv1_lims=None, cv2_lims=None, lims=None, ncolors=8, scale='lin'):
+    def plot(self, fn, cv1_lims=None, cv2_lims=None, lims=None, ncolors=8, scale='lin', plot_additional_function_contours=None):
         '''
             Simple routine to make a 2D contour plot of either the free energy F or probability distribution P as specified in ``obs``. The values of the CVs and the free energy will be plotted in units specified by the CV1_output_unit, CV2_output_unit and f_output_unit attributes of the self instance.
 
-            :param fn_png: File name to write the plot to. The extension determines the format (PNG or PDF).
-            :type fn_png: str
-
-            :param obs: Specification which observable should be plotted, should be 'F' for free energy or 'P' for probability.
-            :type obs: str, optional, choices=('F','P'), default='F'
+            :param fn: File name to write the plot to. The extension determines the format (PNG or PDF).
+            :type fn: str
 
             :param cv1_lims: range defining the plot limits of CV1
             :type cv1_lims: tupple/list, optional, default=None
@@ -1527,22 +1369,19 @@ class FreeEnergySurface2D(object):
             :param ncolors: number of different colors included in contour plot
             :type ncolors: int, optional, default=8
 
-            :param scale: scal for the observable, should be 'lin' for linear or 'log' for logarithmic.
+            :param scale: scale for the observable, should be 'lin' for linear or 'log' for logarithmic.
             :type scale: str, optional, choices=('lin', 'log'), default='lin'
+
+            :param plot_additional_function_contours: a list of a function (first element) and array of its corresponding contour values (second element) to plot on top of the FES, defaults to None
+            :type plot_additional_function_contours: list, optional
 
             :raises IOError: if invalid observable is given, see doc above for possible choices.
 
             :raises IOError: if invalid scale is given, see doc above for possible choices.
         '''
         pp.clf()
-        if obs.lower() in ['f', 'free energy']:
-            obs = self.fs/parse_unit(self.f_output_unit)
-            label = 'Free energy [%s]' %self.f_output_unit
-        elif obs.lower() in ['p', 'probability']:
-            obs = self.ps*(parse_unit(self.cv1_output_unit)*parse_unit(self.cv2_output_unit))
-            label = r'Probability density [(%s*%s)$^{-1}$]' %(self.cv1_output_unit, self.cv2_output_unit)
-        else:
-            raise IOError('Recieved invalid observable. Should be f, free energy, p or probability but got %s' %obs)
+        obs = self.fs/parse_unit(self.f_output_unit)
+        label = 'Free energy [%s]' %self.f_output_unit
         plot_kwargs = {}
         if lims is None:
             lims = [min(obs[~np.isnan(obs)]), max(obs[~np.isnan(obs)])]
@@ -1557,6 +1396,17 @@ class FreeEnergySurface2D(object):
                 raise IOError('recieved invalid scale value, got %s, should be lin or log' %scale)
         contourf = pp.contourf(self.cv1s/parse_unit(self.cv1_output_unit), self.cv2s/parse_unit(self.cv2_output_unit), obs, cmap=pp.get_cmap('rainbow'), **plot_kwargs)
         contour = pp.contour(self.cv1s/parse_unit(self.cv1_output_unit), self.cv2s/parse_unit(self.cv2_output_unit), obs, **plot_kwargs)
+        if plot_additional_function_contours is not None:
+            assert isinstance(plot_additional_function_contours, list), 'plot_additional_function_contours should be list of two elements'
+            assert len(plot_additional_function_contours)==2, 'plot_additional_function_contours should be list of two elements'
+            assert callable(plot_additional_function_contours[0]), 'First element of plot_additional_function_contours should be callable'
+            assert isinstance(plot_additional_function_contours[1], list), 'Second element of plot_additional_function_contours should be list of contour values'
+            function, levels = plot_additional_function_contours
+            print(levels)
+            CV1s, CV2s = np.meshgrid(self.cv1s, self.cv2s)
+            pp.contour(CV1s/parse_unit(self.cv1_output_unit), 
+                       CV2s/parse_unit(self.cv2_output_unit), 
+                       function(CV1s,CV2s), levels=levels)
         if cv1_lims is not None:
             pp.xlim(cv1_lims)
         if cv2_lims is not None:
@@ -1568,20 +1418,20 @@ class FreeEnergySurface2D(object):
         pp.clabel(contour, inline=1, fontsize=10)
         fig = pp.gcf()
         fig.set_size_inches([12,8])
-        pp.savefig(fn_png)
+        pp.savefig(fn)
 
-def plot_feps(fn, feps, temp=None, labels=None, flims=None, colors=None, linestyles=None, linewidths=None, do_latex=False):
+
+
+
+def plot_profiles(fn, profiles, labels=None, flims=None, colors=None, linestyles=None, linewidths=None, do_latex=False):
     '''
         Make a plot to compare multiple free energy profiles
 
         :param fn: file name to write the figure to, the extension determines the format (PNG or PDF).
         :type fn: str
 
-        :param feps: list of free energy profiles to plot
-        :type feps: list(BaseFreeEnergyProfile)
-
-        :param temp: if temp is defined, an additional pane will be added to the plot containing the corresponding histograms at the specified temperature.
-        :type temp: float, optional, default=None
+        :param profiles: list of  profiles to plot
+        :type profiles: list(BaseProfile)
         
         :param labels: list of labels for the legend, one for each histogram.
         :type labels: list(str), optional, default=None
@@ -1599,54 +1449,43 @@ def plot_feps(fn, feps, temp=None, labels=None, flims=None, colors=None, linesty
 		:type linewidths: List(str), optional
     '''
     rc('text', usetex=do_latex)
-    if temp is not None:
-        from .histogram import Histogram1D
     #initialize
     linewidth_default = 2
     linestyle_default = '-'
     pp.clf()
-    if temp is None:
-        fig, axs = pp.subplots(nrows=1, ncols=1, squeeze=False)
-    else:
-        fig, axs = pp.subplots(nrows=1, ncols=2, squeeze=False)
+    fig, axs = pp.subplots(nrows=1, ncols=1, squeeze=False)
     cmap = cm.get_cmap('tab10')
-    cv_unit, f_unit = feps[0].cv_output_unit, feps[0].f_output_unit
-    cv_label = feps[0].cv_label
+    cv_unit, f_unit = profiles[0].cv_output_unit, profiles[0].f_output_unit
+    cv_label = profiles[0].cv_label
     fmax = -np.inf
     #add free energy plots and possibly probability histograms
-    for ifep, fep in enumerate(feps):
-        label = 'FEP %i' %ifep
+    for iprof, prof in enumerate(profiles):
+        label = 'FEP %i' %iprof
         if labels is not None:
-            label = labels[ifep]
+            label = labels[iprof]
         #set color, linestyles, ...
         color = None
         if colors is not None:
-            color = colors[ifep]
+            color = colors[iprof]
         if color is None:
-            color = cmap(ifep)
+            color = cmap(iprof)
         linewidth = None
         if linewidths is not None:
-            linewidth = linewidths[ifep]
+            linewidth = linewidths[iprof]
         if linewidth is None:
             linewidth = linewidth_default
         linestyle = None
         if linestyles is not None:
-            linestyle = linestyles[ifep]
+            linestyle = linestyles[iprof]
         if linestyle is None:
             linestyle = linestyle_default
         #plot free energy
-        fmax = max(fmax, np.ceil(max(fep.fs[~np.isnan(fep.fs)]/kjmol)/10)*10)
-        axs[0,0].plot(fep.cvs/parse_unit(cv_unit), fep.fs/parse_unit(f_unit), linewidth=linewidth, linestyle=linestyle, color=color, label=label)
-        if fep.flower is not None and fep.fupper is not None:
-            axs[0,0].fill_between(fep.cvs/parse_unit(cv_unit), fep.flower/parse_unit(f_unit), fep.fupper/parse_unit(f_unit), color=color, alpha=0.33)
-        #histogram if requested
-        if temp is not None:
-            hist = Histogram1D.from_fep(fep, temp)
-            axs[0,1].plot(hist.cvs/parse_unit(cv_unit), hist.ps, linewidth=linewidth, color=color, linestyle=linestyle, label=label)
-            if hist.plower is not None and hist.pupper is not None:
-                axs[0,1].fill_between(hist.cvs/parse_unit(cv_unit), hist.plower, hist.pupper, color=color, alpha=0.33)
+        fmax = max(fmax, np.ceil(max(prof.fs[~np.isnan(prof.fs)]/kjmol)/10)*10)
+        axs[0,0].plot(prof.cvs/parse_unit(cv_unit), prof.fs/parse_unit(f_unit), linewidth=linewidth, linestyle=linestyle, color=color, label=label)
+        if prof.error is not None:
+            axs[0,0].fill_between(prof.cvs/parse_unit(cv_unit), prof.flower()/parse_unit(f_unit), prof.fupper()/parse_unit(f_unit), color=color, alpha=0.33)
     #decorate
-    cv_range = [min(feps[0].cvs/parse_unit(cv_unit)), max(feps[0].cvs/parse_unit(cv_unit))]
+    cv_range = [min(profiles[0].cvs/parse_unit(cv_unit)), max(profiles[0].cvs/parse_unit(cv_unit))]
     axs[0,0].set_xlabel('%s [%s]' %(cv_label, cv_unit), fontsize=14)
     axs[0,0].set_ylabel('F [%s]' %f_unit, fontsize=14)
     axs[0,0].set_title('Free energy profile', fontsize=14)
@@ -1657,15 +1496,11 @@ def plot_feps(fn, feps, temp=None, labels=None, flims=None, colors=None, linesty
     else:
         axs[0,0].set_ylim(flims)
     axs[0,0].legend(loc='best')
-    if temp is not None:
-        axs[0,1].set_xlabel('%s [%s]' %(cv_label, cv_unit), fontsize=14)
-        axs[0,1].set_ylabel('Probability [-]', fontsize=14)
-        axs[0,1].set_title('Probability histogram)', fontsize=14)
-        axs[0,1].set_xlim(cv_range)
-        axs[0,1].legend(loc='best')
     #save
-    if temp is not None:
-        fig.set_size_inches([16,8])
-    else:
-        fig.set_size_inches([8,8])
+    fig.set_size_inches([8,8])
     pp.savefig(fn)
+
+#an alias for backward compatibility
+def plot_feps(fn, feps, temp, labels=None, flims=None, colors=None, linestyles=None, linewidths=None, do_latex=False):
+    print('WARNING: plot_feps is a depricated routine, use plot_profiles instead. Current plot_feps routine is just an alias that ignores temp argument from now on.')
+    plot_profiles(fn, feps, labels=labels, flims=flims, colors=colors, linestyles=linestyles, linewidths=linewidths, do_latex=do_latex)

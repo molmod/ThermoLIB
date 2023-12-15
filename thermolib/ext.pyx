@@ -12,6 +12,8 @@
 #
 #cython: embedsignature=True
 
+from thermolib.error import GaussianDistribution, LogGaussianDistribution
+
 from molmod.units import parse_unit
 
 import matplotlib.pyplot as pp
@@ -158,7 +160,7 @@ def wham1d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=2] Hs, np.ndarray[dou
 
 def wham1d_error(int Nsims, int Ngrid, np.ndarray[long] Nis, np.ndarray[double] ps, np.ndarray[double] fs, np.ndarray[double, ndim=2] bs, method='mle_f', int nsigma=2):
     cdef np.ndarray[double, ndim=2] I, Ii, Imask, sigma
-    cdef np.ndarray[double] perr, plower, pupper
+    cdef np.ndarray[double] err, logps
     cdef np.ndarray[np.uint8_t, ndim=2] mask
     cdef int i, k
     cdef long Nmask2, Nmask
@@ -204,17 +206,17 @@ def wham1d_error(int Nsims, int Ngrid, np.ndarray[long] Nis, np.ndarray[double] 
     sigma = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])*np.nan
     sigma[mask] = np.linalg.inv(Imask).reshape([Nmask2])
     #the error bar on the probability of bin k is now simply the (k,k)-diagonal element of sigma
-    perr = np.sqrt(np.diagonal(sigma)[:Ngrid])
+    err = np.sqrt(np.diagonal(sigma)[:Ngrid])
     if method in ['mle_p']:
-        plower = ps - nsigma*perr
-        plower[plower<0] = 0.0
-        pupper = ps + nsigma*perr
+        return GaussianDistribution(ps, err)
     elif method in ['mle_f']:
-        plower = ps*np.exp(-nsigma*perr)
-        pupper = ps*np.exp(nsigma*perr)
+        #if ps is LogNormal distributed, then the means argument of LogGaussianDistribution is log(ps). The error calculated by MLE-F represents the error on log(ps) so this can be fed directly to the LogGaussianDistribution err argument.
+        logps = np.zeros(Ngrid)*np.nan
+        logps[ps>0] = np.log(ps[ps>0])
+        return LogGaussianDistribution(logps, err)
     else:
         raise IOError('Recieved invalid argument for method, recieved %s. Check routine signiture for more information on allowed values.' %method)
-    return plower, pupper
+
 
 
 def wham2d_hs(int Nsims, int Ngrid1, int Ngrid2, np.ndarray[object] trajectories, np.ndarray[double] bins1, np.ndarray[double] bins2, np.ndarray[long] Nis):
@@ -319,12 +321,12 @@ def wham2d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=3] Hs, np.ndarray[dou
         if np.any(inverse_fs<overflow_threshold):
             new_sims_mask = (inverse_fs>=overflow_threshold)
             if not np.array_equiv(new_sims_mask,sims_mask):
-                sims_mask = new_sims_mask
+                sims_mask = new_sims_mask.copy()
                 # Recalculate nominator when sims_mask changes
                 nominator = Hs[sims_mask,:,:].sum(axis=0)
 
         #compute new probabilities
-        denominator = np.einsum('i,i,ikl->kl', Nis[sims_mask], 1.0/inverse_fs[sims_mask], bs[sims_mask])
+        denominator = np.einsum('i,i,ikl->kl', Nis[sims_mask], 1.0/inverse_fs[sims_mask], bs[sims_mask,:,:])
 
         # Calculate mask for grid
         if np.any(denominator<overflow_threshold):
@@ -361,7 +363,7 @@ def wham2d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=3] Hs, np.ndarray[dou
         for i in range(Ngrid1):
             lines += [["|"] + ["."]*Ngrid2 + ["|"]]
         for i,j in np.argwhere(~grid_mask):
-            lines[i][j+1]=" "
+            lines[i][j+1]="x"
         for line in lines:
             print("".join([s for s in line]))
 
@@ -371,7 +373,7 @@ def wham2d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=3] Hs, np.ndarray[dou
     return as_new, fs, converged
 
 
-def wham2d_error(np.ndarray[double, ndim=2] ps, np.ndarray[double] fs, np.ndarray[double, ndim=3] bs, np.ndarray[long] Nis,  method='mle_f', int nsigma=2, verbose=False):
+def wham2d_error(np.ndarray[double, ndim=2] ps, np.ndarray[double] fs, np.ndarray[double, ndim=3] bs, np.ndarray[long] Nis,  method='mle_f', verbose=False):
     '''
         Internal routine to compute the error associated with solving the 2D WHAM equations using the Fisher information coming from the Maximum Likelihood Estimator. The procedure is as follows:
 
@@ -400,17 +402,14 @@ def wham2d_error(np.ndarray[double, ndim=2] ps, np.ndarray[double] fs, np.ndarra
 
         :type method: str, optional, default='mle_f'
 
-        :param nsigma: specify the length of the error bar in terms of the number of sigmas. For example, a 2-sigma error bar (i.e. nsigma=2) would correspond to a 95% confidence interval.
-        :type nsimga: float, optional, default=2
-
-        :return: pupper, plower corresponding to the upper and lower value of the nsigma error bar
-        :rtype: np.ndarray, np.ndarray
+        :return: Error distribution estimated according to method
+        :rtype: Distribution, np.ndarray
     '''
     if verbose:
         print('  initializing ...')
     #initialization
     cdef np.ndarray[double, ndim=2] I, Ii, Imask, sigma
-    cdef np.ndarray[double, ndim=2] perr, plower, pupper
+    cdef np.ndarray[double, ndim=2] perr, logps
     cdef np.ndarray[np.uint8_t, ndim=2] mask
     cdef int Nsims = bs.shape[0]
     cdef int Ngrid1 = bs.shape[1]
@@ -507,17 +506,16 @@ def wham2d_error(np.ndarray[double, ndim=2] ps, np.ndarray[double] fs, np.ndarra
                 print('Got a negative sigma for grid point: ', k,l, sigma[K,K], ps[k,l])
             perr[k,l] = np.sqrt(-sigma[K,K])
 
+    #Use std error to define GaussianDistribution for MLE-P or LogGaussianDistribution for MLE-F
     if method in ['mle_p']:
-        plower = ps - nsigma*perr
-        plower[plower<0] = 0.0
-        pupper = ps + nsigma*perr
+        return GaussianDistribution(ps, perr)
     elif method in ['mle_f']:
-        plower = ps*np.exp(-nsigma*perr)
-        pupper = ps*np.exp(nsigma*perr)
+        #if ps is LogNormal distributed, then the means argument of LogGaussianDistribution is log(ps). The error calculated by MLE-F represents the error on log(ps) so this can be fed directly to the LogGaussianDistribution err argument.
+        logps = np.zeros([Ngrid1,Ngrid2])*np.nan
+        logps[ps>0] = np.log(ps[ps>0])
+        return LogGaussianDistribution(logps, perr)
     else:
         raise IOError('Recieved invalid argument for method, recieved %s. Check routine signature for more information on allowed values.' %method)
-
-    return pupper, plower
 
 def integrate_c(np.ndarray[double] xs, np.ndarray[double] ys):
     '''
