@@ -16,10 +16,12 @@ from molmod.io.xyz import XYZReader
 
 from ase.io import read
 
-from ..tools import integrate2d
+from ..tools import integrate2d, invert_fisher_to_covariance, fisher_matrix_mle_probdens
 from .fep import BaseProfile, BaseFreeEnergyProfile, FreeEnergySurface2D
-from ..error import Propagator, GaussianDistribution, LogGaussianDistribution
+from ..error import ncycles_default, Propagator, GaussianDistribution, LogGaussianDistribution, MultiGaussianDistribution, MultiLogGaussianDistribution, ErrorArray
 from .trajectory import CVComputer, ColVarReader
+from ..flatten import Flattener
+#from thermolib.ext import fisher_matrix_mle_probdens, invert_fisher_to_covariance
 
 import matplotlib.pyplot as pp
 from matplotlib import rc
@@ -27,6 +29,7 @@ rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 rc('text', usetex=True)
 
 import numpy as np
+np.seterr(divide='ignore', invalid='ignore')
 
 __all__ = ['ConditionalProbability1D1D', 'ConditionalProbability1D2D']
 
@@ -36,7 +39,7 @@ class ConditionalProbability(object):
         Class to compute conditional probabilities of the form :math:`p([qs]|[cvs])`, i.e. probability of finding states characterized with collective variables qs, on the condition that the states are also characterized by collective variables cvs. Such conditional probabiliy allows to convert a free energy surface (or profile if only one cv is given) in terms of the collective variables :math:`cvs` to a free energy surface (or profile if only one q is given) in terms of the collective variables :math:`qs`.
 
     '''
-    def __init__(self, nq, ncv, q_bins=20, cv_bins=20, q_labels=None, cv_labels=None, q_units=None, cv_units=None, verbose=False):
+    def __init__(self, nq, ncv, q_bins, cv_bins, q_labels=None, cv_labels=None, q_units=None, cv_units=None, verbose=False):
         '''
             :param nq: dimension of q-space
             :type nq: int
@@ -44,11 +47,7 @@ class ConditionalProbability(object):
             :param ncv: dimension of cv-space
             :type ncv: int
 
-            :param q_bins: bins for qs (see numpy.histogram, numpy.histogram2d and numpy.histogramnd for more information), defaults to 20 bins for each Q
-            :type q_bins: see numpy.histogram, numpy.histogram2d and numpy.histogramnd, optional
 
-            :param cv_bins: bins for cvs (see numpy.histogram, numpy.histogram2d and numpy.histogramnd for more information), defaults to 20 bins for each CV
-            :type cv_bins: see numpy.histogram, numpy.histogram2d and numpy.histogramnd, optional
 
             :param q_labels: list of labels (one for each q) to be used in plots or prints, defaults to ['Q1', ['Q2', [...]]]
             :type q_labels: list of strings, optional
@@ -64,8 +63,9 @@ class ConditionalProbability(object):
         '''
         self.nq = nq
         self.ncv = ncv
-        self.q_bins = q_bins
-        self.cv_bins = cv_bins
+        self._finished = False
+        self.verbose = verbose
+
         if q_labels is None:
             self.q_labels = ['Q%i' for i in range(1,nq+1)]
         else:
@@ -82,152 +82,258 @@ class ConditionalProbability(object):
             self.cv_units = ['au',]*ncv
         else:
             self.cv_units = cv_units
-        self.qsamples = None
-        self.cvsamples = None
-        self.nsamples = 0
-        self.qs = None
-        self.cvs = None
-        self.pconds = None
-        self.error = None
-        self._finished = False
-        self.verbose = verbose
-    
-    def process_trajectory(self, fns, q_readers, cv_readers, finish=True, error_estimate=None, corr_times=None):
+
+        self.q_samples_persim = []
+        self.cv_samples_persim = []
+        self.q_corr_time_persim = [] #correlation time in q samples in each simulation
+        self.num_samples_persim = [] #number of samples in each simulation
+        self.num_sims = 0 # number of simulations
+
+
+    def init_bins_grids(self, q_bins, cv_bins):
         '''
-            extracting data samples of CVs and QS from given files (in fns) that later will be histogrammed per value of CVs.
+            :param q_bins: list of numpy arrays, each array corresponding to the bin edges for one of the Qs. Alternatively, a single numpy array can be given which is then interpreted as the bin edges for all of the Qs.
+            :type q_bins: list or numpy array, optional
 
-            :param fns: file name (or list of file names) which contain trajectories that are used to compute the conditional probability.
-            :type fns: str or list(str)
+            :param cv_bins: list of numpy arrays, each array corresponding to the bin edges for one of the CVs. Alternatively, a single numpy array can be given which is then interpreted as the bin edges for all of the CVs.
+            :type cv_bins: list or numpy array, optional
+        '''
+        if self.verbose: print('Initializing grids for CV and Q ...')
+        #type checking and storing of input arguments
+        if isinstance(q_bins, list):
+            assert len(q_bins)==self.nq, 'When q_bins is a list, it should contain a number of arrays equal to the number of Qs (=%i) corresponding to the edges for each Q, but instead got a list of length %i' %(self.nq, len(q_bins))
+            assert np.array([isinstance(x, np.ndarray) for x in q_bins]).all(), 'When q_bins is a list, all its elements should be a numpy array containing the bin edges of the corresponding Q.'
+        else:
+            assert isinstance(q_bins, np.ndarray), 'Argument q_bins should be a list of numpy arrays, one array for each Q, or a single numpy array valid for each Q'
+            q_bins = [q_bins,]*self.nq
+        if isinstance(cv_bins, list):
+            assert len(cv_bins)==self.ncv, 'When cv_bins is a list, it should contain a number of arrays equal to the number of CVs (=%i) corresponding to the edges for each CV, but instead got a list of length %i' %(self.ncv, len(cv_bins))
+            assert np.array([isinstance(x, np.ndarray) for x in cv_bins]).all(), 'When cv_bins is a list, all its elements should be a numpy array containing the bin edges of the corresponding CV.'
+        else:
+            assert isinstance(cv_bins, np.ndarray), 'Argument cv_bins should be a list of numpy arrays, one array for each CV, or a single numpy array valid for each CV'
+            cv_bins = [cv_bins,]*self.ncv
+        self.q_bins = q_bins
+        self.cv_bins = cv_bins
+        #construct grids for q, cv and q+cv, useful for iterating over later
+        #self.qs is just a list of the bin centers for each q
+        #self.q_grid is a meshgrid of the bin centers
+        #same for cv
+        if self.nq==1:
+            self.qs = [0.5*(self.q_bins[0][:-1]+self.q_bins[0][1:])]
+            #self.q_grid = self.qs[0]
+        else:
+            self.qs = [ 0.5*b[:-1]+0.5*b[1:] for b in self.q_bins ]
+        self.q_grid = np.meshgrid(*self.qs)
+        if self.ncv==1:
+            self.cvs = [0.5*(self.cv_bins[0][:-1]+self.cv_bins[0][1:])]
+            #self.cv_grid = self.cvs[0]
+        else:
+            self.cvs = [ 0.5*b[:-1]+0.5*b[1:] for b in self.cv_bins ]
+        self.cv_grid = np.meshgrid(*self.cvs)
+        
+        self.cv_q_grid = np.meshgrid(*(self.qs+self.cvs))
 
-            :param q_readers: List of Trajectory readers (one for each Q) for extracting Q values from trajectory files using the process_trajectory routine
-            :type q_readers: list of TrajectoryReaders
+    def process_simulation(self, input_q, input_cv, finish=True, corr_time=1.0):
+        '''
+            extracting data samples of CVs and QS from given files that later will be histogrammed per value of CVs.
 
-            :param cv_readers: List of Trajectory readers (one for each CV) for extracting CV values from trajectory files using the process_trajectory routine
-            :type cv_readers: list of TrajectoryReaders
+            :param input_q: list of tuples of the form (fn, reader), one for each Q to be included, with fn the file name of the trajectory from which reader will extract the q-values
+            :type input_q: list of tuples
+
+            :param input_cv: list of tuples of the form (fn, reader), one for each CV to be included, with fn the file name of the trajectory from which reader will extract the cv-values
+            :type input_cv: list of tuples
 
             :param finish: set this to True if the given file name(s) are the only relevant trajectories and hence the conditional probability should be computed from only these trajectories. Setting it to True will therefore trigger propper normalisation of the conditional probability. Set this to False if you intend to call the routine *process_trajectory_xyz* again later on with additional trajectory files.
             :type finish: bool, optional, default=True
-
-            :param verbose: set to True to increase verbosity, defaults to False
-            :type verbose: bool, optional
+            
+            :param corr_times: only relevant if error estimation is also desired, in which case corr_time represent the correlation time within the Q samples which will be used for more accurate error estimation.
+            :type corr_times_q: float, optional, default=1.0
         '''
+        #init
         if self._finished:
             raise RuntimeError("Cannot read additional XYZ trajectory because current conditional probability has already been finished.")
-        if corr_times is not None:
-            assert len(corr_times)==len(fns), 'Argument corr_times should be of same length of fns'
-        else:
-            corr_times = [None,]*len(fns)
-        #Read Q values
-        for q_reader in q_readers:
-            qs = None
-            for fn, ctime in zip(fns, corr_times):
-                if self.verbose: print('Reading Q %s from file %s' %(q_reader.name, fn))
-                data = q_reader(fn)
-                if ctime is not None:
-                    step = int(np.ceil(ctime))
-                    if step==0: step = 1
-                    data = data[::step]
-                if qs is None:
-                    qs = data
-                else:
-                    qs = np.append(qs, data, axis=0)
-            if self.qsamples is None:
-                self.qsamples = qs
+        if self.verbose: print('Processing simulation %i  ' %(self.num_sims))
+        num_samples = None
+        q_samples = None
+        cv_samples = None
+        
+        #extracting Q samples
+        for fn, reader in input_q:
+            if self.verbose: print('  reading samples for %s from file %s' %(reader.name, fn))
+            data = reader(fn)
+            if q_samples is None:
+                q_samples = data.reshape(-1,1)
             else:
-                self.qsamples = np.append(self.qsamples, qs, axis=1)
-        #Read CV values
-        for cv_reader in cv_readers:
-            cvs = None
-            for fn, ctime in zip(fns, corr_times):
-                if self.verbose: print('Reading CV %s from file %s' %(cv_reader.name, fn))
-                data = cv_reader(fn)
-                if ctime is not None:
-                    step = int(np.ceil(ctime))
-                    if step==0: step = 1
-                    data = data[::step]
-                if cvs is None:
-                    cvs = data
-                else:
-                    cvs = np.append(cvs, data, axis=0)
-            if self.cvsamples is None:
-                self.cvsamples = cvs
+                q_samples = np.append(q_samples, data.reshape(-1,1), axis=0)
+            if num_samples is None:
+                num_samples = len(data)
             else:
-                self.cvsamples = np.append(self.cvsamples, cvs, axis=1)
+                assert len(data)==num_samples, 'Each Q reader should detect equal number of samples for the same simulation!'
+            #estimating number of independent Q-samples
+
+        #extracting CV samples
+        for fn, reader in input_cv:
+            if self.verbose: print('  reading samples for %s from file %s' %(reader.name, fn))
+            data = reader(fn)
+            assert len(data)==num_samples, 'Each CV reader should detect equal number of samples as all other Qs and CVs for the same simulation!'
+            if cv_samples is None:
+                cv_samples = data.reshape(-1,1)
+            else:
+                cv_samples = np.append(cv_samples, data.reshape(-1,1), axis=0)
+
+        #some final bookkeeping
+        self.q_samples_persim.append(q_samples)
+        self.cv_samples_persim.append(cv_samples)
+        self.num_sims += 1
+        self.num_samples_persim.append(num_samples)
+        self.q_corr_time_persim.append(corr_time)
+        if self.verbose: print('  detected %i samples, from which %i independent (correlation time = %i)' %(num_samples, num_samples/corr_time, corr_time))
+        
         #finish if required
         if finish:
             self.finish()
     
-    def finish(self, q_bins=None, cv_bins=None, error_estimate=None):
-        assert not self._finished, "Can't finish current conditional probability as it has already been finished."
-        #overwrite self.q_bins and self.cv_bins if given
-        if q_bins is not None: self.q_bins = q_bins
-        if cv_bins is not None: self.cv_bins = cv_bins
-        #consistency check
-        if len(self.qsamples.shape)==1:
-            assert self.nq==1, 'Conditional probability was initialized for %i Qs, but only read 1 Q from files up till now' %(self.nq)
-            self.qsamples = self.qsamples.reshape([-1,1])
-        else:
-            assert self.qsamples.shape[1] == self.nq, 'Conditional probability was initialized for %i Qs, but read %i Qs from files up till now' %(self.nq, self.qsamples.shape[1])
-        if len(self.cvsamples.shape)==1:
-            assert self.ncv==1, 'Conditional probability was initialized for %i CVs, but only read 1 CV from files up till now' %(self.ncv)
-            self.cvsamples = self.cvsamples.reshape([-1,1])
-        else:
-            assert self.cvsamples.shape[1] == self.ncv, 'Conditional probability was initialized for %i CVs, but read %i CVs from files up till now' %(self.ncv, self.cvsamples.shape[1])
-        assert self.qsamples.shape[0] == self.cvsamples.shape[0], 'Inconsitent number of Q (%i) and CV (%i) samples up till now!' %(self.qsamples.shape[0], self.cvsamples.shape[0])
-        self.nsamples = self.qsamples.shape[0]
-        if self.verbose:
-            print('Finishing condporb')
-            print('  detected %i samples' %(self.nsamples))
-        #construct ND histogram n(qs,cvs) from samples
-        data = np.append(self.qsamples, self.cvsamples, axis=1)
-        if self.verbose:
-            print('  sample data has shape: ',data.shape)
-        if isinstance(self.q_bins, int) and isinstance(self.cv_bins, int):
-            if self.q_bins==self.cv_bins:
-                bins = self.q_bins
-            else:
-                bins = [self.q_bins,]*self.nq + [self.cv_bins,]*self.cv_bins
-        elif isinstance(self.q_bins, list) and isinstance(self.cv_bins, list):
-            bins = self.q_bins + self.cv_bins
-        else:
-            raise NotImplementedError('Combination of q_bins and cv_bins not supported! Should be either both integers (giving the number of bins for each of its qs/cvs), or a list with an integer (number of bins)/nparray (bin edges) for each of its qs/cvs.')
-        self.pconds, edges = np.histogramdd(data, bins=bins)
-        self.qs = []
-        for iq in range(self.nq):
-            self.qs.append(0.5*(edges[iq][:-1]+edges[iq][1:]))
-        self.cvs = [] 
-        for icv in range(self.ncv):
-            self.cvs.append(0.5*(edges[self.nq+icv][:-1]+edges[self.nq+icv][1:]))
-        # Normalize conditional probability as well as some additional probability densities
-        for cv_index, cv in np.ndenumerate(self.cvs):
-            if len(self.cvs)==1:
-                slist = (slice(None),)*self.nq + (cv_index[1],)
-            else:
-                slist = (slice(None),)*self.nq + cv_index
-            #print('slist=',slist)
-            #print('self.pconds[slist].shape=',self.pconds[slist].shape)
-            norm = self.pconds[slist].sum()
-            if norm>0:
-                self.pconds[slist] /= norm
-        #do error estimation if requested
-        self.error = None
-        if error_estimate=='mle_p':
-            perr = np.sqrt(self.pconds*(1-self.pconds)/self.nsamples)
-            self.error = GaussianDistribution(self.pconds, perr)
-        elif error_estimate=='mle_f':
-			#we first compute the error bar interval on f=-log(p) and then transform it to one on p itself.
-            fs, ferr = np.zeros(self.pconds.shape)*np.nan, np.zeros(self.pconds.shape)*np.nan
-            mask = self.pconds>0
-            fs[mask] = -np.log(self.pconds[mask])
-            ferr[mask] = np.sqrt((np.exp(fs[mask])-1)/self.nsamples)
-            self.error = LogGaussianDistribution(-fs, ferr)
-        elif error_estimate is not None:
-            raise ValueError('Invalid value for error_estimate argument, received %s. Check documentation for allowed values.' %error_estimate)
-        self._finished = True
-
-    def plot(self, slicer, fn='condprob.png', title=None, logscale=False, croplims=None, cmap=pp.get_cmap('rainbow'), **plot_kwargs):
+    def set_ref(self, q_index=None, q_ref=None, cv_index=None, cv_ref=None):
+        '''Set the reference value of the Q and/or CV samples.
         '''
-            Plot self.pconds[slice], where slice needs to be chosen such that self.pconds[slice] is 1D or 2D. The resulting graph will respectively by a regular 1D plot or 2D contourplot.
+        #set q references
+        if q_index is not None:
+            if self.verbose: print('Setting Q reference')
+            #check and init q_indices
+            if q_index=='all':
+                q_index = range(self.nq)
+            elif isinstance(q_index, int):
+                q_index = [q_index]
+            elif isinstance(q_index, list):
+                assert np.array([isinstance(index,int) for index in q_index]).all(), "q_index should be integer, list of integers or 'all'. Received %s"%(str(q_index))
+            else:
+                raise ValueError("q_index should be integer, list of integers or 'all'. Received %s"%(str(q_index)))
+            for iq in q_index:
+                if self.verbose: print('  of Q%i to %s ' %(iq,q_ref), end='')
+                #check and init reference value
+                if q_ref in ['global_minimum']:
+                    q_ref = np.inf
+                    for isim in range(self.num_sims):
+                        q_ref = min([q_ref, self.q_samples_persim[isim][:,iq].min()])
+                    if self.verbose: print('which is %.6f' %(q_ref))
+                elif q_ref in ['minimum_average']:
+                    q_ref = np.inf
+                    for isim in range(self.num_sims):
+                        q_ref = min([q_ref, self.q_samples_persim[isim][:,iq].mean()])
+                    if self.verbose: print('which is %.6f' %(q_ref))
+                elif not isinstance(q_ref, float):
+                    raise ValueError("q_ref should be either 'global_minimum', 'minimum_average' or a float value")
+                if self.verbose: print('')
+                #set ref
+                for isim in range(self.num_sims):
+                    self.q_samples_persim[isim][:,iq] -= q_ref
+        #set q references
+        if cv_index is not None:
+            if self.verbose: print('Setting CV reference')
+            #check and init cv_indices
+            if cv_index=='all':
+                cv_index = range(self.ncv)
+            elif isinstance(cv_index, int):
+                cv_index = [cv_index]
+            elif isinstance(cv_index, list):
+                assert np.array([isinstance(index,int) for index in cv_index]).all(), "cv_index should be integer, list of integers or 'all'. Received %s"%(str(cv_index))
+            else:
+                raise ValueError("cv_index should be integer, list of integers or 'all'. Received %s"%(str(cv_index)))
+            for icv in cv_index:
+                if self.verbose: print('  of CV%i to %s ' %(icv,cv_ref), end='')
+                #check and init reference value
+                if cv_ref in ['global_minimum']:
+                    cv_ref = np.inf
+                    for isim in range(self.num_sims):
+                        cv_ref = min([cv_ref, self.cv_samples_persim[isim][:,icv].min()])
+                    if self.verbose: print('which is %.6f' %(cv_ref))
+                elif cv_ref in ['minimum_average']:
+                    cv_ref = np.inf
+                    for isim in range(self.num_sims):
+                        cv_ref = min([cv_ref, self.cv_samples_persim[isim][:,icv].mean()])
+                    if self.verbose: print('which is %.6f' %(cv_ref))
+                if self.verbose: print('')
+                elif not isinstance(cv_ref, float):
+                    raise ValueError("cv_ref should be either 'global_minimum', 'minimum_average' or a float value")
+                #set ref
+                for isim in range(self.num_sims):
+                    self.cv_samples_persim[isim][:,icv] -= cv_ref
+    
+    def finish(self, q_bins, cv_bins, error_estimate=None, error_p_threshold=0.0):
+        '''
+            :param q_bins: see init_bins_grids
+            :type q_bins: see init_bins_grids
+
+            :param cv_bins: see init_bins_grids
+            :type cv_bins: see init_bins_grids
+        '''
+        assert not self._finished, "Can't finish current conditional probability as it has already been finished."
+        if self.verbose: print('Finishing conditional probability')
+        #init
+        self.pconds_persim = []
+        self.histcounts_persim = []
+        self.histnorms_persim = []
+        self.fishers_persim = []
+        self.pconds = None
+        self.fisher = None
+        self.error = None
+        #set grids
+        self.init_bins_grids(q_bins, cv_bins)
+
+        #loop over each simulation
+        self.q_corr_time_persim = np.array(self.q_corr_time_persim)
+        Htot = np.zeros(self.cv_q_grid[0].shape)
+        Ntot = np.zeros(self.cv_grid[0].shape)
+        if self.verbose: print('  constructing histograms for all simulations')
+        for isim in range(self.num_sims):
+            #compute and store histograms from current simulations
+            data = np.append(self.cv_samples_persim[isim], self.q_samples_persim[isim], axis=1)
+            H, edges = np.histogramdd(data, bins=self.cv_bins+self.q_bins)
+            N, cv_edges = np.histogramdd(self.cv_samples_persim[isim], bins=self.cv_bins)
+            self.histcounts_persim.append(H)
+            self.histnorms_persim.append(N)
+            #add histograms to global histogram
+            Ntot += N
+            Htot += H
+            #compute and store corresponding conditional probability from current simulation
+            ps = np.zeros(H.shape)*np.nan
+            for cv_index, cv in np.ndenumerate(self.cv_grid):
+                if self.ncv==1:
+                    cv_index = (cv_index[1],)
+                    Ncurrent = N[cv_index]
+                    if Ncurrent>0: invNcurrent = 1.0/Ncurrent
+                    else:          invNcurrent = np.nan
+                else:
+                    Ncurrent = N[cv_index]
+                    invNcurrent = np.zeros(Ncurrent.shape)*np.nan
+                    invNcurrent[Ncurrent>0] = 1.0/Ncurrent[Ncurrent>0]
+                ps[cv_index + (slice(None),)*self.nq] = H[cv_index + (slice(None),)*self.nq]*invNcurrent
+            self.pconds_persim.append(ps)
+
+        if self.verbose: print('  constructing global conditional probability')
+        self.pconds = np.zeros(H.shape)*np.nan
+        for cv_index, cv in np.ndenumerate(self.cv_grid):
+            if self.ncv==1:
+                cv_index = (cv_index[1],)
+                Ncurrent = Ntot[cv_index]
+                if Ncurrent>0: invNcurrent = 1.0/Ncurrent
+                else:          invNcurrent = np.nan
+            else:
+                Ncurrent = Ntot[cv_index]
+                mask = Ncurrent>0
+                invNcurrent = np.zeros(Ncurrent.shape)*np.nan
+                invNcurrent[mask] = 1.0/Ncurrent[mask]
+            self.pconds[cv_index + (slice(None),)*self.nq] = Htot[cv_index + (slice(None),)*self.nq]*invNcurrent
+
+        #define error bars based on Fisher matrix is implemented in inheriting classes
+        self.error = None
+        if error_estimate is not None:
+            self.finish_error(error_estimate, error_p_threshold=error_p_threshold)
+        self._finished = True
+        
+    def plot(self, fn, slicer, obss=['base'], linestyles=None, linewidths=None, colors=None, logscale=False, ylims=None, croplims=None, cmap=pp.get_cmap('rainbow'), **plot_kwargs):
+        '''
+            Plot self.pconds[slicer], where slicer needs to be chosen such that self.pconds[slice] is 1D or 2D. The resulting graph will respectively by a regular 1D plot or 2D contourplot.
 
             :param fn: name of the file to store graph in, defaults to 'condprob.png'
             :type fn: str, optional
@@ -250,29 +356,16 @@ class ConditionalProbability(object):
             :param cmap: color map to be used, only relevant in case of 2D contourplot, defaults to pp.get_cmap('rainbow')
             :type cmap: color map from matplotlib, optional
         '''
-        assert self._finished, "Conditional probability needs to be finished before plotting it."
         #preprocess
+        assert self._finished, "Conditional probability needs to be finished before plotting it."
         assert isinstance(slicer, list) or isinstance(slicer, np.ndarray), 'slicer should be list or array, instead got %s' %(slicer.__class__.__name__)
         assert len(slicer)==self.nq+self.ncv, 'slicer should be list of length equal to sum of number of Qs (whic is %i) and number of CVs (which is %i), instead got list of length %i' %(self.nq, self.ncv, len(slicer))
-        iqs = []
-        qstring = []
-        q_label = None
-        for iq in range(self.nq):
-            qslicer = slicer[iq]
-            if isinstance(qslicer, slice):
-                iqs.append(iq)
-                qstring.append(self.q_labels[iq])
-                q_label = '%s [%s]' %(self.q_labels[iq],self.q_units[iq])
-            elif isinstance(qslicer, int):
-                qstring.append('q=%.3f' %(self.qs[iq][qslicer]))
-            else:
-                raise ValueError('Slicer list elements should be of type Slice or integer, instead got %s' %(qslicer.__class__.__name__))
-        qstring = ','.join(qstring)
+        #read cv slicer
         icvs = []
         cvstring = []
         cv_label = None
         for icv in range(self.ncv):
-            cvslicer = slicer[self.nq+icv]
+            cvslicer = slicer[icv]
             if isinstance(cvslicer, slice):
                 icvs.append(icv)
                 cvstring.append(self.cv_labels[icv])
@@ -282,44 +375,102 @@ class ConditionalProbability(object):
             else:
                 raise ValueError('Slicer list elements should be of type Slice or integer, instead got %s' %(cvslicer.__class__.__name__))
         cvstring = ','.join(cvstring)
-        data = self.pconds[slicer].copy()
-        if croplims is not None:
-            data[data<croplims[0]] = np.nan
-            data[data>croplims[1]] = np.nan
-        if self.error is not None:
+        #read q slicer
+        iqs = []
+        qstring = []
+        q_label = None
+        for iq in range(self.nq):
+            qslicer = slicer[self.ncv+iq]
+            if isinstance(qslicer, slice):
+                iqs.append(iq)
+                qstring.append(self.q_labels[iq])
+                q_label = '%s [%s]' %(self.q_labels[iq],self.q_units[iq])
+            elif isinstance(qslicer, int):
+                qstring.append('q=%.3f' %(self.qs[iq][qslicer]))
+            else:
+                raise ValueError('Slicer list elements should be of type Slice or integer, instead got %s' %(qslicer.__class__.__name__))
+        qstring = ','.join(qstring)
+        
+        #read data 
+        data = []
+        labels = []
+        ndim = None
+        for obs in obss:
+            xs = None
+            if obs.lower() in ['base','mean']:
+                xs = self.pconds[slicer].copy()
+            elif obs.lower() in ['errmean', 'errormean', 'meanerr', 'meanerror']:
+                assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
+                xs = self.error.mean()[slicer]
+            elif obs.lower() in ['low', 'lower', 'lowererr', 'lowererror', 'errorlower', 'errlower', 'errlow']:
+                assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
+                xs = self.error.nsigma_conf_int(2)[0][slicer]
+            elif obs.lower() in ['up', 'upper', 'uppererr', 'uppererror', 'errorupper', 'errupper', 'errup']:
+                assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
+                xs = self.error.nsigma_conf_int(2)[1][slicer]
+            elif obs.lower() in ['sample', 'errorsample', 'errsample', 'sampleerror', 'sampleerr']:
+                assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
+                xs = self.error.sample()[slicer]
+            if xs is None: raise ValueError('Could not interpret observable %s' %obs)
+            if ndim is None:
+                ndim = len(xs.shape)
+            else:
+                assert ndim==len(xs.shape), 'Various observable data has inconsistent dimensions!'
+            assert len(xs.shape)==len(icvs)+len(iqs), 'Inconsistency in sliced observable data for %s and detected number of Qs and CVs' %obs
+            #crop if required
+            if croplims is not None:
+                xs[xs<croplims[0]] = np.nan
+                xs[xs>croplims[1]] = np.nan
+            #transform to logscale if required
+            if logscale:
+                xs = np.log(xs)
+            data.append(xs)
+            labels.append(obs)
+        if ndim==1 and self.error is not None:
             lower, upper = self.error.nsigma_conf_int(2)
             lower, upper = lower[slicer], upper[slicer]
-        if logscale:
-            mask = data>0
-            data[mask] = np.log(data[mask])
-            data[~mask] = np.nan
-            mask = lower>0
-            lower[mask] = np.log(lower[mask])
-            lower[~mask] = np.nan
-            mask = upper>0
-            upper[mask] = np.log(upper[mask])
-            upper[~mask] = np.nan
-        assert len(data.shape)==len(iqs)+len(icvs), 'Inconsistency in sliced pcond data and detected number of Qs and CVs'
+            if croplims is not None:
+                lower[lower<croplims[0]] = np.nan
+                lower[lower>croplims[1]] = np.nan
+                upper[upper<croplims[0]] = np.nan
+                upper[upper>croplims[1]] = np.nan
+            if logscale:
+                lower = np.log(lower)
+                upper = np.log(upper)
+        if linestyles is None:
+            linestyles = [None,]*len(data)
+        if linewidths is None:
+            linewidths = [1.0,]*len(data)
+        if colors is None:
+            colors = [None,]*len(data)
+
         #make plot
         pp.clf()
-        if len(data.shape)==1:
+        if ndim==1:
             if len(iqs)==0 and len(icvs)==1:
                 xs = self.cvs[icvs[0]]/parse_unit(self.cv_units[icvs[0]])
             elif len(icvs)==0 and len(iqs)==1:
                 xs = self.qs[iqs[0]]/parse_unit(self.q_units[iqs[0]])
             else:
                 raise RuntimeError('Inconsistency in shape of sliced q and cv data!')
-            pp.plot(xs, data, **plot_kwargs)
+            for (ys,label,linestyle,linewidth,color) in zip(data,labels,linestyles, linewidths,colors):
+                pp.plot(xs, ys, label=label, linestyle=linestyle, linewidth=linewidth, color=color, **plot_kwargs)
             if self.error is not None:
                 pp.fill_between(xs, lower, upper, **plot_kwargs, alpha=0.33)
             if q_label is not None and cv_label is None:
                 pp.xlabel(q_label, fontsize=16)
-            elif q_label is None and cv_labe is not None:
+            elif q_label is None and cv_label is not None:
                 pp.xlabel(cv_label, fontsize=16)
             else:
                 raise ValueError('Something went wrong in trying to determine the correct plot labels.')
             pp.ylabel('Probability', fontsize=16)
-        elif len(data.shape)==2:
+            pp.title('Conditional probability p(%s;%s)' %(qstring,cvstring), fontsize=16)
+            if ylims is not None:
+                pp.ylim(ylims)
+            pp.legend(loc='best')
+            fig = pp.gcf()
+            fig.set_size_inches([8,8])
+        elif ndim==2:
             if len(icvs)==2:
                 xs = self.cvs[icvs[0]]/parse_unit(self.cv_units[icvs[0]])
                 ys = self.cvs[icvs[1]]/parse_unit(self.cv_units[icvs[1]])
@@ -331,17 +482,27 @@ class ConditionalProbability(object):
                 ys = self.qs[iqs[0]]/parse_unit(self.q_units[iqs[0]])
             else:
                 raise RuntimeError('Inconsistency in shape of sliced q and cv data!')
-            contourf = pp.contourf(xs, ys, data, cmap=cmap, **plot_kwargs)
-            pp.xlabel(cv_label, fontsize=16)
-            pp.ylabel(q_label, fontsize=16)
-            pp.colorbar(contourf)
+            
+            if len(data)<4:
+                fig, axs = pp.subplots(1,len(data))
+                size = [8*len(data),8]
+            elif len(data)==4:
+                fig, axs = pp.subplots(2,2)
+                size = [16,16]
+            else:
+                nrows = int(np.ceil(len(data)/3))
+                fig, axs = pp.subplots(nrows,3)
+                size = [24,8*nrows]
+            for i, (multi_index, ax) in enumerate(np.ndenumerate(axs)):
+                contourf = ax.contourf(xs, ys, data[i].T, cmap=cmap, **plot_kwargs) #transpose data to convert ij indexing (internal) to xy indexing (for plotting)
+                ax.set_xlabel(cv_label, fontsize=16)
+                ax.set_ylabel(q_label, fontsize=16)
+                ax.set_title('%s p(%s;%s)' %(labels[i],qstring,cvstring), fontsize=16)
+                pp.colorbar(contourf, ax=ax)
+            fig.set_size_inches(size)
         else:
             raise ValueError('Can only plot 1D or 2D pcond data, but received %i-d data. Make sure that the combination of qslice and cvslice results in 1 or 2 dimensional data.' %(len(data.shape)))
-        if title is None:
-            title = 'Conditional probability p(%s;%s)' %(qstring,cvstring)
-        pp.title(title)
-        fig = pp.gcf()
-        fig.set_size_inches([8,8])
+
         fig.tight_layout()
         pp.savefig(fn)
         return
@@ -436,50 +597,66 @@ class ConditionalProbability1D1D(ConditionalProbability):
         cv_reader = ColVarReader([col_cv], units=[unit_cv], name='CV', start=sub.start, stride=sub.step, end=sub.stop, verbose=verbose)
         ConditionalProbability.process_trajectory(self, fns, [q_reader], [cv_reader], finish=finish, verbose=verbose)
 
-    def average(self, error_estimate='propdist'):
+    def finish_error(self, error_estimate, error_p_threshold=0.0):
+        if self.verbose: print('  computing Fisher matrices for each simulation')
+        Ngrid_q = len(self.q_grid[0])  #extra [0] because only 1 Q and then self.q_grid=[np.ndarray(...)]
+        #loop over each simulation
+        self.fisher = np.zeros([len(self.cv_grid[0]), len(self.q_grid[0])+1, len(self.q_grid[0])+1])
+        for isim in range(self.num_sims):
+            #compute and store contribution to fisher matrix from current simulation as well as add contribution to global fisher matrix
+            Is = []
+            for cv_index, cv in enumerate(self.cv_grid[0]):
+                #if self.verbose: print('    for simulation %i cv[%s]=%.3f' %(isim,str(cv_index),cv))
+                I = fisher_matrix_mle_probdens(self.pconds_persim[isim][cv_index,:], method=error_estimate)
+                Is.append(I)
+                n = self.histnorms_persim[isim][cv_index]/self.q_corr_time_persim[isim]
+                self.fisher[cv_index,:,:] += n*I
+            self.fishers_persim.append(np.array(Is))
+        
+        if self.verbose: print('  extracting error for conditional probability')
+        errors = []
+        for cv_index, cv in enumerate(self.cv_grid[0]):
+            ps = self.pconds[cv_index,:].copy()
+            cov = invert_fisher_to_covariance(self.fisher[cv_index,:,:], ps, threshold=error_p_threshold)[:Ngrid_q,:Ngrid_q]
+            if error_estimate in ['mle_p']:
+                stds = np.sqrt(np.diagonal(cov))
+                err = GaussianDistribution(ps, stds)
+            elif error_estimate in ['mle_p_cov']:
+                err = MultiGaussianDistribution(ps, cov)
+            elif error_estimate in ['mle_f']:
+                fs = -np.log(ps)
+                stds = np.sqrt(np.diagonal(cov))
+                err = LogGaussianDistribution(-fs, stds)
+            elif error_estimate in ['mle_f_cov']:
+                fs = -np.log(ps)
+                err = MultiLogGaussianDistribution(-fs, cov)
+            else:
+                raise NotImplementedError('Error estimation method %s not supported' %error_estimate)
+            errors.append(err)
+        self.error = ErrorArray(errors)
+
+    def average(self, target_distribution=MultiGaussianDistribution):
         '''
-            Compute the average of CV as function of Q
-
-            :param q_output_unit: unit in which the q values are plotted, defaults to 'au'
-            :type q_output_unit: str, optional
-
-            :param q_label: the label of the collective variable Q to be used in the plot, defaults to 'Q'
-            :type q_label: str, optional
-
-            :param cv_output_unit: unit in which the cv values are plotted, defaults to 'au'
-            :type cv_output_unit: str, optional
-
-            :param cv_label: the label of the collective variable CV to be used in the plot, defaults to 'CV'
-            :type cv_label: str, optional
-
-            :param error_estimate: Specify the method of error propagation, either by propagating the FES distribution samples (propdist) or by propagating the FES 2 sigma confidence interval (prop2sigma), defaults to propdist
-            :type error_estimate: str, optional
+            Compute the average of Q as function of CV
         '''
-        def function(ps):
+        def function(pconds):
             qs = np.zeros(len(self.cvs[0]), dtype=float)
             norm = np.zeros(len(self.cvs[0]), dtype=float)
             for iq, q in enumerate(self.qs[0]):
-                mask = ~np.isnan(ps[iq,:])
-                qs[mask]   += q*ps[iq,mask]
-                norm[mask] +=   ps[iq,mask]
+                mask = ~np.isnan(pconds[:,iq])
+                qs[mask]   += q*pconds[mask,iq]
+                norm[mask] +=   pconds[mask,iq]
             qs[norm==0] = np.nan
-            #normalization in case ps would not be normalized
+            #normalization in case pconds would not be normalized along second axis
             qs[norm>0] /= norm[norm>0]
             return qs
-        xs = function(self.pconds)
-        error = None
-        if self.error is not None:
-            if error_estimate.lower()=='propdist':
-                propagator = Propagator(ncycles=self.error.ncycles, target_distribution=GaussianDistribution)
-                error = propagator(function, self.error)
-            elif error_estimate.lower()=='prop2sigma':
-                plower, pupper = self.error.nsigma_conf_int(nsigma=2)
-                xlower = function(plower)
-                xupper = function(pupper)
-                xerr = abs(xupper-xlower)/4
-                error = GaussianDistribution(xs, xerr)
-            else:
-                raise NotImplementedError('Unsupported method for error estimation, received %s but should be propdist or prop2sigma.')
+        if self.error is None:
+            xs = function(self.pconds)
+            error = None
+        else:
+            propagator = Propagator()
+            error = propagator(function, self.error, target_distribution=target_distribution, samples_are_flattened=True)
+            xs = error.mean()
         return BaseProfile(self.cvs[0], xs, error=error, cv_output_unit=self.cv_units[0], f_output_unit=self.q_units[0], cv_label=self.cv_labels[0], f_label=self.q_labels[0])
 
     def transform(self, fep, q_output_unit='au', f_output_unit=None, q_label=None, f_output_class=BaseFreeEnergyProfile):
@@ -515,27 +692,30 @@ class ConditionalProbability1D1D(ConditionalProbability):
         # Construct 1D FEP
         def transform(fs, pconds):
             mask = ~np.isnan(fs)
-            ps = np.trapz(pconds[:,mask]*np.exp(-fep.beta*fs[mask]), x=cvs[mask])
+            ps = np.trapz(pconds[mask,:]*np.exp(-fep.beta*fs[mask]), x=cvs[mask])
             ps /= np.trapz(ps, x=qs)
             fs_new = np.zeros([len(qs)], float)*np.nan
             fs_new[ps>0] = -np.log(ps[ps>0])/fep.beta
             return fs_new
-        fs = transform(fep.fs, self.pconds)
-        error = None
         if fep.error is not None:
-            propagator = Propagator(ncycles=fep.error.ncycles, target_distribution=GaussianDistribution)
+            propagator = Propagator(ncycles=fep.error.ncycles)
             if self.error is not None:
                 error = propagator(transform, fep.error, self.error)
             else:
                 transf1 = lambda fs: transform(fs, self.pconds)
                 error = propagator(transf1, fep.error)
+            fs = error.mean()
         elif self.error is not None:
-            propagator = Propagator(ncycles=self.error.ncycles, target_distribution=LogGaussianDistribution)
+            propagator = Propagator(ncycles=self.error.ncycles)
             transf2 = lambda pconds: transform(fep.fs, pconds)
-            error = propagator(transf2, self.error)
+            error = propagator(transf2, self.error, target_distribution=LogGaussianDistribution)
+            fs = error.mean()
+        else:
+            fs = transform(fep.fs, self.pconds)
+            error = None
         return f_output_class(self.qs[0], fs, fep.T, error=error, cv_output_unit=q_output_unit, f_output_unit=f_output_unit, cv_label=q_label)
 
-    def deproject(self, fep, cv_output_unit='au', q_output_unit='au', f_output_unit=None, f_output_class=FreeEnergySurface2D, cv_label='CV', q_label='Q'):
+    def deproject(self, fep, cv_output_unit='au', q_output_unit='au', f_output_unit=None, f_output_class=FreeEnergySurface2D, cv_label='CV', q_label='Q', error_distribution=MultiGaussianDistribution):
         '''
             Deproject the provided 1D FEP F(q) to a 2D FES F(q,v) using the current conditional probability according to the formula
 
@@ -574,25 +754,30 @@ class ConditionalProbability1D1D(ConditionalProbability):
         # Construct 2D FES
         kT = boltzmann*fep.T
         def deproject(fs, pconds):
-            fs_new = np.zeros([len(qs),len(cvs)], float)*np.nan
-            for iq in range(len(qs)):
-                for icv in range(len(cvs)):
-                    if self.pconds[iq,icv]>0:
-                        fs_new[iq,icv] = fs[icv] - kT*np.log(pconds[iq,icv])
+            fs_new = np.zeros([len(cvs),len(qs)], float)*np.nan
+            for icv in range(len(cvs)):
+                mask = ~np.isnan(pconds[icv,:])
+                pconds[icv,:] /= pconds[icv,mask].sum() #assert pcond is proparly normalized (in case it was sampled from error distribution)
+                for iq in range(len(qs)):
+                    if pconds[icv,iq]>0:
+                        fs_new[icv,iq] = fs[icv] - kT*np.log(pconds[icv,iq])
             return fs_new
-        fs = deproject(fep.fs, self.pconds)
-        error = None
-        if fep.error is not None:
-            propagator = Propagator(ncycles=fep.error.ncycles, target_distribution=GaussianDistribution)
-            if self.error is not None:
-                error = propagator(deproject, fep.error, self.error)
-            else:
-                deproj1 = lambda fs: deproject(fs, self.pconds)
-                error = propagator(deproj1, fep.error)
-        elif self.error is not None:
-            propagator = Propagator(ncycles=self.error.ncycles, target_distribution=LogGaussianDistribution)
-            deproj2 = lambda pconds: deproject(fep.fs, pconds)
-            error = propagator(deproj2, self.error)
+        if fep.error is not None or self.error is not None:
+            propagator = Propagator(ncycles=ncycles_default, verbose=True)
+            flattener = Flattener(len(cvs), len(qs))
+            if fep.error is not None:
+                if self.error is not None:
+                    error = propagator(deproject, fep.error, self.error, target_distribution=error_distribution, flattener=flattener)
+                else:
+                    deproj1 = lambda fs: deproject(fs, self.pconds)
+                    error = propagator(deproj1, fep.error, target_distribution=error_distribution, flattener=flattener)
+            elif self.error is not None:
+                deproj2 = lambda pconds: deproject(fep.fs, pconds)
+                error = propagator(deproj2, self.error, target_distribution=error_distribution, flattener=flattener)
+            fs = error.mean()
+        else:
+            fs = deproject(fep.fs, self.pconds)
+            error = None
         return f_output_class(cvs, qs, fs, fep.T, error=error, cv1_output_unit=cv_output_unit, cv2_output_unit=q_output_unit, f_output_unit=f_output_unit, cv1_label=cv_label, cv2_label=q_label)
 
 
@@ -750,14 +935,14 @@ class ConditionalProbability1D2D(ConditionalProbability):
         fs = transform(fep.fs, self.pconds)
         error = None
         if fep.error is not None:
-            propagator = Propagator(ncycles=fep.error.ncycles, target_distribution=GaussianDistribution)
+            propagator = Propagator()
             if self.error is not None:
-                error = propagator(transform, fep.error, self.error)
+                error = propagator(transform, fep.error, self.error, target_distribution=GaussianDistribution)
             else:
                 transf1 = lambda fs: transform(fs, self.pconds)
                 error = propagator(transf1, fep.error)
         elif self.error is not None:
-            propagator = Propagator(ncycles=self.error.ncycles, target_distribution=LogGaussianDistribution)
+            propagator = Propagator()
             transf2 = lambda pconds: transform(fep.fs, pconds)
-            error = propagator(transf2, self.error)
+            error = propagator(transf2, self.error, target_distribution=LogGaussianDistribution)
         return FreeEnergySurface2D(self.qs[0], self.qs[1], fs, fep.T, error=error, cv1_output_unit=q1_output_unit, cv2_output_unit=q2_output_unit, f_output_unit=f_output_unit, cv1_label=q1_label, cv2_label=q2_label)

@@ -18,7 +18,7 @@ from molmod.minimizer import check_delta
 from molmod.unit_cells import UnitCell
 
 from ..tools import blav, h5_read_dataset
-from ..error import GaussianDistribution, Propagator
+from ..error import GaussianDistribution, LogGaussianDistribution, Propagator
 
 import numpy as np
 import matplotlib.pyplot as pp
@@ -90,22 +90,20 @@ class BaseRateFactor(object):
         self.A_dist = None
         return self.A
 
-    def result_blav(self, fn=None, blocksizes=None, fitrange=[0,-1], exponent=1, verbose=True, plot_ac=False, ac_range=None, acft_plot_range=None):
+    def result_blav(self, fn=None, blocksizes=None, fitrange=[1,np.inf], model_function=None, plot_ylims=None, verbose=True):
         'Compute rate factor A and estimate its error with block averaging'
         assert self._finished, "Reading trajectory data is not finished yet"
         As = self.As[~np.isnan(self.As)]
         if blocksizes is None:
-            blocksizes = np.arange(1,len(As)//2+1,1)
-        #for i in range(18):
-        #    print(As[i*50:min([(i+1)*50,len(As)-1])])
-        self.A, A_std, Acorrtime = blav(As, blocksizes=blocksizes, fitrange=fitrange, exponent=exponent, fn_plot=fn, unit='1e12/s', plot_ac=plot_ac, ac_range=ac_range, 
-        acft_plot_range=acft_plot_range)
+            blocksizes = np.arange(1,int(len(As)/2), 1)
+        self.A = As.mean()
+        A_std, Acorrtime = blav(As, blocksizes=blocksizes, fitrange=fitrange, model_function=model_function, fn_plot=fn, unit='1e12/s', plot_ylims=plot_ylims)
         self.A_dist = GaussianDistribution(self.A, A_std) 
         
         if verbose:
             print('Rate factor with block averaging:')
             print('---------------------------------')
-            print('  A = %s (%i TS samples, int. autocorr. time = %.3f timesteps, exponent = %.3f)' %(self.A_dist.print(unit='1e12*%s/s' %self.CV_unit), len(As), Acorrtime, exponent))
+            print('  A = %s (%i TS samples, int. autocorr. time = %.3f timesteps)' %(self.A_dist.print(unit='1e12*%s/s' %self.CV_unit), len(As), Acorrtime))
             print()
         return self.A, self.A_dist
         
@@ -142,17 +140,30 @@ class BaseRateFactor(object):
         #as the user has not specified a single method, reset the A_dist to None
         self.A_dist = None
 
-    def compute_rate(self, fep, ncycles=1000, verbose=False):
+    def compute_rate(self, fep, ncycles=100, verbose=False):
         if not (self.A_dist is None or fep.ts.F_dist is None or fep.R.Z_dist is None or fep.P.Z_dist is None):
             def fun_k(A,Fts,Z):
                 return A*np.exp(-Fts/(boltzmann*fep.T))/Z
             def fun_F(A,Fts,Z):
                 return -np.log(fep.beta*planck*fun_k(A,Fts,Z))/fep.beta
-            propagator = Propagator(ncycles=ncycles, target_distribution=GaussianDistribution)
-            k_forward   = propagator(fun_k, self.A_dist, fep.ts.F_dist, fep.R.Z_dist)
-            dF_forward  = propagator(fun_F, self.A_dist, fep.ts.F_dist, fep.R.Z_dist)
-            k_backward  = propagator(fun_k, self.A_dist, fep.ts.F_dist, fep.P.Z_dist)
-            dF_backward = propagator(fun_F, self.A_dist, fep.ts.F_dist, fep.P.Z_dist)
+            #setup propagator for forward k and dF
+            forward  = Propagator(ncycles=ncycles)
+            forward.gen_args_samples( self.A_dist, fep.ts.F_dist, fep.R.Z_dist)
+            #calculate k_forward
+            forward.calc_fun_values(fun_k)
+            k_forward = forward.get_distribution(target_distribution=LogGaussianDistribution)
+            #calculate dF_forward
+            forward.calc_fun_values(fun_F)
+            dF_forward = forward.get_distribution(target_distribution=GaussianDistribution)
+            #setup propagator for backward k and dF
+            backward = Propagator(ncycles=ncycles)
+            backward.gen_args_samples(self.A_dist, fep.ts.F_dist, fep.P.Z_dist)
+            #calculate k_backward
+            backward.calc_fun_values(fun_k)
+            k_backward = backward.get_distribution(target_distribution=LogGaussianDistribution)
+            #calculate dF_backward
+            backward.calc_fun_values(fun_F)
+            dF_backward = backward.get_distribution(target_distribution=GaussianDistribution)
             if verbose:
                 print('k_F  = %s' %k_forward.print(unit='1e8/s'))
                 print('dF_F = %s' %dF_forward.print(unit='kjmol'))

@@ -12,8 +12,6 @@
 #
 #cython: embedsignature=True
 
-from thermolib.error import GaussianDistribution, LogGaussianDistribution
-
 from molmod.units import parse_unit
 
 import matplotlib.pyplot as pp
@@ -21,12 +19,14 @@ import warnings
 
 import numpy as np
 cimport numpy as np
+np.seterr(divide='ignore', invalid='ignore')
 
-import scipy
+from scipy.optimize import curve_fit
 
 __all__ = [
     'wham1d_hs', 'wham1d_bias', 'wham1d_scf', 'wham1d_error',
     'wham2d_hs', 'wham2d_bias', 'wham2d_scf', 'wham2d_error',
+    'fisher_matrix_mle_probdens',
 ]
 
 
@@ -158,7 +158,8 @@ def wham1d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=2] Hs, np.ndarray[dou
     return as_new, fs, converged
 
 
-def wham1d_error(int Nsims, int Ngrid, np.ndarray[long] Nis, np.ndarray[double] ps, np.ndarray[double] fs, np.ndarray[double, ndim=2] bs, method='mle_f', int nsigma=2):
+def wham1d_error(int Nsims, int Ngrid, np.ndarray[long] Nis, np.ndarray[double] ps, np.ndarray[double] fs, np.ndarray[double, ndim=2] bs, np.ndarray[double] corrtimes, method='mle_f_cov'):
+    from thermolib.error import GaussianDistribution, LogGaussianDistribution, MultiGaussianDistribution, MultiLogGaussianDistribution
     cdef np.ndarray[double, ndim=2] I, Ii, Imask, sigma
     cdef np.ndarray[double] err, logps
     cdef np.ndarray[np.uint8_t, ndim=2] mask
@@ -168,7 +169,7 @@ def wham1d_error(int Nsims, int Ngrid, np.ndarray[long] Nis, np.ndarray[double] 
     for i in range(Nsims):
         Ii = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])
         for k in range(Ngrid):
-            if method in ['mle_p']:
+            if method in ['mle_p', 'mle_p_cov']:
                 #avoid singularity at ps[k]=0, this is an inherent isssue to mle_p not present in the mle_f error estimation
                 if ps[k]>0:
                     Ii[k,k] = fs[i]*bs[i,k]/ps[k]
@@ -178,7 +179,7 @@ def wham1d_error(int Nsims, int Ngrid, np.ndarray[long] Nis, np.ndarray[double] 
                 Ii[Ngrid+Nsims+i,k] = fs[i]*bs[i,k]
                 Ii[k,-1] = 1
                 Ii[-1,k] = 1
-            elif method in ['mle_f']:
+            elif method in ['mle_f', 'mle_f_cov']:
                 #note that ps=exp(-gs) where gs are the degrees of freedom in the mle_f method (minus logarithm of the histogram counts)
                 Ii[k,k] = ps[k]*fs[i]*bs[i,k]
                 Ii[k,Ngrid+i] = -ps[k]*bs[i,k]
@@ -192,7 +193,7 @@ def wham1d_error(int Nsims, int Ngrid, np.ndarray[long] Nis, np.ndarray[double] 
         Ii[Ngrid+i,Ngrid+i] = 1/fs[i]**2
         Ii[Ngrid+i,Ngrid+Nsims+i] = 1/fs[i]
         Ii[Ngrid+Nsims+i,Ngrid+i] = 1/fs[i]
-        I += Nis[i]*Ii
+        I += Nis[i]/corrtimes[i]*Ii
     #the covariance matrix is now simply the inverse of the total Fisher matrix. However, for histogram bins with count 0 (and hence probability 0), we cannot estimate the corresponding error. This can be seen above as ps[k]=0 gives an divergence. Therefore, we define a mask corresponding to only non-zero probabilities and define and inverted the masked information matrix
     mask = np.ones([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1], dtype=bool)
     for k in range(Ngrid):
@@ -203,17 +204,24 @@ def wham1d_error(int Nsims, int Ngrid, np.ndarray[long] Nis, np.ndarray[double] 
     assert abs(int(np.sqrt(Nmask2))-np.sqrt(Nmask2))==0
     Nmask = int(np.sqrt(Nmask2))
     Imask = I[mask].reshape([Nmask,Nmask])
-    sigma = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])*np.nan
+    sigma = np.identity(Ngrid+2*Nsims+1)# np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])*np.nan
     sigma[mask] = np.linalg.inv(Imask).reshape([Nmask2])
     #the error bar on the probability of bin k is now simply the (k,k)-diagonal element of sigma
     err = np.sqrt(np.diagonal(sigma)[:Ngrid])
     if method in ['mle_p']:
         return GaussianDistribution(ps, err)
+    elif method in ['mle_p_cov']:
+        return MultiGaussianDistribution(ps, sigma[:Ngrid,:Ngrid])
     elif method in ['mle_f']:
         #if ps is LogNormal distributed, then the means argument of LogGaussianDistribution is log(ps). The error calculated by MLE-F represents the error on log(ps) so this can be fed directly to the LogGaussianDistribution err argument.
         logps = np.zeros(Ngrid)*np.nan
         logps[ps>0] = np.log(ps[ps>0])
         return LogGaussianDistribution(logps, err)
+    elif method in ['mle_f_cov']:
+        #if ps is LogNormal distributed, then the means argument of MultiLogGaussianDistribution is log(ps). The error calculated by MLE-F represents the error on log(ps) so this can be fed directly to the MultiLogGaussianDistribution err argument.
+        logps = np.zeros(Ngrid)*np.nan
+        logps[ps>0] = np.log(ps[ps>0])
+        return MultiLogGaussianDistribution(logps, sigma[:Ngrid,:Ngrid])
     else:
         raise IOError('Recieved invalid argument for method, recieved %s. Check routine signiture for more information on allowed values.' %method)
 
@@ -373,7 +381,7 @@ def wham2d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=3] Hs, np.ndarray[dou
     return as_new, fs, converged
 
 
-def wham2d_error(np.ndarray[double, ndim=2] ps, np.ndarray[double] fs, np.ndarray[double, ndim=3] bs, np.ndarray[long] Nis,  method='mle_f', verbose=False):
+def wham2d_error(np.ndarray[double, ndim=2] ps, np.ndarray[double] fs, np.ndarray[double, ndim=3] bs, np.ndarray[long] Nis, np.ndarray[double] corrtimes, method='mle_f', p_threshold=0.0, verbose=False):
     '''
         Internal routine to compute the error associated with solving the 2D WHAM equations using the Fisher information coming from the Maximum Likelihood Estimator. The procedure is as follows:
 
@@ -405,11 +413,15 @@ def wham2d_error(np.ndarray[double, ndim=2] ps, np.ndarray[double] fs, np.ndarra
         :return: Error distribution estimated according to method
         :rtype: Distribution, np.ndarray
     '''
+    from thermolib.error import GaussianDistribution, LogGaussianDistribution, MultiGaussianDistribution, MultiLogGaussianDistribution
+    from thermolib.flatten import Flattener
     if verbose:
         print('  initializing ...')
     #initialization
+    cdef np.ndarray[double] ps_flattened, logps_flattened
     cdef np.ndarray[double, ndim=2] I, Ii, Imask, sigma
     cdef np.ndarray[double, ndim=2] perr, logps
+    cdef np.ndarray[double, ndim=4] pcov
     cdef np.ndarray[np.uint8_t, ndim=2] mask
     cdef int Nsims = bs.shape[0]
     cdef int Ngrid1 = bs.shape[1]
@@ -418,12 +430,7 @@ def wham2d_error(np.ndarray[double, ndim=2] ps, np.ndarray[double] fs, np.ndarra
     cdef int i, k, l, K
     cdef long Nmask, Nmask2
 
-    def flatten(int kk, int ll):
-        return Ngrid2*kk+ll
-    def deflatten(int KK):
-        cdef int kk = int(K/Ngrid2)
-        cdef int ll = KK - Ngrid2*kk
-        return kk,ll
+    flattener = Flattener(Ngrid1, Ngrid2)
 
     if verbose:
         print('  computing extended Fisher matrix ...')
@@ -436,8 +443,8 @@ def wham2d_error(np.ndarray[double, ndim=2] ps, np.ndarray[double] fs, np.ndarra
             for k in range(Ngrid1):
                 for l in range(Ngrid2):
                     if not np.isnan(ps[k,l]):
-                        K = flatten(k,l)
-                        if method in ['mle_p']:
+                        K = flattener.flatten_index(k,l)
+                        if method in ['mle_p', 'mle_p_cov']:
                             if ps[k,l]>0: #see below where we define mask to filter out rows/columns corresponding to histogram counts of zero
                                 Ii[K,K] = fs[i]*bs[i,k,l]/ps[k,l]
                             Ii[K, Ngrid+i] = bs[i,k,l]
@@ -446,7 +453,7 @@ def wham2d_error(np.ndarray[double, ndim=2] ps, np.ndarray[double] fs, np.ndarra
                             Ii[Ngrid+Nsims+i, K] = fs[i]*bs[i,k,l]
                             Ii[K,-1] = 1
                             Ii[-1,K] = 1
-                        elif method in ['mle_f']:
+                        elif method in ['mle_f', 'mle_f_cov']:
                             Ii[K,K] = ps[k,l]*fs[i]*bs[i,k,l]
                             Ii[K, Ngrid+i] = -ps[k,l]*bs[i,k,l]
                             Ii[Ngrid+i, K] = -ps[k,l]*bs[i,k,l]
@@ -459,7 +466,7 @@ def wham2d_error(np.ndarray[double, ndim=2] ps, np.ndarray[double] fs, np.ndarra
             Ii[Ngrid+i, Ngrid+i] = 1/fs[i]**2
             Ii[Ngrid+i, Ngrid+Nsims+i] = 1/fs[i]
             Ii[Ngrid+Nsims+i, Ngrid+i] = 1/fs[i]
-            I += Nis[i]*Ii
+            I += Nis[i]/corrtimes[i]*Ii
 
 
     #Define and apply mask to filter out zero counts in histogram (as no error can be computed on them)
@@ -467,17 +474,28 @@ def wham2d_error(np.ndarray[double, ndim=2] ps, np.ndarray[double] fs, np.ndarra
         print('  defining and applying zero-mask ...')
     mask = np.ones([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1], dtype=bool)
 
+    # acount for faulty simulations
     for i in range(Nsims):
-        if np.isnan(fs[i]): # acount for faulty simulations
+        if np.isnan(fs[i]): 
             mask[Ngrid+i,:] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
             mask[:, Ngrid+i] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
             mask[Ngrid+Nsims+i,:] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
             mask[:, Ngrid+Nsims+i] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
 
+    # account for insufficiently sampled grid locations
     for k in range(Ngrid1):
         for l in range(Ngrid2):
-            K = flatten(k,l)
-            if np.isnan(ps[k,l]) or ps[k,l]==0: # account for not-sampled grid locations
+            K = flattener.flatten_index(k,l)
+            if np.isnan(ps[k,l]) or ps[k,l]==0.0: 
+                mask[K,:] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
+                mask[:,K] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
+            sufficiently_sampled = False
+            for i in range(Nsims):
+                p_biased_i_kl = fs[i]*bs[i,k,l]*ps[k,l]
+                if p_biased_i_kl>p_threshold:
+                    sufficiently_sampled = True
+                    break
+            if not sufficiently_sampled:
                 mask[K,:] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
                 mask[:,K] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
 
@@ -489,33 +507,47 @@ def wham2d_error(np.ndarray[double, ndim=2] ps, np.ndarray[double] fs, np.ndarra
     #Compute the inverse of the masked Fisher information matrix. Rows or columns corresponding to a histogram count of zero will have a (co)variance set to nan
     if verbose:
         print('  computing inverse of masked flattened Fisher matrix ...')
-    sigma = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])*np.nan
+    sigma = np.identity(Ngrid+2*Nsims+1)# sigma = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])*np.nan
     sigma[mask] = np.linalg.inv(Imask).reshape([Nmask2])
 
     #the error bar on the probability of bin (k,l) is now simply the [K,K]-diagonal element of sigma (with K corresponding to the flattened (k,l))
     if verbose:
         print('  constructing error bars ...')
-    perr = np.zeros([Ngrid1,Ngrid2], dtype=float)
-    for K in range(Ngrid):
-        k, l = deflatten(K)
-        try:
-            perr[k,l] = np.sqrt(sigma[K,K])
-        except FloatingPointError: #negative sigma
+    
+    if method in ['mle_p', 'mle_f']:
+        #get deflattened error bars (diagonal elements in flattened sigma matrix)
+        perr = np.zeros([Ngrid1,Ngrid2], dtype=float)
+        var = np.array(sigma.diagonal())[:Ngrid]
+        if np.any(var<0):
             warnings.warn('Negative sigma**2 values encountered. This is likely because of numerical noise. Increase the overflow threshold to fix this.')
-            if verbose:
-                print('Got a negative sigma for grid point: ', k,l, sigma[K,K], ps[k,l])
-            perr[k,l] = np.sqrt(-sigma[K,K])
-
-    #Use std error to define GaussianDistribution for MLE-P or LogGaussianDistribution for MLE-F
-    if method in ['mle_p']:
-        return GaussianDistribution(ps, perr)
-    elif method in ['mle_f']:
-        #if ps is LogNormal distributed, then the means argument of LogGaussianDistribution is log(ps). The error calculated by MLE-F represents the error on log(ps) so this can be fed directly to the LogGaussianDistribution err argument.
-        logps = np.zeros([Ngrid1,Ngrid2])*np.nan
-        logps[ps>0] = np.log(ps[ps>0])
-        return LogGaussianDistribution(logps, perr)
+            var[var<0] *= -1.0
+        perr = flattener.unflatten_array(np.sqrt(var))
+        if method in ['mle_p']:
+            return GaussianDistribution(ps, perr)
+        elif method in ['mle_f']:
+            #if ps is LogNormal distributed, then the means argument of LogGaussianDistribution is log(ps). The error calculated by MLE-F represents the error on log(ps) so this can be fed directly to the LogGaussianDistribution err argument.
+            logps = np.zeros([Ngrid1,Ngrid2])*np.nan
+            logps[ps>0] = np.log(ps[ps>0])
+            return LogGaussianDistribution(logps, perr)
+        else:
+            raise RuntimeError('Something went wrong') #it should never get here
+    elif method in ['mle_p_cov', 'mle_f_cov']:
+        #get flattened probability
+        ps_flattened = flattener.flatten_array(ps)
+        if method in ['mle_p_cov']:
+            return MultiGaussianDistribution(ps_flattened, sigma[:Ngrid,:Ngrid], flattener=flattener)
+        elif method in ['mle_f_cov']:
+            #if ps is LogNormal distributed, then the means argument of MultiLogGaussianDistribution is log(ps). The error calculated by MLE-F represents the error on log(ps) so this can be fed directly to the MultiLogGaussianDistribution err argument.
+            #get flattened log probability
+            logps_flattened = np.zeros(Ngrid, dtype=float)*np.nan
+            logps_flattened[ps_flattened>0] = np.log(ps_flattened[ps_flattened>0])
+            return MultiLogGaussianDistribution(logps_flattened, sigma[:Ngrid,:Ngrid], flattener=flattener)
+        else:
+            raise RuntimeError('Something went wrong') #it should never get here
     else:
         raise IOError('Recieved invalid argument for method, recieved %s. Check routine signature for more information on allowed values.' %method)
+
+
 
 def integrate_c(np.ndarray[double] xs, np.ndarray[double] ys):
     '''
@@ -551,3 +583,4 @@ def integrate2d_c(np.ndarray[double, ndim=2] z, double dx, double dy):
     s2 = np.sum(z[1:-1,0]) + np.sum(z[1:-1,-1]) + np.sum(z[0,1:-1]) + np.sum(z[-1,1:-1])
     s3 = np.sum(z[1:-1,1:-1])
     return 0.25*dx*dy*(s1 + 2*s2 + 4*s3)
+

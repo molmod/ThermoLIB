@@ -17,17 +17,38 @@ from molmod.constants import *
 from molmod.io.xyz import XYZReader
 
 import numpy as np
+np.seterr(divide='ignore', invalid='ignore')
+
 import h5py as h5
 from scipy.optimize import curve_fit
-from scipy import interpolate
+from inspect import signature
 import matplotlib.pyplot as pp
 import sys, os
 
 __all__ = [
-    'integrate', 'integrate2d', 'format_scientific',
-    'trajectory_xyz_to_CV', 'blav', 'read_wham_input',
-    'h5_read_dataset', 'rolling_average', 'decorrelate'
+    'format_scientific', 'h5_read_dataset',
+    'integrate', 'integrate2d', 'rolling_average',
+    'blav', 'corrtime_from_acf', 'decorrelate',
+    'read_wham_input', 'multivariate_normal', 'invert_fisher_to_covariance'
 ]
+
+#Miscellaneous utility routines
+
+def format_scientific(x, prec=3, latex=True):
+    if np.isnan(x):
+        return r'nan'
+    a, b = ('{:.%iE}' %prec).format(x).split('E')
+    if latex:
+        return r'$%s\cdot 10^{%s}$' %(a,b)
+    else:
+        return '%s 10^%s' %(a, b)
+
+def h5_read_dataset(fn, dset):
+    with h5.File(fn, mode = 'r') as f:
+        data = np.array(f[dset])
+    return data
+
+#Routines related to integration
 
 def integrate(xs, ys, yerrs=None):
     '''
@@ -90,167 +111,28 @@ def integrate2d(z,x=None,y=None,dx=1.,dy=1.):
     s3 = np.sum(z[1:-1,1:-1])
     return 0.25*dx*dy*(s1 + 2*s2 + 4*s3)
 
-def format_scientific(x, prec=3, latex=True):
-    if np.isnan(x):
-        return r'nan'
-    a, b = ('{:.%iE}' %prec).format(x).split('E')
-    if latex:
-        return r'$%s\cdot 10^{%s}$' %(a,b)
+def rolling_average(ys, width, yerrs=None):
+    assert isinstance(width, int), "Rolling average width needs to be an integer"
+    assert width>=2, "Rolling average width needs to be at least 2"
+    if yerrs is not None:
+        assert len(ys)==len(yerrs), "ys and its corresponding error bars yerrs should be of same length"
+    newN = int(np.ceil(len(ys)/width))
+    new_ys = np.zeros(newN)
+    if yerrs is not None:
+        new_yerrs = np.zeros(newN)
+    for i in range(newN-1):
+        new_ys[i] = ys[i*width:(i+1)*width].sum()/width
+        if yerrs is not None:
+            new_yerrs[i] = np.sqrt((yerrs[i*width:(i+1)*width]**2).sum())/width 
+    new_ys[-1] = ys[(newN-1)*width:].mean()
+    if yerrs is not None:
+        vals = yerrs[(newN-1)*width:]
+        new_yerrs[-1] = np.sqrt((vals**2).sum())/len(vals)
+        return new_ys, new_yerrs
     else:
-        return '%s 10^%s' %(a, b)
+        return new_ys
 
-def trajectory_xyz_to_CV(fns, CV):
-    '''
-        Compute the CV along an XYZ trajectory. The XYZ trajectory is assumed to be defined in a (list of subsequent) XYZ file(s).
-
-        :param fns: (list of) names of XYZ trajectory file(s) containing the xyz coordinates of the system
-        :type fns: str or list(str)
-
-        :param CV: collective variable defining how to compute the collective variable along the trajectory
-        :type CV: one from thermolib.thermodynamics.cv.__all__
-
-        :return: array containing the CV value along the trajectory
-        :rtype: np.ndarray(flt)
-    '''
-    cvs = []
-    for fn in fns:
-        xyz = XYZReader(fn)
-        for title, coords in xyz:
-            cv = CV.compute(coords, deriv=False)
-            cvs.append(cv)
-        del xyz
-    return np.array(cvs)
-
-def blav(data, blocksizes=None, fitrange=[0,-1], exponent=1, fn_plot=None, unit='au', plot_ac=False, ac_range=None, acft_plot_range=None):
-    '''
-        Routine to implement block averaging. This allows to estimate the sample error on correlated data by fitting a model function towards to the naive (i.e. as if uncorrelated) sample error on the block averages as function of the blocksize. This model function is based on the following model for the integrated correlation time :math:`\\tau` between the block averages:
-
-        .. math::
-
-            \\begin{aligned}
-                \\tau = 1 + \\frac{t_0-1}{B^n}
-            \\end{aligned}
-
-        As a result, the model for the naive error estimate on the block averages becomes
-
-        .. math::
-
-            \\begin{aligned}
-                error = TE\\cdot\\frac{B^n}{B^n+t_0-1}
-            \\end{aligned}
-
-        in which :math:`B` represents the block size, :math:`TE` the true error, :math:`t_0` the correlation time for the original time series (:math:`B=1`) and :math:`n` the exponential rate with which the block average integrated correlation time decreases as function of block size.
-
-        :param data: 1D array representing the data to be analyzed
-        :type data: np.ndarray
-
-        :param blocksizes: array of block sizes, defaults to np.arange(1,len(data)+1,1)
-        :type blocksizes: np.ndarray, optional
-
-        :param fitrange: range of blocksizes to which fit will be performed, defaults to [0,-1]
-        :type fitrange: list, optional
-
-        :param exponent: the exponent of the blocksize in the models for the auto correlation time and correlated sample error, defaults to 1
-        :type exponent: int, optional
-
-        :param fn_plot: file name to which to write the plot. No plot is made if set to None. Defaults to None
-        :type fn_plot: str, optional
-
-        :param unit: unit in which to plot the data, defaults to 'au'
-        :type unit: str, optional
-
-        :param plot_ac: indicate whether or not to compute and plot the auto correlation function as well (might take some time). Is only relevant if plot will be made, i.e. if fn_plot is defined. Defaults to False
-        :type plot_ac: bool, optional
-
-        :param ac_range: the range for which to plot the auto correlation function, only relevant if ``plot_ac`` is set to True, defaults to np.arange(0,501,1)
-        :type ac_range: np.ndarray, optional
-
-        :param acft_plot_range: the range for which to plot the fourier transform of the auto correlation function, only relevant if ``plot_ac`` is set to True, defaults to entire freq range
-        :type acft_plot_range: np.ndarray, optional
-
-        :return: mean, error, corrtime
-
-        *  **mean** (*float*) -- the sample mean
-        *  **error** (*foat*) -- the error on the sample mean
-        *  **corrtime** (*float*) -- the correlation time (in units of the timestep) of the original sample data
-    '''
-    if blocksizes is None:
-        blocksizes = np.arange(1,len(data)+1,1)
-    sigmas = np.zeros(len(blocksizes), float)
-    errors = np.zeros(len(blocksizes), float)
-    for i, blocksize in enumerate(blocksizes):
-        nblocks = len(data)//blocksize
-        blavs = np.zeros(nblocks, float)
-        for iblock in range(nblocks):
-            blavs[iblock] = data[iblock*blocksize:(iblock+1)*blocksize].mean()
-        #the unbiased estimate on the variance of the block averages
-        sigmas[i] = blavs.std(ddof=1)
-        #the estimate on the error on the mean of block averages assuming
-        #uncorrelated block averages (which will only be truly valid for
-        #sufficiently large block size)
-        errors[i] = sigmas[i]/np.sqrt(nblocks)
-    #fit standard deviations
-    def function(blocksize, TE, t0):
-        n=exponent
-        return TE*blocksize**n/(blocksize**n+t0-1)
-    def fit(blocksizes, xs):
-        sol, cov = curve_fit(function, blocksizes[fitrange[0]:fitrange[1]], xs[fitrange[0]:fitrange[1]])
-        return sol
-    error, corrtime = fit(blocksizes, errors)
-    #make plot
-    if fn_plot is not None:
-        pp.clf()
-        if plot_ac:
-            fig, axs = pp.subplots(nrows=2,ncols=2, squeeze=False)
-            nrows = 2
-        else:
-            fig, axs = pp.subplots(nrows=1,ncols=2, squeeze=False)
-            nrows = 1
-        axs[0,0].plot(data/parse_unit(unit), 'bo', markersize=1)
-        axs[0,0].axhline(y=data.mean()/parse_unit(unit), color='b', linestyle='--', linewidth=1)
-        axs[0,0].set_title('Samples', fontsize=12)
-        axs[0,0].set_xlabel('Time [timestep]')
-        axs[0,0].set_ylabel('Sample [%s]' %unit)
-
-        if plot_ac:
-            if ac_range is None:
-                ac_range = np.arange(0,501,1)
-            N = len(data)
-            mu = data.mean()
-            sigma = data.std(ddof=1)
-            ac = np.zeros(len(ac_range))
-            for k in ac_range:
-                ac[k] = ((data[0:N-k]-mu)*(data[k:N]-mu)).sum()/((N-k)*sigma**2)
-            axs[1,0].plot(ac)
-            axs[1,0].axhline(y=0, color='k', linestyle='--')
-            axs[1,0].set_ylim(-1.05,1.05)
-            axs[1,0].set_title('Auto correlation function')
-            axs[1,0].set_xlabel('Time [timestep]')
-            axs[1,0].set_ylabel('Amplitude [-]')
-            #fourier transform of ac
-            acft = np.fft.rfft(ac).real
-            if len(ac)%2==0:
-                n = len(ac)/2+1
-            else:
-                n = len(ac+1)/2
-            freqs = np.arange(0,n)*2*np.pi/len(ac)
-            axs[1,1].plot(freqs, (acft)**2, color='b')
-            axs[1,1].set_title('Power spectrum of auto correlation')
-            axs[1,1].set_xlabel('Frequency [1/timestep]')
-            axs[1,1].set_ylabel('Amplitude [-]')
-            if acft_plot_range is not None:
-                axs[1,1].set_xlim(acft_plot_range)                
-            
-        axs[0,1].plot(blocksizes, errors/parse_unit(unit), color='b', linestyle='none', marker='o', markersize=1)
-        axs[0,1].plot(blocksizes, function(blocksizes,error,corrtime)/parse_unit(unit), color='r', linestyle='-', linewidth=1)
-        axs[0,1].axhline(y=error/parse_unit(unit), color='k', linestyle='--', linewidth=1)
-        axs[0,1].set_title('Error of the estimate on the sample mean', fontsize=12)
-        axs[0,1].set_xlabel('Block size [timestep]')
-        axs[0,1].set_ylabel('Error [%s]' %unit)
-
-        fig.set_size_inches([12,6*nrows])
-        pp.savefig(fn_plot, dpi=300)
-    return blavs.mean(), error, corrtime
+#Routines for reading WHAM input
 
 def read_wham_input(fn: str, trajectory_readers, trajectory_path_templates, bias_potential: str='None', q01_unit: str='au', kappa1_unit: str='au', q02_unit: str='au', kappa2_unit: str='au', inverse_cv1: bool=False, inverse_cv2: bool=False, additional_bias=None, additional_bias_dimension: str='cv1', skip_bias_names=[], verbose: bool=False):
     '''Routine to read the metadata file required to obtain all input data for a WHAM analysis.
@@ -440,6 +322,373 @@ def read_wham_input(fn: str, trajectory_readers, trajectory_path_templates, bias
     if temp is None:
         print('WARNING: temperature could not be read from %s' %fn)
     return temp, biasses, trajectories
+
+def extract_polynomial_bias_info(fn_plumed='plumed.dat'):
+    #TODO make less error phrone. include check.
+    with open(fn_plumed,'r') as plumed:
+        for line in plumed:
+            idx = line.find('COEFFICIENTS',0)
+            if idx > 0:
+                idx+=13 #13 len of the string
+                idx_end = line.find('POWERS',0)
+                short_line = line[idx:idx_end].rstrip(' ').rstrip(',')
+                split_line = short_line.split(',')
+                poly_coef = [float(i) for i in split_line] #remark that -float is needed to get the resulting fe.
+                break
+    return poly_coef
+
+#Routines related to (de)correlation
+
+def _next_pow_two(n):
+    '''
+        Utility routine required in _acf routine to find the clostest power of two that is larger than the argument.
+        (Taken from https://dfm.io/posts/autocorr/)
+    '''
+    i = 1
+    while i < n:
+        i = i << 1
+    return i
+
+def _hl_envelopes_idx(s, dmin=1, dmax=1, split=False):
+    """
+    Utility routine required in acf routine to determine upper and lower envolopes.
+    Taken from https://stackoverflow.com/questions/34235530/how-to-get-high-and-low-envelope-of-a-signal
+
+    Input :
+    s: 1d-array, data signal from which to extract high and low envelopes
+    dmin, dmax: int, optional, size of chunks, use this if the size of the input signal is too big
+    split: bool, optional, if True, split the signal in half along its mean, might help to generate the envelope in some cases
+    Output :
+    lmin,lmax : high/low envelope idx of input signal s
+    """
+    # locals min      
+    lmin = (np.diff(np.sign(np.diff(s))) > 0).nonzero()[0] + 1 
+    # locals max
+    lmax = (np.diff(np.sign(np.diff(s))) < 0).nonzero()[0] + 1 
+    if split:
+        # s_mid is zero if s centered around x-axis or more generally mean of signal
+        s_mid = np.mean(s) 
+        # pre-sorting of locals min based on relative position with respect to s_mid 
+        lmin = lmin[s[lmin]<s_mid]
+        # pre-sorting of local max based on relative position with respect to s_mid 
+        lmax = lmax[s[lmax]>s_mid]
+    # global min of dmin-chunks of locals min 
+    lmin = lmin[[i+np.argmin(s[lmin[i:i+dmin]]) for i in range(0,len(lmin),dmin)]]
+    # global max of dmax-chunks of locals max 
+    lmax = lmax[[i+np.argmax(s[lmax[i:i+dmax]]) for i in range(0,len(lmax),dmax)]]
+    return lmin,lmax
+
+def _blav(data, blocksizes, fitrange=[1,np.inf], model_function=None):
+    '''
+        Routine to implement block averaging in order to estimate the correlated error bar on the average of the data series as well as the corresponding integrated correlation time. This proceeds as follows:
+         
+            * block the data in groups of given blocksize B and compute the average for each block. There are denoted as the block averages/
+            * estimate original data total average as the the average of block averages, as well as the 'naive' error on this total average, i.e. assuming the block averages are uncorrelated
+            * This naive error bar is in fact not the true error because of correlations. However, upon increasing the block size, the correlations will diminish and hence the naive error will converge towards the true error. Therefore, we vary the block size and fit a mathematical model on the naive error bars as function of the block size, this model is defined by the argument `model_function`
+
+        :param data: 1D array representing the data to be analyzed
+        :type data: np.ndarray
+
+        :param blocksizes: array of block sizes, defaults to np.arange(1,len(data)+1,1)
+        :type blocksizes: np.ndarray, optional
+
+        :param model_function: mathematical model for the naive error on block averages as function of the block size. Should be a callable with as first argument the block size and as remaining argument the model parameters that are to be fitted, default model is given by
+
+            .. math::
+
+                \\begin{aligned}
+                    \\Delta(B;\\Delta_\\text{true},\\tau_\\text{int}) &= \\Delta_\\text{true}*\\sqrt{\frac{B}{B+\\tau_\\text{int}-1}}
+                \\end{aligned}
+
+        :type model_unction: callable, optional
+
+        :param fitrange: range of blocksizes to which fit will be performed
+        :type fitrange: list, optional
+
+        :return: errors, true_error, corrtime, model_pars
+
+        *  **errors** (*np.ndarray*) -- the correlated error bars as function of block sizes
+        *  **true_error** (*foat*) -- the uncorrelated error on the sample mean
+        *  **corrtime** (*float*)  -- the correlation time (in units of the timestep) of the original sample data
+        *  **model_pars** (*list*) -- additional fitted parameters of the mathematical model for the naive error bars if any
+    '''
+    #define model function for naive errors if not specified
+    if model_function is None:
+        def model_function(B, TE, tau):
+            return TE*np.sqrt(B/(B+tau-1))
+    #compute naive errors (=errors) on block averages
+    errors = np.zeros(len(blocksizes))
+    for i, blocksize in enumerate(blocksizes):
+        nblocks = len(data)//blocksize
+        blavs = np.zeros(nblocks)
+        for iblock in range(nblocks):
+            blavs[iblock] = data[iblock*blocksize:(iblock+1)*blocksize].mean()
+        #the unbiased estimate on the variance of the block averages
+        sigma = blavs.std(ddof=1)
+        #the naive error on the mean of block averages 
+        errors[i] = sigma/np.sqrt(nblocks)
+    #fit the given mathematical model
+    nparams = len(signature(model_function).parameters)-1
+    lbounds, ubounds = [-np.inf,]*nparams, [np.inf,]*nparams
+    lbounds[0] = 0.0 #lower bound of true error
+    lbounds[1] = 1.0 #lower bound of correlation time
+    mask = (fitrange[0]<=blocksizes) & (blocksizes<=fitrange[1])
+    pars, pcov = curve_fit(model_function, blocksizes[mask], errors[mask], bounds=(lbounds,ubounds))
+    true_error, corrtime = pars[0], pars[1]
+    model_fitted = lambda B: model_function(B, *list(pars))
+    return errors, true_error, corrtime, model_fitted
+
+def blav(data, blocksizes=None, fitrange=[1, np.inf], model_function=None, fn_plot=None, plot_ylims=None, unit='au'):
+    '''
+        Wrapper routine around _blav to apply block averaging and estimate the correlated error bar as well as the corresponding integrated correlation time on the average of the given data series. For more details on the procedure as well as the meaning of the arguments data, blocksizes, fitrange and model_function, see documentation of the routine _wrap.
+
+        :param fn_plot: file name to which to write the plot, defaults to None which means no plot is made
+        :type fn_plot: str, optional
+
+        :param unit: unit in which to plot the data, defaults to 'au'
+        :type unit: str, optional
+
+        :return: mean, error, corrtime
+
+        *  **mean** (*float*) -- the sample mean
+        *  **error** (*foat*) -- the error on the sample mean
+        *  **corrtime** (*float*) -- the correlation time (in units of the timestep) of the original sample data
+    '''
+    #define blocksizes if not specified
+    assert len(data)>100, 'I will not apply block averaging on data series with only 100 or less samples'
+    if blocksizes is None:
+        blocksizes = np.arange(1,int(len(data)/10)+1,1)
+    errors, true_error, corrtime, model_fitted = _blav(data/parse_unit(unit), blocksizes, fitrange, model_function=model_function)
+    #make plot
+    if fn_plot is not None:
+        pp.clf()
+        fig, axs = pp.subplots(nrows=1,ncols=2, squeeze=False)
+        axs[0,0].plot(data/parse_unit(unit), 'bo', markersize=1)
+        axs[0,0].axhline(y=data.mean()/parse_unit(unit), color='b', linestyle='--', linewidth=1)
+        axs[0,0].set_title('Samples', fontsize=12)
+        axs[0,0].set_xlabel('Time [timestep]')
+        axs[0,0].set_ylabel('Sample [%s]' %unit)          
+        axs[0,1].plot(blocksizes, errors, color='b', linestyle='none', marker='o', markersize=1)
+        axs[0,1].plot(blocksizes, model_fitted(blocksizes), color='r', linestyle='-', linewidth=1)
+        #axs[0,1].axhline(y=true_error/parse_unit(unit), color='k', linestyle='--', linewidth=1)
+        axs[0,1].set_title('Error of the estimate on the sample mean', fontsize=12)
+        axs[0,1].set_xlabel('Block size [timestep]')
+        axs[0,1].set_ylabel('Error [%s]' %unit)
+        if plot_ylims is not None:
+            axs[0,1].set_ylim(plot_ylims)
+        fig.set_size_inches([12,6])
+        pp.savefig(fn_plot, dpi=300)
+    return true_error*parse_unit(unit), corrtime
+
+def _acf(data, norm=True):
+    'Compute autocorrelation function (taken from https://dfm.io/posts/autocorr/)'
+    x = np.atleast_1d(data)
+    if len(x.shape) != 1:
+        raise ValueError("invalid dimensions for 1D autocorrelation function")
+    n = _next_pow_two(len(x))
+    #Compute the FFT and then (from that) the auto-correlation function
+    f = np.fft.fft(x - np.mean(x), n=2*n)
+    acf = np.fft.ifft(f*np.conjugate(f))[:len(x)].real
+    acf /= 4*n
+    #Normalize using the variance (i.e. autocorrelation with zero time lag)
+    if norm:
+        acf /= acf[0]
+    return acf
+
+def corrtime_from_acf(data, nblocks=None, norm=True, fn_plot=None, xlims=None, ylims=[-0.25, 1.05]):
+    '''
+        Routine to compute the integrated autocorrelation time as follows:
+        
+            * compute autocorrelation function (possibly after blocking data for noise suppression) using the routine _acf
+            * extract the upper envelope of the acf to eliminate short time oscillations
+            * fit single decaying exponential function to upper envelope to extract exponential correlation time
+            * translate exp corr time to integrated corr time as: tau_int = 2*tau_exp -1
+    '''
+    acfs = None
+    if nblocks is not None:
+        bsize = int(len(data)/nblocks)
+        acfs = np.zeros([nblocks, bsize])
+        for iblock in range(nblocks):
+            acfs[iblock,:]= _acf(data[iblock*bsize:(iblock+1)*bsize], norm=norm)[:bsize]
+        acf = np.array(acfs).mean(axis=0)
+    else:
+        acf = _acf(data)
+    #get envelope
+    lower_envelope_indices, upper_envelope_indices = _hl_envelopes_idx(acf, dmin=1, dmax=1, split=False)
+    upper_envelope = acf[upper_envelope_indices]
+    #fit exponential to upper_envelope and extract integrated correlation time
+    def function(t,tau):
+        return np.exp(-t/tau)
+    pars, pcovs = curve_fit(function, upper_envelope_indices, upper_envelope)
+    def fitted_exp(t):
+        return function(t,pars[0])
+    corrtime = 2*pars[0]-1 #pars[0] is the exp correlation time, corrtime is the integrated correlation time
+    #Plot
+    if fn_plot is not None:
+        fig = pp.gcf()
+        if acfs is not None:
+            for i, f in enumerate(acfs):
+                pp.plot(f, label='iblock=%i'%i)
+        pp.plot(acf, color='k',linewidth=1, label='avg')
+        pp.plot(upper_envelope_indices, upper_envelope, color='r',linewidth=2, label='avg - envelope')
+        pp.plot(upper_envelope_indices, fitted_exp(upper_envelope_indices), color='r',linestyle='--',linewidth=2, label='avg - fitted')
+        pp.title('Autocorrelation function', fontsize=14)
+        pp.xlabel(r"$\tau$")
+        pp.ylabel(r"$acf(\tau)$")
+        if xlims is not None: pp.xlim(xlims)
+        pp.ylim(ylims)
+        fig.set_size_inches([8,8])
+        fig.tight_layout()
+        pp.savefig(fn_plot)
+    return corrtime
+
+def decorrelate(trajectories, method='acf', acf_nblocks=None, blav_model_function=None, decorrelate_only=None, fn_plot=None, verbose=False):
+    #determine the number of trajectories as well as cvs present in trajectory data
+    ntrajs = len(trajectories)
+    if len(trajectories[0].shape)==1:
+        ncvs = 1
+    else:
+        ncvs = trajectories[0].shape[1]
+    #set default function to compute correlation time to blav
+    assert isinstance(method, str), 'Method argument should be string, either acf or blav'
+    if method.lower()=='acf':
+        def method_correlation_time(data):
+            return corrtime_from_acf(data, nblocks=acf_nblocks)
+    elif method.lower()=='blav':
+        def method_correlation_time(data):
+            return blav(data, model_function=blav_model_function)
+    else:
+        raise ValueError('Method argument should be string, either acf or blav')
+    #compute correlation times
+    corrtimes_all = np.zeros([ntrajs,ncvs])
+    corrtimes = np.zeros([ntrajs])
+    for itraj, traj in enumerate(trajectories):
+        if ncvs==1:
+            corrtimes_all[itraj,0] = method_correlation_time(traj)
+        else:
+            for icv in range(ncvs):
+                corrtimes_all[itraj,icv] = method_correlation_time(traj[:,icv])
+        if decorrelate_only is None:
+            corrtimes[itraj] = corrtimes_all[itraj,:].max()
+        else:
+            corrtimes[itraj] = corrtimes_all[itraj,decorrelate_only]
+        if verbose:
+            Nuncor = int(np.floor(len(traj)/max(1,corrtimes[itraj])))
+            print('Processing trajectory %i/%i: %i samples, corr time = %.1f ==> %i uncorrelated samples' %(itraj+1,ntrajs,len(traj),corrtimes[itraj],Nuncor))
+    #plot correlation times
+    if fn_plot is not None:
+        pp.clf()
+        fig, axs = pp.subplots(nrows=1, ncols=ncvs, squeeze=False)
+        for icv in range(ncvs):
+            axs[0,icv].plot(corrtimes_all[:,icv], marker='o', color='b')
+            axs[0,icv].set_ylabel('Correlation time [-]', fontsize=14)
+            axs[0,icv].set_xlabel('Trajectory number [-]', fontsize=14)
+            axs[0,icv].set_title('Correlation time for CV%i' %icv)
+        fig.tight_layout()
+        fig.set_size_inches([8*ncvs,6])
+        pp.savefig(fn_plot)
+    #decorrelate trajectory by averaging over a number of samples equal to the correlation time
+    trajectories_decor = []
+    for i, traj in enumerate(trajectories):
+        bsize = int(np.ceil(corrtimes[i]))
+        if bsize<=1:
+            bsize = 1
+            if verbose:
+                print('  estimated correlation time was smaller than 1, set blocksize to 1')
+        nblocks = len(traj)//bsize
+        if len(traj.shape)==1:
+            new_traj = np.zeros(nblocks)
+            for iblock in range(nblocks):
+                new_traj[iblock] = traj[iblock*bsize:(iblock+1)*bsize].mean()
+            trajectories_decor.append(new_traj)
+        else:
+            new_traj = np.zeros([nblocks,traj.shape[1]])
+            for index in range(traj.shape[1]):
+                for iblock in range(nblocks):
+                    new_traj[iblock,index] = traj[iblock*bsize:(iblock+1)*bsize,index].mean()
+            trajectories_decor.append(new_traj)
+    return trajectories_decor, corrtimes
+
+def multivariate_normal(means, covariance, size=None):
+    #wrapper around np.random.multivariate_normal to deal with np.nan columns in the covariance matrix
+    mask = np.ones(len(means), dtype=bool)
+    #loop over diagonal elements of cov matrix and if it is nan, check if entire row and column is nan and remove it
+    for i, val in enumerate(covariance.diagonal()):
+        if np.isnan(val):
+            assert np.isnan(covariance[i,:]).all(), 'Upon filtering np.nans from covariance matrix, found diagonal element %i that is nan, but not the entire row' %i
+            assert np.isnan(covariance[:,i]).all(), 'Upon filtering np.nans from covariance matrix, found diagonal element %i that is nan, but not the entire column' %i
+            mask[i] = 0
+    samples_cropped = np.random.multivariate_normal(means[mask], covariance[np.outer(mask,mask)].reshape([mask.sum(),mask.sum()]), size=size)
+    if size is None:
+        samples = np.zeros(len(means))*np.nan
+        samples[mask] = samples_cropped
+    else:
+        samples = np.zeros([size,len(means)])*np.nan
+        samples[:,mask] = samples_cropped
+    return samples
+
+# Routines related to computing and inverting the fisher information matrix
+
+def invert_fisher_to_covariance(F, ps, threshold=0.0, verbose=False):
+    mask = np.ones(F.shape, dtype=bool)
+    for index in range(F.shape[0]-1):
+        if np.isnan(ps[index]) or ps[index]<=threshold:
+            if verbose: print('      ps[%i]=%.3e: removed column and row' %(index,ps[index]))
+            mask[index,:] = 0
+            mask[:,index] = 0
+    N_mask2 = len(F[mask])
+    assert abs(int(np.sqrt(N_mask2))-np.sqrt(N_mask2))==0 #consistency check, sqrt(N_mask2) should be integer valued
+    N_mask = int(np.sqrt(N_mask2))
+    F_mask = F[mask].reshape([N_mask,N_mask])
+    cov = np.zeros(F.shape)*np.nan
+    cov[mask] = np.linalg.inv(F_mask).reshape(N_mask2)
+    return cov
+
+def fisher_matrix_mle_probdens(ps, method='mle_p', verbose=False):
+    F = np.zeros([len(ps)+1,len(ps)+1])
+    if not np.isnan(ps).all():
+        if method in ['mle_p', 'mle_p_cov']:
+            for index, p in enumerate(ps):
+                if p>0:
+                    F[index,index] = 1.0/p
+                    F[index, -1] = 1.0
+                    F[-1, index] = 1.0
+        elif method in ['mle_f', 'mle_f_cov']:
+            for index, p in enumerate(ps):
+                F[index,index] = p
+                F[index, -1] = -p
+                F[-1, index] = -p
+        else:
+            raise NotImplementedError('Error estimation method %s not supported to compute Fisher matrix of mle of probability distribution!')
+    elif verbose:
+        print('      No Fisher information found!')
+    return F
+
+#Set of old depricated routines that are only kept in ThermoLIB for backward compatibility. These routines will be removed in the near future, please use read_wham_input routine.
+
+def trajectory_xyz_to_CV(fns, CV):
+    '''
+        ROUTINE IS DEPRICATED, included only for backward compatibility. Please use CVComputer class from thermolib.trajectory module.
+        
+        Compute the CV along an XYZ trajectory. The XYZ trajectory is assumed to be defined in a (list of subsequent) XYZ file(s).
+
+        :param fns: (list of) names of XYZ trajectory file(s) containing the xyz coordinates of the system
+        :type fns: str or list(str)
+
+        :param CV: collective variable defining how to compute the collective variable along the trajectory
+        :type CV: one from thermolib.thermodynamics.cv.__all__
+
+        :return: array containing the CV value along the trajectory
+        :rtype: np.ndarray(flt)
+    '''
+    cvs = []
+    for fn in fns:
+        xyz = XYZReader(fn)
+        for title, coords in xyz:
+            cv = CV.compute(coords, deriv=False)
+            cvs.append(cv)
+        del xyz
+    return np.array(cvs)
 
 def read_wham_input_old(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1, kappa_unit='kjmol', q0_unit='au', start=0, end=-1, stride=1, bias_potential='Parabola1D', additional_bias=None, inverse_cv=False, verbose=False):
     ''' THIS ROUTINE IS DEPRECATED AND WILL BE DELETED IN THE FUTURE. It is still included for backward compatibility with the old read_wham_input routine.
@@ -805,102 +1054,3 @@ def read_wham_input_2D_h5_old(fn, h5_cv1_path, h5_cv2_path, path_template_h5_fns
         verbose=verbose
     )
 
-def extract_polynomial_bias_info(fn_plumed='plumed.dat'):
-    #TODO make less error phrone. include check.
-    with open(fn_plumed,'r') as plumed:
-        for line in plumed:
-            idx = line.find('COEFFICIENTS',0)
-            if idx > 0:
-                idx+=13 #13 len of the string
-                idx_end = line.find('POWERS',0)
-                short_line = line[idx:idx_end].rstrip(' ').rstrip(',')
-                split_line = short_line.split(',')
-                poly_coef = [float(i) for i in split_line] #remark that -float is needed to get the resulting fe.
-                break
-    return poly_coef
-
-def h5_read_dataset(fn, dset):
-    with h5.File(fn, mode = 'r') as f:
-        data = np.array(f[dset])
-    return data
-
-def rolling_average(ys, width, yerrs=None):
-    assert isinstance(width, int), "Rolling average width needs to be an integer"
-    assert width>=2, "Rolling average width needs to be at least 2"
-    if yerrs is not None:
-        assert len(ys)==len(yerrs), "ys and its corresponding error bars yerrs should be of same length"
-    newN = int(np.ceil(len(ys)/width))
-    new_ys = np.zeros(newN)
-    if yerrs is not None:
-        new_yerrs = np.zeros(newN)
-    for i in range(newN-1):
-        new_ys[i] = ys[i*width:(i+1)*width].sum()/width
-        if yerrs is not None:
-            new_yerrs[i] = np.sqrt((yerrs[i*width:(i+1)*width]**2).sum())/width 
-    new_ys[-1] = ys[(newN-1)*width:].mean()
-    if yerrs is not None:
-        vals = yerrs[(newN-1)*width:]
-        new_yerrs[-1] = np.sqrt((vals**2).sum())/len(vals)
-        return new_ys, new_yerrs
-    else:
-        return new_ys
-
-def decorrelate(trajectories, units=None, decorrelate_only=None, max_block_size=None, fn_plot=None, verbose=False):
-    if verbose:
-        print('Decorrelating trajectory data')
-    if max_block_size is None:
-        min_traj_length = min([len(traj) for traj in trajectories])
-        max_block_size = int(min_traj_length/5)
-        if verbose:
-            print('  max_block_size set to %i' %max_block_size)
-    #determine the number of trajectories as well as cvs present in trajectory data
-    ntrajs = len(trajectories)
-    if len(trajectories[0].shape)==1:
-        ncvs = 1
-    else:
-        ncvs = trajectories[0].shape[1]
-    if units is None: units = ['au',]*ncvs
-    #intialize arrays with number of rows equal to number of simulation trajectories and number of columns equal to number of CVs
-    cvs       = np.zeros([ntrajs,ncvs])
-    cv_errors = np.zeros([ntrajs,ncvs])
-    corrtimes = np.zeros([ntrajs,ncvs])
-    for itraj, traj in enumerate(trajectories):
-        if verbose:
-            print('  applying block-averaging on trajectory %i/%i ...' %(itraj+1,ntrajs))
-        for icv in range(ncvs):
-            if len(trajectories[0].shape)==1:
-                cvs[itraj,icv], cv_errors[itraj,icv], corrtimes[itraj,icv] = blav(traj, blocksizes=np.arange(1,max_block_size+1,1))
-            else:
-                cvs[itraj,icv], cv_errors[itraj,icv], corrtimes[itraj,icv] = blav(traj[:,icv], blocksizes=np.arange(1,max_block_size+1,1))
-    if fn_plot is not None:
-        pp.clf()
-        fig, axs = pp.subplots(nrows=2, ncols=cvs.shape[1], sharex=True, squeeze=False)
-        for icv in range(ncvs):
-            axs[0,icv].errorbar(range(ntrajs), cvs[:,icv]/parse_unit(units[icv]), yerr=cv_errors[:,icv], marker='o',  color='b')
-            axs[1,icv].plot(corrtimes[:,icv], marker='o', color='b')
-            axs[0,icv].set_ylabel('CV Mean [%s]' %units[icv], fontsize=14)
-            axs[1,icv].set_ylabel('Correlation time in CV data', fontsize=14)
-            axs[1,icv].set_xlabel('Trajectory number', fontsize=14)
-        fig.tight_layout()
-        fig.set_size_inches([8*ncvs,12])
-        pp.savefig(fn_plot)
-    #decorrelate trajectory by averaging over a number of samples equal to the correlation time
-    trajectories_decor = []
-    for i, traj in enumerate(trajectories):
-        if decorrelate_only is None:
-            stride = int(np.ceil(corrtimes[i,:].max()))
-        else:
-            stride = int(np.ceil(corrtimes[i,decorrelate_only]))
-        nblocks = len(traj)//stride
-        if len(traj.shape)==1:
-            new_traj = np.zeros(nblocks)
-            for iblock in range(nblocks):
-                new_traj[iblock] = traj[iblock*stride:(iblock+1)*stride].mean()
-            trajectories_decor.append(new_traj)
-        else:
-            new_traj = np.zeros([nblocks,traj.shape[1]])
-            for index in range(traj.shape[1]):
-                for iblock in range(nblocks):
-                    new_traj[iblock,index] = traj[iblock*stride:(iblock+1)*stride,index].mean()
-            trajectories_decor.append(new_traj)
-    return trajectories_decor, corrtimes

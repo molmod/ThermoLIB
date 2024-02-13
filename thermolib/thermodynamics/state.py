@@ -12,15 +12,17 @@
 
 from __future__ import annotations
 
-from thermolib.error import Propagator, GaussianDistribution, SampleDistribution
+from thermolib.error import Propagator, GaussianDistribution, LogGaussianDistribution, SampleDistribution, ncycles_default
 from thermolib.tools import integrate
 
 from molmod.units import *
 
 import numpy as np, sys
+from numpy.ma import masked_array
 
 
-__all__ = ['Minimum', 'Maximum', 'MinInf', 'PlusInf', 'Integrate']
+__all__ = ['Minimum', 'Maximum', 'MinInf', 'PlusInf', 'MicroValue', 'Integrate']
+
 
 
 class State(object):
@@ -39,13 +41,21 @@ class State(object):
         if self.cv_dist is None:
             return self.cv
         else:
-            return self.cv_dist.mean()
+            r = self.cv_dist.mean()
+            if isinstance(r, masked_array):
+                r = r.filled(np.nan)
+            if isinstance(r, np.ndarray) and len(r)==1: r = r[0]
+            return r
 
     def get_F(self):
         if self.F_dist is None:
             return self.F
         else:
-            return self.F_dist.mean()
+            r = self.F_dist.mean()
+            if isinstance(r, masked_array):
+                r = r.filled(np.nan)
+            if isinstance(r, np.ndarray) and len(r)==1: r = r[0]
+            return r
     
     def text(self, obs, fmt='%.3f', do_scientific=False):
         if obs.lower()=='f':
@@ -74,31 +84,44 @@ class Microstate(State):
         State.__init__(self, name, cv_unit=cv_unit, f_unit=f_unit)
         self.cycles['indexes'] = None
         self.index = None
-    
+
     def _get_index_fep(self, cvs, fs):
         raise NotImplementedError
 
     def _get_state_fep(self, cvs, fs):
         index = self._get_index_fep(cvs, fs)
-        return index, cvs[index], fs[index]
-
-    def compute(self, cvs, fs, fdist=None):
-        if fdist is not None:
-            def fun_cv(fs):
-                return self._get_state_fep(cvs, fs)[1]
-            def fun_F(fs):
-                return self._get_state_fep(cvs, fs)[2]
-            propagator = Propagator(ncycles=fdist.ncycles, target_distribution=SampleDistribution)
-            cv_dist = propagator(fun_cv, fdist)
-            F_dist  = propagator(fun_F , fdist)
-            #cvmean = cv_dist.means
-            self.index = None #np.argmin(np.abs(cvs-cvmean))
-            self.cv = cvs[self.index]
-            self.F = fs[self.index]
-            self.cv_dist = cv_dist
-            self.F_dist = F_dist
+        cv, f = cvs[index], fs[index]
+        if isinstance(cv, masked_array): cv = cv.filled(np.nan)
+        if isinstance(f , masked_array): f  = f.filled(np.nan)
+        return index, cv, f
+    
+    def compute(self, fep, dist_prop='montecarlo'):
+        '''
+            :param dist_prop: method of how the distribution of the error on the free energy profile is propagated to the error on the cv value and free energy value of each micro and macrostate. Currently only 'montecarlo' and 'stationairy' is implemented. Stationairy assumes the position of the minimum/maximum is given by that of the mean profile (i.e. with no errr on the cv value) and the value of the minimum/maximum is then extracted from the corresponding free energy value of the free energy profile (with its associated error bar). Montecarlo takes random samples from the fep, computes the microstate and uses these to estimate the distribution of the microstate. Defaults to 'montecarlo'
+            :type dist_prop: str, optional
+        '''
+        if fep.error is not None:
+            self.index, self.cv, self.F = None, None, None
+            if dist_prop=='montecarlo':
+                def fun_cv(fs):
+                    return self._get_state_fep(fep.cvs, fs)[1]
+                def fun_F(fs):
+                    return self._get_state_fep(fep.cvs, fs)[2]
+                self.propagator = Propagator(ncycles=ncycles_default)
+                self.propagator.gen_args_samples(fep.error)
+                self.propagator.calc_fun_values(fun_cv)
+                self.cv_dist = self.propagator.get_distribution()
+                self.propagator.calc_fun_values(fun_F)
+                self.F_dist = self.propagator.get_distribution()
+            elif dist_prop=='stationary':
+                index, cv, F = self._get_state_fep(fep.cvs, fep.fs)
+                self.cv_dist = GaussianDistribution(means=np.float64(cv), stds=np.float64(0.0))
+                self.F_dist = GaussianDistribution(means=np.float64(F), stds=fep.error.std()[index])
+            else:
+                raise NotImplementedError('Distribution propagation method %s not implemented' %dist_prop)
         else:
-            self.index, self.cv, self.F = self._get_state_fep(cvs, fs)
+            self.index, self.cv, self.F = self._get_state_fep(fep.cvs, fep.fs)
+            self.cv_dist, self.F_dist = None, None
 
     def print(self):
         print('MICROSTATE %s:' %self.name)
@@ -108,7 +131,7 @@ class Microstate(State):
             print('  F     = %s' %(self.F_dist.print(unit=self.f_unit)))
             print('  CV    = %s' %(self.cv_dist.print(unit=self.cv_unit)))
         else:
-            print('  index = %i' %(self.index))
+            print('  index = ', self.index)
             print('  F     = %.3f  %s' %(self.F/parse_unit(self.f_unit)  , self.f_unit ))
             print('  CV    = %.3f  %s' %(self.cv/parse_unit(self.cv_unit), self.cv_unit))
         print('')
@@ -121,20 +144,25 @@ class Minimum(Microstate):
         Microstate.__init__(self, name, cv_unit=cv_unit, f_unit=f_unit)
 
     def _get_check_in_range_function(self, cv_range=None, index_range=None, ms_range=None):
+        checks = []
         if cv_range is not None:
-            assert index_range is None and ms_range is None, 'Only one of cv_range, index_range or ms_range should be defined!'
-            def check(index, cvs, fs):
+            def check_cv(index, cvs, fs):
                 return cv_range[0]<=cvs[index]<=cv_range[1]
-        elif index_range is not None:
-            assert cv_range is None and ms_range is None, 'Only one of cv_range, index_range or ms_range should be defined!'
-            def check(index, cvs, fs):
+            checks.append(check_cv)
+        if index_range is not None:
+            def check_index(index, cvs, fs):
                 return index_range[0]<=index<=index_range[1]
-        elif ms_range is not None:
-            assert cv_range is None and index_range is None, 'Only one of cv_range, index_range or ms_range should be defined!'
-            def check(index, cvs, fs):
+            checks.append(check_index)
+        if ms_range is not None:
+            def check_ms(index, cvs, fs):
                 start = ms_range[0]._get_index_fep(cvs, fs)
                 end   = ms_range[1]._get_index_fep(cvs, fs)
                 return start<=index<=end
+            checks.append(check_ms)
+        if len(checks)>0:
+            def check(index, cvs, fs):
+                check_results = [fun(index, cvs, fs) for fun in checks]
+                return np.array(check_results).all()
         else:
             #if no range is defined, return an always-passing function.
             def check(index, cvs, fs):
@@ -156,7 +184,7 @@ class Minimum(Microstate):
                     fcurrent = f
         assert not np.isnan(index), "No valid minimum found for %s microstate in range" %(self.name)
         return index
-   
+
 
 class Maximum(Microstate):
     '''Microstate class that identifies the maximum in a certain range defined by either cv values, indexes or other microstates.'''
@@ -165,26 +193,31 @@ class Maximum(Microstate):
         Microstate.__init__(self, name, cv_unit=cv_unit, f_unit=f_unit)
 
     def _get_check_in_range_function(self, cv_range=None, index_range=None, ms_range=None):
+        checks = []
         if cv_range is not None:
-            assert index_range is None and ms_range is None, 'Only one of cv_range, index_range or ms_range should be defined!'
-            def check(index, cvs, fs):
+            def check_cv(index, cvs, fs):
                 return cv_range[0]<=cvs[index]<=cv_range[1]
-        elif index_range is not None:
-            assert cv_range is None and ms_range is None, 'Only one of cv_range, index_range or ms_range should be defined!'
-            def check(index, cvs, fs):
+            checks.append(check_cv)
+        if index_range is not None:
+            def check_index(index, cvs, fs):
                 return index_range[0]<=index<=index_range[1]
-        elif ms_range is not None:
-            assert cv_range is None and index_range is None, 'Only one of cv_range, index_range or ms_range should be defined!'
-            def check(index, cvs, fs):
+            checks.append(check_index)
+        if ms_range is not None:
+            def check_ms(index, cvs, fs):
                 start = ms_range[0]._get_index_fep(cvs, fs)
                 end   = ms_range[1]._get_index_fep(cvs, fs)
                 return start<=index<=end
+            checks.append(check_ms)
+        if len(checks)>0:
+            def check(index, cvs, fs):
+                check_results = [fun(index, cvs, fs) for fun in checks]
+                return np.array(check_results).all()
         else:
             #if no range is defined, return an always-passing function.
-            def check(index, cvs):
+            def check(index, cvs, fs):
                 return True
         return check
-
+    
     def _get_index_fep(self, cvs, fs):
         index = None
         fcurrent = None
@@ -219,6 +252,25 @@ class PlusInf(Microstate):
         return len(cvs)-1
     
 
+class MicroValue(Microstate):
+    '''Microstate defining a CV of given value. Usefull for later defining macrostates as an integral from a or to the given value.'''
+    def __init__(self, value):
+        Microstate.__init__(self, 'value')
+        self.value = value
+        self.index = None
+
+    def _get_index_fep(self, cvs, fs):
+        if self.index is None:
+            self.index = np.nan
+            for i, cv in enumerate(cvs):
+                if cv<=self.value:
+                    self.index = i
+                else:
+                    break
+        return self.index
+    
+
+
 class Macrostate(State):
     '''Abstract parent class for defining macrostates on a free energy profile. The routine _get_state_fep needs to be implemented in child classes.'''
     def __init__(self, name, cv_unit='au', f_unit='kjmol'):
@@ -231,31 +283,41 @@ class Macrostate(State):
     def _get_state_fep(self, cvs, fs):
         raise NotImplementedError
 
-    def compute(self, cvs, fs, fdist=None):
-        if fdist is not None:
-            def fun_cv(fs):
-                return self._get_state_fep(cvs, fs)[0]
-            def fun_cvstd(fs):
-                return self._get_state_fep(cvs, fs)[1]
-            def fun_Z(fs):
-                return self._get_state_fep(cvs, fs)[2]
-            def fun_F(fs):
-                return self._get_state_fep(cvs, fs)[3]
-            propagator = Propagator(ncycles=fdist.ncycles)
-            cv_dist    = propagator(fun_cv   , fdist)
-            cvstd_dist = propagator(fun_cvstd, fdist)
-            Z_dist     = propagator(fun_Z    , fdist)
-            F_dist     = propagator(fun_F    , fdist)
-            self.cv         = cv_dist.mean()
-            self.cv_dist    = cv_dist
-            self.cvstd      = cvstd_dist.mean()
-            self.cvstd_dist = cvstd_dist
-            self.Z          = Z_dist.mean()
-            self.Z_dist     = Z_dist
-            self.F          = F_dist.mean()
-            self.F_dist     = F_dist
+    def compute(self, fep, dist_prop='montecarlo', verbose=False):
+        '''
+            :param dist_prop: method of how the distribution of the error on the free energy profile is propagated to the error on the cv value and free energy value of each micro and macrostate. Currently only 'analytical' is implemented, which applies the pythagorian sum of error bars valid for the sum (= discrete integral).
+            :type dist_prop: str, optional
+        '''
+        if fep.error is not None:
+            if dist_prop=='montecarlo':
+                #method below underestimates error because of neglect of covariance between free energy values of neighboring points and the 'filtering' behavior of the integral.
+                def fun_cv(fs):
+                    return self._get_state_fep(fep.cvs, fs)[0]
+                def fun_cvstd(fs):
+                    return self._get_state_fep(fep.cvs, fs)[1]
+                def fun_Z(fs):
+                    return self._get_state_fep(fep.cvs, fs)[2]
+                def fun_F(fs):
+                    return self._get_state_fep(fep.cvs, fs)[3]
+                #init propagator
+                self.propagator = Propagator(ncycles=ncycles_default)
+                self.propagator.gen_args_samples(fep.error)
+                self.propagator.calc_fun_values(fun_cv)
+                self.cv_dist = self.propagator.get_distribution()
+                self.propagator.calc_fun_values(fun_cvstd)
+                self.cvstd_dist = self.propagator.get_distribution()
+                self.propagator.calc_fun_values(fun_F)
+                self.F_dist     = self.propagator.get_distribution()
+                self.propagator.calc_fun_values(fun_Z)
+                self.Z_dist = self.propagator.get_distribution(target_distribution=LogGaussianDistribution)
+                self.cv     = self.cv_dist.mean()
+                self.cvstd  = self.cvstd_dist.mean()
+                self.Z      = self.Z_dist.mean()
+                self.F      = self.F_dist.mean()
+            else:
+                raise NotImplementedError('Distribution propagation method %s not implemented' %dist_prop)
         else:
-            self.cv, self.cvstd, self.Z, self.F, P = self._get_state_fep(cvs, fs)
+            self.cv, self.cvstd, self.Z, self.F = self._get_state_fep(fep.cvs, fep.fs)
 
     def print(self):
         print('MACROSTATE %s:' %self.name)
@@ -301,7 +363,7 @@ class Integrate(Macrostate):
         end = self.microstates[1]._get_index_fep(cvs, fs)
         return np.array(range(start,end+1))
     
-    def _get_state_fep(self, cvs, fs):
+    def _get_state_fep(self, cvs, fs, fdist=None):
         indexes = self._get_indices_fep(cvs, fs)
         mask = ~np.isnan(fs)
         ps = np.exp(-self.beta*fs)/integrate(cvs[mask], np.exp(-self.beta*fs[mask]))
@@ -314,4 +376,7 @@ class Integrate(Macrostate):
         F = -np.log(Z)/self.beta
         mean = integrate(cvs_indexed[mask2], ps_indexed[mask2]*cvs_indexed[mask2])/P
         std = np.sqrt(integrate(cvs_indexed[mask2], ps_indexed[mask2]*(cvs_indexed[mask2]-mean)**2)/P)
-        return mean, std, Z, F, P
+        if fdist is None:
+            return mean, std, Z, F,
+        else:
+            ferrs_indexed = fdist.std()[indexes]

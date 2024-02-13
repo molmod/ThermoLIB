@@ -16,16 +16,20 @@ from molmod.constants import *
 
 import matplotlib.pyplot as pp
 import matplotlib.cm as cm
-import numpy as np
-import time
 
+import numpy as np
+np.seterr(divide='ignore', invalid='ignore')
+
+import time
 
 from thermolib.thermodynamics.fep import BaseProfile, BaseFreeEnergyProfile
 from thermolib.ext import wham1d_hs, wham1d_bias, wham1d_scf, wham1d_error, wham2d_hs, wham2d_bias, wham2d_scf, wham2d_error
-from thermolib.tools import integrate
-from thermolib.error import GaussianDistribution, LogGaussianDistribution, Propagator
+from thermolib.error import GaussianDistribution, LogGaussianDistribution, Propagator, MultiGaussianDistribution, MultiLogGaussianDistribution
+from thermolib.tools import fisher_matrix_mle_probdens, invert_fisher_to_covariance
 
-__all__ = ['Histogram1D', 'Histogram2D', 'plot_histograms']
+__all__ = [
+	'Histogram1D', 'Histogram2D', 'plot_histograms'
+]
 
 class Histogram1D(object):
 	def __init__(self, cvs, ps, error=None, cv_output_unit='au', cv_label='CV'):
@@ -119,12 +123,12 @@ class Histogram1D(object):
 		#compute error if requested
 		error = None
 		if error_estimate is not None and error_estimate.lower() in ['std']:
-			perr = pss.std(axis=0,ddof=1)
+			perr = pss.std(axis=0,ddof=1)/np.sqrt(len(histograms))
 			error = GaussianDistribution(ps, perr)
 		return cls(cvs, ps,error=error, cv_output_unit=cv_output_unit, cv_label=cv_label)
 
 	@classmethod
-	def from_single_trajectory(cls, data, bins, error_estimate=None, cv_output_unit='au', cv_label='CV'):
+	def from_single_trajectory(cls, data, bins, error_estimate=None, error_p_thresshold=0.0, cv_output_unit='au', cv_label='CV'):
 		'''
 			Routine to estimate of a probability histogram in terms of a collective variable from a trajectory series corresponding to that collective variable.
 
@@ -136,8 +140,8 @@ class Histogram1D(object):
 
 			:param error_estimate: indicate if and how to perform error analysis. One of following options is available:
 
-				*  **mle_p** -- compute error through the asymptotic normality of the maximum likelihood estimator for the probability itself. WARNING: due to positivity constraint of the probability, this only works for low variance. Otherwise the standard error interval for the normal distribution (i.e. mle +- n*sigma) might give rise to negative lower error bars.
-				*  **mle_f** -- compute error through the asymptotic normality of the maximum likelihood estimator for -log(p) (hence for the beta-scaled free energy). This estimation does not suffor from the same WARNING as for ``mle_p``. Furthermore, in case of low variance, the error estimation using ``mle_f`` and ``mle_p`` are consistent (i.e. one can be computed from the other using f=-log(p)).
+				*  **mle_p/mle_p_cov** -- compute error through the asymptotic normality of the maximum likelihood estimator for the probability itself. WARNING: due to positivity constraint of the probability, this only works for low variance. Otherwise the standard error interval for the normal distribution (i.e. mle +- n*sigma) might give rise to negative lower error bars. In case mle_p_cov is given, the full covariance matrix will be accounted for instead of only the (uncorrelated) variance at each grid point.
+				*  **mle_f/mle_f_cov** -- compute error through the asymptotic normality of the maximum likelihood estimator for -log(p) (hence for the beta-scaled free energy). This estimation does not suffor from the same WARNING as for ``mle_p``. Furthermore, in case of low variance, the error estimation using ``mle_f`` and ``mle_p`` are consistent (i.e. one can be computed from the other using f=-log(p)). In case mle_f_cov is given, the full covariance matrix will be accounted for instead of only the (uncorrelated) variance at each grid point.
 				*  **None** -- do not estimate the error.
 
 			:type error_estimate: str, optional, default=None
@@ -166,16 +170,24 @@ class Histogram1D(object):
 			error = GaussianDistribution(ps, perr)
 		elif error_estimate=='mle_f':
 			#we first compute the error bar interval on f=-log(p) and then transform it to one on p itself.
-			fs, ferr = np.zeros(len(ps))*np.nan, np.zeros(len(ps))*np.nan
-			fs[ps>0] = -np.log(ps[ps>0])
-			ferr[ps>0] = np.sqrt((np.exp(fs[ps>0])-1)/Ntot)
-			error = LogGaussianDistribution(ps, ferr)
+			fs = -np.log(ps)
+			ferr = np.sqrt((np.exp(fs)-1)/Ntot)
+			error = LogGaussianDistribution(-fs, ferr)
+		elif error_estimate=='mle_p_cov':
+			F = fisher_matrix_mle_probdens(ps, method='mle_p_cov')
+			cov = invert_fisher_to_covariance(F, ps, threshold=error_p_thresshold)
+			error = MultiGaussianDistribution(ps, cov)
+		elif error_estimate=='mle_f_cov':
+			fs = -np.log(ps)
+			F = fisher_matrix_mle_probdens(ps, method='mle_f_cov')
+			cov = invert_fisher_to_covariance(F, ps, threshold=error_p_thresshold)
+			error = MultiLogGaussianDistribution(-fs, cov)
 		elif error_estimate is not None:
 			raise ValueError('Invalid value for error_estimate argument, received %s. Check documentation for allowed values.' %error_estimate)
 		return cls(cvs, ps, error=error, cv_output_unit=cv_output_unit, cv_label=cv_label)
 
 	@classmethod
-	def from_wham(cls, bins, traj_input, biasses, temp, error_estimate=None, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, bias_thress=1e-3, cv_output_unit='au', cv_label='CV', verbose=None, verbosity='low'):
+	def from_wham(cls, bins, traj_input, biasses, temp, error_estimate=None, corrtimes=None, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, bias_thress=1e-3, cv_output_unit='au', cv_label='CV', verbose=None, verbosity='low'):
 		'''
 			Routine that implements the Weighted Histogram Analysis Method (WHAM) for reconstructing the overall probability histogram from a series of biased molecular simulations.
 
@@ -192,8 +204,10 @@ class Histogram1D(object):
 			:type temp: float
 
 			:param error_estimate: indicate if and how to perform error analysis. One of following options is available:
-				*  **mle_p** -- compute error through the asymptotic normality of the maximum likelihood estimator for the probability itself. WARNING: due to positivity constraint of the probability, this only works for high probability and low variance. Otherwise the standard error interval for the normal distribution (i.e. mle +- n*sigma) might give rise to negative lower error bars.
-				*  **mle_f** -- compute error through the asymptotic normality of the maximum likelihood estimator for -log(p) (hence for the beta-scaled free energy). This estimation does not suffor from the same WARNING as for ``mle_p``. Furthermore, in case of high probability and low variance, the error estimation using ``mle_f`` and ``mle_p`` are consistent (i.e. one can be computed from the other using f=-log(p)).
+				*  **mle_p** -- compute error through the asymptotic normality of the maximum likelihood estimator for the probability itself and IGNORE the correlation between histogram bins. WARNING: due to positivity constraint of the probability, this only works for high probability and low variance. Otherwise the standard error interval for the normal distribution (i.e. mle +- n*sigma) might give rise to negative lower error bars.
+				*  **mle_p_cov** -- compute error through the asymptotic normality of the maximum likelihood estimator for the probability itself and ACCOUNT for the correlation between histogram bins. WARNING: due to positivity constraint of the probability, this only works for high probability and low variance. Otherwise the standard error interval for the normal distribution (i.e. mle +- n*sigma) might give rise to negative lower error bars.
+				*  **mle_f** -- compute error through the asymptotic normality of the maximum likelihood estimator for -log(p) (hence for the beta-scaled free energy) and IGNORE the correlation between histogram bins. This estimation does not suffor from the same WARNING as for ``mle_p``. Furthermore, in case of high probability and low variance, the error estimation using ``mle_f`` and ``mle_p`` are consistent (i.e. one can be computed from the other using f=-log(p)).
+				*  **mle_f_cov** -- compute error through the asymptotic normality of the maximum likelihood estimator for -log(p) (hence for the beta-scaled free energy) and ACCOUNT for the correlation between histogram bins. This estimation does not suffor from the same WARNING as for ``mle_p``. Furthermore, in case of high probability and low variance, the error estimation using ``mle_f`` and ``mle_p`` are consistent (i.e. one can be computed from the other using f=-log(p)).
 				*  **None** -- do not estimate the error.
 			:type error_estimate: str, optional, default=None
 
@@ -296,10 +310,11 @@ class Histogram1D(object):
 		timings['scf'] = time.time()
 
 		error = None
-		if error_estimate is not None and error_estimate in ['mle_p', 'mle_f']:
+		if error_estimate is not None and error_estimate in ['mle_p', 'mle_p_cov', 'mle_f', 'mle_f_cov']:
 			if verbosity.lower() in ['medium', 'high']:
 				print('Estimating error ...')
-			error = wham1d_error(Nsims, Ngrid, Nis, ps, fs, bs, method=error_estimate)
+			if corrtimes is None: corrtimes = np.ones(len(traj_input), float)
+			error = wham1d_error(Nsims, Ngrid, Nis, ps, fs, bs, corrtimes, method=error_estimate)
 		elif error_estimate is not None and error_estimate not in ["None"]:
 			raise ValueError('Received invalid value for keyword argument error_estimate, got %s. See documentation for valid choices.' %error_estimate)
 		timings['error'] = time.time()
@@ -354,7 +369,7 @@ class Histogram1D(object):
 		if fep.error is not None:
 			means = -beta*fep.error.means-np.log(norm) #last term is to assure normalization consistent with that of ps attribute
 			stds = beta*fep.error.stds
-			error = LogGaussianDistribution(means, stds, ncycles=fep.error.ncycles)
+			error = LogGaussianDistribution(means, stds)
 		return cls(fep.cvs, ps, error=error, cv_output_unit=fep.cv_output_unit, cv_label=fep.cv_label)
 
 	def plot(self, fn, temp=None, flims=None):
@@ -503,7 +518,7 @@ class Histogram2D(object):
 			perr = pss.std(axis=0,ddof=1)
 			error = GaussianDistribution(ps, perr)
 		return cls(cv1s, cv2s, ps, error=error, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, cv1_label=cv1_label, cv2_label=cv2_label)
-
+	
 	@classmethod
 	def from_single_trajectory(cls, data, bins, error_estimate=None, nsigma=2, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2'):
 		'''
@@ -565,7 +580,7 @@ class Histogram2D(object):
 		return cls(cv1s, cv2s, ps, error=error, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, cv1_label=cv1_label, cv2_label=cv2_label)
 	
 	@classmethod
-	def from_wham(cls, bins, traj_input, biasses, temp, pinit=None, error_estimate=None, nsigma=2, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, bias_thress=1e-3, overflow_threshold=1e-150, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2', plot_biases=False, verbose=None, verbosity='low'):
+	def from_wham(cls, bins, traj_input, biasses, temp, pinit=None, error_estimate=None, error_p_threshold=0.0, corrtimes=None, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, bias_thress=1e-3, overflow_threshold=1e-150, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2', plot_biases=False, verbose=None, verbosity='low'):
 		'''
 		Routine that implements the Weighted Histogram Analysis Method (WHAM) for reconstructing the overall 2D probability histogram from a series of biased molecular simulations in terms of two collective variables CV1 and CV2.
 		
@@ -725,10 +740,10 @@ class Histogram2D(object):
 			pinit = np.ones([Ngrid1,Ngrid2])/Ngrid
 		else:
 			#it is assumed pinit is given in 'xy'-indexing convention (such as for example when using the ps attribute of another Histogram2D instance)
+			assert pinit.shape[0]==Ngrid2, 'Specified initial guess should be of shape (%i,%i), got (%i,%i)' %(Ngrid2,Ngrid1,pinit.shape[0],pinit.shape[1])
+			assert pinit.shape[1]==Ngrid1, 'Specified initial guess should be of shape (%i,%i), got (%i,%i)' %(Ngrid2,Ngrid1,pinit.shape[0],pinit.shape[1])
 			#however, this routine is written in the 'ij'-indexing convention, therefore, we transpose pinit here.
 			pinit = pinit.T
-			assert pinit.shape[0]==Ngrid1, 'Specified initial guess should be of shape (%i,%i), got (%i,%i)' %(Ngrid1,Ngrid2,pinit.shape[0],pinit.shape[1])
-			assert pinit.shape[1]==Ngrid2, 'Specified initial guess should be of shape (%i,%i), got (%i,%i)' %(Ngrid1,Ngrid2,pinit.shape[0],pinit.shape[1])
 			pinit /= pinit.sum()
 		ps, fs, converged = wham2d_scf(Nis, Hs, bs, pinit, Nscf=Nscf, convergence=convergence, verbose=verbosity.lower() in ['high'], overflow_threshold=overflow_threshold)
 		if verbosity.lower() in ['low', 'medium', 'high']:
@@ -736,7 +751,6 @@ class Histogram2D(object):
 				print('  SCF Converged!')
 			else:
 				print('  SCF did not converge!')
-
 		timings['scf'] = time.time()
 
 		#error estimation
@@ -744,16 +758,8 @@ class Histogram2D(object):
 		if error_estimate is not None:
 			if verbosity.lower() in ['medium', 'high']:
 				print('Estimating error ...')
-			error = wham2d_error(ps, fs, bs, Nis, method=error_estimate, verbose=verbosity.lower() in ['medium', 'high'])
-
-		#For consistency with how FreeEnergySurface2D is implemented (using 'xy'-indexing), ps (and error attributes) need to be transposed
-		ps = ps.T
-		if error is not None:
-			error.transpose()
-			if hasattr(error, 'means'):
-				diff = np.abs(ps[ps>0]-error.means[ps>0])
-				if not (diff<1e-6).all():
-					print('WARNING: Inconsistency detected in ps and error.means upon transposing. ps-error.means has min, mean, std, max = ', diff.min(), diff.mean(), diff.std(), diff.max())
+			if corrtimes is None: corrtimes = np.ones(len(traj_input), float)
+			error = wham2d_error(ps, fs, bs, Nis, corrtimes, method=error_estimate, p_threshold=error_p_threshold, verbose=verbosity.lower() in ['medium', 'high'])
 
 		timings['error'] = time.time()
 
@@ -788,6 +794,8 @@ class Histogram2D(object):
 	@classmethod
 	def _estimate_WHAM_error_2D(cls, ps, fs, bs, Nis, method='mle_f', nsigma=2):
 		'''
+			NOT SURE IF THIS ROUTINE ISN'T DEPRICATED!!
+		
 			Internal routine to compute the error assiciated with solving the 2D WHAM equations using the Fisher information comming from the Maximum Likelihood Estimator. The procedure is as follows:
 
 			* construct the extended Fisher information matrix by taking the weighted sum of the Fisher information matrix of each simulation. This is very similar as in the 1D case. However, we first have to flatten the CV1,CV2 2D grid to a 1D CV12 grid. This is achieved with the flatten function (which flattens a 2D index to a 1D index). Deflattening of the CV12 grid to a 2D CV1,CV2 grid is achieved with the deflatten function (which deflattens a 1D index to a 2D index). Using the flatten function, the ps array is flattened and a conventional Fisher matrix can be constructed and inverted. Afterwards the covariance matrix is deflattened using the deflatten function to arrive to a multidimensional matrix giving (co)variances on the 2D probability array.
@@ -917,20 +925,21 @@ class Histogram2D(object):
 			raise NotImplementedError #TODO
 		return cls(fes.cv1s, fes.cv2s, ps, error=error, cv1_output_unit=fes.cv1_output_unit, cv2_output_unit=fes.cv2_output_unit, cv1_label=fes.cv1_label, cv2_label=fes.cv2_label)
 	
-	def average_cv_constraint_other(self, index: int, error_estimate='propdist'):
-		'''Routine to compute the average of one CV (denoted as y/Y below, y for integration values and Y for resulting averaged values) 
-		   as function of the other CV (denoted as x below), i.e. the other CV Y is contraint to one of its bin values) using the following formula:
+	def average_cv_constraint_other(self, index, target_distribution=MultiGaussianDistribution, verbose=False):
+		'''S
+			Routine to compute the average of one CV (denoted as y/Y below, y for integration values and Y for resulting averaged values) 
+		   	as function of the other CV (denoted as x below), i.e. the other CV Y is contraint to one of its bin values) using the following formula:
 
 			Y(x) = int(y*p(x,y),y)/int(p(x,y),dy)
 
-		:param index: the index of the CV which will be averaged (the other is then contraint). If index=1, then y=CV1 and x=CV2, while if index=2, then y=CV2 and x=CV1.
-		:type index: int (1 or 2)
+			:param index: the index of the CV which will be averaged (the other is then contraint). If index=1, then y=CV1 and x=CV2, while if index=2, then y=CV2 and x=CV1.
+			:type index: int (1 or 2)
 
-		:param error_estimate: Specify the method of error propagation, either by propagating the FES distribution samples (propdist) or by propagating the FES 2 sigma confidence interval (prop2sigma), defaults to propdist
-		:type error_estimate: str, optional
+			:param error_estimate: Specify the method of error propagation, either by propagating the FES distribution samples (propdist) or by propagating the FES 2 sigma confidence interval (prop2sigma), defaults to propdist
+			:type error_estimate: str, optional
 
-		:return: xs, ys (and yerrs) with xs the constraint CV values, ys the averaged CV values and yerrs the error bar on the averaged values assuming do_err was set to True
-		:rtype: xs, ys | xs, ys, yerrs all np.ndarrays
+			:return: xs, ys (and yerrs) with xs the constraint CV values, ys the averaged CV values and yerrs the error bar on the averaged values assuming do_err was set to True
+			:rtype: xs, ys | xs, ys, yerrs all np.ndarrays
 		'''
 		#set x,y and p arrays according to chosen index
 		if index==1:
@@ -940,12 +949,13 @@ class Histogram2D(object):
 			f_output_unit = self.cv1_output_unit
 			cv_label = self.cv2_label
 			f_label = self.cv1_label
-			def function(ps):
+			def function(ps_inp):
+				ps = ps_inp/ps_inp[~np.isnan(ps_inp)].sum()
 				Ys = np.zeros(len(xs))
 				for j in range(len(xs)):
-					mask = ~np.isnan(ps[j,:])
-					T = (ys[mask]*ps[j,mask]).sum()
-					N = (ps[j,mask]).sum()
+					mask = ~np.isnan(ps[:,j])
+					T = (ys[mask]*ps[mask,j]).sum()
+					N = (ps[mask,j]).sum()
 					try:
 						Ys[j] = T/N
 					except (FloatingPointError, ZeroDivisionError):
@@ -958,12 +968,13 @@ class Histogram2D(object):
 			f_output_unit = self.cv2_output_unit
 			cv_label = self.cv1_label
 			f_label = self.cv2_label
-			def function(ps):
+			def function(ps_inp):
+				ps = ps_inp/ps_inp[~np.isnan(ps_inp)].sum()
 				Ys = np.zeros(len(xs))
 				for j in range(len(xs)):
-					mask = ~np.isnan(ps[:,j])
-					T = (ys[mask]*ps[mask,j]).sum()
-					N = (ps[mask,j]).sum()
+					mask = ~np.isnan(ps[j,:])
+					T = (ys[mask]*ps[j,mask]).sum()
+					N = (ps[j,mask]).sum()
 					try:
 						Ys[j] = T/N
 					except (FloatingPointError,ZeroDivisionError):
@@ -971,81 +982,144 @@ class Histogram2D(object):
 				return Ys
 		else:
 			raise ValueError('Index should be 1 or 2 for 2D Histogram')
-
 		#compute average Y (and possibly its error) on grid of x
-		Ys = function(self.ps)
-		error = None
 		if self.error is not None:
-			if error_estimate.lower()=='propdist':
-				propagator = Propagator(ncycles=self.error.ncycles, target_distribution=GaussianDistribution)
-				error = propagator(function, self.error)
-			elif error_estimate.lower()=='prop2sigma':
-				Ylower = function(self.plower(nsigma=2))
-				Yupper = function(self.pupper(nsigma=2))
-				Yerr = abs(Yupper-Ylower)/4
-				error = GaussianDistribution(Ys, Yerr)
-			else:
-				raise NotImplementedError('Unsupported method for error estimation, received %s but should be propdist or prop2sigma.')
-		
-		#return
+			if verbose: print('Error propagation is done numerically')
+			propagator = Propagator(verbose=verbose)
+			error = propagator(function, self.error, target_distribution=target_distribution, samples_are_flattened=True)
+			Ys = error.mean()
+		else:
+			if verbose: print('No error detected in current histogram, so no error propagation possible!')
+			Ys = function(self.ps)
+			error = None
 		return BaseProfile(xs, Ys, error=error, cv_output_unit=cv_output_unit, f_output_unit=f_output_unit, cv_label=cv_label, f_label=f_label)
 	
-	def plot(self, fn, cv1_lims=None, cv2_lims=None, lims=None, ncolors=8, scale='lin'):
+	def plot(self, fn, slicer=[slice(None),slice(None)], obss=['base'], linestyles=None, linewidths=None, colors=None, cv1_lims=None, cv2_lims=None, flims=None, ncolors=8, ref_max=False, **plot_kwargs):
 		'''
-			Simple routine to make a 2D contour plot of the probability distribution. The values of the CVs will be plotted in units specified by the CV1_output_unit and CV2_output_unit attributes of the self instance.
+            Plot x[slicer], where (possibly multiple) x is/Are specified in the keyword argument obss and the argument slicer defines the subset of data that will be plotted. The resulting graph will be a regular 1D plot or 2D contourplot, depending on the dimensionality of the data x[slicer].
 
-			:param fn: File name to write the plot to. The extension determines the format (PNG or PDF).
-			:type fn: str
+            :param fn: name of the file to store graph in, defaults to 'condprob.png'
+            :type fn: str, optional
 
-			:param cv1_lims: range defining the plot limits of CV1
-			:type cv1_lims: tupple/list, optional, default=None
+            :param cmap: color map to be used, only relevant in case of 2D contourplot, defaults to pp.get_cmap('rainbow')
+            :type cmap: color map from matplotlib, optional
+        '''
+        #preprocess
+		assert isinstance(slicer, list) or isinstance(slicer, np.ndarray), 'Slicer should be list or array, instead got %s' %(slicer.__class__.__name__)
+		assert len(slicer)==2, 'Slicer should be list of length 2, instead got list of length %i' %( len(slicer))
 
-			:param cv2_lims: range defining the plot limits of CV1
-			:type cv2_lims: tupple/list, optional, default=None
-
-			:param lims: range defining the plot limits for the observable
-			:type lims: tupple/list, optional, default=None
-
-			:param ncolors: number of different colors included in contour plot
-			:type ncolors: int, optional, default=8
-
-			:param scale: scal for the observable, should be 'lin' for linear or 'log' for logarithmic.
-			:type scale: str, optional, choices=('lin', 'log'), default='lin'
-
-			:raises IOError: if invalid observable is given, see doc above for possible choices.
-
-			:raises IOError: if invalid scale is given, see doc above for possible choices.
-		'''
-		pp.clf()
-		obs = self.ps*(parse_unit(self.cv1_output_unit)*parse_unit(self.cv2_output_unit))
-		label = r'Probability density [(%s*%s)$^{-1}$]' %(self.cv1_output_unit, self.cv2_output_unit)
-		plot_kwargs = {}
-		if lims is None:
-			lims = [min(obs[~np.isnan(obs)]), max(obs[~np.isnan(obs)])]
-		if lims is not None:
-			if scale.lower() in ['lin', 'linear']:
-				plot_kwargs['levels'] = np.linspace(lims[0], lims[1], ncolors+1)
-			elif scale.lower() in ['log', 'logarithmic']:
-				plot_kwargs['levels'] = np.logspace(lims[0], lims[1], ncolors+1)
-				plot_kwargs['norm'] = LogNorm()
-				plot_kwargs['locator'] = LogLocator()
+		if isinstance(slicer[0], slice) and isinstance(slicer[1], slice):
+			ndim = 2
+			xs = self.cv1s[slicer[0]]/parse_unit(self.cv1_output_unit)
+			xlabel = self.cv1_label
+			xlims = cv1_lims
+			ys = self.cv2s[slicer[1]]/parse_unit(self.cv2_output_unit)
+			ylabel = '%s [%s]' %(self.cv2_label, self.cv2_output_unit)
+			ylims = cv2_lims
+			title = 'P(:,:)'
+		elif isinstance(slicer[0], slice) or isinstance(slicer[1],slice):
+			ndim = 1
+			if isinstance(slicer[0], slice):
+				xs = self.cv1s[slicer[0]]/parse_unit(self.cv1_output_unit)
+				xlabel = '%s [%s]' %(self.cv1_label, self.cv1_output_unit)
+				xlims = cv1_lims
+				title = 'F(:,%s[%i]=%.3f %s)' %(self.cv2_label,slicer[1],self.cv2s[slicer[1]]/parse_unit(self.cv2_output_unit),self.cv2_output_unit)
 			else:
-				raise IOError('recieved invalid scale value, got %s, should be lin or log' %scale)
-		contourf = pp.contourf(self.cv1s/parse_unit(self.cv1_output_unit), self.cv2s/parse_unit(self.cv2_output_unit), obs, cmap=pp.get_cmap('rainbow'), **plot_kwargs)
-		contour = pp.contour(self.cv1s/parse_unit(self.cv1_output_unit), self.cv2s/parse_unit(self.cv2_output_unit), obs, **plot_kwargs)
-		if cv1_lims is not None:
-			pp.xlim(cv1_lims)
-		if cv2_lims is not None:
-			pp.ylim(cv2_lims)
-		pp.xlabel('%s [%s]' %(self.cv1_label, self.cv1_output_unit), fontsize=16)
-		pp.ylabel('%s [%s]' %(self.cv2_label, self.cv2_output_unit), fontsize=16)
-		cbar = pp.colorbar(contourf, extend='both')
-		cbar.set_label(label, fontsize=16)
-		pp.clabel(contour, inline=1, fontsize=10)
-		fig = pp.gcf()
-		fig.set_size_inches([12,8])
-		pp.savefig(fn)
+				xs = self.cv2s[slicer[1]]/parse_unit(self.cv2_output_unit)
+				xlabel = '%s [%s]' %(self.cv2_label, self.cv2_output_unit)
+				xlims = cv2_lims
+				title = 'P(%s[%i]=%.3f %s,:)' %(self.cv1_label,slicer[0],self.cv1s[slicer[0]]/parse_unit(self.cv1_output_unit),self.cv1_output_unit)
+		else:
+			raise ValueError('At least one of the two elements in slicer should be a slice instance!')
+		punit = 1.0/(parse_unit(self.cv1_output_unit)*parse_unit(self.cv2_output_unit))
 
+		#read data 
+		data = []
+		labels = []
+		for obs in obss:
+			values = None
+			if obs.lower() in ['base','mean']:
+				values = self.ps[slicer].copy()
+			elif obs.lower() in ['errmean', 'errormean', 'meanerr', 'meanerror']:
+				assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
+				values = self.error.mean()[slicer]
+			elif obs.lower() in ['low', 'lower', 'lowererr', 'lowererror', 'errorlower', 'errlower', 'errlow']:
+				assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
+				values = self.error.nsigma_conf_int(2)[0][slicer]
+			elif obs.lower() in ['up', 'upper', 'uppererr', 'uppererror', 'errorupper', 'errupper', 'errup']:
+				assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
+				values = self.error.nsigma_conf_int(2)[1][slicer]
+			elif obs.lower() in ['sample', 'errorsample', 'errsample', 'sampleerror', 'sampleerr']:
+				assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
+				values = self.error.sample()[slicer]
+			if values is None: raise ValueError('Could not interpret observable %s' %obs)
+			assert ndim==len(values.shape), 'Observable data has inconsistent dimensions!'
+
+			if ref_max:
+				values /= max(values)
+			data.append(values)
+			labels.append(obs)
+
+		if ndim==1 and self.error is not None:
+			lower, upper = self.error.nsigma_conf_int(2)
+			lower, upper = lower[slicer], upper[slicer]
+		if linestyles is None:
+			linestyles = [None,]*len(data)
+		if linewidths is None:
+			linewidths = [1.0,]*len(data)
+		if colors is None:
+			colors = [None,]*len(data)
+
+		#make plot
+		pp.clf()
+		if ndim==1:
+			for (zs,label,linestyle,linewidth,color) in zip(data,labels,linestyles, linewidths,colors):
+				pp.plot(xs, zs/punit, label=label, linestyle=linestyle, linewidth=linewidth, color=color, **plot_kwargs)
+			if self.error is not None:
+				pp.fill_between(xs, lower/punit, upper/punit, **plot_kwargs, alpha=0.33)
+			pp.xlabel(xlabel, fontsize=16)
+			pp.ylabel('Energy [%s]' %(self.f_output_unit), fontsize=16)
+			pp.title('Derived profiles from %s' %title, fontsize=16)
+			if xlims is not None: pp.xlim(xlims)
+			if flims is not None: pp.ylim(flims)
+			pp.legend(loc='best')
+			fig = pp.gcf()
+			fig.set_size_inches([8,8])
+		elif ndim==2:
+			if len(data)<4:
+				fig, axs = pp.subplots(1,len(data))
+				size = [8*len(data),8]
+			elif len(data)==4:
+				fig, axs = pp.subplots(2,2)
+				size = [16,16]
+			else:
+				nrows = int(np.ceil(len(data)/3))
+				fig, axs = pp.subplots(nrows,3)
+				size = [24,8*nrows]
+			for i, (multi_index, ax) in enumerate(np.ndenumerate(axs)):
+				if flims is not None:
+					delta = (flims[1]-flims[0])/ncolors
+					levels = np.arange(flims[0], flims[1]+delta, delta)
+					contourf = ax.contourf(xs, ys, data[i].T/punit, levels=levels, **plot_kwargs) #transpose data to convert ij indexing (internal) to xy indexing (for plotting)
+					contour = ax.contour(xs, ys, data[i].T/punit, levels=levels, colors='gray') #transpose data to convert ij indexing (internal) to xy indexing (for plotting)
+				else:
+					contourf = ax.contourf(xs, ys, data[i].T/punit, **plot_kwargs) #transpose data to convert ij indexing (internal) to xy indexing (for plotting)
+					contour = ax.contour(xs, ys, data[i].T/punit, colors='gray') #transpose data to convert ij indexing (internal) to xy indexing (for plotting)
+				ax.set_xlabel(xlabel, fontsize=16)
+				ax.set_ylabel(ylabel, fontsize=16)
+				ax.set_title('%s of %s' %(labels[i],title), fontsize=16)
+				if xlims is not None: ax.set_xlim(xlims)
+				if ylims is not None: ax.set_ylim(ylims)
+				cbar = pp.colorbar(contourf, ax=ax, extend='both')
+				cbar.set_label('Free energy [%s]' %self.f_output_unit, fontsize=16)
+				pp.clabel(contour, inline=1, fontsize=10)
+			fig.set_size_inches(size)
+		else:
+			raise ValueError('Can only plot 1D or 2D pcond data, but received %i-d data. Make sure that the combination of qslice and cvslice results in 1 or 2 dimensional data.' %(len(data.shape)))
+
+		fig.tight_layout()
+		pp.savefig(fn)
+		return
 
 def plot_histograms(fn, histograms, temp=None, labels=None, flims=None, colors=None, linestyles=None, linewidths=None):
 	'''

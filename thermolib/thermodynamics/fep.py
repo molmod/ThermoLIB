@@ -16,10 +16,11 @@ from molmod.units import *
 from molmod.constants import *
 
 import numpy as np, sys
+np.seterr(divide='ignore', invalid='ignore')
 
-from thermolib.tools import integrate, integrate2d, format_scientific
+from thermolib.tools import integrate2d, format_scientific
 from thermolib.thermodynamics.state import *
-from thermolib.error import GaussianDistribution, LogGaussianDistribution, Propagator
+from thermolib.error import *
 
 import matplotlib.pyplot as pp
 import matplotlib.cm as cm
@@ -237,16 +238,16 @@ class BaseProfile(object):
         #compute error if requested
         error = None
         if error_estimate is not None and error_estimate.lower() in ['std']:
-            ferr = fss.std(axis=0,ddof=1)
+            ferr = fss.std(axis=0,ddof=1)/np.sqrt(len(profiles))
             error = GaussianDistribution(fs, ferr)
         if cls==BaseProfile:
             return cls(cvs, fs, error=error, cv_output_unit=cv_output_unit, cv_label=cv_label, f_output_unit=f_output_unit, f_label=f_label)
-        elif cls in [BaseFreeEnergyProfile,SimpleFreeEnergyProfile]:
+        elif cls in [BaseFreeEnergyProfile, SimpleFreeEnergyProfile]:
             temps = np.array([prof.T for prof in profiles])
             assert temps.std()/temps.mean()<1e-6, 'Cannot average free energy profiles because they do not have the same temperature!'
             return cls(cvs, fs, temps.mean(), error=error, cv_output_unit=cv_output_unit, cv_label=cv_label, f_output_unit=f_output_unit, f_label=f_label)
         else:
-            raise NotImplementedError
+            raise NotImplementedError('routine from_average not implemented for class %s' %str(cls))
 
     def set_ref(self, ref='min'):
         '''
@@ -264,11 +265,11 @@ class BaseProfile(object):
             pass #in this case, ref itself is the profile y value that has to shifted to zero
         elif ref.lower() in ['min']:
             global_minimum = Minimum('glob_min', ms_range=[MinInf(),PlusInf()] , cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
-            global_minimum.compute(self.cvs, self.fs)
+            global_minimum.compute(self, dist_prop='stationary')
             ref = global_minimum.get_F()
         elif ref.lower() in ['max']:
             global_maximum = Maximum('glob_min', ms_range=[MinInf(),PlusInf()] , cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
-            global_maximum.compute(self.cvs, self.fs)
+            global_maximum.compute(self, dist_prop='stationary')
             ref = global_maximum.get_F()
         else:
             raise IOError('Invalid REF specification, recieved %s and should be min or an integer' %ref)
@@ -327,6 +328,24 @@ class BaseProfile(object):
         fig.set_size_inches([len(axs)*8,8])
         pp.savefig(fn)
 
+    def plot_samples(self, fn, flims=None, nsamples=5):
+        import warnings
+        warnings.filterwarnings("ignore", category=UserWarning)
+        pp.clf()
+        ax = pp.gca()
+        ax.plot(self.cvs/parse_unit(self.cv_output_unit), self.error.mean()/parse_unit(self.f_output_unit), 'k--', linewidth='3', label='Average')
+        ax.fill_between(self.cvs/parse_unit(self.cv_output_unit), self.flower()/parse_unit(self.f_output_unit), self.fupper()/parse_unit(self.f_output_unit), color='k', alpha=0.33, label='Error bar')
+        for i in range(nsamples):
+            if i==0: label='Sample'
+            else: label='_nolegend_'
+            ax.plot(self.cvs/parse_unit(self.cv_output_unit), self.error.sample()/parse_unit(self.f_output_unit), label=label)
+        if flims is not None: ax.set_ylim(flims)
+        ax.set_xlabel('CV [au]', fontsize=16)
+        ax.set_ylabel('%s [%s]' %(self.f_label, self.f_output_unit), fontsize=16)
+        ax.legend(loc='best')
+        fig = pp.gcf()
+        fig.set_size_inches([12,12])
+        fig.savefig(fn)
 
 
 
@@ -379,14 +398,16 @@ class BaseFreeEnergyProfile(BaseProfile):
         if histogram.error is not None:
             kT = boltzmann*temp
             if isinstance(histogram.error, LogGaussianDistribution):
-                error = GaussianDistribution.exp_from_loggaussian(histogram.error, scale=-kT)
+                error = GaussianDistribution.log_from_loggaussian(histogram.error, scale=-kT)
+            elif isinstance(histogram.error, MultiLogGaussianDistribution):
+                error = MultiGaussianDistribution.log_from_loggaussian(histogram.error, scale=-kT)
             else:
                 def function(ps):
                     result = np.zeros(ps.shape)*np.nan
                     result[ps>0] = -kT*np.log(ps[ps>0])
                     return result
-                samples = np.array([histogram.error.sample() for i in range(histogram.error.ncycles)])
-                error = GaussianDistribution.from_samples(function(samples), ncycles=histogram.error.ncycles)
+                propagator = Propagator(ncycles=ncycles_default)
+                error =  propagator(function, histogram.error, target_distribution=type(histogram.error))
         if cv_output_unit is None:
             cv_output_unit = histogram.cv_output_unit
         if cv_label is None:
@@ -494,7 +515,6 @@ class BaseFreeEnergyProfile(BaseProfile):
 
 
 
-
 class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
     '''
         Class implementing a 1D FEP representing a simple bi-stable profile with 2 minima representing the reactant and process states and 1 local maximum representing the transition state. 
@@ -519,9 +539,9 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
             error = base.error.copy()
         return SimpleFreeEnergyProfile(base.cvs, base.fs, base.T, error=error, cv_label=base.cv_label, cv_output_unit=base.cv_output_unit, f_output_unit=base.f_output_unit)
 
-    def process_states(self, ts_range=[-np.inf,np.inf]):
+    def process_states(self, ts_range=[-np.inf,np.inf], cv_lims=[-np.inf,np.inf], verbose=False):
         '''
-            Internal routine called by :meth:`process_states` to find:
+            Routine to find:
             
             *  the transition state (TS) as the local maximum within the given ts_range
             *  the reactant (R) as local minimum left of TS
@@ -530,23 +550,43 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
             :param ts_range: range for the cv in which to look for the transition state as a local maximum
             :type ts_range: list, optional, default=[-np.inf,np.inf]
 
+            :param cv_range: range for the cv in which to look for any state (reactant, ts or product) to avoid having large error edge points influence the reactant/product minima
+            :type cv_range: list, optional, default=[-np.inf,np.inf]
+
             :raises ValueError: the transition state cannot be found in the range defined by ts_range.
         '''
+        #some helper objects
+        if np.isinf(cv_lims[0]): lower = MinInf()
+        else:                    lower = MicroValue(cv_lims[0])
+        if np.isinf(cv_lims[1]): upper = PlusInf()
+        else:                    upper = MicroValue(cv_lims[1])
         #define microstates
-        self.ts = Maximum('TS', cv_range=ts_range, cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
-        self.r = Minimum('r', ms_range=[MinInf(),self.ts] , cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
-        self.p = Minimum('p', ms_range=[self.ts,PlusInf()], cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
+        self.ts = Maximum('ts', cv_range=ts_range, cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
+        self.r = Minimum('r', ms_range=[lower,self.ts], cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
+        self.p = Minimum('p', ms_range=[self.ts,upper], cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
         self.microstates = [self.r, self.ts, self.p]
         #process free energy profile to calculate microstates
         for state in self.microstates:
-            state.compute(self.cvs, self.fs, fdist=self.error)
+            state.compute(self)
+            if verbose:
+                state.print()
         #define macrostates
-        self.R = Integrate('R', [MinInf(),self.ts] , beta=self.beta, cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
-        self.P = Integrate('P', [self.ts,PlusInf()], beta=self.beta, cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
+        self.R = Integrate('R', [lower,self.ts] , beta=self.beta, cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
+        self.P = Integrate('P', [self.ts,upper], beta=self.beta, cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
         self.macrostates = [self.R, self.P]
         #process free energy profile to calculate macrostates
         for state in self.macrostates:
-            state.compute(self.cvs, self.fs, fdist=self.error)
+            state.compute(self)
+            if verbose:
+                state.print()
+
+    def update_states(self):
+        #process free energy profile to calculate microstates
+        for state in self.microstates:
+            state.compute(self)
+        #process free energy profile to calculate macrostates
+        for state in self.macrostates:
+            state.compute(self)
 
     def set_ref(self, ref='min'):
         ''' 
@@ -571,23 +611,23 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
             pass #in this case, ref itself is the profile y value that has to shifted to zero
         elif ref.lower() in ['r', 'reactant']:
             assert self.r is not None, 'Reactant state not defined yet, did you already apply the process_states routine?'
-            self.r.compute(self.cvs, self.fs)
+            self.r.compute(self, dist_prop='stationary')
             ref = self.r.get_F()
         elif ref.lower() in ['p', 'product']:
             assert self.p is not None, 'Product state not defined yet, did you already apply the process_states routine?'
-            self.p.compute(self.cvs, self.fs)
+            self.p.compute(self, dist_prop='stationary')
             ref = self.p.get_F()
         elif ref.lower() in ['ts', 'trans_state', 'transition']:
             assert self.ts is not None, 'Transition state not defined yet, did you already apply the process_states routine?'
-            self.ts.compute(self.cvs, self.fs)
+            self.ts.compute(self, dist_prop='stationary')
             ref = self.ts.get_F()
         elif ref.lower() in ['min']:
             global_minimum = Minimum('glob_min', ms_range=[MinInf(),PlusInf()] , cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
-            global_minimum.compute(self.cvs, self.fs)
+            global_minimum.compute(self, dist_prop='stationary')
             ref = global_minimum.get_F()
         elif ref.lower() in ['max']:
             global_maximum = Maximum('glob_min', ms_range=[MinInf(),PlusInf()] , cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
-            global_maximum.compute(self.cvs, self.fs)
+            global_maximum.compute(self, dist_prop='stationary')
             ref = global_maximum.get_F()
         else:
             raise IOError('Invalid REF specification, recieved %s and should be min, max, r, ts, p or an integer' %ref)
@@ -596,10 +636,7 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
         if self.error is not None:
             self.error.set_ref(value=ref)
         #Micro and macrostates need to be updated
-        if self.r is not None and self.ts is not None and self.p is not None:
-            cv_delta = (self.cvs[1:]-self.cvs[:-1]).mean()
-            ts_range = [self.ts.get_cv()-10*cv_delta,self.ts.get_cv()+10*cv_delta]
-            self.process_states(ts_range=ts_range)
+        self.update_states()
 
     def print_states(self):
         for microstate in self.microstates:
@@ -644,13 +681,16 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
             axs[0].fill_between(self.cvs/parse_unit(self.cv_output_unit), self.flower()/parse_unit(self.f_output_unit), self.fupper()/parse_unit(self.f_output_unit), alpha=0.33)
         #plot vline for transition state if defined
         cv_width = max(self.cvs)-min(self.cvs)
-        ylower = -1+min([state.get_F()/kjmol for state in self.macrostates]+[0])
-        yupper = max(self.fs[~np.isnan(self.fs)])/kjmol+10
+        if flims is None:
+            ylower = -1+min([state.get_F()/kjmol for state in self.macrostates]+[0])
+            yupper = max(self.fs[~np.isnan(self.fs)])/kjmol+10
+        else:
+            ylower, yupper = flims
         #plot microstates
         for microstate in self.microstates:
             axs[0].plot(microstate.get_cv()/parse_unit(self.cv_output_unit), microstate.get_F()/parse_unit(self.f_output_unit), linestyle='none', marker=micro_marker, color=micro_color, markersize=micro_size)
             axs[0].text((microstate.get_cv()+0.01*cv_width)/parse_unit(self.cv_output_unit), microstate.get_F()/parse_unit(self.f_output_unit), microstate.text('f'), color=micro_color, fontsize=12)
-            axs[0].axvline(x=microstate.get_cv()/parse_unit(self.cv_output_unit), ymin=0, ymax=(microstate.get_F()/parse_unit(self.f_output_unit))/yupper, linestyle=micro_linestyle, color=micro_color, linewidth=1)
+            axs[0].axvline(x=microstate.get_cv()/parse_unit(self.cv_output_unit), ymin=0, ymax=(microstate.get_F()/parse_unit(self.f_output_unit)-ylower)/(yupper-ylower), linestyle=micro_linestyle, color=micro_color, linewidth=1)
             if rate is not None:
                 axs[0].fill_betweenx([ylower, max(self.fs)/kjmol], x1=rate.CV_TS_lims[0]/parse_unit(self.cv_output_unit), x2=rate.CV_TS_lims[1]/parse_unit(self.cv_output_unit), alpha=0.33, color='k')
         #plot macrostates
@@ -665,10 +705,7 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
         axs[0].set_ylabel('Energy [%s]' %self.f_output_unit, fontsize=14)
         axs[0].set_title('Free energy profile F(CV)', fontsize=16)
         axs[0].set_xlim([min(self.cvs/parse_unit(self.cv_output_unit)), max(self.cvs/parse_unit(self.cv_output_unit))])
-        if flims is not None:
-            axs[0].set_ylim(flims)
-        else:
-            axs[0].set_ylim([ylower, yupper])
+        axs[0].set_ylim([ylower, yupper])
         axs[0].axhline(y=0, xmin=0, xmax=1, linestyle='--', color='k', linewidth=1)
 
         if len(self.macrostates)>0:
@@ -939,9 +976,22 @@ class FreeEnergySurface2D(object):
                 result = np.zeros(ps.shape)*np.nan
                 result[ps>0] = -np.log(ps[ps>0])/beta
                 return result
-            propagator = Propagator(ncycles=histogram.error.ncycles)
-            error = propagator(function, histogram.error)
-        return cls(histogram.cv1s, histogram.cv2s, fs, temp, error=error, cv1_output_unit=histogram.cv1_output_unit, cv2_output_unit=histogram.cv2_output_unit, cv1_label=histogram.cv1_label, cv2_label=histogram.cv2_label)
+            if isinstance(histogram.error, LogGaussianDistribution):
+                error = GaussianDistribution.log_from_loggaussian(histogram.error, scale=-1/beta)
+            elif isinstance(histogram.error, GaussianDistribution):
+                propagator = Propagator()
+                error = propagator(function, histogram.error)
+            elif isinstance(histogram.error, MultiLogGaussianDistribution):
+                error = MultiGaussianDistribution.log_from_loggaussian(histogram.error, scale=-1/beta)
+            elif isinstance(histogram.error, MultiGaussianDistribution):
+                propagator = Propagator()
+                error = propagator(function, histogram.error, target_distribution=MultiGaussianDistribution, flattener=histogram.error.flattener)
+            else:
+                raise RuntimeError('Something went wrong!')
+        fep = cls(histogram.cv1s, histogram.cv2s, fs, temp, error=error, cv1_output_unit=histogram.cv1_output_unit, cv2_output_unit=histogram.cv2_output_unit, cv1_label=histogram.cv1_label, cv2_label=histogram.cv2_label)
+        if hasattr(histogram.error, 'flattener'):
+            fep.error.flattener = histogram.error.flattener
+        return fep
 
     def savetxt(self, fn_txt):
         '''
@@ -1183,7 +1233,7 @@ class FreeEnergySurface2D(object):
             v_unit = 'au'
         return FreeEnergySurface2D(vs, us, fs, self.T, fupper=fupper, flower=flower, cv1_output_unit=v_unit, cv2_output_unit=u_unit, f_output_unit=self.f_output_unit, cv1_label='CV2-CV1', cv2_label='0.5*(CV1+CV2)')
 
-    def project_difference(self, sign=1, cv_output_unit='au', return_class=BaseFreeEnergyProfile, error_estimate='propdist'):
+    def project_difference(self, sign=1, cv_output_unit='au', return_class=BaseFreeEnergyProfile, error_distribution=MultiGaussianDistribution):
         '''
             Construct a 1D free energy profile representing the projection of the 2D FES onto the difference of collective variables:
 
@@ -1225,9 +1275,9 @@ class FreeEnergySurface2D(object):
                 if (abs(np.array(cvs)-q)>1e-6).all():
                     cvs.append(q)
         cvs = np.array(sorted(cvs))
-        return self.project_function(function, cvs, cv_label=cv_label, cv_output_unit=cv_output_unit, return_class=return_class, error_estimate=error_estimate)
+        return self.project_function(function, cvs, cv_label=cv_label, cv_output_unit=cv_output_unit, return_class=return_class, error_distribution=error_distribution)
 
-    def project_average(self, cv_output_unit='au', return_class=BaseFreeEnergyProfile, error_estimate='propdist'):
+    def project_average(self, cv_output_unit='au', return_class=BaseFreeEnergyProfile, error_distribution=MultiGaussianDistribution):
         '''
             Construct a 1D free energy profile representing the projection of the 2D FES F2(CV1,CV2) onto the average q=(CV1+CV2)/2 of the collective variables:
 
@@ -1255,9 +1305,9 @@ class FreeEnergySurface2D(object):
         cvs = np.array(sorted(cvs))
         def function(q1,q2):
             return 0.5*(q1+q2)
-        return self.project_function(function, cvs, cv_label='0.5*(%s+%s)' %(self.cv1_label,self.cv1_label), cv_output_unit=cv_output_unit, return_class=return_class, error_estimate=error_estimate)
+        return self.project_function(function, cvs, cv_label='0.5*(%s+%s)' %(self.cv1_label,self.cv1_label), cv_output_unit=cv_output_unit, return_class=return_class, error_distribution=error_distribution)
 
-    def project_cv1(self, return_class=BaseFreeEnergyProfile, error_estimate='propdist'):
+    def project_cv1(self, return_class=BaseFreeEnergyProfile, delta=None, error_distribution=MultiGaussianDistribution):
         '''
             Construct a 1D free energy profile representing the projection of the 2D FES F2(CV1,CV2) onto q=CV1. This is implemented as follows:
 
@@ -1271,9 +1321,9 @@ class FreeEnergySurface2D(object):
         '''
         def function(q1,q2):
             return q1
-        return self.project_function(function, self.cv1s.copy(), cv_label=self.cv1_label, cv_output_unit=self.cv1_output_unit, return_class=return_class, error_estimate=error_estimate)
+        return self.project_function(function, self.cv1s.copy(), delta=delta, cv_label=self.cv1_label, cv_output_unit=self.cv1_output_unit, return_class=return_class, error_distribution=error_distribution)
 
-    def project_cv2(self, return_class=BaseFreeEnergyProfile, error_estimate='propdist'):
+    def project_cv2(self, return_class=BaseFreeEnergyProfile, delta=None, error_distribution=MultiGaussianDistribution):
         '''
             Construct a 1D free energy profile representing the projection of the 2D FES F2(CV1,CV2) onto q=CV2. This is implemented as follows:
 
@@ -1287,9 +1337,9 @@ class FreeEnergySurface2D(object):
         '''
         def function(q1,q2):
             return q2
-        return self.project_function(function, self.cv2s.copy(), cv_label=self.cv2_label, cv_output_unit=self.cv2_output_unit, return_class=return_class, error_estimate=error_estimate)
+        return self.project_function(function, self.cv2s.copy(), delta=delta, cv_label=self.cv2_label, cv_output_unit=self.cv2_output_unit, return_class=return_class, error_distribution=error_distribution)
 
-    def project_function(self, function, cvs, delta=1e-3, cv_label='CV', cv_output_unit='au', return_class=BaseFreeEnergyProfile, error_estimate='propdist'):
+    def project_function(self, function, qs, delta=None, cv_label='CV', cv_output_unit='au', return_class=BaseFreeEnergyProfile, error_distribution=MultiGaussianDistribution):
         '''
             Routine to implement the general projection of a 2D FES onto a collective variable defined by the given function (which takes the original two CVs as arguments).
 
@@ -1317,7 +1367,9 @@ class FreeEnergySurface2D(object):
             :returns: projected 1D free energy profile
             :rtype: see return_class argument
         '''
-        CV1s, CV2s = np.meshgrid(self.cv1s, self.cv2s, indexing='xy')
+        CV1s, CV2s = np.meshgrid(self.cv1s, self.cv2s, indexing='ij')
+        if delta is None:
+            delta = (qs[1:]-qs[:-1]).mean()
         def dirac(cv1, cv2, q):
             assert cv1.shape==cv2.shape
             result = np.zeros(cv1.shape, float)
@@ -1328,99 +1380,156 @@ class FreeEnergySurface2D(object):
         def project(f12s):
             P12s = np.exp(-self.beta*f12s)
             P12s[np.isnan(P12s)] = 0.0
-            pqs = np.zeros(len(cvs), float)
-            for i,q in enumerate(cvs):
+            pqs = np.zeros(len(qs), float)
+            for i,q in enumerate(qs):
                 Hs = dirac(CV1s, CV2s, q)
                 pqs[i] = integrate2d(P12s*Hs, dx=delta1, dy=delta2)/delta
-            fqs = np.zeros(len(cvs))*np.nan
+            fqs = np.zeros(len(qs))*np.nan
             fqs[pqs>0] = -np.log(pqs[pqs>0])/self.beta
             return fqs
-        fs = project(self.fs)
-        error = None
-        if self.error is not None:
-            if error_estimate.lower()=='propdist':
-                propagator = Propagator(ncycles=self.error.ncycles)
-                error = propagator(project, self.error)
-            elif error_estimate.lower()=='prop2sigma':
-                flower = project(self.flower())
-                fupper = project(self.fupper())
-                ferr = (fupper-flower)/4
-                error = GaussianDistribution(fs, ferr)
+        if self.error is None:
+            fs = project(self.fs)
+            error = None
+        else:
+            propagator = Propagator()
+            error = propagator(project, self.error, target_distribution=error_distribution, samples_are_flattened=True)
+            fs = error.mean()
+        return return_class(qs, fs, self.T, error=error, cv_output_unit=cv_output_unit, f_output_unit=self.f_output_unit, cv_label=cv_label)
+
+    def plot(self, fn, slicer=[slice(None),slice(None)], obss=['base'], linestyles=None, linewidths=None, colors=None, cv1_lims=None, cv2_lims=None, flims=None, ncolors=8, plot_additional_function_contours=None, **plot_kwargs):
+        '''
+            Plot x[slicer], where (possibly multiple) x is/Are specified in the keyword argument obss and the argument slicer defines the subset of data that will be plotted. The resulting graph will be a regular 1D plot or 2D contourplot, depending on the dimensionality of the data x[slicer].
+
+            :param fn: name of the file to store graph in, defaults to 'condprob.png'
+            :type fn: str, optional
+
+            :param cmap: color map to be used, only relevant in case of 2D contourplot, defaults to pp.get_cmap('rainbow')
+            :type cmap: color map from matplotlib, optional
+        '''
+        #preprocess
+        assert isinstance(slicer, list) or isinstance(slicer, np.ndarray), 'Slicer should be list or array, instead got %s' %(slicer.__class__.__name__)
+        assert len(slicer)==2, 'Slicer should be list of length 2, instead got list of length %i' %( len(slicer))
+
+        if isinstance(slicer[0], slice) and isinstance(slicer[1], slice):
+            ndim = 2
+            xs = self.cv1s[slicer[0]]/parse_unit(self.cv1_output_unit)
+            xlabel = self.cv1_label
+            xlims = cv1_lims
+            ys = self.cv2s[slicer[1]]/parse_unit(self.cv2_output_unit)
+            ylabel = '%s [%s]' %(self.cv2_label, self.cv2_output_unit)
+            ylims = cv2_lims
+            title = 'F(:,:)'
+        elif isinstance(slicer[0], slice) or isinstance(slicer[1],slice):
+            ndim = 1
+            if isinstance(slicer[0], slice):
+                xs = self.cv1s[slicer[0]]/parse_unit(self.cv1_output_unit)
+                xlabel = '%s [%s]' %(self.cv1_label, self.cv1_output_unit)
+                xlims = cv1_lims
+                title = 'F(:,%s[%i]=%.3f %s)' %(self.cv2_label,slicer[1],self.cv2s[slicer[1]]/parse_unit(self.cv2_output_unit),self.cv2_output_unit)
             else:
-                raise NotImplementedError('Unsupported method for error estimation, received %s but should be propdist or prop2sigma.')
-        return return_class(cvs, fs, self.T, error=error, cv_output_unit=cv_output_unit, f_output_unit=self.f_output_unit, cv_label=cv_label)
+                xs = self.cv2s[slicer[1]]/parse_unit(self.cv2_output_unit)
+                xlabel = '%s [%s]' %(self.cv2_label, self.cv2_output_unit)
+                xlims = cv2_lims
+                title = 'F(%s[%i]=%.3f %s,:)' %(self.cv1_label,slicer[0],self.cv1s[slicer[0]]/parse_unit(self.cv1_output_unit),self.cv1_output_unit)
+        else:
+            raise ValueError('At least one of the two elements in slicer should be a slice instance!')
+        funit = parse_unit(self.f_output_unit)
 
-    def plot(self, fn, cv1_lims=None, cv2_lims=None, lims=None, ncolors=8, scale='lin', plot_additional_function_contours=None):
-        '''
-            Simple routine to make a 2D contour plot of either the free energy F or probability distribution P as specified in ``obs``. The values of the CVs and the free energy will be plotted in units specified by the CV1_output_unit, CV2_output_unit and f_output_unit attributes of the self instance.
+        #read data 
+        data = []
+        labels = []
+        for obs in obss:
+            values = None
+            if obs.lower() in ['base','mean']:
+                values = self.fs[slicer].copy()
+            elif obs.lower() in ['errmean', 'errormean', 'meanerr', 'meanerror']:
+                assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
+                values = self.error.mean()[slicer]
+            elif obs.lower() in ['low', 'lower', 'lowererr', 'lowererror', 'errorlower', 'errlower', 'errlow']:
+                assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
+                values = self.error.nsigma_conf_int(2)[0][slicer]
+            elif obs.lower() in ['up', 'upper', 'uppererr', 'uppererror', 'errorupper', 'errupper', 'errup']:
+                assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
+                values = self.error.nsigma_conf_int(2)[1][slicer]
+            elif obs.lower() in ['half of upper-lower', 'hul']:
+                assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
+                lower = self.error.nsigma_conf_int(2)[0][slicer]
+                upper = self.error.nsigma_conf_int(2)[1][slicer]
+                values = 0.5*np.abs(upper - lower)
+            elif obs.lower() in ['sample', 'errorsample', 'errsample', 'sampleerror', 'sampleerr']:
+                assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
+                values = self.error.sample()[slicer]
+            if values is None: raise ValueError('Could not interpret observable %s' %obs)
+            assert ndim==len(values.shape), 'Observable data has inconsistent dimensions!'
 
-            :param fn: File name to write the plot to. The extension determines the format (PNG or PDF).
-            :type fn: str
+            data.append(values)
+            labels.append(obs)
+        
+        if ndim==1 and self.error is not None:
+            lower, upper = self.error.nsigma_conf_int(2)
+            lower, upper = lower[slicer], upper[slicer]
+        if linestyles is None:
+            linestyles = [None,]*len(data)
+        if linewidths is None:
+            linewidths = [1.0,]*len(data)
+        if colors is None:
+            colors = [None,]*len(data)
 
-            :param cv1_lims: range defining the plot limits of CV1
-            :type cv1_lims: tupple/list, optional, default=None
-
-            :param cv2_lims: range defining the plot limits of CV1
-            :type cv2_lims: tupple/list, optional, default=None
-
-            :param lims: range defining the plot limits for the observable
-            :type lims: tupple/list, optional, default=None
-
-            :param ncolors: number of different colors included in contour plot
-            :type ncolors: int, optional, default=8
-
-            :param scale: scale for the observable, should be 'lin' for linear or 'log' for logarithmic.
-            :type scale: str, optional, choices=('lin', 'log'), default='lin'
-
-            :param plot_additional_function_contours: a list of a function (first element) and array of its corresponding contour values (second element) to plot on top of the FES, defaults to None
-            :type plot_additional_function_contours: list, optional
-
-            :raises IOError: if invalid observable is given, see doc above for possible choices.
-
-            :raises IOError: if invalid scale is given, see doc above for possible choices.
-        '''
+        #make plot
         pp.clf()
-        obs = self.fs/parse_unit(self.f_output_unit)
-        label = 'Free energy [%s]' %self.f_output_unit
-        plot_kwargs = {}
-        if lims is None:
-            lims = [min(obs[~np.isnan(obs)]), max(obs[~np.isnan(obs)])]
-        if lims is not None:
-            if scale.lower() in ['lin', 'linear']:
-                plot_kwargs['levels'] = np.linspace(lims[0], lims[1], ncolors+1)
-            elif scale.lower() in ['log', 'logarithmic']:
-                plot_kwargs['levels'] = np.logspace(lims[0], lims[1], ncolors+1)
-                plot_kwargs['norm'] = LogNorm()
-                plot_kwargs['locator'] = LogLocator()
+        if ndim==1:
+            for (zs,label,linestyle,linewidth,color) in zip(data,labels,linestyles, linewidths,colors):
+                pp.plot(xs, zs/funit, label=label, linestyle=linestyle, linewidth=linewidth, color=color, **plot_kwargs)
+            if self.error is not None:
+                pp.fill_between(xs, lower/funit, upper/funit, **plot_kwargs, alpha=0.33)
+            pp.xlabel(xlabel, fontsize=16)
+            pp.ylabel('Energy [%s]' %(self.f_output_unit), fontsize=16)
+            pp.title('Derived profiles from %s' %title, fontsize=16)
+            if xlims is not None: pp.xlim(xlims)
+            if flims is not None: pp.ylim(flims)
+            pp.legend(loc='best')
+            fig = pp.gcf()
+            fig.set_size_inches([8,8])
+        elif ndim==2:
+            if len(data)<4:
+                fig, axs = pp.subplots(1,len(data))
+                size = [8*len(data),8]
+            elif len(data)==4:
+                fig, axs = pp.subplots(2,2)
+                size = [16,16]
             else:
-                raise IOError('recieved invalid scale value, got %s, should be lin or log' %scale)
-        contourf = pp.contourf(self.cv1s/parse_unit(self.cv1_output_unit), self.cv2s/parse_unit(self.cv2_output_unit), obs, cmap=pp.get_cmap('rainbow'), **plot_kwargs)
-        contour = pp.contour(self.cv1s/parse_unit(self.cv1_output_unit), self.cv2s/parse_unit(self.cv2_output_unit), obs, **plot_kwargs)
-        if plot_additional_function_contours is not None:
-            assert isinstance(plot_additional_function_contours, list), 'plot_additional_function_contours should be list of two elements'
-            assert len(plot_additional_function_contours)==2, 'plot_additional_function_contours should be list of two elements'
-            assert callable(plot_additional_function_contours[0]), 'First element of plot_additional_function_contours should be callable'
-            assert isinstance(plot_additional_function_contours[1], list), 'Second element of plot_additional_function_contours should be list of contour values'
-            function, levels = plot_additional_function_contours
-            print(levels)
-            CV1s, CV2s = np.meshgrid(self.cv1s, self.cv2s)
-            pp.contour(CV1s/parse_unit(self.cv1_output_unit), 
-                       CV2s/parse_unit(self.cv2_output_unit), 
-                       function(CV1s,CV2s), levels=levels)
-        if cv1_lims is not None:
-            pp.xlim(cv1_lims)
-        if cv2_lims is not None:
-            pp.ylim(cv2_lims)
-        pp.xlabel('%s [%s]' %(self.cv1_label, self.cv1_output_unit), fontsize=16)
-        pp.ylabel('%s [%s]' %(self.cv2_label, self.cv2_output_unit), fontsize=16)
-        cbar = pp.colorbar(contourf, extend='both')
-        cbar.set_label(label, fontsize=16)
-        pp.clabel(contour, inline=1, fontsize=10)
-        fig = pp.gcf()
-        fig.set_size_inches([12,8])
+                nrows = int(np.ceil(len(data)/3))
+                fig, axs = pp.subplots(nrows,3)
+                size = [24,8*nrows]
+            for i, (multi_index, ax) in enumerate(np.ndenumerate(axs)):
+                if flims is not None:
+                    delta = (flims[1]-flims[0])/ncolors
+                    levels = np.arange(flims[0], flims[1]+delta, delta)
+                    contourf = ax.contourf(xs, ys, data[i].T/funit, levels=levels, **plot_kwargs) #transpose data to convert ij indexing (internal) to xy indexing (for plotting)
+                    contour = ax.contour(xs, ys, data[i].T/funit, levels=levels, colors='gray') #transpose data to convert ij indexing (internal) to xy indexing (for plotting)
+                else:
+                    contourf = ax.contourf(xs, ys, data[i].T/funit, **plot_kwargs) #transpose data to convert ij indexing (internal) to xy indexing (for plotting)
+                    contour = ax.contour(xs, ys, data[i].T/funit, colors='gray') #transpose data to convert ij indexing (internal) to xy indexing (for plotting)
+                ax.set_xlabel(xlabel, fontsize=16)
+                ax.set_ylabel(ylabel, fontsize=16)
+                ax.set_title('%s of %s' %(labels[i],title), fontsize=16)
+                if xlims is not None: ax.set_xlim(xlims)
+                if ylims is not None: ax.set_ylim(ylims)
+                cbar = pp.colorbar(contourf, ax=ax, extend='both')
+                cbar.set_label('Free energy [%s]' %self.f_output_unit, fontsize=16)
+                pp.clabel(contour, inline=1, fontsize=10)
+                if plot_additional_function_contours is not None:
+                    function, levels = plot_additional_function_contours
+                    Xs, Ys = np.meshgrid(xs, ys)
+                    fvals = function(Xs,Ys)
+                    contour = ax.contour(xs, ys, fvals, colors='red', linewidth=2.0)
+            fig.set_size_inches(size)
+        else:
+            raise ValueError('Can only plot 1D or 2D pcond data, but received %i-d data. Make sure that the combination of qslice and cvslice results in 1 or 2 dimensional data.' %(len(data.shape)))
+
+        fig.tight_layout()
         pp.savefig(fn)
-
-
+        return
 
 
 def plot_profiles(fn, profiles, labels=None, flims=None, colors=None, linestyles=None, linewidths=None, do_latex=False):

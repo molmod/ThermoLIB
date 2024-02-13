@@ -273,7 +273,6 @@ class ColVarReader(TrajectoryReader):
         :param verbose: Switch on the routine verbosity and print more logging, defaults to False
         :type verbose: bool, optional
         '''
-        
         if len(indices)==0:
             raise ValueError('No column indices defined, received empty list for argument indices.')
         if len(units)==0:
@@ -291,7 +290,14 @@ class ColVarReader(TrajectoryReader):
         data = np.loadtxt(fn)
         cvdata = None
         for i, (index, unit) in enumerate(zip(self.indices,self.units)):
-            col = self._slice(data[:,index])*parse_unit(unit)
+            if len(data.shape)==1:
+                if index==0:
+                    col = self._slice(data)*parse_unit(unit)
+                    assert len(col.shape)==1, 'Something went wrong in the slicing of the colvar data.'
+                else:
+                    raise ValueError('You specified a column index larger then 0, but could only read a single column from colvar file %s.' %())
+            else:
+                col = self._slice(data[:,index])*parse_unit(unit)
             if len(col)==0:
                 raise ValueError('No data for CV(%i) could be read from trajectory %s. Are you sure you did not choose start:end:stride to restrictive?' %(index,fn))
             if cvdata is None:
