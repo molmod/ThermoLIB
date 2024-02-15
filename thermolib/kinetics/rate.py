@@ -140,7 +140,7 @@ class BaseRateFactor(object):
         #as the user has not specified a single method, reset the A_dist to None
         self.A_dist = None
 
-    def compute_rate(self, fep, ncycles=100, verbose=False):
+    def compute_rate(self, fep, ncycles=500, verbose=False):
         if not (self.A_dist is None or fep.ts.F_dist is None or fep.R.Z_dist is None or fep.P.Z_dist is None):
             def fun_k(A,Fts,Z):
                 return A*np.exp(-Fts/(boltzmann*fep.T))/Z
@@ -168,7 +168,7 @@ class BaseRateFactor(object):
                 print('k_F  = %s' %k_forward.print(unit='1e8/s'))
                 print('dF_F = %s' %dF_forward.print(unit='kjmol'))
                 print('k_B  = %s' %k_backward.print(unit='1e8/s'))
-                print('dF_B = %s' %dF_forward.print(unit='kjmol'))
+                print('dF_B = %s' %dF_backward.print(unit='kjmol'))
             return k_forward.mean(), k_forward, dF_forward.mean(), dF_forward, k_backward.mean(), k_backward, dF_backward.mean(), dF_backward
         else:
             k_forward   = self.A*np.exp(-fep.ts.F/(boltzmann*fep.T))/fep.R.Z

@@ -19,9 +19,9 @@ from molmod.units import *
 
 import numpy as np, sys
 from numpy.ma import masked_array
+import time
 
-
-__all__ = ['Minimum', 'Maximum', 'MinInf', 'PlusInf', 'MicroValue', 'Integrate']
+__all__ = ['Minimum', 'Maximum', 'Integrate']
 
 
 
@@ -139,42 +139,15 @@ class Microstate(State):
 
 class Minimum(Microstate):
     '''Microstate class that identifies the minimum in a certain range defined by either cv values, indexes or other microstates.'''
-    def __init__(self, name, cv_range=None, index_range=None, ms_range=None, cv_unit='au', f_unit='kjmol'):
-        self.check_in_range = self._get_check_in_range_function(cv_range=cv_range, index_range=index_range, ms_range=ms_range)
+    def __init__(self, name, cv_range=[-np.inf, np.inf], cv_unit='au', f_unit='kjmol'):
+        self.cv_range = cv_range
         Microstate.__init__(self, name, cv_unit=cv_unit, f_unit=f_unit)
-
-    def _get_check_in_range_function(self, cv_range=None, index_range=None, ms_range=None):
-        checks = []
-        if cv_range is not None:
-            def check_cv(index, cvs, fs):
-                return cv_range[0]<=cvs[index]<=cv_range[1]
-            checks.append(check_cv)
-        if index_range is not None:
-            def check_index(index, cvs, fs):
-                return index_range[0]<=index<=index_range[1]
-            checks.append(check_index)
-        if ms_range is not None:
-            def check_ms(index, cvs, fs):
-                start = ms_range[0]._get_index_fep(cvs, fs)
-                end   = ms_range[1]._get_index_fep(cvs, fs)
-                return start<=index<=end
-            checks.append(check_ms)
-        if len(checks)>0:
-            def check(index, cvs, fs):
-                check_results = [fun(index, cvs, fs) for fun in checks]
-                return np.array(check_results).all()
-        else:
-            #if no range is defined, return an always-passing function.
-            def check(index, cvs, fs):
-                return True
-        return check
 
     def _get_index_fep(self, cvs, fs):
         index = np.nan
         fcurrent = np.nan
-        #print("Search for Minimum microstate %s" %self.name)
-        for i, f in enumerate(fs):
-            if self.check_in_range(i, cvs, fs):
+        for i, (cv, f) in enumerate(zip(cvs,fs)):
+            if self.cv_range[0]<=cv and cv<=self.cv_range[1]:
                 if np.isnan(index):
                     if not np.isnan(f):
                         index = i 
@@ -188,41 +161,15 @@ class Minimum(Microstate):
 
 class Maximum(Microstate):
     '''Microstate class that identifies the maximum in a certain range defined by either cv values, indexes or other microstates.'''
-    def __init__(self, name, cv_range=None, index_range=None, ms_range=None, cv_unit='au', f_unit='kjmol'):
-        self.check_in_range = self._get_check_in_range_function(cv_range=cv_range, index_range=index_range, ms_range=ms_range)
+    def __init__(self, name, cv_range=None, cv_unit='au', f_unit='kjmol'):
+        self.cv_range = cv_range
         Microstate.__init__(self, name, cv_unit=cv_unit, f_unit=f_unit)
-
-    def _get_check_in_range_function(self, cv_range=None, index_range=None, ms_range=None):
-        checks = []
-        if cv_range is not None:
-            def check_cv(index, cvs, fs):
-                return cv_range[0]<=cvs[index]<=cv_range[1]
-            checks.append(check_cv)
-        if index_range is not None:
-            def check_index(index, cvs, fs):
-                return index_range[0]<=index<=index_range[1]
-            checks.append(check_index)
-        if ms_range is not None:
-            def check_ms(index, cvs, fs):
-                start = ms_range[0]._get_index_fep(cvs, fs)
-                end   = ms_range[1]._get_index_fep(cvs, fs)
-                return start<=index<=end
-            checks.append(check_ms)
-        if len(checks)>0:
-            def check(index, cvs, fs):
-                check_results = [fun(index, cvs, fs) for fun in checks]
-                return np.array(check_results).all()
-        else:
-            #if no range is defined, return an always-passing function.
-            def check(index, cvs, fs):
-                return True
-        return check
     
     def _get_index_fep(self, cvs, fs):
         index = None
         fcurrent = None
-        for i, f in enumerate(fs):
-            if self.check_in_range(i, cvs, fs):
+        for i, (cv, f) in enumerate(zip(cvs,fs)):
+            if self.cv_range[0]<=cv and cv<=self.cv_range[1]:
                 if index is None:
                     if not np.isnan(f):
                         index = i 
@@ -232,43 +179,6 @@ class Maximum(Microstate):
                     fcurrent = f
         assert index is not None, "No valid maximum found for %s microstate in range" %(self.name)
         return index
-
-
-class MinInf(Microstate):
-    '''Microstate defining a CV value of -inf. Usefull for later defining macrostates as an integral from -inf to a given microstate.'''
-    def __init__(self):
-        Microstate.__init__(self, 'mininf')
-
-    def _get_index_fep(self, cvs, fs):
-        return 0
-
-
-class PlusInf(Microstate):
-    '''Microstate defining a CV value of +inf. Usefull for later defining macrostates as an integral from a given microstate to +inf.'''
-    def __init__(self):
-        Microstate.__init__(self, 'plusinf')
-
-    def _get_index_fep(self, cvs, fs):
-        return len(cvs)-1
-    
-
-class MicroValue(Microstate):
-    '''Microstate defining a CV of given value. Usefull for later defining macrostates as an integral from a or to the given value.'''
-    def __init__(self, value):
-        Microstate.__init__(self, 'value')
-        self.value = value
-        self.index = None
-
-    def _get_index_fep(self, cvs, fs):
-        if self.index is None:
-            self.index = np.nan
-            for i, cv in enumerate(cvs):
-                if cv<=self.value:
-                    self.index = i
-                else:
-                    break
-        return self.index
-    
 
 
 class Macrostate(State):
@@ -353,23 +263,31 @@ class Macrostate(State):
 
 
 class Integrate(Macrostate):
-    def __init__(self, name, microstates, beta, cv_unit='au', f_unit='kjmol'):
-        self.microstates = microstates
+    def __init__(self, name, cv_range, beta, cv_unit='au', f_unit='kjmol'):
+        self.cv_range = cv_range
         self.beta = beta
         Macrostate.__init__(self, name, cv_unit=cv_unit, f_unit=f_unit)
     
-    def _get_indices_fep(self, cvs, fs):
-        start = self.microstates[0]._get_index_fep(cvs, fs)
-        end = self.microstates[1]._get_index_fep(cvs, fs)
-        return np.array(range(start,end+1))
-    
     def _get_state_fep(self, cvs, fs, fdist=None):
-        indexes = self._get_indices_fep(cvs, fs)
+        #get cv_range in case a microstate was used in the cv_range argument
+        cv_range = [None, None]
+        if isinstance(self.cv_range[0], Microstate):
+            index = self.cv_range[0]._get_index_fep(cvs, fs)
+            cv_range[0] = cvs[index]
+        else:
+            cv_range[0] = self.cv_range[0]
+        if isinstance(self.cv_range[1], Microstate):
+            index = self.cv_range[1]._get_index_fep(cvs, fs)
+            cv_range[1] = cvs[index]
+        else:
+            cv_range[1] = self.cv_range[1]    
+        index_mask = (cv_range[0]<=cvs)*(cvs<=cv_range[1])
+        #get state
         mask = ~np.isnan(fs)
         ps = np.exp(-self.beta*fs)/integrate(cvs[mask], np.exp(-self.beta*fs[mask]))
-        cvs_indexed = cvs[indexes]
-        ps_indexed = ps[indexes]
-        fs_indexed = fs[indexes]
+        cvs_indexed = cvs[index_mask]
+        ps_indexed = ps[index_mask]
+        fs_indexed = fs[index_mask]
         mask2 = ~np.isnan(fs_indexed)
         P = integrate(cvs_indexed[mask2], ps_indexed[mask2])
         Z = integrate(cvs_indexed[mask2], np.exp(-self.beta*fs_indexed[mask2]))
@@ -379,4 +297,6 @@ class Integrate(Macrostate):
         if fdist is None:
             return mean, std, Z, F,
         else:
-            ferrs_indexed = fdist.std()[indexes]
+            raise NotImplementedError
+            ferrs_indexed = fdist.std()[index_mask]
+

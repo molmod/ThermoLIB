@@ -20,6 +20,8 @@ import matplotlib.pyplot as pp
 from .tools import format_scientific, multivariate_normal
 from .flatten import DummyFlattener
 
+import time
+
 __all__ = [
     'ncycles_default', 
     'Distribution', 'SampleDistribution', 'GaussianDistribution', 'LogGaussianDistribution', 
@@ -595,7 +597,7 @@ class Propagator(object):
             if self.verbose: print('  ... for argument %i (=%s)' %(iarg,arg.__class__.__name__))
             self.argsamples[iarg] = arg.sample(nsamples=self.ncycles)
             if self.verbose: print('  ..... resulted in argsamples[%i].shape=' %(iarg),self.argsamples[iarg].shape)
-
+    
     def calc_fun_values(self, fun):
         if self.verbose: print('Error propagation - calculating function values for %i cycles...' %(self.ncycles))
         #propagate argument samples to function values
@@ -614,7 +616,7 @@ class Propagator(object):
         if self.funsamples.shape[0]==1:
             self.funsamples = self.funsamples[0]
         if self.verbose: print('funsamples.shape=',self.funsamples.shape)
-    
+
     def get_distribution(self, target_distribution=GaussianDistribution, flattener=DummyFlattener(), samples_are_flattened=False):
         if target_distribution in [MultiGaussianDistribution, MultiLogGaussianDistribution]:
             distr = target_distribution.from_samples(self.funsamples, flattener=flattener, flattened=samples_are_flattened)

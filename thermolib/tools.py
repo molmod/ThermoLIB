@@ -24,12 +24,13 @@ from scipy.optimize import curve_fit
 from inspect import signature
 import matplotlib.pyplot as pp
 import sys, os
+import time
 
 __all__ = [
     'format_scientific', 'h5_read_dataset',
     'integrate', 'integrate2d', 'rolling_average',
     'blav', 'corrtime_from_acf', 'decorrelate',
-    'read_wham_input', 'multivariate_normal', 'invert_fisher_to_covariance'
+    'read_wham_input', 'multivariate_normal', 'invert_fisher_to_covariance', 'fisher_matrix_mle_probdens'
 ]
 
 #Miscellaneous utility routines
@@ -610,21 +611,45 @@ def decorrelate(trajectories, method='acf', acf_nblocks=None, blav_model_functio
     return trajectories_decor, corrtimes
 
 def multivariate_normal(means, covariance, size=None):
+    #t0 = time.time()
     #wrapper around np.random.multivariate_normal to deal with np.nan columns in the covariance matrix
     mask = np.ones(len(means), dtype=bool)
     #loop over diagonal elements of cov matrix and if it is nan, check if entire row and column is nan and remove it
     for i, val in enumerate(covariance.diagonal()):
-        if np.isnan(val):
+        if np.isnan(val): #the std_tol criterium is to assure that the covariance matrix will be positive definit (i.e. hass no zero eigenvalues)
             assert np.isnan(covariance[i,:]).all(), 'Upon filtering np.nans from covariance matrix, found diagonal element %i that is nan, but not the entire row' %i
             assert np.isnan(covariance[:,i]).all(), 'Upon filtering np.nans from covariance matrix, found diagonal element %i that is nan, but not the entire column' %i
             mask[i] = 0
-    samples_cropped = np.random.multivariate_normal(means[mask], covariance[np.outer(mask,mask)].reshape([mask.sum(),mask.sum()]), size=size)
+    mus = means[mask]
+    cov = covariance[np.outer(mask,mask)].reshape([mask.sum(),mask.sum()])
+    #enforce symmetric covariance matrix (filters out non-symmetric noise)
+    cov += cov.T
+    cov *= 0.5
+    #t1 = time.time()
+    try:
+        samples_cropped = np.random.default_rng().multivariate_normal(mus, cov, size=size, method='cholesky')
+    except np.linalg.LinAlgError:
+        print('WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.')
+        samples_cropped = np.random.default_rng().multivariate_normal(mus, cov, size=size, method='eigh')
+    #t2 = time.time()
     if size is None:
         samples = np.zeros(len(means))*np.nan
         samples[mask] = samples_cropped
     else:
         samples = np.zeros([size,len(means)])*np.nan
         samples[:,mask] = samples_cropped
+    #t3 = time.time()
+    #print('---------------------------------------------------------------------')
+    #print('MULTIVARIATE NORMAL SAMPLING TIMING SUMMARY')
+    #t = t1-t0
+    #print('  Initializing : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+    #t = t2-t1
+    #print('  Sampling     : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+    #t = t3-t2
+    #print('  Post proces  : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+    #t = t3-t1
+    #print('  TOTAL        : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
+    #print('---------------------------------------------------------------------')
     return samples
 
 # Routines related to computing and inverting the fisher information matrix

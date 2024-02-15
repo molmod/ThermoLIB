@@ -264,11 +264,11 @@ class BaseProfile(object):
         elif isinstance(ref, float):
             pass #in this case, ref itself is the profile y value that has to shifted to zero
         elif ref.lower() in ['min']:
-            global_minimum = Minimum('glob_min', ms_range=[MinInf(),PlusInf()] , cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
+            global_minimum = Minimum('glob_min' , cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
             global_minimum.compute(self, dist_prop='stationary')
             ref = global_minimum.get_F()
         elif ref.lower() in ['max']:
-            global_maximum = Maximum('glob_min', ms_range=[MinInf(),PlusInf()] , cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
+            global_maximum = Maximum('glob_min', cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
             global_maximum.compute(self, dist_prop='stationary')
             ref = global_maximum.get_F()
         else:
@@ -510,7 +510,12 @@ class BaseFreeEnergyProfile(BaseProfile):
         error = None
         if self.error is not None:
             #as the transformation is (1) exactly known, (2) it transforms CV values and (3) doesn't change the error on the f
-            error = GaussianDistribution(fs, self.error.std())
+            if isinstance(self.error, GaussianDistribution):
+                error = GaussianDistribution(fs, self.error.stds.copy())
+            elif isinstance(self.error, MultiGaussianDistribution):
+                error = MultiGaussianDistribution(fs, self.error.covariance.copy())
+            else:
+                raise ValueError('Error distribution %s is not supported in transform_function' %(type(self.error)))
         return self.__class__(qs, fs, self.T, error=error, cv_output_unit=cv_output_unit, f_output_unit=self.f_output_unit, cv_label=cv_label)
 
 
@@ -539,7 +544,7 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
             error = base.error.copy()
         return SimpleFreeEnergyProfile(base.cvs, base.fs, base.T, error=error, cv_label=base.cv_label, cv_output_unit=base.cv_output_unit, f_output_unit=base.f_output_unit)
 
-    def process_states(self, ts_range=[-np.inf,np.inf], cv_lims=[-np.inf,np.inf], verbose=False):
+    def process_states(self, lims=[-np.inf, None, None, np.inf], verbose=False):
         '''
             Routine to find:
             
@@ -547,38 +552,52 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
             *  the reactant (R) as local minimum left of TS
             *  the product (P) as local minimum right of TS
 
-            :param ts_range: range for the cv in which to look for the transition state as a local maximum
-            :type ts_range: list, optional, default=[-np.inf,np.inf]
-
-            :param cv_range: range for the cv in which to look for any state (reactant, ts or product) to avoid having large error edge points influence the reactant/product minima
-            :type cv_range: list, optional, default=[-np.inf,np.inf]
+            :param lims: list of 4 values [a,b,c,d] such that the reactant state minimum should be within interval [a,b], the transition state maximum should be within interval [b,c] and the the product state minimum should be within interval [c,d]. If c and d are None, the transition state maximum is looked for in the entire range (which will fail if the transition state is only a local maximum and not the global maximum).
+            :type lims: list, optional, default=[-np.inf,None, None, np.inf]
 
             :raises ValueError: the transition state cannot be found in the range defined by ts_range.
         '''
-        #some helper objects
-        if np.isinf(cv_lims[0]): lower = MinInf()
-        else:                    lower = MicroValue(cv_lims[0])
-        if np.isinf(cv_lims[1]): upper = PlusInf()
-        else:                    upper = MicroValue(cv_lims[1])
-        #define microstates
+        #define and find the transition state:
+        if lims[1] is None or lims[2] is None:
+            assert lims[1] is None and lims[2] is None, 'In argument lims of the form [a,b,c,d] if one of b,c is None, both should be None!'
+            ts_range = [-np.inf, np.inf]
+        else:
+            ts_range = [lims[1], lims[2]]
         self.ts = Maximum('ts', cv_range=ts_range, cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
-        self.r = Minimum('r', ms_range=[lower,self.ts], cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
-        self.p = Minimum('p', ms_range=[self.ts,upper], cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
-        self.microstates = [self.r, self.ts, self.p]
-        #process free energy profile to calculate microstates
-        for state in self.microstates:
-            state.compute(self)
-            if verbose:
-                state.print()
+        self.ts.compute(self)
+        if verbose: self.ts.print()
+        cv_ts = self.cvs[self.ts.index]
+    
+        #define and find reactant microstate
+        if lims[1] is None:
+            r_range = [lims[0], cv_ts]
+        else:
+            r_range = [lims[0], lims[1]]
+        self.r = Minimum('r', cv_range=r_range, cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
+        self.r.compute(self)
+        if verbose: self.r.print()
+        
+        #define and find reactant microstate
+        if lims[2] is None:
+            p_range = [cv_ts, lims[3]]
+        else:
+            p_range = [lims[2], lims[3]]
+        self.p = Minimum('p', cv_range=p_range, cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
+        self.p.compute(self)
+        if verbose: self.p.print()
+            
         #define macrostates
-        self.R = Integrate('R', [lower,self.ts] , beta=self.beta, cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
-        self.P = Integrate('P', [self.ts,upper], beta=self.beta, cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
+        self.R = Integrate('R', cv_range=[lims[0], self.ts] , beta=self.beta, cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
+        self.R.compute(self)
+        if verbose: self.R.print()
+
+        self.P = Integrate('P', cv_range=[self.ts, lims[3]], beta=self.beta, cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
+        self.P.compute(self)
+        if verbose: self.P.print()
+
+        #collect micro and macrostates
+        self.microstates = [self.r, self.ts, self.p]
         self.macrostates = [self.R, self.P]
-        #process free energy profile to calculate macrostates
-        for state in self.macrostates:
-            state.compute(self)
-            if verbose:
-                state.print()
 
     def update_states(self):
         #process free energy profile to calculate microstates
@@ -622,11 +641,11 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
             self.ts.compute(self, dist_prop='stationary')
             ref = self.ts.get_F()
         elif ref.lower() in ['min']:
-            global_minimum = Minimum('glob_min', ms_range=[MinInf(),PlusInf()] , cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
+            global_minimum = Minimum('glob_min', cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
             global_minimum.compute(self, dist_prop='stationary')
             ref = global_minimum.get_F()
         elif ref.lower() in ['max']:
-            global_maximum = Maximum('glob_min', ms_range=[MinInf(),PlusInf()] , cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
+            global_maximum = Maximum('glob_min', cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
             global_maximum.compute(self, dist_prop='stationary')
             ref = global_maximum.get_F()
         else:

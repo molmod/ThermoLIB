@@ -582,72 +582,72 @@ class Histogram2D(object):
 	@classmethod
 	def from_wham(cls, bins, traj_input, biasses, temp, pinit=None, error_estimate=None, error_p_threshold=0.0, corrtimes=None, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, bias_thress=1e-3, overflow_threshold=1e-150, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2', plot_biases=False, verbose=None, verbosity='low'):
 		'''
-		Routine that implements the Weighted Histogram Analysis Method (WHAM) for reconstructing the overall 2D probability histogram from a series of biased molecular simulations in terms of two collective variables CV1 and CV2.
-		
-		:param data: 2D array corresponding to the trajectory series of the two collective variables. The first column is assumed to correspond to the first collective variable, the second column to the second CV.
-		:type data: np.ndarray([N,2])
-
-		:param bins: list of the form [bins1, bins2] where bins1 and bins2 are numpy arrays each representing the bin edges of their corresponding CV for which a histogram will be constructed. For example the following definition: 	[np.arange(-1,1.05,0.05), np.arange(0,5.1,0.1)]
-		will result in a 2D histogram with bins of width 0.05 between -1 and 1 for CV1 and bins of width 0.1 between 0 and 5 for CV2.
-		:type bins: np.ndarray
-
-		:param trajectories: list or array of 2D numpy arrays containing the [CV1,CV2] trajectory data for each simulation. Alternatively, a list of PLUMED file names containing the trajectory data can be specified as well. The arguments trajectories and biasses should be of the same length.
-		:type trajectories: list(np.ndarray([Nmd,2]))/np.ndarray([Ntraj,Nmd,2])
-
-		:param biasses: list of callables, each representing a function to compute the bias at a given value of the collective variables CV1 and CV2. The arguments trajectories and biasses should be of the same length.
-		:type biasses: list(callable)
-
-		:param temp: the temperature at which all simulations were performed
-		:type temp: float
-
-		:param pinit: initial guess for the probability density, which is assumed to be in the 'xy'-indexing convention (see the "indexing" argument and the corresponding "Notes" section in `the numpy online documentation of the meshgrid routine <https://numpy.org/doc/stable/reference/generated/numpy.meshgrid.html>`_). If None is given, a uniform distribution is used as initial guess.
-		:type pinit: np.ndarray, optional, default=None
-
-		:param error_estimate: indicate if and how to perform error analysis. One of following options is available:
-
-			* `mle_p` -- compute error through the asymptotic normality of the maximum likelihood estimator for the probability itself. WARNING: due to positivity constraint of the probability, this only works for high probability and low variance. Otherwise the standard error interval for the normal distribution (i.e. mle +- n*sigma) might give rise to negative lower error bars.
+			Routine that implements the Weighted Histogram Analysis Method (WHAM) for reconstructing the overall 2D probability histogram from a series of biased molecular simulations in terms of two collective variables CV1 and CV2.
 			
-			* `mle_f` -- compute error through the asymptotic normality of the maximum likelihood estimator for -log(p) (hence for the beta-scaled free energy). This estimation does not suffer from the same WARNING as for ``mle_p``. Furthermore, in case of high probability and low variance, the error estimation using ``mle_f`` and ``mle_p`` are consistent (i.e. one can be computed from the other using f=-log(p)).
-			
-			* `None` -- do not estimate the error.
+			:param data: 2D array corresponding to the trajectory series of the two collective variables. The first column is assumed to correspond to the first collective variable, the second column to the second CV.
+			:type data: np.ndarray([N,2])
 
-		:type error_estimate: str, optional, default=None
+			:param bins: list of the form [bins1, bins2] where bins1 and bins2 are numpy arrays each representing the bin edges of their corresponding CV for which a histogram will be constructed. For example the following definition: 	[np.arange(-1,1.05,0.05), np.arange(0,5.1,0.1)]
+			will result in a 2D histogram with bins of width 0.05 between -1 and 1 for CV1 and bins of width 0.1 between 0 and 5 for CV2.
+			:type bins: np.ndarray
 
-		:param bias_subgrid_num: the number of grid points along each CV for the sub-grid used to compute the integrated boltzmann factor of the bias in each CV1,CV2 bin. Either a single integer is given, corresponding to identical number of subgrid points for both CVs, or a list of two integers corresponding the number of grid points in the two CVs respectively.
-		:type bias_subgrid_num: optional, defaults to [20,20]
+			:param trajectories: list or array of 2D numpy arrays containing the [CV1,CV2] trajectory data for each simulation. Alternatively, a list of PLUMED file names containing the trajectory data can be specified as well. The arguments trajectories and biasses should be of the same length.
+			:type trajectories: list(np.ndarray([Nmd,2]))/np.ndarray([Ntraj,Nmd,2])
 
-		:param Nscf: the maximum number of steps in the self-consistent loop to solve the WHAM equations
-		:type Nscf: int, defaults to 1000
+			:param biasses: list of callables, each representing a function to compute the bias at a given value of the collective variables CV1 and CV2. The arguments trajectories and biasses should be of the same length.
+			:type biasses: list(callable)
 
-		:param convergence: convergence criterium for the WHAM self consistent solver. The SCF loop will stop whenever the integrated absolute difference between consecutive probability densities is less then the specified value.
-		:type convergence: float, defaults to 1e-6
+			:param temp: the temperature at which all simulations were performed
+			:type temp: float
 
-		:param verbose: set to True to turn on more verbosity during the self consistent solution cycles of the WHAM equations, defaults to False.
-		:type verbose: bool, optional
+			:param pinit: initial guess for the probability density, which is assumed to be in the 'xy'-indexing convention (see the "indexing" argument and the corresponding "Notes" section in `the numpy online documentation of the meshgrid routine <https://numpy.org/doc/stable/reference/generated/numpy.meshgrid.html>`_). If None is given, a uniform distribution is used as initial guess.
+			:type pinit: np.ndarray, optional, default=None
 
-		:param cv1_output_unit: the unit in which the first collective variable will be plotted/printed
-		:type cv1_output_unit: str, optional, default='au'
+			:param error_estimate: indicate if and how to perform error analysis. One of following options is available:
 
-		:param cv2_output_unit: the unit in which the second collective variable will be plotted/printed
-		:type cv2_output_unit: str, optional, default='au'
+				* `mle_p` -- compute error through the asymptotic normality of the maximum likelihood estimator for the probability itself. WARNING: due to positivity constraint of the probability, this only works for high probability and low variance. Otherwise the standard error interval for the normal distribution (i.e. mle +- n*sigma) might give rise to negative lower error bars.
+				
+				* `mle_f` -- compute error through the asymptotic normality of the maximum likelihood estimator for -log(p) (hence for the beta-scaled free energy). This estimation does not suffer from the same WARNING as for ``mle_p``. Furthermore, in case of high probability and low variance, the error estimation using ``mle_f`` and ``mle_p`` are consistent (i.e. one can be computed from the other using f=-log(p)).
+				
+				* `None` -- do not estimate the error.
 
-		:param cv1_label: the label of the first collective variable that will be used on plots
-		:type cv1_label: str, optional, default='CV1'
+			:type error_estimate: str, optional, default=None
 
-		:param cv2_label: the label of the first collective variable that will be used on plots
-		:type cv2_label: str, optional, default='CV2'
+			:param bias_subgrid_num: the number of grid points along each CV for the sub-grid used to compute the integrated boltzmann factor of the bias in each CV1,CV2 bin. Either a single integer is given, corresponding to identical number of subgrid points for both CVs, or a list of two integers corresponding the number of grid points in the two CVs respectively.
+			:type bias_subgrid_num: optional, defaults to [20,20]
 
-		:param plot_biases: if set to True, a 2D plot of the boltzmann factor of the bias integrated over each bin will be made.
-		:type plot_biases: bool, optional, default=False
+			:param Nscf: the maximum number of steps in the self-consistent loop to solve the WHAM equations
+			:type Nscf: int, defaults to 1000
 
-		:param bias_thress: threshold for determining whether the exact bin integration of the bias boltzmann factors is required, or the boltzmann factor of the bin center suffices as an approximation. Setting the threshold to 0 implies exact integration for all bins, setting the threshold to 1 implies the bin center approximation for all cells and setting the threshold to x implies that only those bins with a center approximation higher than x will be integrated exactly.
-		:type bias_thress: double, optional, default=1e-3
+			:param convergence: convergence criterium for the WHAM self consistent solver. The SCF loop will stop whenever the integrated absolute difference between consecutive probability densities is less then the specified value.
+			:type convergence: float, defaults to 1e-6
 
-		:param overflow_threshold: threshold used in the scf procedure to avoid overflow errors, this determines which simulations and which grid points to ignore. Decreasing it results in a FES with a larger maximum free energy (lower unbiased probability). If it is too low, imaginary errors (sigma^2) arise, so increase if necessary.
-		:type overflow_threshold: double, optional, default=1e-150
+			:param verbose: set to True to turn on more verbosity during the self consistent solution cycles of the WHAM equations, defaults to False.
+			:type verbose: bool, optional
 
-		:return: 2D probability histogram
-		:rtype: Histogram2D
+			:param cv1_output_unit: the unit in which the first collective variable will be plotted/printed
+			:type cv1_output_unit: str, optional, default='au'
+
+			:param cv2_output_unit: the unit in which the second collective variable will be plotted/printed
+			:type cv2_output_unit: str, optional, default='au'
+
+			:param cv1_label: the label of the first collective variable that will be used on plots
+			:type cv1_label: str, optional, default='CV1'
+
+			:param cv2_label: the label of the first collective variable that will be used on plots
+			:type cv2_label: str, optional, default='CV2'
+
+			:param plot_biases: if set to True, a 2D plot of the boltzmann factor of the bias integrated over each bin will be made.
+			:type plot_biases: bool, optional, default=False
+
+			:param bias_thress: threshold for determining whether the exact bin integration of the bias boltzmann factors is required, or the boltzmann factor of the bin center suffices as an approximation. Setting the threshold to 0 implies exact integration for all bins, setting the threshold to 1 implies the bin center approximation for all cells and setting the threshold to x implies that only those bins with a center approximation higher than x will be integrated exactly.
+			:type bias_thress: double, optional, default=1e-3
+
+			:param overflow_threshold: threshold used in the scf procedure to avoid overflow errors, this determines which simulations and which grid points to ignore. Decreasing it results in a FES with a larger maximum free energy (lower unbiased probability). If it is too low, imaginary errors (sigma^2) arise, so increase if necessary.
+			:type overflow_threshold: double, optional, default=1e-150
+
+			:return: 2D probability histogram
+			:rtype: Histogram2D
 		'''
 		timings = {}
 		timings['start'] = time.time()

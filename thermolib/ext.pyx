@@ -583,4 +583,3 @@ def integrate2d_c(np.ndarray[double, ndim=2] z, double dx, double dy):
     s2 = np.sum(z[1:-1,0]) + np.sum(z[1:-1,-1]) + np.sum(z[0,1:-1]) + np.sum(z[-1,1:-1])
     s3 = np.sum(z[1:-1,1:-1])
     return 0.25*dx*dy*(s1 + 2*s2 + 4*s3)
-
