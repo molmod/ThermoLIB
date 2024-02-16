@@ -17,7 +17,7 @@ import numpy
 
 setup(
     name='ThermoLIB',
-    version='1.6.0',
+    version='1.7.0',
     description='Python library with various sub packages related to thermodynamic and free energy profiles.',
     author='Louis Vanduyfhuys',
     author_email='Louis.Vanduyfhuys@UGent.be',
@@ -25,7 +25,6 @@ setup(
     package_dir = {'thermolib': 'thermolib'},
     packages=['thermolib', 'thermolib.thermodynamics', 'thermolib.kinetics'],
     include_package_data=True,
-    #scripts=['scripts/tl-ads-gcloading.py', 'scripts/tl-ads-osloading.py', 'scripts/tl-kin-rate.py'],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Console',

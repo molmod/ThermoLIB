@@ -27,9 +27,6 @@ import matplotlib.cm as cm
 from matplotlib import gridspec, rc
 from matplotlib.colors import LogNorm
 from matplotlib.ticker import LogLocator
-rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
-## for Palatino and other serif fonts use:
-#rc('font',**{'family':'serif','serif':['Palatino']})
 
 from sklearn.cluster import DBSCAN #clustering algorithm
 

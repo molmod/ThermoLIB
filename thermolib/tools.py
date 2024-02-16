@@ -36,6 +36,40 @@ __all__ = [
 #Miscellaneous utility routines
 
 def format_scientific(x, prec=3, latex=True):
+    """
+        Format a numerical value in scientific notation with optional precision and LaTeX formatting.
+
+        :param x: The numerical value to be formatted in scientific notation.
+        :type x: float
+
+        :param prec: (optional, default=3) The precision of the scientific notation, i.e., the number of decimal places to be displayed.
+        :type prec: int
+
+        :param latex: (optional, default=True) If set to ``True``, the function will return a LaTeX-formatted string; otherwise, it will return a regular string.
+        :type latex: bool
+
+        :returns: A formatted string representing the input value in scientific notation.
+        :rtype: str
+
+        :Example:
+
+        .. code-block:: python
+
+            import numpy as np
+
+            # Example 1: Default precision and LaTeX formatting
+            result1 = format_scientific(1.2345e-8)
+            print(result1)  # Output: '$1.235\\cdot 10^{-8}$'
+
+            # Example 2: Custom precision and regular string formatting
+            result2 = format_scientific(3.14159e12, prec=2, latex=False)
+            print(result2)  # Output: '3.14e+12'
+
+        :Note:
+
+        - If the input value is a `NaN` (Not a Number), the function returns the string 'nan'.
+        - The scientific notation is represented in the format 'a * 10^b', where 'a' is the coefficient and 'b' is the exponent. The coefficient is formatted with the specified precision.
+    """
     if np.isnan(x):
         return r'nan'
     a, b = ('{:.%iE}' %prec).format(x).split('E')
@@ -45,6 +79,35 @@ def format_scientific(x, prec=3, latex=True):
         return '%s 10^%s' %(a, b)
 
 def h5_read_dataset(fn, dset):
+    """
+        Read a dataset from an HDF5 file and return the data as a NumPy array.
+
+        :param fn: The filename (including the path) of the HDF5 file.
+        :type fn: str
+
+        :param dset: The name of the dataset within the HDF5 file to be read.
+        :type dset: str
+
+        :returns: A NumPy array containing the data from the specified dataset.
+        :rtype: numpy.ndarray
+
+        :Example:
+
+        .. code-block:: python
+
+            # Example: Reading a dataset named 'temperature' from the file 'simulation_data.h5'
+            data_array = h5_read_dataset('simulation_data.h5', 'temperature')
+
+        :Dependencies:
+
+        - This function relies on the `h5py` library, which is commonly used for working with HDF5 files in Python. Ensure that the library is installed before using this function.
+
+        :Note:
+
+        - The function uses the 'r' (read) mode when opening the HDF5 file (:code:`mode='r'`), indicating that the file will only be read and not modified.
+        - It is assumed that the specified dataset (:code:`dset`) exists within the HDF5 file. If the dataset is not present, an error may occur.
+
+    """
     with h5.File(fn, mode = 'r') as f:
         data = np.array(f[dset])
     return data
@@ -53,17 +116,45 @@ def h5_read_dataset(fn, dset):
 
 def integrate(xs, ys, yerrs=None):
     '''
-        A simple integration method using the trapezoid rule
+        Perform numerical integration of a dataset using the trapezoidal rule and return the integrated value. Optionally, analytically compute the error in the integration if uncertainties (`yerrs`) are provided (uncorrelated error bars are assumed).
 
-        :param xs: array containing function argument values on grid
-        :type xs: np.ndarray
+        :param xs: A list or NumPy array representing the x-values of the dataset.
+        :type xs: list or numpy.ndarray
 
-        :param ys: array containing function values on grid
-        :type ys: np.ndarray
+        :param ys: A list or NumPy array representing the y-values of the dataset.
+        :type ys: list or numpy.ndarray
 
-        :param yerrs: array containing the error on the function values. When defined, the error on the integral will also be computed. Defaults to None
-        :type yerrs: np.ndarray, optional
-    '''
+        :param yerrs: (optional) A list or NumPy array representing the uncertainties in the y-values. If not provided (default), only the integration result is returned.
+        :type yerrs: list or numpy.ndarray
+
+        :returns: If `yerrs` is not provided, the integrated value of the dataset using the trapezoidal rule. If `yerrs` is provided, a tuple containing the integrated value and the error in the integration.
+        :rtype: float or tuple
+
+        :Example:
+
+        .. code-block:: python
+
+            # Example 1: Integration without uncertainties
+            result1 = integrate([0, 1, 2], [1, 2, 3])
+            print(result1)  # Output: 2.5
+
+            # Example 2: Integration with uncertainties
+            result2, error2 = integrate([0, 1, 2], [1, 2, 3], yerrs=[0.1, 0.1, 0.1])
+            print(result2, error2)  # Output: (2.5, 0.158113883008419)
+
+        :Assertions:
+
+        - The function includes an assertion to ensure that the lengths of `xs` and `ys` are equal.
+
+        :Note:
+
+        - The trapezoidal rule is used for numerical integration, assuming a piecewise linear interpolation between data points.
+        - If uncertainties (`yerrs`) are provided, the error in the integration is computed (assuming uncorrelated `yerrs`) and returned along with the integrated value.
+
+        :Caution:
+
+        - The function assumes that the input dataset is well-behaved, and numerical issues may arise if the dataset has irregularities or extreme variations.
+        '''
     assert len(xs)==len(ys)
     result = 0.0
     if yerrs is not None:
@@ -543,7 +634,7 @@ def corrtime_from_acf(data, nblocks=None, norm=True, fn_plot=None, xlims=None, y
         pp.savefig(fn_plot)
     return corrtime
 
-def decorrelate(trajectories, method='acf', acf_nblocks=None, blav_model_function=None, decorrelate_only=None, fn_plot=None, verbose=False):
+def decorrelate(trajectories, method='acf', acf_nblocks=None, blav_model_function=None, decorrelate_only=None, fn_plot=None, verbose=False, return_decorrelated_trajectories=False):
     #determine the number of trajectories as well as cvs present in trajectory data
     ntrajs = len(trajectories)
     if len(trajectories[0].shape)==1:
@@ -608,7 +699,10 @@ def decorrelate(trajectories, method='acf', acf_nblocks=None, blav_model_functio
                 for iblock in range(nblocks):
                     new_traj[iblock,index] = traj[iblock*bsize:(iblock+1)*bsize,index].mean()
             trajectories_decor.append(new_traj)
-    return trajectories_decor, corrtimes
+    if return_decorrelated_trajectories:
+        return corrtimes, trajectories_decor
+    else:
+        return corrtimes
 
 def multivariate_normal(means, covariance, size=None):
     #t0 = time.time()
