@@ -408,7 +408,7 @@ class MultiGaussianDistribution(MultiDistribution):
         assert isinstance(logdist, MultiLogGaussianDistribution), 'Can only make multivariate Gaussian distribution from logarithm of Multivariate LogGaussianDistribution'
         return cls(scale*logdist.lmeans+shift, (scale**2)*logdist.lcovariance, logdist.flattener)
 
-    def plot_corr_matrix(self, fn, fig_size_inches=[8,8], cmap='bwr', logscale=False):
+    def plot_corr_matrix(self, fn=None, fig_size_inches=[8,8], cmap='bwr', logscale=False, cvs=None, nticks=10, decimals=1):
         data = self.corr(unflatten=False)
         vmin, vmax = -1,1
         if logscale:
@@ -424,9 +424,19 @@ class MultiGaussianDistribution(MultiDistribution):
         pp.clf()
         surf = pp.matshow(data, cmap=cmap, vmin=vmin, vmax=vmax)
         pp.colorbar(surf)
+        if cvs is not None:
+            #set xtick and yticks positions and labels to CV values
+            delta = (len(cvs)-1)//nticks
+            positions = np.arange(0,len(cvs)-1,delta)
+            labels = np.array([np.round(cv*10**decimals)/10**decimals for cv in cvs[positions]])
+            pp.xticks(positions, labels)
+            pp.yticks(positions, labels)
         fig = pp.gcf()
         fig.set_size_inches(fig_size_inches)
-        pp.savefig(fn)
+        if fn is not None:
+            pp.savefig(fn)
+        else:
+            pp.show()
 
 
 class MultiLogGaussianDistribution(MultiDistribution):
@@ -534,7 +544,7 @@ class MultiLogGaussianDistribution(MultiDistribution):
         assert isinstance(gaussdist, MultiGaussianDistribution), 'Can only make MultiLogGaussian distribution from exponent of MultiGaussianDistribution'
         return cls(scale*gaussdist.means+shift, (scale**2)*gaussdist.covariance, gaussdist.flattener)
 
-    def plot_corr_matrix(self, fn, fig_size_inches=[8,8], cmap='bwr', logscale=False):
+    def plot_corr_matrix(self, fn=None, fig_size_inches=[8,8], cmap='bwr', logscale=False, cvs=None, nticks=10, decimals=1):
         data = self.corr(unflatten=False)
         vmin, vmax = -1,1
         if logscale:
@@ -549,10 +559,20 @@ class MultiLogGaussianDistribution(MultiDistribution):
             vmin, vmax = -100,100
         pp.clf()
         surf = pp.matshow(data, cmap=cmap, vmin=vmin, vmax=vmax)
+        if cvs is not None:
+            #set xtick and yticks positions and labels to CV values
+            delta = (len(cvs)-1)//nticks
+            positions = np.arange(0,len(cvs)-1,delta)
+            labels = np.array([np.round(cv*10**decimals)/10**decimals for cv in cvs[positions]])
+            pp.xticks(positions, labels)
+            pp.yticks(positions, labels)
         pp.colorbar(surf)
         fig = pp.gcf()
         fig.set_size_inches(fig_size_inches)
-        pp.savefig(fn)
+        if fn is not None:
+            pp.savefig(fn)
+        else:
+            pp.show()
 
 
 class ErrorArray(object):

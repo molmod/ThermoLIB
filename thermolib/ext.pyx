@@ -15,7 +15,7 @@
 from molmod.units import parse_unit
 
 import matplotlib.pyplot as pp
-import warnings
+import warnings, sys
 
 import numpy as np
 cimport numpy as np
@@ -29,11 +29,13 @@ __all__ = [
     'fisher_matrix_mle_probdens',
 ]
 
-
+### Routines for WHAM in 1D
 def wham1d_hs(int Nsims, int Ngrid, np.ndarray[object] trajectories, np.ndarray[double] bins, np.ndarray[long] Nis):
     cdef np.ndarray[long, ndim=2] Hs = np.zeros([Nsims, Ngrid], dtype=int)
     cdef np.ndarray[double] data, edges
     cdef int i, N
+    assert len(trajectories)==Nsims, 'In wham1d_hs, length of argument trajectories not consistent with Nsims!'
+    assert len(bins)-1==Ngrid, 'In wham1d_hs, length of argument bins not consistent with Ngrid!'
     for i, data in enumerate(trajectories):
         if len(data)==0:
             raise ValueError("The trajectory of simulation %i does not contain any data anymore. Are you sure you didn't remove too much data in post processing, e.g. to get rid of equilibration steps?" %i)
@@ -46,6 +48,7 @@ def wham1d_hs(int Nsims, int Ngrid, np.ndarray[object] trajectories, np.ndarray[
     return Hs
 
 
+#
 def wham1d_bias(int Nsims, int Ngrid, double beta, list biasses, double delta, int bias_subgrid_num, np.ndarray[double] bin_centers, double thresshold=1e-3):
     '''
         Compute the integrated boltzmann factors of the biases in each grid interval:
@@ -71,6 +74,7 @@ def wham1d_bias(int Nsims, int Ngrid, double beta, list biasses, double delta, i
     return bs
 
 
+#
 def wham1d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=2] Hs, np.ndarray[double, ndim=2] bs, int Nscf=1000, double convergence=1e-6, double overflow_threshold=1e-150, verbose=False):
     cdef double integrated_diff, pmax
     cdef np.ndarray[double] as_old, as_new, inverse_fs, delta
@@ -104,7 +108,6 @@ def wham1d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=2] Hs, np.ndarray[dou
 
         #compute new probabilities
         denominator = np.einsum('i,i,ik->k', Nis[sims_mask], 1.0/inverse_fs[sims_mask], bs[sims_mask])
-        #denominator = sum([Nis[i]*fs[i]*bs[i,k] for i in range(Nsims)])
 
         # Calculate mask for grid
         if np.any(denominator<overflow_threshold):
@@ -158,7 +161,8 @@ def wham1d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=2] Hs, np.ndarray[dou
     return as_new, fs, converged
 
 
-def wham1d_error(int Nsims, int Ngrid, np.ndarray[long] Nis, np.ndarray[double] ps, np.ndarray[double] fs, np.ndarray[double, ndim=2] bs, np.ndarray[double] corrtimes, method='mle_f_cov'):
+#
+def wham1d_error(int Nsims, int Ngrid, np.ndarray[long] Nis, np.ndarray[double] ps, np.ndarray[double] fs, np.ndarray[double, ndim=2] bs, np.ndarray[double] corrtimes, method='mle_f_cov', p_threshold=0.0, verbosity='off'):
     from thermolib.error import GaussianDistribution, LogGaussianDistribution, MultiGaussianDistribution, MultiLogGaussianDistribution
     cdef np.ndarray[double, ndim=2] I, Ii, Imask, sigma
     cdef np.ndarray[double] err, logps
@@ -194,18 +198,8 @@ def wham1d_error(int Nsims, int Ngrid, np.ndarray[long] Nis, np.ndarray[double] 
         Ii[Ngrid+i,Ngrid+Nsims+i] = 1/fs[i]
         Ii[Ngrid+Nsims+i,Ngrid+i] = 1/fs[i]
         I += Nis[i]/corrtimes[i]*Ii
-    #the covariance matrix is now simply the inverse of the total Fisher matrix. However, for histogram bins with count 0 (and hence probability 0), we cannot estimate the corresponding error. This can be seen above as ps[k]=0 gives an divergence. Therefore, we define a mask corresponding to only non-zero probabilities and define and inverted the masked information matrix
-    mask = np.ones([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1], dtype=bool)
-    for k in range(Ngrid):
-        if ps[k]==0:
-            mask[k,:] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
-            mask[:,k] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
-    Nmask2 = len(I[mask])
-    assert abs(int(np.sqrt(Nmask2))-np.sqrt(Nmask2))==0
-    Nmask = int(np.sqrt(Nmask2))
-    Imask = I[mask].reshape([Nmask,Nmask])
-    sigma = np.identity(Ngrid+2*Nsims+1)# np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])*np.nan
-    sigma[mask] = np.linalg.inv(Imask).reshape([Nmask2])
+    #the covariance matrix is the inverse of the total Fisher matrix (after filtering out unsampled bins and/or simulations with not enough contribution)
+    sigma = wham1d_invert_fisher_to_covariance(I, ps, fs, bs, Nis/corrtimes, p_threshold=0.0, verbosity=verbosity)
     #the error bar on the probability of bin k is now simply the (k,k)-diagonal element of sigma
     err = np.sqrt(np.diagonal(sigma)[:Ngrid])
     if method in ['mle_p']:
@@ -226,7 +220,96 @@ def wham1d_error(int Nsims, int Ngrid, np.ndarray[long] Nis, np.ndarray[double] 
         raise IOError('Recieved invalid argument for method, recieved %s. Check routine signiture for more information on allowed values.' %method)
 
 
+#
+def wham1d_invert_fisher_to_covariance(np.ndarray[double, ndim=2] F, np.ndarray[double] ps, np.ndarray[double] fs, np.ndarray[double, ndim=2] bs, np.ndarray[double] Nis, double p_threshold=0.0, verbosity='off'):
+    cdef np.ndarray[double, ndim=2] F_mask
+    cdef np.ndarray[double, ndim=2] cov = np.zeros([F.shape[0], F.shape[1]])*np.nan
+    cdef np.ndarray[np.uint8_t, ndim=2, cast=True] mask
+    cdef int k, i, N_mask2, N_mask, Ngrid, Nsims, num_deactivated_bins, num_deactivated_sims
+    cdef double p, p_biased, Ni
+    cdef np.uint8_t reached_end, faulty_simulations_present, sufficiently_sampled
+    cdef np.ndarray[double] arr
+    
+    #before computing the inverse of the Fisher matrix, we define a mask to remove all rows/columns corresponding to:
+    # - unpopulated bins (as there is no information and hence also no error bar on them)
+    # - insufficiently sampled bins (determined by the biased probability)
+    # - faulty simulations (corresponding fi is nan)
+    
+    if verbosity.lower() in ['medium', 'high']: print('  defining zero-mask ...')
+    mask = np.ones([F.shape[0], F.shape[1]], dtype=bool)
+    num_deactivated_bins = 0
+    Nsims = len(Nis)
+    Ngrid = len(ps)
+    for k, p in enumerate(ps):
+        if np.isnan(p) or p==0.0:
+            mask[k,:] = 0
+            mask[:,k] = 0
+            num_deactivated_bins += 1
+            if verbosity.lower() in ['high']: print('    deactivated bin %i because p=0,nan' %k)
+        else:
+            sufficiently_sampled = False
+            for i in range(Nsims):
+                p_biased = fs[i]*bs[i,k]*ps[k]
+                if not np.isnan(fs[i]) and p_biased>p_threshold:
+                    sufficiently_sampled = True
+                    break
+            if not sufficiently_sampled:
+                mask[k,:] = 0
+                mask[:,k] = 0
+                num_deactivated_bins += 1
+                if verbosity.lower() in ['high']: print('    deactivated bin %i because p_biased to low' %k)
+    if verbosity.lower() in ['medium', 'high']: print('    deactivated %i bins' %num_deactivated_bins)
 
+    num_deactivated_sims = 0
+    for i in range(Nsims):
+        if np.isnan(fs[i]): 
+            mask[Ngrid+i,:] = 0
+            mask[:, Ngrid+i] = 0
+            mask[Ngrid+Nsims+i,:] = 0
+            mask[:, Ngrid+Nsims+i] = 0
+            num_deactivated_sims += 1
+            if verbosity.lower() in ['high']:  print('    deactivated sim %i because f=nan' %i)
+    if verbosity.lower() in ['medium', 'high']: print('    deactivated %i sims' %num_deactivated_sims)
+
+    if verbosity.lower() in ['medium', 'high']: print('  applying zero-mask ...')
+    N_mask2 = len(F[mask])
+    assert abs(int(np.sqrt(N_mask2))-np.sqrt(N_mask2))==0 #consistency check, sqrt(N_mask2) should be integer valued
+    N_mask = int(np.sqrt(N_mask2))
+    F_mask = F[mask].reshape([N_mask,N_mask])
+    
+    if verbosity.lower() in ['medium', 'high']: print('  inverting Fisher matrix ...')
+    try:
+        cov[mask] = np.linalg.inv(F_mask).reshape(N_mask2)
+    except np.linalg.LinAlgError as err:
+        print('===================== ERROR during Fisher inversion ============================')
+        print(' Could not invert the Fisher information matrix because it is singular! This    ')
+        print(' could be due to inclusion of simulations without any steps (possibly after     ')
+        print(' decorrelation) within the defined cv bin range. The number of (uncorrelated)   ')
+        print(' simulation steps within the cv range in each subsequent simulation is:')
+        reached_end = False
+        i = 0
+        while not reached_end:
+            if i+10>=len(Nis):
+                arr = Nis[i:]
+                reached_end=True
+            else:
+                arr = Nis[i:i+10]
+            print(' '+' '.join(['% 7i' %int(Ni) for Ni in arr]))
+            i += 10
+        print('')
+        faulty_simulations_present = False
+        for i, Ni in enumerate(Nis):
+            if int(Ni)==0:
+                faulty_simulations_present = True
+                print('Simulation nr. %i has 0 (uncorrelated) steps!' %i)
+        if faulty_simulations_present:
+            print(' ==> Either exclude these simulations or increase the cv bin range')
+        print('================================================================================')
+        raise np.linalg.LinAlgError('Fisher information matrix is singular. See message above traceback for more details!') from err
+    return cov
+
+# 
+### Routines for WHAM in 2D
 def wham2d_hs(int Nsims, int Ngrid1, int Ngrid2, np.ndarray[object] trajectories, np.ndarray[double] bins1, np.ndarray[double] bins2, np.ndarray[long] Nis):
     cdef np.ndarray[long, ndim=3] Hs = np.zeros([Nsims, Ngrid1, Ngrid2], dtype=int)
     cdef np.ndarray[double, ndim=2] data
@@ -245,6 +328,7 @@ def wham2d_hs(int Nsims, int Ngrid1, int Ngrid2, np.ndarray[object] trajectories
     return Hs
 
 
+#
 def wham2d_bias(int Nsims, int Ngrid1, int Ngrid2, double beta, list biasses, double delta1, double delta2, int bias_subgrid_num1, int bias_subgrid_num2, np.ndarray[double] bin_centers1, np.ndarray[double] bin_centers2, double thresshold=1e-3):
     '''
         Compute the integrated boltzmann factors of the biases in each grid interval:
@@ -272,6 +356,7 @@ def wham2d_bias(int Nsims, int Ngrid1, int Ngrid2, double beta, list biasses, do
     return bs
 
 
+#
 def wham2d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=3] Hs, np.ndarray[double, ndim=3] bs, np.ndarray[double, ndim=2] pinit, int Nscf=1000, double convergence=1e-6, double overflow_threshold=1e-150, verbose=False):
     '''
         Internal routine to solve the 2D WHAM equations,
@@ -381,7 +466,8 @@ def wham2d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=3] Hs, np.ndarray[dou
     return as_new, fs, converged
 
 
-def wham2d_error(np.ndarray[double, ndim=2] ps, np.ndarray[double] fs, np.ndarray[double, ndim=3] bs, np.ndarray[long] Nis, np.ndarray[double] corrtimes, method='mle_f', p_threshold=0.0, verbose=False):
+#
+def wham2d_error(np.ndarray[double, ndim=2] ps, np.ndarray[double] fs, np.ndarray[double, ndim=3] bs, np.ndarray[long] Nis, np.ndarray[double] corrtimes, method='mle_f', p_threshold=0.0, verbosity='off'):
     '''
         Internal routine to compute the error associated with solving the 2D WHAM equations using the Fisher information coming from the Maximum Likelihood Estimator. The procedure is as follows:
 
@@ -415,8 +501,7 @@ def wham2d_error(np.ndarray[double, ndim=2] ps, np.ndarray[double] fs, np.ndarra
     '''
     from thermolib.error import GaussianDistribution, LogGaussianDistribution, MultiGaussianDistribution, MultiLogGaussianDistribution
     from thermolib.flatten import Flattener
-    if verbose:
-        print('  initializing ...')
+    if verbosity.lower() in ['mediume', 'high']: print('  initializing ...')
     #initialization
     cdef np.ndarray[double] ps_flattened, logps_flattened
     cdef np.ndarray[double, ndim=2] I, Ii, Imask, sigma
@@ -432,8 +517,7 @@ def wham2d_error(np.ndarray[double, ndim=2] ps, np.ndarray[double] fs, np.ndarra
 
     flattener = Flattener(Ngrid1, Ngrid2)
 
-    if verbose:
-        print('  computing extended Fisher matrix ...')
+    if verbosity.lower() in ['mediume', 'high']: print('  computing extended Fisher matrix ...')
     #Compute the extended Fisher matrix
     I = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])
     for i in range(Nsims):
@@ -467,53 +551,12 @@ def wham2d_error(np.ndarray[double, ndim=2] ps, np.ndarray[double] fs, np.ndarra
             Ii[Ngrid+i, Ngrid+Nsims+i] = 1/fs[i]
             Ii[Ngrid+Nsims+i, Ngrid+i] = 1/fs[i]
             I += Nis[i]/corrtimes[i]*Ii
-
-
-    #Define and apply mask to filter out zero counts in histogram (as no error can be computed on them)
-    if verbose:
-        print('  defining and applying zero-mask ...')
-    mask = np.ones([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1], dtype=bool)
-
-    # acount for faulty simulations
-    for i in range(Nsims):
-        if np.isnan(fs[i]): 
-            mask[Ngrid+i,:] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
-            mask[:, Ngrid+i] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
-            mask[Ngrid+Nsims+i,:] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
-            mask[:, Ngrid+Nsims+i] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
-
-    # account for insufficiently sampled grid locations
-    for k in range(Ngrid1):
-        for l in range(Ngrid2):
-            K = flattener.flatten_index(k,l)
-            if np.isnan(ps[k,l]) or ps[k,l]==0.0: 
-                mask[K,:] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
-                mask[:,K] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
-            sufficiently_sampled = False
-            for i in range(Nsims):
-                p_biased_i_kl = fs[i]*bs[i,k,l]*ps[k,l]
-                if p_biased_i_kl>p_threshold:
-                    sufficiently_sampled = True
-                    break
-            if not sufficiently_sampled:
-                mask[K,:] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
-                mask[:,K] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
-
-    Nmask2 = len(I[mask])
-    assert abs(int(np.sqrt(Nmask2))-np.sqrt(Nmask2))==0 #consistency check, sqrt(Nmask2) should be integer valued
-    Nmask = int(np.sqrt(Nmask2))
-    Imask = I[mask].reshape([Nmask,Nmask])
-
+    
     #Compute the inverse of the masked Fisher information matrix. Rows or columns corresponding to a histogram count of zero will have a (co)variance set to nan
-    if verbose:
-        print('  computing inverse of masked flattened Fisher matrix ...')
-    sigma = np.identity(Ngrid+2*Nsims+1)# sigma = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])*np.nan
-    sigma[mask] = np.linalg.inv(Imask).reshape([Nmask2])
+    sigma = wham2d_invert_fisher_to_covariance(I, ps, fs, bs, Nis/corrtimes, flattener, p_threshold=p_threshold, verbosity=verbosity)
 
     #the error bar on the probability of bin (k,l) is now simply the [K,K]-diagonal element of sigma (with K corresponding to the flattened (k,l))
-    if verbose:
-        print('  constructing error bars ...')
-    
+    if verbosity.lower() in ['mediume', 'high']: print('  constructing error bars ...')
     if method in ['mle_p', 'mle_f']:
         #get deflattened error bars (diagonal elements in flattened sigma matrix)
         perr = np.zeros([Ngrid1,Ngrid2], dtype=float)
@@ -548,7 +591,98 @@ def wham2d_error(np.ndarray[double, ndim=2] ps, np.ndarray[double] fs, np.ndarra
         raise IOError('Recieved invalid argument for method, recieved %s. Check routine signature for more information on allowed values.' %method)
 
 
+#
+def wham2d_invert_fisher_to_covariance(np.ndarray[double, ndim=2] F, np.ndarray[double, ndim=2] ps, np.ndarray[double] fs, np.ndarray[double, ndim=3] bs, np.ndarray[double] Nis, object flattener, double p_threshold=0.0, verbosity='off'):
+    cdef np.ndarray[double, ndim=2] F_mask
+    cdef np.ndarray[double, ndim=2] cov = np.zeros([F.shape[0], F.shape[1]])*np.nan
+    cdef np.ndarray[np.uint8_t, ndim=2, cast=True] mask
+    cdef int k, l, K, i, N_mask2, N_mask, Ngrid, Nsims, num_deactivated_bins, num_deactivated_sims
+    cdef double p, p_biased, Ni
+    cdef np.uint8_t reached_end, faulty_simulations_present, sufficiently_sampled
+    cdef np.ndarray[double] arr
+    
+    #before computing the inverse of the Fisher matrix, we define a mask to remove all rows/columns corresponding to:
+    # - unpopulated bins (as there is no information and hence also no error bar on them)
+    # - insufficiently sampled bins (determined by the biased probability)
+    # - faulty simulations (corresponding fi is nan)
+    
+    if verbosity.lower() in ['medium', 'high']: print('  defining zero-mask ...')
+    mask = np.ones([F.shape[0], F.shape[1]], dtype=bool)
+    num_deactivated_bins = 0
+    Nsims = len(Nis)
+    Ngrid = flattener.dim12
+    for (k,l), p in np.ndenumerate(ps):
+        K = flattener.flatten_index(k,l)
+        if np.isnan(p) or p==0.0:
+            mask[K,:] = 0
+            mask[:,K] = 0
+            num_deactivated_bins += 1
+            if verbosity.lower() in ['high']: print('    deactivated bin (%i,%i) because p=0,nan' %(k,l))
+        else:
+            sufficiently_sampled = False
+            for i in range(Nsims):
+                p_biased = fs[i]*bs[i,k,l]*p
+                if not np.isnan(fs[i]) and p_biased>p_threshold:
+                    sufficiently_sampled = True
+                    break
+            if not sufficiently_sampled:
+                mask[K,:] = 0
+                mask[:,K] = 0
+                num_deactivated_bins += 1
+                if verbosity.lower() in ['high']: print('    deactivated bin (%i,%i) because p_biased to low' %(k,l))
+    if verbosity.lower() in ['medium', 'high']: print('    deactivated %i bins' %num_deactivated_bins)
 
+    num_deactivated_sims = 0
+    for i in range(Nsims):
+        if np.isnan(fs[i]): 
+            mask[Ngrid+i,:] = 0
+            mask[:, Ngrid+i] = 0
+            mask[Ngrid+Nsims+i,:] = 0
+            mask[:, Ngrid+Nsims+i] = 0
+            num_deactivated_sims += 1
+            if verbosity.lower() in ['high']:  print('    deactivated sim %i because f=nan' %i)
+    if verbosity.lower() in ['medium', 'high']: print('    deactivated %i sims' %num_deactivated_sims)
+
+    if verbosity.lower() in ['medium', 'high']: print('  applying zero-mask ...')
+    N_mask2 = len(F[mask])
+    assert abs(int(np.sqrt(N_mask2))-np.sqrt(N_mask2))==0 #consistency check, sqrt(N_mask2) should be integer valued
+    N_mask = int(np.sqrt(N_mask2))
+    F_mask = F[mask].reshape([N_mask,N_mask])
+    
+    if verbosity.lower() in ['medium', 'high']: print('  inverting Fisher matrix ...')
+    try:
+        cov[mask] = np.linalg.inv(F_mask).reshape(N_mask2)
+    except np.linalg.LinAlgError as err:
+        print('===================== ERROR during Fisher inversion ============================')
+        print(' Could not invert the Fisher information matrix because it is singular! This    ')
+        print(' could be due to inclusion of simulations without any steps (possibly after     ')
+        print(' decorrelation) within the defined cv bin range. The number of (uncorrelated)   ')
+        print(' simulation steps within the cv range in each subsequent simulation is:')
+        reached_end = False
+        i = 0
+        while not reached_end:
+            if i+10>=len(Nis):
+                arr = Nis[i:]
+                reached_end=True
+            else:
+                arr = Nis[i:i+10]
+            print(' '+' '.join(['% 7i' %int(Ni) for Ni in arr]))
+            i += 10
+        print('')
+        faulty_simulations_present = False
+        for i, Ni in enumerate(Nis):
+            if int(Ni)==0:
+                faulty_simulations_present = True
+                print('Simulation nr. %i has 0 (uncorrelated) steps!' %i)
+        if faulty_simulations_present:
+            print(' ==> Either exclude these simulations or increase the cv bin range')
+        print('================================================================================')
+        raise np.linalg.LinAlgError('Fisher information matrix is singular. See message above traceback for more details!') from err
+    return cov
+
+
+#
+### Misc routines
 def integrate_c(np.ndarray[double] xs, np.ndarray[double] ys):
     '''
         A simple integration method using the trapezoid rule
@@ -562,6 +696,7 @@ def integrate_c(np.ndarray[double] xs, np.ndarray[double] ys):
     assert len(xs)==len(ys)
     return 0.5*np.dot(ys[1:]+ys[:-1],xs[1:]-xs[:-1])
 
+#
 def integrate2d_c(np.ndarray[double, ndim=2] z, double dx, double dy):
     '''
         Integrates a regularly spaced 2D grid using the composite trapezium rule.
@@ -583,3 +718,6 @@ def integrate2d_c(np.ndarray[double, ndim=2] z, double dx, double dy):
     s2 = np.sum(z[1:-1,0]) + np.sum(z[1:-1,-1]) + np.sum(z[0,1:-1]) + np.sum(z[-1,1:-1])
     s3 = np.sum(z[1:-1,1:-1])
     return 0.25*dx*dy*(s1 + 2*s2 + 4*s3)
+
+
+

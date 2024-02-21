@@ -90,14 +90,14 @@ class BaseRateFactor(object):
         self.A_dist = None
         return self.A
 
-    def result_blav(self, fn=None, blocksizes=None, fitrange=[1,np.inf], model_function=None, plot_ylims=None, verbose=True):
+    def result_blav(self, fn=None, plot=False, blocksizes=None, fitrange=[1,np.inf], model_function=None, plot_ylims=None, verbose=True):
         'Compute rate factor A and estimate its error with block averaging'
         assert self._finished, "Reading trajectory data is not finished yet"
         As = self.As[~np.isnan(self.As)]
         if blocksizes is None:
             blocksizes = np.arange(1,int(len(As)/2), 1)
         self.A = As.mean()
-        A_std, Acorrtime = blav(As, blocksizes=blocksizes, fitrange=fitrange, model_function=model_function, fn_plot=fn, unit='1e12/s', plot_ylims=plot_ylims)
+        A_std, Acorrtime = blav(As, blocksizes=blocksizes, fitrange=fitrange, model_function=model_function, plot=plot, fn_plot=fn, unit='1e12/s', plot_ylims=plot_ylims)
         self.A_dist = GaussianDistribution(self.A, A_std) 
         
         if verbose:

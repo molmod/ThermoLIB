@@ -331,7 +331,7 @@ class ConditionalProbability(object):
             self.finish_error(error_estimate, error_p_threshold=error_p_threshold)
         self._finished = True
         
-    def plot(self, fn, slicer, obss=['base'], linestyles=None, linewidths=None, colors=None, logscale=False, ylims=None, croplims=None, cmap=pp.get_cmap('rainbow'), **plot_kwargs):
+    def plot(self, slicer, fn=None, obss=['base'], linestyles=None, linewidths=None, colors=None, logscale=False, ylims=None, croplims=None, cmap=pp.get_cmap('rainbow'), **plot_kwargs):
         '''
             Plot self.pconds[slicer], where slicer needs to be chosen such that self.pconds[slice] is 1D or 2D. The resulting graph will respectively by a regular 1D plot or 2D contourplot.
 
@@ -504,7 +504,10 @@ class ConditionalProbability(object):
             raise ValueError('Can only plot 1D or 2D pcond data, but received %i-d data. Make sure that the combination of qslice and cvslice results in 1 or 2 dimensional data.' %(len(data.shape)))
 
         fig.tight_layout()
-        pp.savefig(fn)
+        if fn is not None:
+            pp.savefig(fn)
+        else:
+            pp.show()
         return
 
 

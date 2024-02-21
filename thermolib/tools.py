@@ -130,18 +130,6 @@ def integrate(xs, ys, yerrs=None):
         :returns: If `yerrs` is not provided, the integrated value of the dataset using the trapezoidal rule. If `yerrs` is provided, a tuple containing the integrated value and the error in the integration.
         :rtype: float or tuple
 
-        :Example:
-
-        .. code-block:: python
-
-            # Example 1: Integration without uncertainties
-            result1 = integrate([0, 1, 2], [1, 2, 3])
-            print(result1)  # Output: 2.5
-
-            # Example 2: Integration with uncertainties
-            result2, error2 = integrate([0, 1, 2], [1, 2, 3], yerrs=[0.1, 0.1, 0.1])
-            print(result2, error2)  # Output: (2.5, 0.158113883008419)
-
         :Assertions:
 
         - The function includes an assertion to ensure that the lengths of `xs` and `ys` are equal.
@@ -174,25 +162,35 @@ def integrate(xs, ys, yerrs=None):
 
 def integrate2d(z,x=None,y=None,dx=1.,dy=1.):
     '''
-        Integrates a regularly spaced 2D grid using the composite trapezium rule.
+        Perform numerical integration of a regularly spaced two-dimensional dataset using the midpoint rule and return the integrated value. The function allows the specification of grid spacings (`dx` and `dy`) or infers them from the provided coordinate arrays (`x` and `y`).
 
-        :param z: 2 dimensional array containing the function values
-        :type z: np.ndarray(flt)
+        :param z: A two-dimensional array representing the values of the dataset.
+        :type z: numpy.ndarray
 
-        :param x: 1D array containing the first function argument values, is used to determine grid spacing of first function argument. If not given, optional argument dx is used to define the grid spacing. Defaults to None
-        :type x: np.ndarray(flt), optional
+        :param x: (optional) The x-coordinate array. If provided, the function will infer the grid spacing `dx`.
+        :type x: numpy.ndarray or None
 
-        :param y: 1D array containing the second function argument values, is used to determine grid spacing of second function argument. If not given, optional argument dy is used to define the grid spacing. Defaults to None
-        :type y: np.ndarray(flt), optional
+        :param y: (optional) The y-coordinate array. If provided, the function will infer the grid spacing `dy`.
+        :type y: numpy.ndarray or None
 
-        :param dx: grid spacing for first function argument. Is overwritten when argument x is defined. Defaults to 1.
-        :type dx: float, optional
+        :param dx: (optional, default=1.0) The grid spacing in the x-direction. Ignored if `x` is provided.
+        :type dx: float
 
-        :param dy: grid spacing for second function argument. Is overwritten when argument y is defined. Defaults to 1.
-        :type dy: float, optional
+        :param dy: (optional, default=1.0) The grid spacing in the y-direction. Ignored if `y` is provided.
+        :type dy: float
 
-        :return: integral value
+        :returns: The integrated value of the two-dimensional dataset using the midpoint rule.
         :rtype: float
+
+        :Note:
+
+        - The midpoint rule is used for numerical integration, assuming a piecewise constant interpolation between data points.
+        - If coordinate arrays (`x` and `y`) are provided, the function infers the grid spacings (`dx` and `dy`) based on the range of the coordinates.
+        - The integrated value is computed using a weighted sum of the corner values (`s1`), edge values (`s2`), and interior values (`s3`).
+
+        :Caution:
+
+        - The function assumes that the input dataset is well-behaved, and numerical issues may arise if the dataset has irregularities or extreme variations.
     '''
     if x is not None:
         dx = (x[-1]-x[0])/(np.shape(x)[0]-1)
@@ -204,6 +202,26 @@ def integrate2d(z,x=None,y=None,dx=1.,dy=1.):
     return 0.25*dx*dy*(s1 + 2*s2 + 4*s3)
 
 def rolling_average(ys, width, yerrs=None):
+    """
+        Compute a rolling average of a given dataset, optionally accompanied by error bars. The rolling average is calculated by dividing the dataset into windows of a specified width and averaging the values within each window.
+
+        :param ys: The input dataset for which the rolling average is calculated.
+        :type ys: list or numpy.ndarray
+
+        :param width: The width of the rolling average window. Must be an integer, and at least 2.
+        :type width: int
+
+        :param yerrs: (optional) Error bars associated with the input dataset. If provided, the function will compute corresponding error bars for the rolling averages using standard error propagation.
+        :type yerrs: list or numpy.ndarray or None
+
+        :returns: If `yerrs` is not provided, a NumPy array containing the rolling averages of the input dataset. If `yerrs` is provided, a tuple containing a NumPy array with the rolling averages and a NumPy array with the corresponding error bars.
+        :rtype: numpy.ndarray or tuple
+
+        :Assertions:
+
+        - The function includes assertions to ensure that the rolling average width is an integer and at least 2.
+        - If error bars (`yerrs`) are provided, an assertion checks that the lengths of `ys` and `yerrs` are the same.
+    """
     assert isinstance(width, int), "Rolling average width needs to be an integer"
     assert width>=2, "Rolling average width needs to be at least 2"
     if yerrs is not None:
@@ -227,71 +245,130 @@ def rolling_average(ys, width, yerrs=None):
 #Routines for reading WHAM input
 
 def read_wham_input(fn: str, trajectory_readers, trajectory_path_templates, bias_potential: str='None', q01_unit: str='au', kappa1_unit: str='au', q02_unit: str='au', kappa2_unit: str='au', inverse_cv1: bool=False, inverse_cv2: bool=False, additional_bias=None, additional_bias_dimension: str='cv1', skip_bias_names=[], verbose: bool=False):
-    '''Routine to read the metadata file required to obtain all input data for a WHAM analysis.
+    '''
+        Read a WHAM input file, extract relevant information, and initialize necessary objects for further analysis.
 
-    :param fn: filename of the metadata file. This file should be in the following format:
+
+        :param fn: The path to the WHAM input file, i.e. the metadata file. This file should be in the following format:
+
+            .. code-block:: python
+
+                T = XXXK
+                NAME_1 Q0_1_1 KAPPA_1_1 [Q0_2_1 KAPPA_2_1 [...]]
+                NAME_2 Q0_1_2 KAPPA_1_2 [Q0_2_2 KAPPA_2_2 [...]]
+                NAME_3 Q0_1_3 KAPPA_1_3 [Q0_2_3 KAPPA_2_3 [...]]
+                ...
+            
+            where (Q0_i_j, KAPPA_i_j) is the Q0 and KAPPA value of the i-th CV in the j-th bias potential.
+
+        :type fn: str
+
+        :param trajectory_readers: an instance (or list of instances) of the TrajectoryReader class that implements how to read the CV values from the trajectory files. If a list of readers is given, each reader should have its corresponding trajectory_path_template defined in the list of trajectory_path_templates. For information on how these trajectory files are determined, see description of :param trajectory_path_templates:.
+        :type trajectory_readers: TrajectoryReader or list of TrajectoryReader instances
+
+        :param trajectory_path_templates: template (or list of templates) for defining the path (relative to the directory containing fn) to the trajectory file corresponding to each bias. Such template argument should be a string containing a single '%s' substring which gets replaced with the name of the biases defined in fn. For example, if trajectory_path_templates is given by 'trajectories/%s/colvar', then the trajectory for the simulation biased with the potential named NAME_2 in the file fn (see above) is given by the path 'trajectories/NAME_2/colvar' relative to the directory containing fn. Defaults to '%s'. If a list of templates is given, each template corresponds to a given trajectory reader defined in the trajectory_readers argument.
+        :type trajectory_path_templates: str or list of strings, optional
+
+        TODO: continue from here with ChatGPT generated docstring
+        :param bias_potential: mathematical form of the bias potential used, allowed values are
+
+                * **Parabola1D** -- harmonic bias of the form 0.5*kappa1*(q1-q01)**2
+                * **Parabola2D** -- harmonic bias of the form 0.5*kappa1*(q1-q01)**2 + 0.5*kappa2*(q2-q02)**2
+
+            defaults to 'None', which will be interpreted as Parabola1D or Parabola2D depending on the number of CVs that are extracted from the trajectory.
+        :type bias_potential: str, optional
+
+        :param q01_unit: unit of the q01 value for each bias potential, defaults to 'au'
+        :type q01_unit: str, optional
+
+        :param kappa1_unit: unit of the kappa1 value for each bias potential, defaults to 'au'
+        :type kappa1_unit: str, optional
+
+        :param q02_unit: unit of the q02 value for each bias potential, defaults to 'au'
+        :type q02_unit: str, optional
+
+        :param kappa2_unit: unit of the kappa2 value for each bias potential, defaults to 'au'
+        :type kappa2_unit: str, optional
+
+        :param inverse_cv1: If set to True, the CV1-axis will be inverted prior to bias evaluation. WARNING: the rest value parameter q01 of the potential will not be multiplied with -1! Defaults to False
+        :type inverse_cv1: bool, optional
+
+        :param inverse_cv2: If set to True, the CV2-axis will be inverted prior to bias evaluation. WARNING: the rest value parameter q02 of the potential will not be multiplied with -1! Defaults to False
+        :type inverse_cv2: bool, optional
+
+        :param additional_bias: A single additional 1D bias potential that is added for each simulation on top of the simulation-specific biases, defaults to None
+        :type additional_bias: instance of class from bias.py module, optional
+
+        :param additional_bias_dimension: The CV dimension along which the 1D additional bias potential is applied. This is only relevant when applying an additional bias to a 2D CV grid. Defaults to 'cv1'
+        :type additional_bias_dimension: str, optional
+
+        :param skip_bias_names: List of bias potential names (i.e. first word of lines in the wham input file) who should be ignored, together with their corresponding trajectory data, defaults to []
+        :type skip_bias_names: list, optional
+
+        :param verbose: Switch on the routine verbosity and print more logging, defaults to False
+        :type verbose: bool, optional
+
+        :raises NotImplementedError: if the type of the bias potential could not be recognized
+        :raises ValueError: if a line in the file fn could not be interpreted
+
+        :return: a tuple of the form (temp, biasses, trajectories) with the temperature, list of bias potentials defined and a list of trajectories with the CV values from the simulation.
+        :rtype: a tuple of the form (temp, biasses, trajectories), with temp a float (or None), biasses a list of instances from classes defined in the bias.py module and trajectories is a list of numpy arrays.
+    
+
+
+
+
+
+
+
+        :param bias_potential: (optional, default='None') The type of bias potential, e.g., 'Parabola1D', 'Parabola2D', or 'None'.
+        :type bias_potential: str
+
+        :param q01_unit: (optional, default='au') The unit for the first collective variable (CV) in the input file.
+        :type q01_unit: str
+
+        :param kappa1_unit: (optional, default='au') The unit for the force constant associated with the first CV in the input file.
+        :type kappa1_unit: str
+
+        :param q02_unit: (optional, default='au') The unit for the second CV in the input file (for 2D bias potentials).
+        :type q02_unit: str
+
+        :param kappa2_unit: (optional, default='au') The unit for the force constant associated with the second CV in the input file (for 2D bias potentials).
+        :type kappa2_unit: str
+
+        :param inverse_cv1: (optional, default=False) If `True`, the first CV is treated as an inverse CV.
+        :type inverse_cv1: bool
+
+        :param inverse_cv2: (optional, default=False) If `True`, the second CV is treated as an inverse CV (for 2D bias potentials).
+        :type inverse_cv2: bool
+
+        :param additional_bias: (optional, default=None) Additional bias potential to be added to the primary bias potential.
+        :type additional_bias: object or None
+
+        :param additional_bias_dimension: (optional, default='cv1') The dimension in which the additional bias potential operates ('cv1' or 'cv2').
+        :type additional_bias_dimension: str
+
+        :param skip_bias_names: (optional, default=[]) A list of bias names to be skipped during processing.
+        :type skip_bias_names: list
+
+        :param verbose: (optional, default=False) If `True`, print additional information during the reading process.
+        :type verbose: bool
+
+        :returns: A tuple containing temperature, a list of bias potentials, and a list of trajectories.
+        :rtype: tuple
+
+        :Example:
 
         .. code-block:: python
 
-            T = XXXK
-            NAME_1 Q0_1_1 KAPPA_1_1 [Q0_2_1 KAPPA_2_1 [...]]
-            NAME_2 Q0_1_2 KAPPA_1_2 [Q0_2_2 KAPPA_2_2 [...]]
-            NAME_3 Q0_1_3 KAPPA_1_3 [Q0_2_3 KAPPA_2_3 [...]]
-            ...
-        
-        where (Q0_i_j, KAPPA_i_j) is the Q0 and KAPPA value of the i-th CV in the j-th bias potential.
+            # Example: Reading a WHAM input file
+            temperature, biasses, trajectories = read_wham_input('wham_input.txt', trajectory_readers, trajectory_path_templates)
 
-    :type fn: str
+        :Note:
 
-    :param trajectory_readers: an instance (or list of instances) of the TrajectoryReader class that implements how to read the CV values from the trajectory files. If a list of readers is given, each reader should have its corresponding trajectory_path_template defined in the list of trajectory_path_templates. For information on how these trajectory files are determined, see description of :param trajectory_path_templates:.
-    :type trajectory_readers: TrajectoryReader or list of TrajectoryReader instances
-
-    :param trajectory_path_templates: Template (or list of templates) for defining the path (relative to the directory containing fn) to the trajectory file corresponding to each bias. Such template argument should be string containing a single '%s' substring which gets replaced with the name of the biases defined in fn. For example, if trajectory_path_templates is given by 'trajectories/%s/colvar', then the trajectory for the simulation biased with the potential named NAME_2 in the file fn (see above) is given by the path 'trajectories/NAME_2/colvar' relative to the directory containing fn. Defaults to '%s'. If a list of templates is given, each template corresponds to a given trajectory reader defined in the trajectory_readers argument.
-    :type trajectory_path_templates: str or list of strings, optional
-
-    :param bias_potential: mathematical form of the bias potential used, allowed values are
-
-            * **Parabola1D** -- harmonic bias of the form 0.5*kappa1*(q1-q01)**2
-            * **Parabola2D** -- harmonic bias of the form 0.5*kappa1*(q1-q01)**2 + 0.5*kappa2*(q2-q02)**2
-
-        defaults to 'None', which will be interpreted as Parabola1D or Parabola2D depending on the number of CVs that are extracted from the trajectory.
-    :type bias_potential: str, optional
-
-    :param q01_unit: unit of the q01 value for each bias potential, defaults to 'au'
-    :type q01_unit: str, optional
-
-    :param kappa1_unit: unit of the kappa1 value for each bias potential, defaults to 'au'
-    :type kappa1_unit: str, optional
-
-    :param q02_unit: unit of the q02 value for each bias potential, defaults to 'au'
-    :type q02_unit: str, optional
-
-    :param kappa2_unit: unit of the kappa2 value for each bias potential, defaults to 'au'
-    :type kappa2_unit: str, optional
-
-    :param inverse_cv1: If set to True, the CV1-axis will be inverted prior to bias evaluation. WARNING: the rest value parameter q01 of the potential will not be multiplied with -1! Defaults to False
-    :type inverse_cv1: bool, optional
-
-    :param inverse_cv2: If set to True, the CV2-axis will be inverted prior to bias evaluation. WARNING: the rest value parameter q02 of the potential will not be multiplied with -1! Defaults to False
-    :type inverse_cv2: bool, optional
-
-    :param additional_bias: A single additional 1D bias potential that is added for each simulation on top of the simulation-specific biases, defaults to None
-    :type additional_bias: instance of class from bias.py module, optional
-
-    :param additional_bias_dimension: The CV dimension along which the 1D additional bias potential is applied. This is only relevant when applying an additional bias to a 2D CV grid. Defaults to 'cv1'
-    :type additional_bias_dimension: str, optional
-
-    :param skip_bias_names: List of bias potential names (i.e. first word of lines in the wham input file) who should be ignored, together with their corresponding trajectory data, defaults to []
-    :type skip_bias_names: list, optional
-
-    :param verbose: Switch on the routine verbosity and print more logging, defaults to False
-    :type verbose: bool, optional
-
-    :raises NotImplementedError: if the type of the bias potential could not be recognized
-    :raises ValueError: if a line in the file fn could not be interpreted
-
-    :return: a tuple of the form (temp, biasses, trajectories) with the temperature, list of bias potentials defined and a list of trajectories with the CV values from the simulation.
-    :rtype: a tuple of the form (temp, biasses, trajectories), with temp a float (or None), biasses a list of instances from classes defined in the bias.py module and trajectories is a list of numpy arrays.
+        - The function supports 1D and 2D bias potentials, as well as the option to add an additional bias potential.
+        - The units for collective variables (`q01_unit`, `kappa1_unit`, `q02_unit`, `kappa2_unit`) can be specified to ensure consistency across different input files.
+        - Trajectory readers and path templates are provided as lists, allowing for flexibility in handling different types of trajectories.
     '''
     from thermolib.thermodynamics.bias import Parabola1D, Parabola2D, MultipleBiasses1D, MultipleBiasses2D
     #some argument dressing
@@ -530,7 +607,7 @@ def _blav(data, blocksizes, fitrange=[1,np.inf], model_function=None):
     model_fitted = lambda B: model_function(B, *list(pars))
     return errors, true_error, corrtime, model_fitted
 
-def blav(data, blocksizes=None, fitrange=[1, np.inf], model_function=None, fn_plot=None, plot_ylims=None, unit='au'):
+def blav(data, blocksizes=None, fitrange=[1, np.inf], model_function=None, plot=False, fn_plot=None, plot_ylims=None, unit='au'):
     '''
         Wrapper routine around _blav to apply block averaging and estimate the correlated error bar as well as the corresponding integrated correlation time on the average of the given data series. For more details on the procedure as well as the meaning of the arguments data, blocksizes, fitrange and model_function, see documentation of the routine _wrap.
 
@@ -552,7 +629,7 @@ def blav(data, blocksizes=None, fitrange=[1, np.inf], model_function=None, fn_pl
         blocksizes = np.arange(1,int(len(data)/10)+1,1)
     errors, true_error, corrtime, model_fitted = _blav(data/parse_unit(unit), blocksizes, fitrange, model_function=model_function)
     #make plot
-    if fn_plot is not None:
+    if plot or fn_plot is not None:
         pp.clf()
         fig, axs = pp.subplots(nrows=1,ncols=2, squeeze=False)
         axs[0,0].plot(data/parse_unit(unit), 'bo', markersize=1)
@@ -569,7 +646,10 @@ def blav(data, blocksizes=None, fitrange=[1, np.inf], model_function=None, fn_pl
         if plot_ylims is not None:
             axs[0,1].set_ylim(plot_ylims)
         fig.set_size_inches([12,6])
-        pp.savefig(fn_plot, dpi=300)
+        if fn_plot is not None:
+            pp.savefig(fn_plot, dpi=300)
+        else:
+            pp.show()
     return true_error*parse_unit(unit), corrtime
 
 def _acf(data, norm=True):
@@ -587,7 +667,7 @@ def _acf(data, norm=True):
         acf /= acf[0]
     return acf
 
-def corrtime_from_acf(data, nblocks=None, norm=True, fn_plot=None, xlims=None, ylims=[-0.25, 1.05]):
+def corrtime_from_acf(data, nblocks=None, norm=True, plot=False, fn_plot=None, xlims=None, ylims=[-0.25, 1.05]):
     '''
         Routine to compute the integrated autocorrelation time as follows:
         
@@ -616,7 +696,7 @@ def corrtime_from_acf(data, nblocks=None, norm=True, fn_plot=None, xlims=None, y
         return function(t,pars[0])
     corrtime = 2*pars[0]-1 #pars[0] is the exp correlation time, corrtime is the integrated correlation time
     #Plot
-    if fn_plot is not None:
+    if plot or fn_plot is not None:
         fig = pp.gcf()
         if acfs is not None:
             for i, f in enumerate(acfs):
@@ -631,10 +711,13 @@ def corrtime_from_acf(data, nblocks=None, norm=True, fn_plot=None, xlims=None, y
         pp.ylim(ylims)
         fig.set_size_inches([8,8])
         fig.tight_layout()
-        pp.savefig(fn_plot)
+        if fn_plot is not None:
+            pp.savefig(fn_plot)
+        else:
+            pp.show()
     return corrtime
 
-def decorrelate(trajectories, method='acf', acf_nblocks=None, blav_model_function=None, decorrelate_only=None, fn_plot=None, verbose=False, return_decorrelated_trajectories=False):
+def decorrelate(trajectories, method='acf', acf_nblocks=None, blav_model_function=None, decorrelate_only=None, plot=False, fn_plot=None, verbose=False, return_decorrelated_trajectories=False):
     #determine the number of trajectories as well as cvs present in trajectory data
     ntrajs = len(trajectories)
     if len(trajectories[0].shape)==1:
@@ -668,7 +751,7 @@ def decorrelate(trajectories, method='acf', acf_nblocks=None, blav_model_functio
             Nuncor = int(np.floor(len(traj)/max(1,corrtimes[itraj])))
             print('Processing trajectory %i/%i: %i samples, corr time = %.1f ==> %i uncorrelated samples' %(itraj+1,ntrajs,len(traj),corrtimes[itraj],Nuncor))
     #plot correlation times
-    if fn_plot is not None:
+    if plot or fn_plot is not None:
         pp.clf()
         fig, axs = pp.subplots(nrows=1, ncols=ncvs, squeeze=False)
         for icv in range(ncvs):
@@ -678,7 +761,10 @@ def decorrelate(trajectories, method='acf', acf_nblocks=None, blav_model_functio
             axs[0,icv].set_title('Correlation time for CV%i' %icv)
         fig.tight_layout()
         fig.set_size_inches([8*ncvs,6])
-        pp.savefig(fn_plot)
+        if fn_plot is not None:
+            pp.savefig(fn_plot)
+        else:
+            pp.show()
     #decorrelate trajectory by averaging over a number of samples equal to the correlation time
     trajectories_decor = []
     for i, traj in enumerate(trajectories):
@@ -699,6 +785,8 @@ def decorrelate(trajectories, method='acf', acf_nblocks=None, blav_model_functio
                 for iblock in range(nblocks):
                     new_traj[iblock,index] = traj[iblock*bsize:(iblock+1)*bsize,index].mean()
             trajectories_decor.append(new_traj)
+        if len(new_traj)==0:
+            print('WARNING: trajectory of simulation nr %i has less then 1 uncorrelated simulation step!' %i)
     if return_decorrelated_trajectories:
         return corrtimes, trajectories_decor
     else:

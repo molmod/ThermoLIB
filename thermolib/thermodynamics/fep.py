@@ -296,53 +296,100 @@ class BaseProfile(object):
         self.cvs = cvs.copy()
         self.fs = fs.copy()
 
-    def plot(self, fn, flims=None):
+    def plot(self, fn: str|None=None, obss: list=['value'], linestyles: list|None=None, linewidths: list|None=None, colors: list|None=None, cvlims: list|None=None, flims: list|None=None, show_legend: bool=False, **plot_kwargs):
         '''
-            Make a plot of the X profile. The values of CV and X are plotted in units specified by the cv_output_unit and x_output_unit attributes.
+            Plot x, where (possibly multiple) x is/are specified in the keyword argument obss. 
 
-            :param fn: Name of the file of the figure. Supported file formats are determined by the supported formats of the `matplotlib.pyplot.savefig routine <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html>`_
-            :type fn: str
-
-            :param flims: plot range for the observable x, defaults to min-max
-            :type flims: float, optional
+            :param fn: name of the file to store graph in, defaults to 'condprob.png'
+            :type fn: str, optional
         '''
-        rc('text', usetex=False)
-        pp.clf()
-        fig, axs = pp.subplots(nrows=1, ncols=1)
-        axs = [axs]
-        #make free energy plot
-        axs[0].plot(self.cvs/parse_unit(self.cv_output_unit), self.fs/parse_unit(self.f_output_unit), linewidth=1, color='0.2')
+        #preprocess
+        cvunit = parse_unit(self.cv_output_unit)
+        funit = parse_unit(self.f_output_unit)
+        
+        #read data 
+        data = []
+        labels = []
+        for obs in obss:
+            values = None
+            if obs.lower() in ['value']:
+                values = self.fs.copy()
+            elif obs.lower() in ['error-mean', 'mean']:
+                assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
+                values = self.error.mean()
+            elif obs.lower() in ['error-lower', 'lower']:
+                assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
+                values = self.error.nsigma_conf_int(2)[0]
+            elif obs.lower() in ['error-upper', 'upper']:
+                assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
+                values = self.error.nsigma_conf_int(2)[1]
+            elif obs.lower() in ['error-half-upper-lower', 'width']:
+                assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
+                lower = self.error.nsigma_conf_int(2)[0]
+                upper = self.error.nsigma_conf_int(2)[1]
+                values = 0.5*np.abs(upper - lower)
+            elif obs.lower() in ['error-sample', 'sample']:
+                assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
+                values = self.error.sample()
+            if values is None: raise ValueError('Could not interpret observable %s' %obs)
+            data.append(values)
+            labels.append(obs)
+        
         if self.error is not None:
-            axs[0].fill_between(self.cvs/parse_unit(self.cv_output_unit), y1=self.flower()/parse_unit(self.f_output_unit), y2=self.fupper()/parse_unit(self.f_output_unit), alpha=0.33)
-        #decorate
-        axs[0].set_xlabel('%s [%s]' %(self.cv_label, self.cv_output_unit))
-        axs[0].set_ylabel('%s [%s]' %(self.f_label, self.f_output_unit))
-        axs[0].set_title('%s profile' %self.f_label)
-        axs[0].set_xlim([min(self.cvs/parse_unit(self.cv_output_unit)), max(self.cvs/parse_unit(self.cv_output_unit))])
-        if flims is not None:
-            axs[0].set_ylim(flims)
-        #save
-        fig.set_size_inches([len(axs)*8,8])
-        pp.savefig(fn)
+            lower, upper = self.error.nsigma_conf_int(2)
+            lower, upper = lower, upper
+        if linestyles is None:
+            linestyles = [None,]*len(data)
+        if linewidths is None:
+            linewidths = [1.0,]*len(data)
+        if colors is None:
+            colors = [None,]*len(data)
 
-    def plot_samples(self, fn, flims=None, nsamples=5):
-        import warnings
-        warnings.filterwarnings("ignore", category=UserWarning)
+        #make plot
         pp.clf()
-        ax = pp.gca()
-        ax.plot(self.cvs/parse_unit(self.cv_output_unit), self.error.mean()/parse_unit(self.f_output_unit), 'k--', linewidth='3', label='Average')
-        ax.fill_between(self.cvs/parse_unit(self.cv_output_unit), self.flower()/parse_unit(self.f_output_unit), self.fupper()/parse_unit(self.f_output_unit), color='k', alpha=0.33, label='Error bar')
-        for i in range(nsamples):
-            if i==0: label='Sample'
-            else: label='_nolegend_'
-            ax.plot(self.cvs/parse_unit(self.cv_output_unit), self.error.sample()/parse_unit(self.f_output_unit), label=label)
-        if flims is not None: ax.set_ylim(flims)
-        ax.set_xlabel('CV [au]', fontsize=16)
-        ax.set_ylabel('%s [%s]' %(self.f_label, self.f_output_unit), fontsize=16)
-        ax.legend(loc='best')
+        for (ys,label,linestyle,linewidth,color) in zip(data,labels,linestyles, linewidths,colors):
+            pp.plot(self.cvs/cvunit, ys/funit, label=label, linestyle=linestyle, linewidth=linewidth, color=color, **plot_kwargs)
+        if self.error is not None:
+            pp.fill_between(self.cvs/cvunit, lower/funit, upper/funit, **plot_kwargs, alpha=0.33)
+        pp.xlabel('%s [%s]' %(self.cv_label, self.cv_output_unit), fontsize=16)
+        pp.ylabel('%s [%s]' %(self.f_label, self.f_output_unit), fontsize=16)
+        if cvlims is not None: pp.xlim(cvlims)
+        if flims is not None: pp.ylim(flims)
+        if show_legend:
+            pp.legend(loc='best')
         fig = pp.gcf()
-        fig.set_size_inches([12,12])
-        fig.savefig(fn)
+        fig.set_size_inches([8,8])
+        fig.tight_layout()
+        if fn is not None:
+            pp.savefig(fn)
+        else:
+            pp.show()
+        return
+
+    def plot_corr_matrix(self, fn: str|None=None, decimals: int=1, flims: list|None=None, cmap: str='bwr', **plot_kwargs):
+        if self.error is None:
+            raise ValueError('Can only plot correlation matrix if error estimation has been performed!')
+        cvunit = parse_unit(self.cv_output_unit)
+        funit = parse_unit(self.f_output_unit)
+        pp.clf()
+        fig, axs = pp.subplots(nrows=2, ncols=1, sharex=True)
+        #plot free energy profile
+        axs[0].plot(self.cvs/cvunit, self.fs/funit, **plot_kwargs)
+        lower, upper = self.error.nsigma_conf_int(2)
+        axs[0].fill_between(self.cvs/cvunit, lower/funit, upper/funit, **plot_kwargs, alpha=0.33)
+        axs[0].set_ylabel('%s [%s]' %(self.f_label, self.f_output_unit), fontsize=16)
+        if flims is not None: axs[0].set_ylim(flims)
+        #plot correlation matrix
+        data = self.error.corr(unflatten=False)
+        axs[1].imshow(data, cmap=cmap, extent=[self.cvs[0]/cvunit, self.cvs[-1]/cvunit, self.cvs[-1]/cvunit, self.cvs[0]/cvunit], aspect='auto')
+        axs[1].set_xlabel('%s [%s]' %(self.cv_label, self.cv_output_unit), fontsize=16)
+        fig = pp.gcf()
+        fig.tight_layout(h_pad=0.1)
+        fig.set_size_inches([8,16])
+        if fn is not None:
+            pp.savefig(fn)
+        else:
+            pp.show()
 
 
 
@@ -660,7 +707,7 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
         for macrostate in self.macrostates:
             macrostate.print()
 
-    def plot(self, fn, rate=None, micro_marker='s', micro_color='r', micro_size='4', micro_linestyle='--', macro_linestyle='-', macro_color='b', do_latex=False, fig_size=[16,8], flims=None):
+    def plot(self, fn: str|None=None, obss: list|str='thermo_kinetic', rate: object|None=None, linestyles: list|None=None, linewidths: list|None=None, colors: list|None=None, cvlims: list|None=None, flims: list|None=None, micro_marker: str='s', micro_color: str='r', micro_size: int=4, micro_linestyle: str='--', macro_linestyle: str='-', macro_color: str='b', do_latex: bool=False, show_legend: bool=False, fig_size: list|None=None):
         '''
             Plot the free energy profile including visualization of the microstates (markers) and macrostates (lines) defined by :meth:`set_microstates` and :meth:`set_macrostates` respectively. The values of CV and free energy are plotted in units specified by the cv_unit and f_output_unit attributes of the self instance.
 
@@ -685,123 +732,188 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
             :param macro_color: matplotlib line color for indicating macrostates
             :type macro_color: str, optional, default='b'
         '''
-        rc('text', usetex=do_latex)
-        pp.clf()
-        fig = pp.gcf()
-        gs  = gridspec.GridSpec(1,2, width_ratios=[2,1])
-        ax = fig.add_subplot(gs[0])
-        axs = [ax]
-        #make free energy plot
-        axs[0].plot(self.cvs/parse_unit(self.cv_output_unit), self.fs/parse_unit(self.f_output_unit), linewidth=1, color='0.2')
-        if self.error is not None:
-            axs[0].fill_between(self.cvs/parse_unit(self.cv_output_unit), self.flower()/parse_unit(self.f_output_unit), self.fupper()/parse_unit(self.f_output_unit), alpha=0.33)
-        #plot vline for transition state if defined
-        cv_width = max(self.cvs)-min(self.cvs)
-        if flims is None:
-            ylower = -1+min([state.get_F()/kjmol for state in self.macrostates]+[0])
-            yupper = max(self.fs[~np.isnan(self.fs)])/kjmol+10
-        else:
-            ylower, yupper = flims
-        #plot microstates
-        for microstate in self.microstates:
-            axs[0].plot(microstate.get_cv()/parse_unit(self.cv_output_unit), microstate.get_F()/parse_unit(self.f_output_unit), linestyle='none', marker=micro_marker, color=micro_color, markersize=micro_size)
-            axs[0].text((microstate.get_cv()+0.01*cv_width)/parse_unit(self.cv_output_unit), microstate.get_F()/parse_unit(self.f_output_unit), microstate.text('f'), color=micro_color, fontsize=12)
-            axs[0].axvline(x=microstate.get_cv()/parse_unit(self.cv_output_unit), ymin=0, ymax=(microstate.get_F()/parse_unit(self.f_output_unit)-ylower)/(yupper-ylower), linestyle=micro_linestyle, color=micro_color, linewidth=1)
+        if isinstance(obss, list):
+            if fig_size is None: fig_size = [8,8]
+            #preprocess
+            cvunit = parse_unit(self.cv_output_unit)
+            funit = parse_unit(self.f_output_unit)
+            #read data 
+            data = []
+            labels = []
+            for obs in obss:
+                values = None
+                if obs.lower() in ['value']:
+                    values = self.fs.copy()
+                elif obs.lower() in ['error-mean', 'mean']:
+                    assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
+                    values = self.error.mean()
+                elif obs.lower() in ['error-lower', 'lower']:
+                    assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
+                    values = self.error.nsigma_conf_int(2)[0]
+                elif obs.lower() in ['error-upper', 'upper']:
+                    assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
+                    values = self.error.nsigma_conf_int(2)[1]
+                elif obs.lower() in ['error-half-upper-lower', 'width']:
+                    assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
+                    lower = self.error.nsigma_conf_int(2)[0]
+                    upper = self.error.nsigma_conf_int(2)[1]
+                    values = 0.5*np.abs(upper - lower)
+                elif obs.lower() in ['error-sample', 'sample']:
+                    assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
+                    values = self.error.sample()
+                if values is None: raise ValueError('Could not interpret observable %s' %obs)
+                data.append(values)
+                labels.append(obs)
+            #add error if present
+            if self.error is not None:
+                lower, upper = self.error.nsigma_conf_int(2)
+                lower, upper = lower, upper
+            #post processing default arguments
+            if linestyles is None:
+                linestyles = [None,]*len(data)
+            if linewidths is None:
+                linewidths = [1.0,]*len(data)
+            if colors is None:
+                colors = [None,]*len(data)
+            #make plot
+            pp.clf()
+            for (ys,label,linestyle,linewidth,color) in zip(data,labels,linestyles, linewidths,colors):
+                pp.plot(self.cvs/cvunit, ys/funit, label=label, linestyle=linestyle, linewidth=linewidth, color=color)
+            if self.error is not None:
+                pp.fill_between(self.cvs/cvunit, lower/funit, upper/funit, alpha=0.33)
+            pp.xlabel('%s [%s]' %(self.cv_label, self.cv_output_unit), fontsize=16)
+            pp.ylabel('%s [%s]' %(self.f_label, self.f_output_unit), fontsize=16)
+            if cvlims is not None: pp.xlim(cvlims)
+            if flims is not None: pp.ylim(flims)
+            if show_legend:
+                pp.legend(loc='best')
+            fig = pp.gcf()
+            fig.set_size_inches([8,8])
+            fig.tight_layout()
+        elif obss=='thermo_kinetic':
+            if fig_size is None: fig_size = [16,8]
+            rc('text', usetex=do_latex)
+            pp.clf()
+            fig = pp.gcf()
+            gs  = gridspec.GridSpec(1,2, width_ratios=[2,1])
+            ax = fig.add_subplot(gs[0])
+            axs = [ax]
+            #make free energy plot
+            axs[0].plot(self.cvs/parse_unit(self.cv_output_unit), self.fs/parse_unit(self.f_output_unit), linewidth=1, color='0.2')
+            if self.error is not None:
+                axs[0].fill_between(self.cvs/parse_unit(self.cv_output_unit), self.flower()/parse_unit(self.f_output_unit), self.fupper()/parse_unit(self.f_output_unit), alpha=0.33)
+            #plot vline for transition state if defined
+            cv_width = max(self.cvs)-min(self.cvs)
+            if flims is None:
+                ylower = -1+min([state.get_F()/kjmol for state in self.macrostates]+[0])
+                yupper = max(self.fs[~np.isnan(self.fs)])/kjmol+10
+            else:
+                ylower, yupper = flims
+            #plot microstates
+            for microstate in self.microstates:
+                axs[0].plot(microstate.get_cv()/parse_unit(self.cv_output_unit), microstate.get_F()/parse_unit(self.f_output_unit), linestyle='none', marker=micro_marker, color=micro_color, markersize=micro_size)
+                axs[0].text((microstate.get_cv()+0.01*cv_width)/parse_unit(self.cv_output_unit), microstate.get_F()/parse_unit(self.f_output_unit), microstate.text('f'), color=micro_color, fontsize=12)
+                axs[0].axvline(x=microstate.get_cv()/parse_unit(self.cv_output_unit), ymin=0, ymax=(microstate.get_F()/parse_unit(self.f_output_unit)-ylower)/(yupper-ylower), linestyle=micro_linestyle, color=micro_color, linewidth=1)
+                if rate is not None:
+                    axs[0].fill_betweenx([ylower, max(self.fs)/kjmol], x1=rate.CV_TS_lims[0]/parse_unit(self.cv_output_unit), x2=rate.CV_TS_lims[1]/parse_unit(self.cv_output_unit), alpha=0.33, color='k')
+            #plot macrostates
+            for macrostate in self.macrostates:
+                xcen = (macrostate.get_cv()-min(self.cvs))/cv_width
+                xwidth = macrostate.cvstd/cv_width
+                ycen = macrostate.get_F()/parse_unit(self.f_output_unit)
+                axs[0].axhline(y=ycen, xmin=xcen-xwidth, xmax=xcen+xwidth, linestyle=macro_linestyle, color=macro_color, linewidth=2)
+                axs[0].text((macrostate.get_cv())/parse_unit(self.cv_output_unit), ycen+0.5, macrostate.text('f'), color=macro_color, fontsize=12)
+            #cv_output_unit
+            axs[0].set_xlabel('%s [%s]' %(self.cv_label, self.cv_output_unit), fontsize=14)
+            axs[0].set_ylabel('Energy [%s]' %self.f_output_unit, fontsize=14)
+            axs[0].set_title('Free energy profile F(CV)', fontsize=16)
+            if cvlims is None:
+                axs[0].set_xlim([min(self.cvs/parse_unit(self.cv_output_unit)), max(self.cvs/parse_unit(self.cv_output_unit))])
+            else:
+                axs[0].set_xlim(cvlims)
+            axs[0].set_ylim([ylower, yupper])
+            axs[0].axhline(y=0, xmin=0, xmax=1, linestyle='--', color='k', linewidth=1)
+
+            if len(self.macrostates)>0:
+                assert len(self.macrostates)==2, 'The plotter assumes two macrostates (if any), i.e. R and P, but found %i' %(len(self.macrostates))
+                if do_latex:
+                    fig.text(0.65, 0.88, r'\textit{Thermodynamic properties}', fontsize=16)
+                    fig.text(0.65, 0.86, '-------------------------------------', fontsize=16)
+                    fig.text(0.65, 0.82, r'$F_{R}     = $ %s'                          %(self.R.text('f'))    , fontsize=16)
+                    fig.text(0.65, 0.78, r'$\left\langle CV \right\rangle_{R}  = $ %s' %(self.R.text('cv'))   , fontsize=16)
+                    fig.text(0.65, 0.74, r'$\Delta(CV)_{R} = $ %s'                     %(self.R.text('cvstd')), fontsize=16)
+                    fig.text(0.65, 0.70, r'$F_{P}     = $ %s'                          %(self.P.text('f'))    , fontsize=16)
+                    fig.text(0.65, 0.66, r'$\left\langle CV \right\rangle_{P}  = $ %s' %(self.P.text('cv'))   , fontsize=16)
+                    fig.text(0.65, 0.62, r'$\Delta(CV)_{P} =  $ %s'                    %(self.P.text('cvstd')), fontsize=16)
+                    fig.text(0.65, 0.58, r'$F_{TS}    = $ %s'                          %(self.ts.text('f'))   , fontsize=16)
+                    fig.text(0.65, 0.54, r'$CV_{TS}   = $ %s'                          %(self.ts.text('cv'))  , fontsize=16)
+
+                else:
+                    fig.text(0.65, 0.88, 'Thermodynamic properties', fontsize=16)
+                    fig.text(0.65, 0.86, '-------------------------------------', fontsize=16)
+                    fig.text(0.65, 0.82, 'F_R     = %s' %(self.R.text('f'))    , fontsize=16)
+                    fig.text(0.65, 0.78, '<CV>_R  = %s' %(self.R.text('cv'))   , fontsize=16)
+                    fig.text(0.65, 0.74, 'd(CV)_R = %s' %(self.R.text('cvstd')), fontsize=16)
+                    fig.text(0.65, 0.70, 'F_P     = %s' %(self.P.text('f'))    , fontsize=16)
+                    fig.text(0.65, 0.66, '<CV>_P  = %s' %(self.P.text('cv'))   , fontsize=16)
+                    fig.text(0.65, 0.62, 'd(CV)_P = %s' %(self.P.text('cvstd')), fontsize=16)
+                    fig.text(0.65, 0.58, 'F_TS    = %s' %(self.ts.text('f'))   , fontsize=16)
+                    fig.text(0.65, 0.54, 'CV_TS   = %s' %(self.ts.text('cv'))  , fontsize=16)
+
             if rate is not None:
-                axs[0].fill_betweenx([ylower, max(self.fs)/kjmol], x1=rate.CV_TS_lims[0]/parse_unit(self.cv_output_unit), x2=rate.CV_TS_lims[1]/parse_unit(self.cv_output_unit), alpha=0.33, color='k')
-        #plot macrostates
-        for macrostate in self.macrostates:
-            xcen = (macrostate.get_cv()-min(self.cvs))/cv_width
-            xwidth = macrostate.cvstd/cv_width
-            ycen = macrostate.get_F()/parse_unit(self.f_output_unit)
-            axs[0].axhline(y=ycen, xmin=xcen-xwidth, xmax=xcen+xwidth, linestyle=macro_linestyle, color=macro_color, linewidth=2)
-            axs[0].text((macrostate.get_cv())/parse_unit(self.cv_output_unit), ycen+0.5, macrostate.text('f'), color=macro_color, fontsize=12)
-        #cv_output_unit
-        axs[0].set_xlabel('%s [%s]' %(self.cv_label, self.cv_output_unit), fontsize=14)
-        axs[0].set_ylabel('Energy [%s]' %self.f_output_unit, fontsize=14)
-        axs[0].set_title('Free energy profile F(CV)', fontsize=16)
-        axs[0].set_xlim([min(self.cvs/parse_unit(self.cv_output_unit)), max(self.cvs/parse_unit(self.cv_output_unit))])
-        axs[0].set_ylim([ylower, yupper])
-        axs[0].axhline(y=0, xmin=0, xmax=1, linestyle='--', color='k', linewidth=1)
-
-        if len(self.macrostates)>0:
-            assert len(self.macrostates)==2, 'The plotter assumes two macrostates (if any), i.e. R and P, but found %i' %(len(self.macrostates))
-            if do_latex:
-                fig.text(0.65, 0.88, r'\textit{Thermodynamic properties}', fontsize=16)
-                fig.text(0.65, 0.86, '-------------------------------------', fontsize=16)
-                fig.text(0.65, 0.82, r'$F_{R}     = $ %s'                          %(self.R.text('f'))    , fontsize=16)
-                fig.text(0.65, 0.78, r'$\left\langle CV \right\rangle_{R}  = $ %s' %(self.R.text('cv'))   , fontsize=16)
-                fig.text(0.65, 0.74, r'$\Delta(CV)_{R} = $ %s'                     %(self.R.text('cvstd')), fontsize=16)
-                fig.text(0.65, 0.70, r'$F_{P}     = $ %s'                          %(self.P.text('f'))    , fontsize=16)
-                fig.text(0.65, 0.66, r'$\left\langle CV \right\rangle_{P}  = $ %s' %(self.P.text('cv'))   , fontsize=16)
-                fig.text(0.65, 0.62, r'$\Delta(CV)_{P} =  $ %s'                    %(self.P.text('cvstd')), fontsize=16)
-                fig.text(0.65, 0.58, r'$F_{TS}    = $ %s'                          %(self.ts.text('f'))   , fontsize=16)
-                fig.text(0.65, 0.54, r'$CV_{TS}   = $ %s'                          %(self.ts.text('cv'))  , fontsize=16)
-
-            else:
-                fig.text(0.65, 0.88, 'Thermodynamic properties', fontsize=16)
-                fig.text(0.65, 0.86, '-------------------------------------', fontsize=16)
-                fig.text(0.65, 0.82, 'F_R     = %s' %(self.R.text('f'))    , fontsize=16)
-                fig.text(0.65, 0.78, '<CV>_R  = %s' %(self.R.text('cv'))   , fontsize=16)
-                fig.text(0.65, 0.74, 'd(CV)_R = %s' %(self.R.text('cvstd')), fontsize=16)
-                fig.text(0.65, 0.70, 'F_P     = %s' %(self.P.text('f'))    , fontsize=16)
-                fig.text(0.65, 0.66, '<CV>_P  = %s' %(self.P.text('cv'))   , fontsize=16)
-                fig.text(0.65, 0.62, 'd(CV)_P = %s' %(self.P.text('cvstd')), fontsize=16)
-                fig.text(0.65, 0.58, 'F_TS    = %s' %(self.ts.text('f'))   , fontsize=16)
-                fig.text(0.65, 0.54, 'CV_TS   = %s' %(self.ts.text('cv'))  , fontsize=16)
-
-        if rate is not None:
-            #TODO: update to new style already implemented for thermodynamic properties, code below will now still give errors
-            A, A_dist = rate.A, rate.A_dist
-            k_for, k_for_dist, dF_for, dF_for_dist, k_back, k_back_dist, dF_back, dF_back_dist = rate.compute_rate(self)
-            Aunit = '%s/s' %self.cv_output_unit
-            if do_latex:
-                if k_for_dist is None:
-                    fig.text(0.65, 0.50, r'\textit{Kinetic properties}', fontsize=16)
-                    fig.text(0.65, 0.48, '-------------------------------------', fontsize=16)
-                    fig.text(0.65, 0.44, r'$A     = $ %s $ %s.s^{-1}$' %(format_scientific(A/(parse_unit(self.cv_output_unit)/second)), self.cv_output_unit), fontsize=16)
-                    fig.text(0.65, 0.40, r'$k_{F} = $ %s $ s^{-1}$' %(format_scientific(k_for*second)), fontsize=16)
-                    fig.text(0.65, 0.36, r'$k_{B} = $ %s $ s^{-1}$' %(format_scientific(k_back*second)), fontsize=16)
-                    fig.text(0.65, 0.32, r'\textit{Phenomenological barrier}'   , fontsize=16)
-                    fig.text(0.65, 0.28, '-------------------------------------', fontsize=16)
-                    fig.text(0.65, 0.24, r'$\Delta F_{F}  = %.3f\ \ $ %s' %(dF_for/parse_unit(self.f_output_unit),self.f_output_unit), fontsize=16)
-                    fig.text(0.65, 0.20, r'$\Delta F_{B}  = %.3f\ \ $ %s' %(dF_back/parse_unit(self.f_output_unit),self.f_output_unit), fontsize=16)
+                #TODO: update to new style already implemented for thermodynamic properties, code below will now still give errors
+                A, A_dist = rate.A, rate.A_dist
+                k_for, k_for_dist, dF_for, dF_for_dist, k_back, k_back_dist, dF_back, dF_back_dist = rate.compute_rate(self)
+                Aunit = '%s/s' %self.cv_output_unit
+                if do_latex:
+                    if k_for_dist is None:
+                        fig.text(0.65, 0.50, r'\textit{Kinetic properties}', fontsize=16)
+                        fig.text(0.65, 0.48, '-------------------------------------', fontsize=16)
+                        fig.text(0.65, 0.44, r'$A     = $ %s $ %s.s^{-1}$' %(format_scientific(A/(parse_unit(self.cv_output_unit)/second)), self.cv_output_unit), fontsize=16)
+                        fig.text(0.65, 0.40, r'$k_{F} = $ %s $ s^{-1}$' %(format_scientific(k_for*second)), fontsize=16)
+                        fig.text(0.65, 0.36, r'$k_{B} = $ %s $ s^{-1}$' %(format_scientific(k_back*second)), fontsize=16)
+                        fig.text(0.65, 0.32, r'\textit{Phenomenological barrier}'   , fontsize=16)
+                        fig.text(0.65, 0.28, '-------------------------------------', fontsize=16)
+                        fig.text(0.65, 0.24, r'$\Delta F_{F}  = %.3f\ \ $ %s' %(dF_for/parse_unit(self.f_output_unit),self.f_output_unit), fontsize=16)
+                        fig.text(0.65, 0.20, r'$\Delta F_{B}  = %.3f\ \ $ %s' %(dF_back/parse_unit(self.f_output_unit),self.f_output_unit), fontsize=16)
+                    else:
+                        fig.text(0.65, 0.48, r'\textit{Kinetic properties}', fontsize=16)
+                        fig.text(0.65, 0.46, '-------------------------------------', fontsize=16)
+                        fig.text(0.65, 0.42, r'$A     = $ %s' %A_dist.print(unit=Aunit, do_scientific=True), fontsize=16)
+                        fig.text(0.65, 0.38, r'$k_{F} = $ %s' %k_for_dist.print(unit='1/s', do_scientific=True), fontsize=16)
+                        fig.text(0.65, 0.34, r'$k_{B} = $ %s' %k_back_dist.print(unit='1/s', do_scientific=True), fontsize=16)
+                        fig.text(0.65, 0.28, r'\textit{Phenomenological barrier}'   , fontsize=16)
+                        fig.text(0.65, 0.26, '-------------------------------------', fontsize=16)
+                        fig.text(0.65, 0.22, r'$\Delta F_{F}  = $ %s' %dF_for_dist.print(unit=self.f_output_unit), fontsize=16)
+                        fig.text(0.65, 0.18, r'$\Delta F_{B}  = $ %s' %dF_back_dist.print(unit=self.f_output_unit), fontsize=16)
                 else:
-                    fig.text(0.65, 0.48, r'\textit{Kinetic properties}', fontsize=16)
-                    fig.text(0.65, 0.46, '-------------------------------------', fontsize=16)
-                    fig.text(0.65, 0.42, r'$A     = $ %s' %A_dist.print(unit=Aunit, do_scientific=True), fontsize=16)
-                    fig.text(0.65, 0.38, r'$k_{F} = $ %s' %k_for_dist.print(unit='1/s', do_scientific=True), fontsize=16)
-                    fig.text(0.65, 0.34, r'$k_{B} = $ %s' %k_back_dist.print(unit='1/s', do_scientific=True), fontsize=16)
-                    fig.text(0.65, 0.28, r'\textit{Phenomenological barrier}'   , fontsize=16)
-                    fig.text(0.65, 0.26, '-------------------------------------', fontsize=16)
-                    fig.text(0.65, 0.22, r'$\Delta F_{F}  = $ %s' %dF_for_dist.print(unit=self.f_output_unit), fontsize=16)
-                    fig.text(0.65, 0.18, r'$\Delta F_{B}  = $ %s' %dF_back_dist.print(unit=self.f_output_unit), fontsize=16)
-            else:
-                if k_for_dist is None:
-                    fig.text(0.65, 0.48, 'Kinetic properties', fontsize=16)
-                    fig.text(0.65, 0.46, '-------------------------------------', fontsize=16)
-                    fig.text(0.65, 0.42, 'A  = %s %s/s' %(format_scientific(rate.A/(parse_unit(self.cv_output_unit)/second)), self.cv_output_unit), fontsize=16)
-                    fig.text(0.65, 0.38, 'kF = %s 1/s' %(format_scientific(k_for*second)), fontsize=16)
-                    fig.text(0.65, 0.34, 'kB = %s 1/s' %(format_scientific(k_back*second)), fontsize=16)
-                    fig.text(0.65, 0.28, 'Phenomenological barrier', fontsize=16)
-                    fig.text(0.65, 0.26, '-------------------------------------'  , fontsize=16)
-                    fig.text(0.65, 0.22, 'dF_F = %.3f %s' %(dF_for/parse_unit(self.f_output_unit),self.f_output_unit) , fontsize=16)
-                    fig.text(0.65, 0.18, 'dF_B = %.3f %s' %(dF_back/parse_unit(self.f_output_unit),self.f_output_unit), fontsize=16)
-                else:
-                    fig.text(0.65, 0.48, 'Kinetic properties', fontsize=16)
-                    fig.text(0.65, 0.46, '-------------------------------------', fontsize=16)
-                    fig.text(0.65, 0.42, 'A  = %s' %A_dist.print(unit='1e12*%s' %Aunit), fontsize=16)
-                    fig.text(0.65, 0.38, 'kF = %s' %k_for_dist.print(unit='1e8/s'), fontsize=16)
-                    fig.text(0.65, 0.34, 'kB = %s' %k_back_dist.print(unit='1e8/s'), fontsize=16)
-                    fig.text(0.65, 0.28, 'Phenomenological barrier', fontsize=16)
-                    fig.text(0.65, 0.26, '-------------------------------------'  , fontsize=16)
-                    fig.text(0.65, 0.22, 'dF_F = %s' %dF_for_dist.print(unit=self.f_output_unit), fontsize=16)
-                    fig.text(0.65, 0.18, 'dF_B = %s' %dF_back_dist.print(unit=self.f_output_unit), fontsize=16)
+                    if k_for_dist is None:
+                        fig.text(0.65, 0.48, 'Kinetic properties', fontsize=16)
+                        fig.text(0.65, 0.46, '-------------------------------------', fontsize=16)
+                        fig.text(0.65, 0.42, 'A  = %s %s/s' %(format_scientific(rate.A/(parse_unit(self.cv_output_unit)/second)), self.cv_output_unit), fontsize=16)
+                        fig.text(0.65, 0.38, 'kF = %s 1/s' %(format_scientific(k_for*second)), fontsize=16)
+                        fig.text(0.65, 0.34, 'kB = %s 1/s' %(format_scientific(k_back*second)), fontsize=16)
+                        fig.text(0.65, 0.28, 'Phenomenological barrier', fontsize=16)
+                        fig.text(0.65, 0.26, '-------------------------------------'  , fontsize=16)
+                        fig.text(0.65, 0.22, 'dF_F = %.3f %s' %(dF_for/parse_unit(self.f_output_unit),self.f_output_unit) , fontsize=16)
+                        fig.text(0.65, 0.18, 'dF_B = %.3f %s' %(dF_back/parse_unit(self.f_output_unit),self.f_output_unit), fontsize=16)
+                    else:
+                        fig.text(0.65, 0.48, 'Kinetic properties', fontsize=16)
+                        fig.text(0.65, 0.46, '-------------------------------------', fontsize=16)
+                        fig.text(0.65, 0.42, 'A  = %s' %A_dist.print(unit='1e12*%s' %Aunit), fontsize=16)
+                        fig.text(0.65, 0.38, 'kF = %s' %k_for_dist.print(unit='1e8/s'), fontsize=16)
+                        fig.text(0.65, 0.34, 'kB = %s' %k_back_dist.print(unit='1e8/s'), fontsize=16)
+                        fig.text(0.65, 0.28, 'Phenomenological barrier', fontsize=16)
+                        fig.text(0.65, 0.26, '-------------------------------------'  , fontsize=16)
+                        fig.text(0.65, 0.22, 'dF_F = %s' %dF_for_dist.print(unit=self.f_output_unit), fontsize=16)
+                        fig.text(0.65, 0.18, 'dF_B = %s' %dF_back_dist.print(unit=self.f_output_unit), fontsize=16)
         #save
         fig.set_size_inches(fig_size)
-        pp.savefig(fn)
+        if fn is not None:
+            pp.savefig(fn)
+        else:
+            pp.show()
         return
-
 
 
 
@@ -1412,7 +1524,7 @@ class FreeEnergySurface2D(object):
             fs = error.mean()
         return return_class(qs, fs, self.T, error=error, cv_output_unit=cv_output_unit, f_output_unit=self.f_output_unit, cv_label=cv_label)
 
-    def plot(self, fn, slicer=[slice(None),slice(None)], obss=['base'], linestyles=None, linewidths=None, colors=None, cv1_lims=None, cv2_lims=None, flims=None, ncolors=8, plot_additional_function_contours=None, **plot_kwargs):
+    def plot(self, fn=None, slicer=[slice(None),slice(None)], obss=['value'], linestyles=None, linewidths=None, colors=None, cv1_lims=None, cv2_lims=None, flims=None, ncolors=8, plot_additional_function_contours=None, **plot_kwargs):
         '''
             Plot x[slicer], where (possibly multiple) x is/Are specified in the keyword argument obss and the argument slicer defines the subset of data that will be plotted. The resulting graph will be a regular 1D plot or 2D contourplot, depending on the dimensionality of the data x[slicer].
 
@@ -1456,23 +1568,23 @@ class FreeEnergySurface2D(object):
         labels = []
         for obs in obss:
             values = None
-            if obs.lower() in ['base','mean']:
-                values = self.fs[slicer].copy()
-            elif obs.lower() in ['errmean', 'errormean', 'meanerr', 'meanerror']:
+            if obs.lower() in ['value']:
+                values = self.fs.copy()[slicer]
+            elif obs.lower() in ['error-mean', 'mean']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
                 values = self.error.mean()[slicer]
-            elif obs.lower() in ['low', 'lower', 'lowererr', 'lowererror', 'errorlower', 'errlower', 'errlow']:
+            elif obs.lower() in ['error-lower', 'lower']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
                 values = self.error.nsigma_conf_int(2)[0][slicer]
-            elif obs.lower() in ['up', 'upper', 'uppererr', 'uppererror', 'errorupper', 'errupper', 'errup']:
+            elif obs.lower() in ['error-upper', 'upper']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
                 values = self.error.nsigma_conf_int(2)[1][slicer]
-            elif obs.lower() in ['half of upper-lower', 'hul']:
+            elif obs.lower() in ['error-half-upper-lower', 'width']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
                 lower = self.error.nsigma_conf_int(2)[0][slicer]
                 upper = self.error.nsigma_conf_int(2)[1][slicer]
                 values = 0.5*np.abs(upper - lower)
-            elif obs.lower() in ['sample', 'errorsample', 'errsample', 'sampleerror', 'sampleerr']:
+            elif obs.lower() in ['error-sample', 'sample']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
                 values = self.error.sample()[slicer]
             if values is None: raise ValueError('Could not interpret observable %s' %obs)
@@ -1544,11 +1656,15 @@ class FreeEnergySurface2D(object):
             raise ValueError('Can only plot 1D or 2D pcond data, but received %i-d data. Make sure that the combination of qslice and cvslice results in 1 or 2 dimensional data.' %(len(data.shape)))
 
         fig.tight_layout()
-        pp.savefig(fn)
+        if fn is not None:
+            pp.savefig(fn)
+        else:
+            pp.show()
         return
 
 
-def plot_profiles(fn, profiles, labels=None, flims=None, colors=None, linestyles=None, linewidths=None, do_latex=False):
+
+def plot_profiles(profiles, fn=None, labels=None, flims=None, colors=None, linestyles=None, linewidths=None, do_latex=False):
     '''
         Make a plot to compare multiple free energy profiles
 
@@ -1623,9 +1739,14 @@ def plot_profiles(fn, profiles, labels=None, flims=None, colors=None, linestyles
     axs[0,0].legend(loc='best')
     #save
     fig.set_size_inches([8,8])
-    pp.savefig(fn)
+    if fn is not None:
+        pp.savefig(fn)
+    else:
+        pp.show()
+
+
 
 #an alias for backward compatibility
 def plot_feps(fn, feps, temp, labels=None, flims=None, colors=None, linestyles=None, linewidths=None, do_latex=False):
     print('WARNING: plot_feps is a depricated routine, use plot_profiles instead. Current plot_feps routine is just an alias that ignores temp argument from now on.')
-    plot_profiles(fn, feps, labels=labels, flims=flims, colors=colors, linestyles=linestyles, linewidths=linewidths, do_latex=do_latex)
+    plot_profiles(feps, fn=fn, labels=labels, flims=flims, colors=colors, linestyles=linestyles, linewidths=linewidths, do_latex=do_latex)

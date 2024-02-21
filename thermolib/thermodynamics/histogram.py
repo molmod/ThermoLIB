@@ -314,7 +314,7 @@ class Histogram1D(object):
 			if verbosity.lower() in ['medium', 'high']:
 				print('Estimating error ...')
 			if corrtimes is None: corrtimes = np.ones(len(traj_input), float)
-			error = wham1d_error(Nsims, Ngrid, Nis, ps, fs, bs, corrtimes, method=error_estimate)
+			error = wham1d_error(Nsims, Ngrid, Nis, ps, fs, bs, corrtimes, method=error_estimate, verbosity=verbosity)
 		elif error_estimate is not None and error_estimate not in ["None"]:
 			raise ValueError('Received invalid value for keyword argument error_estimate, got %s. See documentation for valid choices.' %error_estimate)
 		timings['error'] = time.time()
@@ -372,20 +372,79 @@ class Histogram1D(object):
 			error = LogGaussianDistribution(means, stds)
 		return cls(fep.cvs, ps, error=error, cv_output_unit=fep.cv_output_unit, cv_label=fep.cv_label)
 
-	def plot(self, fn, temp=None, flims=None):
+	def plot(self, fn=None, obss=['value'], linestyles=None, linewidths=None, colors=None, cvlims=None, plims=None, show_legend=False, **plot_kwargs):
 		'''
-			Make a plot of the probability histogram and possible the corresponding free energy (if the argument ``temp`` is specified).
+			Make a plot of the probability histogram.
 
 			:param fn: file name of the resulting plot
 			:type fn: str
 
-			:param temp: the temperature for conversion of histogram to free energy profile. Specifying this number will add a free energy plot.
-			:type temp: float, optional, default=None
-
 			:param flim: upper limit of the free energy axis in plots.
 			:type flim: float, optional, default=None
 		'''
-		plot_histograms(fn, [self], temp=temp, flims=flims)
+		#preprocess
+		cvunit = parse_unit(self.cv_output_unit)
+		punit = 1.0/cvunit
+		
+		#read data 
+		data = []
+		labels = []
+		for obs in obss:
+			values = None
+			if obs.lower() in ['value']:
+				values = self.ps.copy()
+			elif obs.lower() in ['error-mean', 'mean']:
+				assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
+				values = self.error.mean()
+			elif obs.lower() in ['error-lower', 'lower']:
+				assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
+				values = self.error.nsigma_conf_int(2)[0]
+			elif obs.lower() in ['error-upper', 'upper']:
+				assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
+				values = self.error.nsigma_conf_int(2)[1]
+			elif obs.lower() in ['error-half-upper-lower', 'width']:
+				assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
+				lower = self.error.nsigma_conf_int(2)[0]
+				upper = self.error.nsigma_conf_int(2)[1]
+				values = 0.5*np.abs(upper - lower)
+			elif obs.lower() in ['error-sample', 'sample']:
+				assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
+				values = self.error.sample()
+			if values is None: raise ValueError('Could not interpret observable %s' %obs)
+			data.append(values)
+			labels.append(obs)
+		
+		if self.error is not None:
+			lower, upper = self.error.nsigma_conf_int(2)
+			lower, upper = lower, upper
+		if linestyles is None:
+			linestyles = [None,]*len(data)
+		if linewidths is None:
+			linewidths = [1.0,]*len(data)
+		if colors is None:
+			colors = [None,]*len(data)
+
+		#make plot
+		pp.clf()
+		for (ys,label,linestyle,linewidth,color) in zip(data,labels,linestyles, linewidths,colors):
+			pp.plot(self.cvs/cvunit, ys/punit, label=label, linestyle=linestyle, linewidth=linewidth, color=color, **plot_kwargs)
+		if self.error is not None:
+			pp.fill_between(self.cvs/cvunit, lower/punit, upper/punit, **plot_kwargs, alpha=0.33)
+		pp.xlabel('%s [%s]' %(self.cv_label, self.cv_output_unit), fontsize=16)
+		pp.ylabel('Probability density [1/%s]' %(self.cv_output_unit), fontsize=16)
+		if cvlims is not None: pp.xlim(cvlims)
+		if plims is not None: pp.ylim(plims)
+		if show_legend:
+			pp.legend(loc='best')
+		fig = pp.gcf()
+		fig.set_size_inches([8,8])
+		fig.tight_layout()
+		if fn is not None:
+			pp.savefig(fn)
+		else:
+			pp.show()
+		return
+
 
 
 class Histogram2D(object):
@@ -759,7 +818,7 @@ class Histogram2D(object):
 			if verbosity.lower() in ['medium', 'high']:
 				print('Estimating error ...')
 			if corrtimes is None: corrtimes = np.ones(len(traj_input), float)
-			error = wham2d_error(ps, fs, bs, Nis, corrtimes, method=error_estimate, p_threshold=error_p_threshold, verbose=verbosity.lower() in ['medium', 'high'])
+			error = wham2d_error(ps, fs, bs, Nis, corrtimes, method=error_estimate, p_threshold=error_p_threshold, verbosity=verbosity)
 
 		timings['error'] = time.time()
 
@@ -790,116 +849,6 @@ class Histogram2D(object):
 		There used to be a distinction between the from_wham and from_wham_c routine (former was full python implementation, latter used Cython for speed up). This distinction has been removed after deliberate testing confirmed that both routines gave identical results. As a result, only the former from_wham_c routine (which is faster) remains, but it has been renamed to from_wham, while the current from_wham_c routine remains in place for backward compatibility.
 		'''
 		return cls.from_wham(bins, trajectories, biasses, temp, pinit=pinit, error_estimate=error_estimate, bias_subgrid_num=bias_subgrid_num, Nscf=Nscf, convergence=convergence, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, cv1_label=cv1_label, cv2_label=cv2_label, plot_biases=plot_biases, verbose=verbose, verbosity=verbosity)
-
-	@classmethod
-	def _estimate_WHAM_error_2D(cls, ps, fs, bs, Nis, method='mle_f', nsigma=2):
-		'''
-			NOT SURE IF THIS ROUTINE ISN'T DEPRICATED!!
-		
-			Internal routine to compute the error assiciated with solving the 2D WHAM equations using the Fisher information comming from the Maximum Likelihood Estimator. The procedure is as follows:
-
-			* construct the extended Fisher information matrix by taking the weighted sum of the Fisher information matrix of each simulation. This is very similar as in the 1D case. However, we first have to flatten the CV1,CV2 2D grid to a 1D CV12 grid. This is achieved with the flatten function (which flattens a 2D index to a 1D index). Deflattening of the CV12 grid to a 2D CV1,CV2 grid is achieved with the deflatten function (which deflattens a 1D index to a 2D index). Using the flatten function, the ps array is flattened and a conventional Fisher matrix can be constructed and inverted. Afterwards the covariance matrix is deflattened using the deflatten function to arrive to a multidimensional matrix giving (co)variances on the 2D probability array.
-			* filter out the zero-rows and columns corresponding to absent histogram counts using the masking procedure
-			* invert the masked extended Fisher matrix and use the square root of its diagonal elements to compute errors
-
-			:param ps: the final unbiased probability density as computed by solving the WHAM equations.
-			:type fs: np.ndarray(Ngrid1, Ngrid2)
-
-			:param fs: the final normalization factor for the biased probability density of each simulation as computed by solving the WHAM equations
-			:type fs: np.ndarray(Nsim)
-
-			:param bs: the biasses (for each simulation) precomputed on the 2D CV grid
-			:type bs: np.ndarray(Nsim,Ngrid1,Ngrid2)
-
-			:param Nis: the number of simulation steps in each simulation
-			:type Nis: np.ndarray(Nsims)
-
-			:param method: Define the method for computing the error:
-
-				* *mle_p*: the error is computed on the probability density directly. This method corresponds to ignoring the positivity constraints of the histogram 			 parameters.
-				* *mle_f*: the error is first computed on minus of the logarithm of the probability density (corresponding to the scaled free energy) and afterwards 			propagated to the probability density. This method corresponds to taking the positivity constraints of the histogram parameters explicitly 			   into account.
-
-			:type method: str, optional, default='mle_f'
-
-			:param nsigma: specify the length of the error bar in terms of the number of sigmas. For example, a 2-sigma error bar (i.e. nsigma=2) would correspond to a 95% confidence interval.
-			:type nsimga: float, optional, default=2
-
-			:return: pupper, plower corresponding to the upper and lower value of the nsigma error bar
-			:rtype: np.ndarray, np.ndarray
-		'''
-		#initialization
-		Nsims, Ngrid1, Ngrid2 = bs.shape
-		Ngrid = Ngrid1*Ngrid2
-		def flatten(k,l):
-			return Ngrid2*k+l
-		def deflatten(K):
-			k = int(K/Ngrid2)
-			l = K - Ngrid2*k
-			return k,l
-
-		#Compute the extended Fisher matrix
-		I = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])
-		for i in range(Nsims):
-			Ii = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])
-			for k in range(Ngrid1):
-				for l in range(Ngrid2):
-					K = flatten(k,l)
-					if method in ['mle_p']:
-						if ps[k,l]>0: #see below where we define mask to filter out rows/columns corresponding to histogram counts of zero
-							Ii[K,K] = fs[i]*bs[i,k,l]/ps[k,l]
-						Ii[K, Ngrid+i] = bs[i,k,l]
-						Ii[Ngrid+i, K] = bs[i,k,l]
-						Ii[K, Ngrid+Nsims+i] = fs[i]*bs[i,k,l]
-						Ii[Ngrid+Nsims+i, K] = fs[i]*bs[i,k,l]
-						Ii[K,-1] = 1
-						Ii[-1,K] = 1
-					elif method in ['mle_f']:
-						Ii[K,K] = ps[k,l]*fs[i]*bs[i,k,l]
-						Ii[K, Ngrid+i] = -ps[k,l]*bs[i,k,l]
-						Ii[Ngrid+i, K] = -ps[k,l]*bs[i,k,l]
-						Ii[K, Ngrid+Nsims+i] = -ps[k,l]*fs[i]*bs[i,k,l]
-						Ii[Ngrid+Nsims+i, K] = -ps[k,l]*fs[i]*bs[i,k,l]
-						Ii[K,-1] = -ps[k,l]
-						Ii[-1,K] = -ps[k,l]
-					else:
-						raise IOError('Recieved invalid argument for method, recieved %s. Check routine signiture for more information on allowed values.' %method)
-			Ii[Ngrid+i, Ngrid+i] = 1/fs[i]**2
-			Ii[Ngrid+i, Ngrid+Nsims+i] = 1/fs[i]
-			Ii[Ngrid+Nsims+i, Ngrid+i] = 1/fs[i]
-			I += Nis[i]*Ii
-
-		#Define and apply mask to filter out zero counts in histogram (as no error can be computed on them)
-		mask = np.ones([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1], dtype=bool)
-		for k in range(Ngrid1):
-			for l in range(Ngrid2):
-				K = flatten(k,l)
-				if ps[k,l]==0:
-					mask[K,:] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
-					mask[:,K] = np.zeros(Ngrid+2*Nsims+1, dtype=bool)
-		Nmask2 = len(I[mask])
-		assert abs(int(np.sqrt(Nmask2))-np.sqrt(Nmask2))==0 #consistency check, sqrt(Nmask2) should be integer valued
-		Nmask = int(np.sqrt(Nmask2))
-		Imask = I[mask].reshape([Nmask,Nmask])
-		#Compute the inverse of the masked Fisher information matrix. Rows or columns corresponding to a histogram count of zero will have a (co)variance set to nan
-		sigma = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])*np.nan
-		sigma[mask] = np.linalg.inv(Imask).reshape([Nmask2])
-
-		#the error bar on the probability of bin (k,l) is now simply the [K,K]-diagonal element of sigma (with K corresponding to the flattend (k,l))
-		err = np.zeros([Ngrid1,Ngrid2])
-		for K in range(Ngrid):
-			k, l = deflatten(K)
-			err[k,l] = np.sqrt(sigma[K,K])
-		if method in ['mle_p']:
-			plower = ps - nsigma*err
-			plower[plower<0] = 0.0
-			pupper = ps + nsigma*err
-		elif method in ['mle_f']:
-			plower = ps*np.exp(-nsigma*err)
-			pupper = ps*np.exp(nsigma*err)
-		else:
-			raise IOError('Recieved invalid argument for method, recieved %s. Check routine signiture for more information on allowed values.' %method)
-
-		return pupper, plower
 
 	@classmethod
 	def from_fes(cls, fes, temp):
@@ -994,7 +943,7 @@ class Histogram2D(object):
 			error = None
 		return BaseProfile(xs, Ys, error=error, cv_output_unit=cv_output_unit, f_output_unit=f_output_unit, cv_label=cv_label, f_label=f_label)
 	
-	def plot(self, fn, slicer=[slice(None),slice(None)], obss=['base'], linestyles=None, linewidths=None, colors=None, cv1_lims=None, cv2_lims=None, flims=None, ncolors=8, ref_max=False, **plot_kwargs):
+	def plot(self, fn=None, slicer=[slice(None),slice(None)], obss=['value'], linestyles=None, linewidths=None, colors=None, cv1lims=None, cv2lims=None, plims=None, ncolors=8, ref_max=False, **plot_kwargs):
 		'''
             Plot x[slicer], where (possibly multiple) x is/Are specified in the keyword argument obss and the argument slicer defines the subset of data that will be plotted. The resulting graph will be a regular 1D plot or 2D contourplot, depending on the dimensionality of the data x[slicer].
 
@@ -1012,10 +961,10 @@ class Histogram2D(object):
 			ndim = 2
 			xs = self.cv1s[slicer[0]]/parse_unit(self.cv1_output_unit)
 			xlabel = self.cv1_label
-			xlims = cv1_lims
+			xlims = cv1lims
 			ys = self.cv2s[slicer[1]]/parse_unit(self.cv2_output_unit)
 			ylabel = '%s [%s]' %(self.cv2_label, self.cv2_output_unit)
-			ylims = cv2_lims
+			ylims = cv2lims
 			title = 'P(:,:)'
 		elif isinstance(slicer[0], slice) or isinstance(slicer[1],slice):
 			ndim = 1
@@ -1038,22 +987,28 @@ class Histogram2D(object):
 		labels = []
 		for obs in obss:
 			values = None
-			if obs.lower() in ['base','mean']:
-				values = self.ps[slicer].copy()
-			elif obs.lower() in ['errmean', 'errormean', 'meanerr', 'meanerror']:
+			if obs.lower() in ['value']:
+				values = self.ps.copy()
+			elif obs.lower() in ['error-mean', 'mean']:
 				assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
-				values = self.error.mean()[slicer]
-			elif obs.lower() in ['low', 'lower', 'lowererr', 'lowererror', 'errorlower', 'errlower', 'errlow']:
+				values = self.error.mean()
+			elif obs.lower() in ['error-lower', 'lower']:
 				assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
-				values = self.error.nsigma_conf_int(2)[0][slicer]
-			elif obs.lower() in ['up', 'upper', 'uppererr', 'uppererror', 'errorupper', 'errupper', 'errup']:
+				values = self.error.nsigma_conf_int(2)[0]
+			elif obs.lower() in ['error-upper', 'upper']:
 				assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
-				values = self.error.nsigma_conf_int(2)[1][slicer]
-			elif obs.lower() in ['sample', 'errorsample', 'errsample', 'sampleerror', 'sampleerr']:
+				values = self.error.nsigma_conf_int(2)[1]
+			elif obs.lower() in ['error-half-upper-lower', 'width']:
 				assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
-				values = self.error.sample()[slicer]
+				lower = self.error.nsigma_conf_int(2)[0]
+				upper = self.error.nsigma_conf_int(2)[1]
+				values = 0.5*np.abs(upper - lower)
+			elif obs.lower() in ['error-sample', 'sample']:
+				assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
+				values = self.error.sample()
 			if values is None: raise ValueError('Could not interpret observable %s' %obs)
-			assert ndim==len(values.shape), 'Observable data has inconsistent dimensions!'
+			data.append(values)
+			labels.append(obs)
 
 			if ref_max:
 				values /= max(values)
@@ -1081,7 +1036,7 @@ class Histogram2D(object):
 			pp.ylabel('Energy [%s]' %(self.f_output_unit), fontsize=16)
 			pp.title('Derived profiles from %s' %title, fontsize=16)
 			if xlims is not None: pp.xlim(xlims)
-			if flims is not None: pp.ylim(flims)
+			if plims is not None: pp.ylim(plims)
 			pp.legend(loc='best')
 			fig = pp.gcf()
 			fig.set_size_inches([8,8])
@@ -1118,10 +1073,15 @@ class Histogram2D(object):
 			raise ValueError('Can only plot 1D or 2D pcond data, but received %i-d data. Make sure that the combination of qslice and cvslice results in 1 or 2 dimensional data.' %(len(data.shape)))
 
 		fig.tight_layout()
-		pp.savefig(fn)
+		if fn is not None:
+			pp.savefig(fn)
+		else:
+			pp.show()
 		return
 
-def plot_histograms(fn, histograms, temp=None, labels=None, flims=None, colors=None, linestyles=None, linewidths=None):
+
+
+def plot_histograms(histograms, fn=None, temp=None, labels=None, flims=None, colors=None, linestyles=None, linewidths=None):
 	'''
 		Make a plot to compare multiple probability histograms and possible the corresponding free energy (if the argument ``temp`` is specified).
 
@@ -1218,4 +1178,7 @@ def plot_histograms(fn, histograms, temp=None, labels=None, flims=None, colors=N
 		fig.set_size_inches([16,8])
 	else:
 		fig.set_size_inches([8,8])
-	pp.savefig(fn)
+	if fn is not None:
+		pp.savefig(fn)
+	else:
+		pp.show()
