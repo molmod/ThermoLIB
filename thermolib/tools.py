@@ -248,7 +248,6 @@ def read_wham_input(fn: str, trajectory_readers, trajectory_path_templates, bias
     '''
         Read a WHAM input file, extract relevant information, and initialize necessary objects for further analysis.
 
-
         :param fn: The path to the WHAM input file, i.e. the metadata file. This file should be in the following format:
 
             .. code-block:: python
@@ -269,77 +268,29 @@ def read_wham_input(fn: str, trajectory_readers, trajectory_path_templates, bias
         :param trajectory_path_templates: template (or list of templates) for defining the path (relative to the directory containing fn) to the trajectory file corresponding to each bias. Such template argument should be a string containing a single '%s' substring which gets replaced with the name of the biases defined in fn. For example, if trajectory_path_templates is given by 'trajectories/%s/colvar', then the trajectory for the simulation biased with the potential named NAME_2 in the file fn (see above) is given by the path 'trajectories/NAME_2/colvar' relative to the directory containing fn. Defaults to '%s'. If a list of templates is given, each template corresponds to a given trajectory reader defined in the trajectory_readers argument.
         :type trajectory_path_templates: str or list of strings, optional
 
-        TODO: continue from here with ChatGPT generated docstring
-        :param bias_potential: mathematical form of the bias potential used, allowed values are
+        :param bias_potential: (optional, default='None') The type of bias potential, currently allowed values are 'Parabola1D', 'Parabola2D', or 'None'.
 
                 * **Parabola1D** -- harmonic bias of the form 0.5*kappa1*(q1-q01)**2
                 * **Parabola2D** -- harmonic bias of the form 0.5*kappa1*(q1-q01)**2 + 0.5*kappa2*(q2-q02)**2
 
-            defaults to 'None', which will be interpreted as Parabola1D or Parabola2D depending on the number of CVs that are extracted from the trajectory.
-        :type bias_potential: str, optional
-
-        :param q01_unit: unit of the q01 value for each bias potential, defaults to 'au'
-        :type q01_unit: str, optional
-
-        :param kappa1_unit: unit of the kappa1 value for each bias potential, defaults to 'au'
-        :type kappa1_unit: str, optional
-
-        :param q02_unit: unit of the q02 value for each bias potential, defaults to 'au'
-        :type q02_unit: str, optional
-
-        :param kappa2_unit: unit of the kappa2 value for each bias potential, defaults to 'au'
-        :type kappa2_unit: str, optional
-
-        :param inverse_cv1: If set to True, the CV1-axis will be inverted prior to bias evaluation. WARNING: the rest value parameter q01 of the potential will not be multiplied with -1! Defaults to False
-        :type inverse_cv1: bool, optional
-
-        :param inverse_cv2: If set to True, the CV2-axis will be inverted prior to bias evaluation. WARNING: the rest value parameter q02 of the potential will not be multiplied with -1! Defaults to False
-        :type inverse_cv2: bool, optional
-
-        :param additional_bias: A single additional 1D bias potential that is added for each simulation on top of the simulation-specific biases, defaults to None
-        :type additional_bias: instance of class from bias.py module, optional
-
-        :param additional_bias_dimension: The CV dimension along which the 1D additional bias potential is applied. This is only relevant when applying an additional bias to a 2D CV grid. Defaults to 'cv1'
-        :type additional_bias_dimension: str, optional
-
-        :param skip_bias_names: List of bias potential names (i.e. first word of lines in the wham input file) who should be ignored, together with their corresponding trajectory data, defaults to []
-        :type skip_bias_names: list, optional
-
-        :param verbose: Switch on the routine verbosity and print more logging, defaults to False
-        :type verbose: bool, optional
-
-        :raises NotImplementedError: if the type of the bias potential could not be recognized
-        :raises ValueError: if a line in the file fn could not be interpreted
-
-        :return: a tuple of the form (temp, biasses, trajectories) with the temperature, list of bias potentials defined and a list of trajectories with the CV values from the simulation.
-        :rtype: a tuple of the form (temp, biasses, trajectories), with temp a float (or None), biasses a list of instances from classes defined in the bias.py module and trajectories is a list of numpy arrays.
-    
-
-
-
-
-
-
-
-        :param bias_potential: (optional, default='None') The type of bias potential, e.g., 'Parabola1D', 'Parabola2D', or 'None'.
         :type bias_potential: str
 
-        :param q01_unit: (optional, default='au') The unit for the first collective variable (CV) in the input file.
+        :param q01_unit: (optional, default='au') The unit for the q01 value for each bias potential, q01 corresponds to the minimum in CV (or CV1 in case of a 2D bias) of the harmonic bias potential.
         :type q01_unit: str
 
-        :param kappa1_unit: (optional, default='au') The unit for the force constant associated with the first CV in the input file.
+        :param kappa1_unit: (optional, default='au') The unit for kappa1 value for each bias potential, kappa1 corresponds to the force constant along CV (or CV1 in case of a 2D bias) of the harmonic bias potential.
         :type kappa1_unit: str
 
-        :param q02_unit: (optional, default='au') The unit for the second CV in the input file (for 2D bias potentials).
+        :param q02_unit: (optional, default='au') The unit for the q02 value for each bias potential, q02 corresponds to the minimum in CV2 of the SD harmonic bias potential. This argument is ignored in case of a 1D bias.
         :type q02_unit: str
 
-        :param kappa2_unit: (optional, default='au') The unit for the force constant associated with the second CV in the input file (for 2D bias potentials).
+        :param kappa2_unit: (optional, default='au') The unit for kappa2 value for each bias potential, kappa2 corresponds to the force constant along CV2 of the harmonic bias potential. This argument is ignored in case of a 1D bias.
         :type kappa2_unit: str
 
-        :param inverse_cv1: (optional, default=False) If `True`, the first CV is treated as an inverse CV.
+        :param inverse_cv1: (optional, default=False) If `True`, the CV1-axis will be inverted prior to bias evaluation. WARNING: the rest value parameter q01 of the potential will not be multiplied with -1!
         :type inverse_cv1: bool
 
-        :param inverse_cv2: (optional, default=False) If `True`, the second CV is treated as an inverse CV (for 2D bias potentials).
+        :param inverse_cv2: (optional, default=False) If `True`, the CV2-axis will be inverted prior to bias evaluation. WARNING: the rest value parameter q01 of the potential will not be multiplied with -1! This argument is ignored in case of a 2D bias.
         :type inverse_cv2: bool
 
         :param additional_bias: (optional, default=None) Additional bias potential to be added to the primary bias potential.
@@ -357,18 +308,10 @@ def read_wham_input(fn: str, trajectory_readers, trajectory_path_templates, bias
         :returns: A tuple containing temperature, a list of bias potentials, and a list of trajectories.
         :rtype: tuple
 
-        :Example:
-
-        .. code-block:: python
-
-            # Example: Reading a WHAM input file
-            temperature, biasses, trajectories = read_wham_input('wham_input.txt', trajectory_readers, trajectory_path_templates)
-
         :Note:
 
         - The function supports 1D and 2D bias potentials, as well as the option to add an additional bias potential.
-        - The units for collective variables (`q01_unit`, `kappa1_unit`, `q02_unit`, `kappa2_unit`) can be specified to ensure consistency across different input files.
-        - Trajectory readers and path templates are provided as lists, allowing for flexibility in handling different types of trajectories.
+        - The units for collective variables (`q01_unit`, `kappa1_unit`, `q02_unit`, `kappa2_unit`) can be specified to ensure unit consistency.
     '''
     from thermolib.thermodynamics.bias import Parabola1D, Parabola2D, MultipleBiasses1D, MultipleBiasses2D
     #some argument dressing
@@ -492,7 +435,16 @@ def read_wham_input(fn: str, trajectory_readers, trajectory_path_templates, bias
         print('WARNING: temperature could not be read from %s' %fn)
     return temp, biasses, trajectories
 
-def extract_polynomial_bias_info(fn_plumed='plumed.dat'):
+def extract_polynomial_bias_info(fn_plumed: str='plumed.dat'):
+    '''
+        Extracts polynomial bias coefficients from a PLUMED input file.
+
+        :param fn_plumed: (optiona, default='plumed.dat') The filename of the PLUMED input file.
+        :type fn_plumed: str
+
+        :return: A list of polynomial coefficients for the bias potential.
+        :rtype: list of float
+    '''
     #TODO make less error phrone. include check.
     with open(fn_plumed,'r') as plumed:
         for line in plumed:
@@ -547,39 +499,53 @@ def _hl_envelopes_idx(s, dmin=1, dmax=1, split=False):
     lmax = lmax[[i+np.argmax(s[lmax[i:i+dmax]]) for i in range(0,len(lmax),dmax)]]
     return lmin,lmax
 
-def _blav(data, blocksizes, fitrange=[1,np.inf], model_function=None):
+def _blav(data: np.ndarray, blocksizes: np.ndarray|None=None, fitrange: list=[1, np.inf], model_function=None):
     '''
         Routine to implement block averaging in order to estimate the correlated error bar on the average of the data series as well as the corresponding integrated correlation time. This proceeds as follows:
-         
-            * block the data in groups of given blocksize B and compute the average for each block. There are denoted as the block averages/
-            * estimate original data total average as the the average of block averages, as well as the 'naive' error on this total average, i.e. assuming the block averages are uncorrelated
-            * This naive error bar is in fact not the true error because of correlations. However, upon increasing the block size, the correlations will diminish and hence the naive error will converge towards the true error. Therefore, we vary the block size and fit a mathematical model on the naive error bars as function of the block size, this model is defined by the argument `model_function`
 
-        :param data: 1D array representing the data to be analyzed
+        * Block the data in groups of a given blocksize B and compute the average for each block. These are denoted as the block averages.
+        * Estimate the original data total average as the average of block averages, as well as the 'naive' error on this total average, i.e., assuming the block averages are uncorrelated.
+        * This naive error bar is, in fact, not the true error because of correlations. However, upon increasing the block size, the correlations will diminish, and hence the naive error will converge towards the true error. Therefore, we vary the block size and fit a mathematical model on the naive error bars as a function of the block size. This model is defined by the argument `model_function`.
+
+        Parameters
+        ----------
+
+        :data: 1D array representing the data to be analyzed
         :type data: np.ndarray
 
-        :param blocksizes: array of block sizes, defaults to np.arange(1,len(data)+1,1)
+        :blocksizes: array of block sizes, defaults to np.arange(1, len(data)+1, 1)
         :type blocksizes: np.ndarray, optional
 
-        :param model_function: mathematical model for the naive error on block averages as function of the block size. Should be a callable with as first argument the block size and as remaining argument the model parameters that are to be fitted, default model is given by
+        :model_function: mathematical model for the naive error on block averages as a function of the block size. Should be a callable with as the first argument the block size and as the remaining arguments the model parameters to be fitted. The default model is given by:
 
-            .. math::
+        \[
+        \Delta(B;\Delta_{\text{true}},\tau_{\text{int}}) = \Delta_{\text{true}} \cdot \sqrt{\frac{B}{B + \tau_{\text{int}} - 1}}
+        \]
 
-                \\begin{aligned}
-                    \\Delta(B;\\Delta_\\text{true},\\tau_\\text{int}) &= \\Delta_\\text{true}*\\sqrt{\frac{B}{B+\\tau_\\text{int}-1}}
-                \\end{aligned}
+        :type model_function: callable, optional
 
-        :type model_unction: callable, optional
-
-        :param fitrange: range of blocksizes to which fit will be performed
+        :fitrange: range of blocksizes to which the fit will be performed
         :type fitrange: list, optional
 
-        :return: errors, true_error, corrtime, model_pars
+        Returns
+        -------
 
-        *  **errors** (*np.ndarray*) -- the correlated error bars as function of block sizes
-        *  **true_error** (*foat*) -- the uncorrelated error on the sample mean
-        *  **corrtime** (*float*)  -- the correlation time (in units of the timestep) of the original sample data
-        *  **model_pars** (*list*) -- additional fitted parameters of the mathematical model for the naive error bars if any
+        * **errors** (*np.ndarray*): The correlated error bars as a function of block sizes.
+        * **true_error** (*float*): The uncorrelated error on the sample mean.
+        * **corrtime** (*float*): The correlation time (in units of the timestep) of the original sample data.
+        * **model_pars** (*list*): Additional fitted parameters of the mathematical model for the naive error bars if any.
+
+        Note
+        ----
+
+        - The default mathematical model for the naive error bars is given by:
+
+        \[
+        \Delta(B; \Delta_{\text{true}}, \tau_{\text{int}}) = \Delta_{\text{true}} \cdot \sqrt{\frac{B}{B + \tau_{\text{int}} - 1}}
+        \]
+
+        - The function uses curve fitting to estimate the parameters of the mathematical model for the naive error bars.
+        - The correlation time (`corrtime`) represents the characteristic time scale of the correlations in the original sample data.
     '''
     #define model function for naive errors if not specified
     if model_function is None:
@@ -607,21 +573,50 @@ def _blav(data, blocksizes, fitrange=[1,np.inf], model_function=None):
     model_fitted = lambda B: model_function(B, *list(pars))
     return errors, true_error, corrtime, model_fitted
 
-def blav(data, blocksizes=None, fitrange=[1, np.inf], model_function=None, plot=False, fn_plot=None, plot_ylims=None, unit='au'):
+def blav(data: np.ndarray, blocksizes: np.ndarray|None=None, fitrange: list=[1, np.inf], model_function=None, plot: bool=False, fn_plot: str|None=None, plot_ylims: list|None=None, unit: str='au'):
     '''
-        Wrapper routine around _blav to apply block averaging and estimate the correlated error bar as well as the corresponding integrated correlation time on the average of the given data series. For more details on the procedure as well as the meaning of the arguments data, blocksizes, fitrange and model_function, see documentation of the routine _wrap.
+        Wrapper routine around `_blav` to apply block averaging and estimate the correlated error bar as well as the corresponding integrated correlation time on the average of the given data series. For more details on the procedure as well as the meaning of the arguments `data`, `blocksizes`, `fitrange`, and `model_function`, see documentation of the routine `_wrap`.
 
-        :param fn_plot: file name to which to write the plot, defaults to None which means no plot is made
-        :type fn_plot: str, optional
+        Parameters
+        ----------
+
+        :param data: 1D array representing the data to be analyzed
+        :type data: np.ndarray
+
+        :param blocksizes: array of block sizes, defaults to np.arange(1, len(data)//10+1, 1)
+        :type blocksizes: np.ndarray or None, optional
+
+        :param fitrange: range of block sizes to which the fit will be performed, defaults to [1, np.inf]
+        :type fitrange: list, optional
+
+        :param model_function: mathematical model for the naive error on block averages as a function of the block size. Should be a callable with as the first argument the block size and as the remaining arguments the model parameters to be fitted. The default model is a square root model.
+        :type model_function: callable, optional
+
+        :param plot: If True, a plot of the samples and error estimates will be generated. Ignored if fn_plot is not None. Defaults to False.
+        :type plot: bool, optional
+
+        :param fn_plot: file name to which to write the plot, defaults to None which means either no plot is made (if plot=False) or the plot is not saved (if plot=True)
+        :type fn_plot: str or None, optional
+
+        :param plot_ylims: Limits for the y-axis in the error plot. Defaults to None.
+        :type plot_ylims: list or None, optional
 
         :param unit: unit in which to plot the data, defaults to 'au'
         :type unit: str, optional
 
-        :return: mean, error, corrtime
+        Returns
+        -------
 
-        *  **mean** (*float*) -- the sample mean
-        *  **error** (*foat*) -- the error on the sample mean
-        *  **corrtime** (*float*) -- the correlation time (in units of the timestep) of the original sample data
+        * **mean** (*float*): The sample mean.
+        * **error** (*float*): The error on the sample mean.
+        * **corrtime** (*float*): The correlation time (in units of the timestep) of the original sample data.
+
+        Note
+        ----
+
+        - The function provides an option to generate a plot showing the samples and error estimates as a function of block size.
+        - The `unit` parameter allows for specifying the unit in which to plot the data.
+        - The y-axis limits for the error plot can be adjusted using the `plot_ylims` parameter.
     '''
     #define blocksizes if not specified
     assert len(data)>100, 'I will not apply block averaging on data series with only 100 or less samples'
@@ -667,14 +662,52 @@ def _acf(data, norm=True):
         acf /= acf[0]
     return acf
 
-def corrtime_from_acf(data, nblocks=None, norm=True, plot=False, fn_plot=None, xlims=None, ylims=[-0.25, 1.05]):
+def corrtime_from_acf(data: np.ndarray, nblocks: int|None=None, norm: bool=True, plot: bool=False, fn_plot: str|None=None, xlims: list|None=None, ylims: list=[-0.25, 1.05]):
     '''
         Routine to compute the integrated autocorrelation time as follows:
-        
-            * compute autocorrelation function (possibly after blocking data for noise suppression) using the routine _acf
-            * extract the upper envelope of the acf to eliminate short time oscillations
-            * fit single decaying exponential function to upper envelope to extract exponential correlation time
-            * translate exp corr time to integrated corr time as: tau_int = 2*tau_exp -1
+
+        - Compute the autocorrelation function (possibly after blocking data for noise suppression) using the routine `_acf`.
+        - Extract the upper envelope of the autocorrelation function to eliminate short time oscillations.
+        - Fit a single decaying exponential function to the upper envelope to extract the exponential correlation time.
+        - Translate the exponential correlation time to the integrated correlation time as: :math:`\tau_\text{int} = 2\tau_\text{exp} - 1`.
+
+        Parameters
+        ----------
+
+        :param data: 1D array representing the data to be analyzed
+        :type data: np.ndarray
+
+        :param nblocks: Number of blocks for blocking data. Defaults to None.
+        :type nblocks: int or None, optional
+
+        :param norm: If True, normalize the autocorrelation function. Defaults to True.
+        :type norm: bool, optional
+
+        :param plot: If True, generate a plot showing the autocorrelation function, its average, the upper envelope, and the fitted exponential function. Ignored if fn_plot is not None. Defaults to False.
+        :type plot: bool, optional
+
+        :param fn_plot: File name to which to write the plot, defaults to None which means no plot is made.
+        :type fn_plot: str or None, optional
+
+        :param xlims: Limits for the x-axis in the plot. Defaults to None.
+        :type xlims: list or None, optional
+
+        :param ylims: Limits for the y-axis in the plot. Defaults to [-0.25, 1.05].
+        :type ylims: list, optional
+
+        Returns
+        -------
+
+        * **corrtime** (*float*): The integrated autocorrelation time.
+
+        Note
+        ----
+
+        - The function provides an option to generate a plot showing the autocorrelation function, its average, the upper envelope, and the fitted exponential function.
+        - The `nblocks` parameter allows for blocking data to suppress noise in the autocorrelation function.
+        - The `norm` parameter controls whether the autocorrelation function should be normalized.
+        - The `xlims` parameter allows for adjusting the limits of the x-axis in the plot.
+        - The `ylims` parameter allows for adjusting the limits of the y-axis in the plot.
     '''
     acfs = None
     if nblocks is not None:
@@ -717,7 +750,57 @@ def corrtime_from_acf(data, nblocks=None, norm=True, plot=False, fn_plot=None, x
             pp.show()
     return corrtime
 
-def decorrelate(trajectories, method='acf', acf_nblocks=None, blav_model_function=None, decorrelate_only=None, plot=False, fn_plot=None, verbose=False, return_decorrelated_trajectories=False):
+def decorrelate(trajectories: list, method: str='acf', acf_nblocks: int|None=None, blav_model_function=None, decorrelate_only:int|None=None, plot: bool=False, fn_plot: str|None=None, verbose: bool=False, return_decorrelated_trajectories: bool=False):
+    '''
+        Function to compute correlation times for a list of trajectories and decorrelate the trajectories by averaging over a number of samples equal to the correlation time.
+
+        Parameters
+        ----------
+
+        :param trajectories: List of trajectories to be decorrelated.
+        :type trajectories: list
+
+        :param method: Method to compute correlation time. Either 'acf' for autocorrelation function or 'blav' for block averaging. Defaults to 'acf'.
+        :type method: str, optional
+
+        :param acf_nblocks: Number of blocks for blocking data when using autocorrelation function. Defaults to None.
+        :type acf_nblocks: int or None, optional
+
+        :param blav_model_function: Mathematical model for the naive error on block averages as a function of the block size when using block averaging. Defaults to the default set in the blav routine.
+        :type blav_model_function: callable or None, optional
+
+        :param decorrelate_only: Index of the collective variable (CV) to be used for decorrelation when multiple CVs are present in the trajectories. Defaults to None, meaning all CVs will be decorrelated simultaneously which generally leads to higher correlation times.
+        :type decorrelate_only: int or None, optional
+
+        :param plot: If True, generate a plot showing the correlation times for each trajectory and collective variable. Ignored if fn_plot is not None. Defaults to False.
+        :type plot: bool, optional
+
+        :param fn_plot: File name to which to write the plot, defaults to None which means no plot is made (if plot=False) or the plot is not saved (if plot=True).
+        :type fn_plot: str or None, optional
+
+        :param verbose: If True, print additional information during computation. Defaults to False.
+        :type verbose: bool, optional
+
+        :param return_decorrelated_trajectories: If True, return the decorrelated trajectories along with the correlation times. Defaults to False.
+        :type return_decorrelated_trajectories: bool, optional
+
+        Returns
+        -------
+
+        * **corrtimes** (*np.ndarray*): Array containing the computed correlation times for each trajectory.
+
+        * **trajectories_decor** (*list*): List containing the decorrelated trajectories if `return_decorrelated_trajectories` is True.
+
+        Note
+        ----
+
+        - The `method` parameter allows for choosing between 'acf' (autocorrelation function) and 'blav' (block averaging) to compute the correlation time.
+        - The `acf_nblocks` parameter is used to specify the number of blocks when using the autocorrelation function method.
+        - The `blav_model_function` parameter is a mathematical model for the naive error on block averages as a function of the block size when using block averaging.
+        - The `decorrelate_only` parameter allows selecting a specific collective variable (CV) index for decorrelation when multiple CVs are present in the trajectories.
+        - The `plot` parameter generates a plot showing the correlation times for each trajectory and collective variable if set to True.
+        - The `return_decorrelated_trajectories` parameter, if set to True, returns the decorrelated trajectories along with the correlation times.
+    '''
     #determine the number of trajectories as well as cvs present in trajectory data
     ntrajs = len(trajectories)
     if len(trajectories[0].shape)==1:
@@ -792,8 +875,35 @@ def decorrelate(trajectories, method='acf', acf_nblocks=None, blav_model_functio
     else:
         return corrtimes
 
-def multivariate_normal(means, covariance, size=None):
-    #t0 = time.time()
+def multivariate_normal(means: np.ndarray, covariance: np.ndarray, size: int|list|np.ndarray|None=None):
+    '''
+        Wrapper around `numpy.random.multivariate_normal` to handle `np.nan` columns in the covariance matrix.
+
+        Parameters
+        ----------
+
+        :param means: Means of the multivariate normal distribution.
+        :type means: np.ndarray
+
+        :param covariance: Covariance matrix of the multivariate normal distribution.
+        :type covariance: np.ndarray
+
+        :param size: Number of samples to generate. Defaults to `None`.
+        :type size: int, list, np.ndarray, or None, optional
+
+        Returns
+        -------
+
+        * **samples** (*np.ndarray*): Array containing the generated samples from the multivariate normal distribution.
+
+        Note
+        ----
+
+        - This function acts as a wrapper around `numpy.random.multivariate_normal` to handle `np.nan` columns in the covariance matrix.
+        - It filters out `np.nan` columns from the covariance matrix, enforces a symmetric covariance matrix, and handles exceptions during the sampling process.
+        - It will first try the cholesky method in np.random.multivariate_normal as it is much faster. If that fails, the function tries again with the eigh setting and informs the user.
+        - The `size` parameter specifies the number of samples to generate. If `size` is `None`, a single sample is generated.
+    '''
     #wrapper around np.random.multivariate_normal to deal with np.nan columns in the covariance matrix
     mask = np.ones(len(means), dtype=bool)
     #loop over diagonal elements of cov matrix and if it is nan, check if entire row and column is nan and remove it
@@ -807,36 +917,45 @@ def multivariate_normal(means, covariance, size=None):
     #enforce symmetric covariance matrix (filters out non-symmetric noise)
     cov += cov.T
     cov *= 0.5
-    #t1 = time.time()
     try:
         samples_cropped = np.random.default_rng().multivariate_normal(mus, cov, size=size, method='cholesky')
     except np.linalg.LinAlgError:
         print('WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.')
         samples_cropped = np.random.default_rng().multivariate_normal(mus, cov, size=size, method='eigh')
-    #t2 = time.time()
     if size is None:
         samples = np.zeros(len(means))*np.nan
         samples[mask] = samples_cropped
     else:
         samples = np.zeros([size,len(means)])*np.nan
         samples[:,mask] = samples_cropped
-    #t3 = time.time()
-    #print('---------------------------------------------------------------------')
-    #print('MULTIVARIATE NORMAL SAMPLING TIMING SUMMARY')
-    #t = t1-t0
-    #print('  Initializing : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
-    #t = t2-t1
-    #print('  Sampling     : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
-    #t = t3-t2
-    #print('  Post proces  : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
-    #t = t3-t1
-    #print('  TOTAL        : %s' %(time.strftime('%Hh %Mm %S.{:03d}s'.format(int((t%1)*1000)), time.gmtime(t))))
-    #print('---------------------------------------------------------------------')
     return samples
 
 # Routines related to computing and inverting the fisher information matrix
 
-def invert_fisher_to_covariance(F, ps, threshold=0.0, verbose=False):
+def invert_fisher_to_covariance(F: np.ndarray, ps: np.ndarray, threshold: float=0.0, verbose: bool=False):
+    '''
+        Inverts the Fisher information matrix to obtain the covariance matrix, handling specified thresholds.
+
+        Parameters
+        ----------
+
+        :param F: Fisher information matrix.
+        :type F: np.ndarray
+
+        :ps: Array of probabilities used to apply the threshold.
+        :type ps: np.ndarray
+
+        :threshold: Threshold value for removing columns and rows corresponding with a probability lower than the thresshold from the Fisher information matrix. Defaults to `0.0`.
+        :type threshold: float, optional
+
+        :verbose: If `True`, print information about removed columns and rows. Defaults to `False`.
+        :type verbose: bool, optional
+
+        Returns
+        -------
+
+        * **cov** (*np.ndarray*): Covariance matrix obtained by inverting the Fisher information matrix.
+    '''
     mask = np.ones(F.shape, dtype=bool)
     for index in range(F.shape[0]-1):
         if np.isnan(ps[index]) or ps[index]<=threshold:
@@ -851,7 +970,34 @@ def invert_fisher_to_covariance(F, ps, threshold=0.0, verbose=False):
     cov[mask] = np.linalg.inv(F_mask).reshape(N_mask2)
     return cov
 
-def fisher_matrix_mle_probdens(ps, method='mle_p', verbose=False):
+def fisher_matrix_mle_probdens(ps: np.ndarray, method: str='mle_p', verbose: bool=False):
+    '''
+        Computes the Fisher information matrix for the maximum likelihood estimation (MLE) of probability distribution parameters given in argument ps.
+
+        Parameters
+        ----------
+
+        :param ps: Probability histogram values
+        :type ps: np.ndarray
+
+        :param method: Method used for computing the Fisher information matrix. Options include 'mle_p', 'mle_p_cov', 'mle_f', and 'mle_f_cov'. Defaults to 'mle_p'.
+        :type method: str, optional
+
+        :param verbose: If `True`, prints additional information when no Fisher information is found. Defaults to `False`.
+        :type verbose: bool, optional
+
+        Returns
+        -------
+
+        * **F** (*np.ndarray*): Fisher information matrix computed for the maximum likelihood estimation of probability distribution parameters.
+
+        Note
+        ----
+
+        - This function computes the Fisher information matrix for the maximum likelihood estimation of probability distribution parameters.
+        - The `method` parameter allows selecting different methods for computing the Fisher matrix.
+        - If `verbose` is set to `True`, additional information is printed when no Fisher information is found.
+    '''
     F = np.zeros([len(ps)+1,len(ps)+1])
     if not np.isnan(ps).all():
         if method in ['mle_p', 'mle_p_cov']:

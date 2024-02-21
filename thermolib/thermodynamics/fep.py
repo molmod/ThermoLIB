@@ -366,7 +366,7 @@ class BaseProfile(object):
             pp.show()
         return
 
-    def plot_corr_matrix(self, fn: str|None=None, decimals: int=1, flims: list|None=None, cmap: str='bwr', **plot_kwargs):
+    def plot_corr_matrix(self, fn: str|None=None, flims: list|None=None, cmap: str='bwr', **plot_kwargs):
         if self.error is None:
             raise ValueError('Can only plot correlation matrix if error estimation has been performed!')
         cvunit = parse_unit(self.cv_output_unit)
