@@ -295,7 +295,7 @@ class ColVarReader(TrajectoryReader):
                     col = self._slice(data)*parse_unit(unit)
                     assert len(col.shape)==1, 'Something went wrong in the slicing of the colvar data.'
                 else:
-                    raise ValueError('You specified a column index larger then 0, but could only read a single column from colvar file %s.' %())
+                    raise ValueError('You specified a column index larger then 0, but could only read a single column from colvar file %s.' %(fn))
             else:
                 col = self._slice(data[:,index])*parse_unit(unit)
             if len(col)==0:
