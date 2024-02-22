@@ -412,6 +412,14 @@ class BaseFreeEnergyProfile(BaseProfile):
     @property
     def beta(self):
         return 1.0/(boltzmann*self.T)
+        
+    @classmethod
+    def from_txt(cls, fn, temp, cvcol=0, fcol=1, fstdcol=None, cv_input_unit='au', f_input_unit='kjmol', cv_output_unit='au', f_output_unit='kjmol', cv_label='CV', f_label='F', cvrange=None, delimiter=None, reverse=False, cut_constant=False):
+        profile = BaseProfile.from_txt(fn, cvcol=cvcol, fcol=fcol, fstdcol=fstdcol, cv_input_unit=cv_input_unit, f_input_unit=f_input_unit, cv_output_unit=cv_output_unit, f_output_unit=f_output_unit, cv_label=cv_label, f_label=f_label, cvrange=cvrange, delimiter=delimiter, reverse=reverse, cut_constant=cut_constant)
+        error = None
+        if profile.error is not None:
+            error = profile.error.copy()
+        return cls(profile.cvs, profile.fs, temp, error=error, cv_label=profile.cv_label, cv_output_unit=profile.cv_output_unit, f_output_unit=profile.f_output_unit)
 
     @classmethod
     def from_histogram(cls, histogram, temp, cv_output_unit=None, cv_label=None, f_output_unit='kjmol'):
@@ -579,6 +587,14 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
         self.p  = None
         self.R = None
         self.P = None
+
+    @classmethod
+    def from_txt(cls, fn, temp, cvcol=0, fcol=1, fstdcol=None, cv_input_unit='au', f_input_unit='kjmol', cv_output_unit='au', f_output_unit='kjmol', cv_label='CV', f_label='F', cvrange=None, delimiter=None, reverse=False, cut_constant=False):
+        profile = BaseProfile.from_txt(fn, cvcol=cvcol, fcol=fcol, fstdcol=fstdcol, cv_input_unit=cv_input_unit, f_input_unit=f_input_unit, cv_output_unit=cv_output_unit, f_output_unit=f_output_unit, cv_label=cv_label, f_label=f_label, cvrange=cvrange, delimiter=delimiter, reverse=reverse, cut_constant=cut_constant)
+        error = None
+        if profile.error is not None:
+            error = profile.error.copy()
+        return cls(profile.cvs, profile.fs, temp, error=error, cv_label=profile.cv_label, cv_output_unit=profile.cv_output_unit, f_output_unit=profile.f_output_unit)
 
     @classmethod
     def from_base(cls, base):

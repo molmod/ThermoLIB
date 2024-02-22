@@ -296,7 +296,7 @@ def read_wham_input(fn: str, trajectory_readers, trajectory_path_templates, bias
         :param additional_bias: (optional, default=None) Additional bias potential to be added to the primary bias potential.
         :type additional_bias: object or None
 
-        :param additional_bias_dimension: (optional, default='cv1') The dimension in which the additional bias potential operates ('cv1' or 'cv2').
+        :param additional_bias_dimension: (optional, default='cv1') The dimension in which the additional bias potential operates ('cv1'/'q1' or 'cv2'/'q2').
         :type additional_bias_dimension: str
 
         :param skip_bias_names: (optional, default=[]) A list of bias names to be skipped during processing.

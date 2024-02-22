@@ -333,9 +333,9 @@ class MultipleBiasses2D(BiasPotential2D):
         result = 0.0
         for idx,bias in enumerate(self.biasses):
             if isinstance(bias, BiasPotential1D):
-                if self.additional_bias_dimension.lower in ['q1', 'cv1']:
+                if self.additional_bias_dimension.lower() in ['q1', 'cv1']:
                     result += self.coeffs[idx]*bias(q1)
-                elif self.additional_bias_dimension.lower in ['q2', 'cv2']:
+                elif self.additional_bias_dimension.lower() in ['q2', 'cv2']:
                     result += self.coeffs[idx]*bias(q2)
                 else:
                     raise ValueError('additional bias_dimension is either cv1(/q1) or cv2(/q2) but you specified %s' % self.additional_bias_dimension)
