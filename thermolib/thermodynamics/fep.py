@@ -1521,24 +1521,24 @@ class FreeEnergySurface2D(object):
         for obs in obss:
             values = None
             if obs.lower() in ['value']:
-                values = self.fs.copy()[slicer]
+                values = self.fs.copy()[slicer[0],slicer[1]]
             elif obs.lower() in ['error-mean', 'mean']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
-                values = self.error.mean()[slicer]
+                values = self.error.mean()[slicer[0],slicer[1]]
             elif obs.lower() in ['error-lower', 'lower']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
-                values = self.error.nsigma_conf_int(2)[0][slicer]
+                values = self.error.nsigma_conf_int(2)[0][slicer[0],slicer[1]]
             elif obs.lower() in ['error-upper', 'upper']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
-                values = self.error.nsigma_conf_int(2)[1][slicer]
+                values = self.error.nsigma_conf_int(2)[1][slicer[0],slicer[1]]
             elif obs.lower() in ['error-half-upper-lower', 'width']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
-                lower = self.error.nsigma_conf_int(2)[0][slicer]
-                upper = self.error.nsigma_conf_int(2)[1][slicer]
+                lower = self.error.nsigma_conf_int(2)[0][slicer[0],slicer[1]]
+                upper = self.error.nsigma_conf_int(2)[1][slicer[0],slicer[1]]
                 values = 0.5*np.abs(upper - lower)
             elif obs.lower() in ['error-sample', 'sample']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
-                values = self.error.sample()[slicer]
+                values = self.error.sample()[slicer[0],slicer[1]]
             if values is None: raise ValueError('Could not interpret observable %s' %obs)
             assert ndim==len(values.shape), 'Observable data has inconsistent dimensions!'
 
