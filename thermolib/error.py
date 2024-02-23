@@ -130,7 +130,7 @@ class GaussianDistribution(Distribution):
 
     def copy(self):
         return GaussianDistribution(self.means, self.stds)
-
+    
     def shift(self, ref):
         self.means += ref
     
@@ -209,7 +209,7 @@ class LogGaussianDistribution(Distribution):
 
     def shift(self, ref):
         self.lmeans += ref
-    
+
     def set_ref(self, index=None, value=None):
         if index is not None:
             self.lmeans -= self.means[index]
@@ -255,9 +255,17 @@ class LogGaussianDistribution(Distribution):
 class FunctionDistribution(Distribution):
     def __init__(self, fun, dist):
         self.fun = fun
-        self.ifun = ifun
         self.dist = dist
         Distribution.__init__(self, dist.shape)
+
+    def crop(self, indexes):
+        self.dist.crop(indexes)
+    
+    def mean(self, nsamples=50):
+        return np.array([self.fun(self.sample()) for i in range(nsamples)]).mean(axis=0)
+    
+    def std(self, nsamples=50):
+        return np.array([self.fun(self.sample()) for i in range(nsamples)]).std(axis=0)
 
     def sample(self):
         return self.fun(self.dist.sample)
@@ -578,7 +586,11 @@ class MultiLogGaussianDistribution(MultiDistribution):
 class ErrorArray(object):
     def __init__(self, errors):
         self.errors = errors
-    
+
+    def crop(self, indexes):
+        for error in self.serrors:
+            error.crop(indexes)    
+
     def mean(self):
         return np.array([error.mean() for error in self.errors])
     

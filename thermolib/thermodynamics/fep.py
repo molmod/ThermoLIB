@@ -11,22 +11,21 @@
 # Van Speybroeck.
 from __future__ import annotations
 
-from typing import List
 from molmod.units import *
 from molmod.constants import *
 
-import numpy as np, sys
+import numpy as np
 np.seterr(divide='ignore', invalid='ignore')
 
 from thermolib.tools import integrate2d, format_scientific
 from thermolib.thermodynamics.state import *
 from thermolib.error import *
+from thermolib.flatten import DummyFlattener, Flattener
 
 import matplotlib.pyplot as pp
 import matplotlib.cm as cm
 from matplotlib import gridspec, rc
-from matplotlib.colors import LogNorm
-from matplotlib.ticker import LogLocator
+
 
 from sklearn.cluster import DBSCAN #clustering algorithm
 
@@ -1258,124 +1257,61 @@ class FreeEnergySurface2D(object):
         cv2s = self.cv2s.copy()
         fs = self.fs.copy()
         if cv1range is not None:
-            indexes = []
+            indexes1 = []
             for i, cv1 in enumerate(cv1s):
                 if cv1range[0]<=cv1<=cv1range[1]:
-                    indexes.append(i)
-            cv1s = cv1s[np.array(indexes)]
-            fs = fs[:,np.array(indexes)]
+                    indexes1.append(i)
+            if len(indexes1)>0:
+                cv1s = cv1s[np.array(indexes1)]
+                fs = fs[np.array(indexes1),:]
+            else:
+                raise ValueError('All grid points cropped because of specified cv1range!')
         if cv2range is not None:
-            indexes = []
+            indexes2 = []
             for i, cv2 in enumerate(cv2s):
                 if cv2range[0]<=cv2<=cv2range[1]:
-                    indexes.append(i)
-            cv2s = cv2s[np.array(indexes)]
-            fs = fs[np.array(indexes),:]
+                    indexes2.append(i)
+            if len(indexes2)>0:
+                cv2s = cv2s[np.array(indexes2)]
+                fs = fs[:,np.array(indexes2)]
+            else:
+                raise ValueError('All grid points cropped because of specified cv2range!')
+        
+        error = None
+        if self.error is not None:
+            if isinstance(self.error, GaussianDistribution):
+                i1s, i2s = np.meshgrid(indexes1, indexes2)
+                error = GaussianDistribution(self.error.means[i1s,i2s], self.error.stds[i1s,i2s])
+            elif isinstance(self.error, LogGaussianDistribution):
+                i1s, i2s = np.meshgrid(indexes1, indexes2)
+                error = LogGaussianDistribution(self.error.lmeans[i1s,i2s], self.error.lstds[i1s,i2s])
+            elif isinstance(self.error, MultiGaussianDistribution) or isinstance(self.error, MultiLogGaussianDistribution):
+                assert not isinstance(self.error.flattener, DummyFlattener)
+                indexes = []
+                for i1 in indexes1:
+                    for i2 in indexes2:
+                        indexes.append(self.error.flattener.flatten_index(i1,i2))
+                ixs, iys = np.meshgrid(indexes, indexes)
+                flattener = Flattener(len(indexes1),len(indexes2))
+                if isinstance(self.error, MultiGaussianDistribution):
+                    error = MultiGaussianDistribution(self.error.means[indexes], self.error.covariance[ixs,iys], flattener=flattener)
+                elif isinstance(self.error, MultiLogGaussianDistribution):
+                    error = MultiLogGaussianDistribution(self.error.lmeans[indexes], self.error.lcovariance[ixs,iys], flattener=flattener)
+                else:
+                    raise RuntimeError, 'One of previous if statements should have been satisfied!'
+            else:
+                raise NotImplementedError('Type of error distribution (%s) not supported for cropping.' %(error.__class__.__name__))
+
         if return_new_fes:
-            return FreeEnergySurface2D(cv1s, cv2s, fs, self.T, cv1_output_unit=self.cv1_output_unit, cv2_output_unit=self.cv2_output_unit, f_output_unit=self.f_output_unit, cv1_label=self.cv1_label, cv2_label=self.cv2_label)
+            return FreeEnergySurface2D(cv1s, cv2s, fs, self.T, error=error, cv1_output_unit=self.cv1_output_unit, cv2_output_unit=self.cv2_output_unit, f_output_unit=self.f_output_unit, cv1_label=self.cv1_label, cv2_label=self.cv2_label)
         else:
             self.cv1s = cv1s.copy()
             self.cv2s = cv2s.copy()
             self.fs = fs.copy()
+            self.error = error
 
-    def rotate(self, interpolate=True):
-        '''
-            Transform the free energy profile in terms of the following two new collective variables:
-
-            .. math::
-
-                \\begin{aligned}
-                    u &= \\frac{CV_1+CV_2}{2} \\\\
-                    v &= CV_2 - CV_1
-                \\end{aligned}
-
-            This transformation represents a simple rotation (and mirroring). From probability theory we find the transformation formula:
-
-            .. math:: F_\\text{rot}(u,v) = F\\left(u-\\frac{v}{2}, u+\\frac{v}{2}\\right))
-
-            The uniform (u,v)-grid introduces new grid points in between the original (cv1,cv2) grid points. If interpolate is True, the free energy for these points is interpolated if all four neighbors have defined (i.e. not nan) free energies.
-
-            :param interpolate: if set to true, interpolate undefined grid points (arrising due to rotation) between neighbors, defaults to True
-            :type interpolate: bool, optional
-
-            :return: rotated free energy surface
-            :rtype: FreeEnergySurface2D
-        '''
-        raise NotImplementedError('Rotate function not yet implemented')
-        #TODO: code below is from previous ThermoLIB version, needs to be updated with respect to error propagation
-        #First make unique list of us and vs
-        print('Making unique arrays for u=0.5*(cv1+cv2) and v=cv2-cv1')
-        us = []
-        vs = []
-        for i1, cv1 in enumerate(self.cv1s):
-            for i2, cv2 in enumerate(self.cv2s):
-                u = 0.5*(cv1+cv2)
-                v = cv2-cv1
-                if len(np.where(abs(u-np.array(us))<1e-6)[0])==0:
-                    us.append(u)
-                v = cv2-cv1
-                if len(np.where(abs(v-np.array(vs))<1e-6)[0])==0:
-                    vs.append(v)
-        us = np.array(sorted(us))
-        vs = np.array(sorted(vs))
-        #Second make dictionairy to look up i1,i2 corresponding to cv1,cv2 from
-        #iu,iv corresponding to u,v
-        print('Making look-up dictionairy for u,v values')
-        dic = {}
-        for i1, cv1 in enumerate(self.cv1s):
-            for i2, cv2 in enumerate(self.cv2s):
-                #find iu
-                u = 0.5*(cv1+cv2)
-                indexes = np.where(abs(us-u)<1e-6)[0]
-                assert len(indexes)==1, 'Len(indexes) should be 1, got %i' %(len(indexes))
-                iu = indexes[0]
-                #find iv
-                v = cv2-cv1
-                indexes = np.where(abs(vs-v)<1e-6)[0]
-                assert len(indexes)==1, 'Len(indexes) should be 1, got %i' %(len(indexes))
-                iv = indexes[0]
-                #store
-                dic['%i,%i' %(iu,iv)] = (i1,i2)
-        #Third, construct rotated free energy
-        print('Constructing rotated free energy')
-        fs = np.zeros([len(us), len(vs)], float)*np.nan
-        fupper, flower = None, None
-        if self.fupper is not None and self.flower is not None:
-            fupper = np.zeros([len(us), len(vs)], float)*np.nan
-            flower = np.zeros([len(us), len(vs)], float)*np.nan
-        for iu, u in enumerate(us):
-            for iv, v in enumerate(vs):
-                key = '%i,%i' %(iu,iv)
-                if key in dic.keys():
-                    (i1,i2) = dic[key]
-                    assert abs(0.5*(self.cv1s[i1]+self.cv2s[i2]) - u)<1e-8
-                    assert abs(    (self.cv2s[i2]-self.cv1s[i1]) - v)<1e-8
-                    fs[iu,iv] = self.fs[i2,i1]
-                    if fupper is not None and flower is not None:
-                        fupper[iu,iv] = self.fupper[i2,i1]
-                        flower[iu,iv] = self.flower[i2,i1]
-        #Fourth, do interpolate
-        if interpolate:
-            print('Interpolating extra intermediate grid points')
-            for iu, u in enumerate(us):
-                for iv, v in enumerate(vs):
-                    if np.isnan(fs[iu,iv]) and (iu not in [0,len(us)-1]) and (iv not in [0,len(vs)-1]):
-                        fl = fs[iu-1,iv]
-                        fr = fs[iu+1,iv]
-                        fb = fs[iu,iv-1]
-                        fa = fs[iu,iv+1]
-                        if not (np.isnan(fl) or np.isnan(fr) or np.isnan(fb) or np.isnan(fa)):
-                            fs[iu,iv] = 0.25*(fl+fr+fb+fa)
-                            if fupper is not None and flower is not None:
-                                fupper[iu,iv] = 0.25*(fupper[iu-1,iv] + fupper[iu+1,iv] + fupper[iu,iv-1] + fupper[iu,iv+1])
-                                flower[iu,iv] = 0.25*(flower[iu-1,iv] + flower[iu+1,iv] + flower[iu,iv-1] + flower[iu,iv+1])
-        if self.cv1_output_unit==self.cv2_output_unit:
-            u_unit = self.cv1_output_unit
-            v_unit = self.cv1_output_unit
-        else:
-            u_unit = 'au'
-            v_unit = 'au'
-        return FreeEnergySurface2D(vs, us, fs, self.T, fupper=fupper, flower=flower, cv1_output_unit=v_unit, cv2_output_unit=u_unit, f_output_unit=self.f_output_unit, cv1_label='CV2-CV1', cv2_label='0.5*(CV1+CV2)')
+    def transform(self, *args, **kwargs):
+        raise NotImplementedError('Transform function not yet implemented, but is comming soon!')
 
     def project_difference(self, sign=1, cv_output_unit='au', return_class=BaseFreeEnergyProfile, error_distribution=MultiGaussianDistribution):
         '''

@@ -499,7 +499,7 @@ def _hl_envelopes_idx(s, dmin=1, dmax=1, split=False):
     lmax = lmax[[i+np.argmax(s[lmax[i:i+dmax]]) for i in range(0,len(lmax),dmax)]]
     return lmin,lmax
 
-def _blav(data: np.ndarray, blocksizes: np.ndarray|None=None, fitrange: list=[1, np.inf], model_function=None):
+def _blav(data: np.ndarray, blocksizes=None, fitrange: list=[1, np.inf], model_function=None):
     '''
         Routine to implement block averaging in order to estimate the correlated error bar on the average of the data series as well as the corresponding integrated correlation time. This proceeds as follows:
 
@@ -573,7 +573,7 @@ def _blav(data: np.ndarray, blocksizes: np.ndarray|None=None, fitrange: list=[1,
     model_fitted = lambda B: model_function(B, *list(pars))
     return errors, true_error, corrtime, model_fitted
 
-def blav(data: np.ndarray, blocksizes: np.ndarray|None=None, fitrange: list=[1, np.inf], model_function=None, plot: bool=False, fn_plot: str|None=None, plot_ylims: list|None=None, unit: str='au'):
+def blav(data: np.ndarray, blocksizes=None, fitrange: list=[1, np.inf], model_function=None, plot: bool=False, fn_plot: str=None, plot_ylims: list=None, unit: str='au'):
     '''
         Wrapper routine around `_blav` to apply block averaging and estimate the correlated error bar as well as the corresponding integrated correlation time on the average of the given data series. For more details on the procedure as well as the meaning of the arguments `data`, `blocksizes`, `fitrange`, and `model_function`, see documentation of the routine `_wrap`.
 
@@ -662,7 +662,7 @@ def _acf(data, norm=True):
         acf /= acf[0]
     return acf
 
-def corrtime_from_acf(data: np.ndarray, nblocks: int|None=None, norm: bool=True, plot: bool=False, fn_plot: str|None=None, xlims: list|None=None, ylims: list=[-0.25, 1.05]):
+def corrtime_from_acf(data: np.ndarray, nblocks=None, norm: bool=True, plot: bool=False, fn_plot=None, xlims=None, ylims: list=[-0.25, 1.05]):
     '''
         Routine to compute the integrated autocorrelation time as follows:
 
@@ -750,7 +750,7 @@ def corrtime_from_acf(data: np.ndarray, nblocks: int|None=None, norm: bool=True,
             pp.show()
     return corrtime
 
-def decorrelate(trajectories: list, method: str='acf', acf_nblocks: int|None=None, blav_model_function=None, decorrelate_only:int|None=None, plot: bool=False, fn_plot: str|None=None, verbose: bool=False, return_decorrelated_trajectories: bool=False):
+def decorrelate(trajectories: list, method: str='acf', acf_nblocks=None, blav_model_function=None, decorrelate_only=None, plot: bool=False, fn_plot=None, verbose: bool=False, return_decorrelated_trajectories: bool=False):
     '''
         Function to compute correlation times for a list of trajectories and decorrelate the trajectories by averaging over a number of samples equal to the correlation time.
 
@@ -875,7 +875,7 @@ def decorrelate(trajectories: list, method: str='acf', acf_nblocks: int|None=Non
     else:
         return corrtimes
 
-def multivariate_normal(means: np.ndarray, covariance: np.ndarray, size: int|list|np.ndarray|None=None):
+def multivariate_normal(means: np.ndarray, covariance: np.ndarray, size=None):
     '''
         Wrapper around `numpy.random.multivariate_normal` to handle `np.nan` columns in the covariance matrix.
 
