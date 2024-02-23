@@ -1237,7 +1237,7 @@ class FreeEnergySurface2D(object):
             for i1,i2 in cluster:
                 self.fs[i2,i1] = np.nan
 
-    def crop(self, cv1range=None, cv2range=None, return_new_fes=False):
+    def crop(self, cv1range=[-np.inf,np.inf], cv2range=[-np.inf,np.inf], return_new_fes=False):
         '''
             Crop the free energy surface by removing all data for which either cv1 (along x-axis) or cv2 (along y-axis) is beyond a given range.
             
@@ -1256,26 +1256,26 @@ class FreeEnergySurface2D(object):
         cv1s = self.cv1s.copy()
         cv2s = self.cv2s.copy()
         fs = self.fs.copy()
-        if cv1range is not None:
-            indexes1 = []
-            for i, cv1 in enumerate(cv1s):
-                if cv1range[0]<=cv1<=cv1range[1]:
-                    indexes1.append(i)
-            if len(indexes1)>0:
-                cv1s = cv1s[np.array(indexes1)]
-                fs = fs[np.array(indexes1),:]
-            else:
-                raise ValueError('All grid points cropped because of specified cv1range!')
-        if cv2range is not None:
-            indexes2 = []
-            for i, cv2 in enumerate(cv2s):
-                if cv2range[0]<=cv2<=cv2range[1]:
-                    indexes2.append(i)
-            if len(indexes2)>0:
-                cv2s = cv2s[np.array(indexes2)]
-                fs = fs[:,np.array(indexes2)]
-            else:
-                raise ValueError('All grid points cropped because of specified cv2range!')
+        
+        indexes1 = []
+        for i, cv1 in enumerate(cv1s):
+            if cv1range[0]<=cv1<=cv1range[1]:
+                indexes1.append(i)
+        if len(indexes1)>0:
+            cv1s = cv1s[np.array(indexes1)]
+            fs = fs[np.array(indexes1),:]
+        else:
+            raise ValueError('All grid points cropped because of specified cv1range!')
+        
+        indexes2 = []
+        for i, cv2 in enumerate(cv2s):
+            if cv2range[0]<=cv2<=cv2range[1]:
+                indexes2.append(i)
+        if len(indexes2)>0:
+            cv2s = cv2s[np.array(indexes2)]
+            fs = fs[:,np.array(indexes2)]
+        else:
+            raise ValueError('All grid points cropped because of specified cv2range!')
         
         error = None
         if self.error is not None:
