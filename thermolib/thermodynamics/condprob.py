@@ -39,15 +39,13 @@ class ConditionalProbability(object):
         Class to compute conditional probabilities of the form :math:`p([qs]|[cvs])`, i.e. probability of finding states characterized with collective variables qs, on the condition that the states are also characterized by collective variables cvs. Such conditional probabiliy allows to convert a free energy surface (or profile if only one cv is given) in terms of the collective variables :math:`cvs` to a free energy surface (or profile if only one q is given) in terms of the collective variables :math:`qs`.
 
     '''
-    def __init__(self, nq, ncv, q_bins, cv_bins, q_labels=None, cv_labels=None, q_units=None, cv_units=None, verbose=False):
+    def __init__(self, nq, ncv, q_labels=None, cv_labels=None, q_units=None, cv_units=None, verbose=False):
         '''
             :param nq: dimension of q-space
             :type nq: int
 
             :param ncv: dimension of cv-space
             :type ncv: int
-
-
 
             :param q_labels: list of labels (one for each q) to be used in plots or prints, defaults to ['Q1', ['Q2', [...]]]
             :type q_labels: list of strings, optional
@@ -89,7 +87,6 @@ class ConditionalProbability(object):
         self.num_samples_persim = [] #number of samples in each simulation
         self.num_sims = 0 # number of simulations
 
-
     def init_bins_grids(self, q_bins, cv_bins):
         '''
             :param q_bins: list of numpy arrays, each array corresponding to the bin edges for one of the Qs. Alternatively, a single numpy array can be given which is then interpreted as the bin edges for all of the Qs.
@@ -130,10 +127,9 @@ class ConditionalProbability(object):
         else:
             self.cvs = [ 0.5*b[:-1]+0.5*b[1:] for b in self.cv_bins ]
         self.cv_grid = np.meshgrid(*self.cvs)
-        
         self.cv_q_grid = np.meshgrid(*(self.qs+self.cvs))
 
-    def process_simulation(self, input_q, input_cv, finish=True, corr_time=1.0):
+    def process_simulation(self, input_q, input_cv, corr_time=1.0):
         '''
             extracting data samples of CVs and QS from given files that later will be histogrammed per value of CVs.
 
@@ -188,11 +184,7 @@ class ConditionalProbability(object):
         self.num_samples_persim.append(num_samples)
         self.q_corr_time_persim.append(corr_time)
         if self.verbose: print('  detected %i samples, from which %i independent (correlation time = %i)' %(num_samples, num_samples/corr_time, corr_time))
-        
-        #finish if required
-        if finish:
-            self.finish()
-    
+
     def set_ref(self, q_index=None, q_ref=None, cv_index=None, cv_ref=None):
         '''Set the reference value of the Q and/or CV samples.
         '''
@@ -311,7 +303,7 @@ class ConditionalProbability(object):
             self.pconds_persim.append(ps)
 
         if self.verbose: print('  constructing global conditional probability')
-        self.pconds = np.zeros(H.shape)*np.nan
+        self.pconds = np.zeros(Htot.shape)*np.nan
         for cv_index, cv in np.ndenumerate(self.cv_grid):
             if self.ncv==1:
                 cv_index = (cv_index[1],)
@@ -331,6 +323,9 @@ class ConditionalProbability(object):
             self.finish_error(error_estimate, error_p_threshold=error_p_threshold)
         self._finished = True
         
+    def finish_error(self, error_estimate, error_p_threshold=0.0):
+        raise NotImplementedError('Error estimation not yet implemented for %s' %self.__class__.__name__)
+
     def plot(self, slicer, fn=None, obss=['base'], linestyles=None, linewidths=None, colors=None, logscale=False, ylims=None, croplims=None, cmap=pp.get_cmap('rainbow'), **plot_kwargs):
         '''
             Plot self.pconds[slicer], where slicer needs to be chosen such that self.pconds[slice] is 1D or 2D. The resulting graph will respectively by a regular 1D plot or 2D contourplot.
@@ -518,7 +513,7 @@ class ConditionalProbability1D1D(ConditionalProbability):
         Routine to store and compute conditional probabilities of the form :math:`p(q_1|cv)` which allow to convert a free energy profile in terms of the collective variable :math:`cv` to a free energy profile in terms of the collective variable :math:`q_1`.
 
     '''
-    def __init__(self, q_bins=None, cv_bins=None, q_label='Q', cv_label='CV', q_output_unit='au', cv_output_unit='au', verbose=False):
+    def __init__(self, q_label='Q', cv_label='CV', q_output_unit='au', cv_output_unit='au', verbose=False):
         '''
             :param q_bins: np.histogram argument for defining the bins of Q samples
             :type q_bins: see np.histogram and np.histogram2d, optional
@@ -532,11 +527,11 @@ class ConditionalProbability1D1D(ConditionalProbability):
             :param cv_label: label for Q used for plotting/logging, defaults to 'CV'
             :type cv_label: str, optional
         '''
-        ConditionalProbability.__init__(self, 1, 1, q_bins=q_bins, cv_bins=cv_bins, q_labels=[q_label], cv_labels=[cv_label], q_units=[q_output_unit], cv_units=[cv_output_unit], verbose=verbose)
+        ConditionalProbability.__init__(self, 1, 1, q_labels=[q_label], cv_labels=[cv_label], q_units=[q_output_unit], cv_units=[cv_output_unit], verbose=verbose)
 
-    def process_trajectory_xyz(self, fns, Q, CV, sub=slice(None,None,None), finish=True, verbose=False):
+    def process_trajectory_xyz(self, fns, Q, CV, sub=slice(None,None,None), verbose=False):
         '''
-            Included for backwards compatibility, this routine will call the more general process_trajectory routine of the parent class.
+            Included for backwards compatibility , this routine will call the more general process_trajectory routine of the parent class. WARNING: it is no longer possible to finishe automatically after processing a trajectory. Finishing must alwasy be done manually by calling the finish routine!
 
             Extract Q and CV samples from the given XYZ trajectories. These samples will later be utilized by the finish routine to construct the conditional probability. The trajectory files may also contain data from simulations that are biased in CV space (not Q space!!).
 
@@ -552,19 +547,17 @@ class ConditionalProbability1D1D(ConditionalProbability):
             :param sub: python slice instance to subsample the trajectory, defaults to slice(None, None, None)
             :type sub: slice, optional
 
-            :param finish: set to True if the given file name(s) are the only relevant trajectories and hence the conditional probability should be computed from only these trajectories. Setting it to True will trigger histogram construction and normalization. Set to False if you would like to call a process_trajectory routine again afterwards. Defaults to True
-            :type finish: bool, optional
-
             :param verbose: set to True to increase verbosity, defaults to False
             :type verbose: bool, optional
         '''
         cv_reader = CVComputer([CV], name=self.cv_labels[0], start=sub.start, stride=sub.step, end=sub.stop, verbose=verbose)
         q_reader = CVComputer([Q], name=self.q_labels[0], start=sub.start, stride=sub.step, end=sub.stop, verbose=verbose)
-        ConditionalProbability.process_trajectory(self, fns, [q_reader], [cv_reader], finish=finish, verbose=verbose)
+        for fn in fns:
+            self.process_simulation([(fn, q_reader )], [(fn, cv_reader)])
 
-    def process_trajectory_cvs(self, fns, col_q=1, col_cv=2, sub=slice(None,None,None), unit_q='au', unit_cv='au', finish=True, verbose=False):
+    def process_trajectory_cvs(self, fns, col_q=1, col_cv=2, sub=slice(None,None,None), unit_q='au', unit_cv='au', verbose=False):
         '''
-            Included for backwards compatibility, this routine will call the more general process_trajectory routine of the parent class.
+            Included for backwards compatibility, this routine will call the more general process_trajectory routine of the parent class. WARNING: it is no longer possible to finishe automatically after processing a trajectory. Finishing must alwasy be done manually by calling the finish routine!
 
             Extract Q and CV samples from the given COLVAR trajectories. These samples will later be utilized by the finish routine to construct the conditional probability. The trajectory files may also contain data from simulations that are biased in CV space (not Q space!!). Each CV trajectory file contains rows of the form
 
@@ -590,15 +583,13 @@ class ConditionalProbability1D1D(ConditionalProbability):
             :param sub: python slice instance to subsample the trajectory, defaults to slice(None, None, None)
             :type sub: slice, optional
 
-            :param finish: set to True if the given file name(s) are the only relevant trajectories and hence the conditional probability should be computed from only these trajectories. Setting it to True will trigger histogram construction and normalization. Set to False if you would like to call a process_trajectory routine again afterwards. Defaults to True
-            :type finish: bool, optional
-
             :param verbose: set to True to increase verbosity, defaults to False
             :type verbose: bool, optional
         '''
         q_reader  = ColVarReader([col_q] , units=[unit_q] , name='Q' , start=sub.start, stride=sub.step, end=sub.stop, verbose=verbose)
         cv_reader = ColVarReader([col_cv], units=[unit_cv], name='CV', start=sub.start, stride=sub.step, end=sub.stop, verbose=verbose)
-        ConditionalProbability.process_trajectory(self, fns, [q_reader], [cv_reader], finish=finish, verbose=verbose)
+        for fn in fns:
+            self.process_simulation([(fn, q_reader )], [(fn, cv_reader)])
 
     def finish_error(self, error_estimate, error_p_threshold=0.0):
         if self.verbose: print('  computing Fisher matrices for each simulation')
@@ -662,7 +653,7 @@ class ConditionalProbability1D1D(ConditionalProbability):
             xs = error.mean()
         return BaseProfile(self.cvs[0], xs, error=error, cv_output_unit=self.cv_units[0], f_output_unit=self.q_units[0], cv_label=self.cv_labels[0], f_label=self.q_labels[0])
 
-    def transform(self, fep, q_output_unit='au', f_output_unit=None, q_label=None, f_output_class=BaseFreeEnergyProfile):
+    def transform(self, fep, q_output_unit='au', f_output_unit=None, q_label=None, f_output_class=BaseFreeEnergyProfile, error_distribution=MultiGaussianDistribution):
         '''
             Transform the provided 1D FES to a different 1D FES using the current conditional probability according to the formula. 
 
@@ -703,15 +694,15 @@ class ConditionalProbability1D1D(ConditionalProbability):
         if fep.error is not None:
             propagator = Propagator(ncycles=fep.error.ncycles)
             if self.error is not None:
-                error = propagator(transform, fep.error, self.error)
+                error = propagator(transform, fep.error, self.error, target_distribution=error_distribution)
             else:
                 transf1 = lambda fs: transform(fs, self.pconds)
-                error = propagator(transf1, fep.error)
+                error = propagator(transf1, fep.error, target_distribution=error_distribution)
             fs = error.mean()
         elif self.error is not None:
             propagator = Propagator(ncycles=self.error.ncycles)
             transf2 = lambda pconds: transform(fep.fs, pconds)
-            error = propagator(transf2, self.error, target_distribution=LogGaussianDistribution)
+            error = propagator(transf2, self.error, target_distribution=error_distribution)
             fs = error.mean()
         else:
             fs = transform(fep.fs, self.pconds)
@@ -766,7 +757,7 @@ class ConditionalProbability1D1D(ConditionalProbability):
                         fs_new[icv,iq] = fs[icv] - kT*np.log(pconds[icv,iq])
             return fs_new
         if fep.error is not None or self.error is not None:
-            propagator = Propagator(ncycles=ncycles_default, verbose=True)
+            propagator = Propagator(ncycles=ncycles_default)
             flattener = Flattener(len(cvs), len(qs))
             if fep.error is not None:
                 if self.error is not None:
@@ -791,7 +782,7 @@ class ConditionalProbability1D2D(ConditionalProbability):
         Class to store and compute conditional probabilities of the form :math:`p(q1,q2|cv)` which can be used to transform a 1D free energy profile in terms of the collective variable *cv* towards a 2D free energy surface in terms of the collective variables :math:`q_{1}` and :math:`q_{2}`.
 
     '''
-    def __init__(self, q1_bins=None, q2_bins=None, cv_bins=None, q1_label='Q1', q2_label='Q2', cv_label='CV', verbose=False):
+    def __init__(self, q1_label='Q1', q2_label='Q2', cv_label='CV', verbose=False):
         '''
             :param q1_bins: np.histogram argument for defining the bins of Q1 samples
             :type q1_bins: see np.histogram and np.histogram2d, optional
@@ -811,9 +802,9 @@ class ConditionalProbability1D2D(ConditionalProbability):
             :param cv_label: label for Q used for plotting/logging, defaults to 'CV'
             :type cv_label: str, optional
         '''
-        ConditionalProbability.__init__(self, 2, 1, q_bins=[q1_bins,q2_bins], cv_bins=cv_bins, q_labels=[q1_label,q2_label], cv_labels=[cv_label], verbose=verbose)
+        ConditionalProbability.__init__(self, 2, 1, q_labels=[q1_label,q2_label], cv_labels=[cv_label], verbose=verbose)
 
-    def process_trajectory_xyz(self, fns, Q1, Q2, CV, sub=slice(None,None,None), finish=True):
+    def process_trajectory_xyz(self, fns, Q1, Q2, CV, sub=slice(None,None,None)):
         '''
             Included for backwards compatibility, this routine will call the more general process_trajectory routine of the parent class.
 
@@ -840,12 +831,13 @@ class ConditionalProbability1D2D(ConditionalProbability):
             :param verbose: set to True to increase verbosity, defaults to False
             :type verbose: bool, optional
         '''
-        cv_reader = CVComputer([CV], name=self.cv_labels[0], start=sub.start, stride=sub.step, end=sub.stop, verbose=verbose)
-        q1_reader = CVComputer([Q1], name=self.q_labels[1], start=sub.start, stride=sub.step, end=sub.stop, verbose=verbose)
-        q2_reader = CVComputer([Q2], name=self.q_labels[2], start=sub.start, stride=sub.step, end=sub.stop, verbose=verbose)
-        ConditionalProbability.process_trajectory(self, fns, [q1_reader,q2_reader], [cv_reader], finish=finish, verbose=verbose)
+        cv_reader = CVComputer([CV], name=self.cv_labels[0], start=sub.start, stride=sub.step, end=sub.stop, verbose=self.verbose)
+        q1_reader = CVComputer([Q1], name=self.q_labels[1], start=sub.start, stride=sub.step, end=sub.stop, verbose=self.verbose)
+        q2_reader = CVComputer([Q2], name=self.q_labels[2], start=sub.start, stride=sub.step, end=sub.stop, verbose=self.verbose)
+        for fn in fns:
+            self.process_simulation([(fn,q1_reader), (fn,q2_reader)], [(fn,cv_reader)])
 
-    def process_trajectory_cvs(self, fns, col_q1=1, col_q2=2, col_cv=3, unit_q1='au', unit_q2='au', unit_cv='au', sub=slice(None,None,None), finish=True, verbose=False):
+    def process_trajectory_cvs(self, fns, col_q1=1, col_q2=2, col_cv=3, unit_q1='au', unit_q2='au', unit_cv='au', sub=slice(None,None,None)):
         '''
             Included for backwards compatibility, this routine will call the more general process_trajectory routine of the parent class.
 
@@ -885,10 +877,11 @@ class ConditionalProbability1D2D(ConditionalProbability):
             :param verbose: set to True to increase verbosity, defaults to False
             :type verbose: bool, optional
         '''
-        q1_reader  = ColVarReader([col_q1] , units=[unit_q1] , name='Q1' , start=sub.start, stride=sub.step, end=sub.stop, verbose=verbose)
-        q2_reader  = ColVarReader([col_q2] , units=[unit_q2] , name='Q2' , start=sub.start, stride=sub.step, end=sub.stop, verbose=verbose)
-        cv_reader = ColVarReader([col_cv], units=[unit_cv], name='CV', start=sub.start, stride=sub.step, end=sub.stop, verbose=verbose)
-        ConditionalProbability.process_trajectory(self, fns, [q1_reader,q2_reader], [cv_reader], finish=finish, verbose=verbose)
+        q1_reader  = ColVarReader([col_q1] , units=[unit_q1] , name='Q1' , start=sub.start, stride=sub.step, end=sub.stop, verbose=self.verbose)
+        q2_reader  = ColVarReader([col_q2] , units=[unit_q2] , name='Q2' , start=sub.start, stride=sub.step, end=sub.stop, verbose=self.verbose)
+        cv_reader = ColVarReader([col_cv], units=[unit_cv], name='CV', start=sub.start, stride=sub.step, end=sub.stop, verbose=self.verbose)
+        for fn in fns:
+            self.process_simulation([(fn,q1_reader), (fn,q2_reader)], [(fn,cv_reader)])
 
     def transform(self, fep, q1_output_unit='au', q2_output_unit='au', q1_label=None, q2_label=None, f_output_unit='kjmol'):
         '''
@@ -927,25 +920,24 @@ class ConditionalProbability1D2D(ConditionalProbability):
         if f_output_unit is None: f_output_unit = fep.f_output_unit
         #construct 2D FES
         def transform(fs, pconds):
-            ps = np.zeros([self.q2num, self.q1num], float)
-            for icv, fcv in enumerate(fs):
-                if not np.isnan(fcv):
-                    ps += pconds[:,:,icv]*np.exp(-fep.beta*fcv)
+            mask = ~np.isnan(fs)
+            ps = np.trapz(pconds[mask,...]*np.exp(-fep.beta*fs[mask]), x=fep.cvs[mask])
             ps /= integrate2d(ps, x=self.qs[0], y=self.qs[1])
-            fs_new = np.zeros([self.q2num, self.q1num], float)*np.nan
+            fs_new = np.zeros(ps.shape, float)*np.nan
             fs_new[ps>0] = -np.log(ps[ps>0])/fep.beta
             return fs_new
+
         fs = transform(fep.fs, self.pconds)
         error = None
         if fep.error is not None:
-            propagator = Propagator()
+            propagator = Propagator(ncycles=ncycles_default)
             if self.error is not None:
                 error = propagator(transform, fep.error, self.error, target_distribution=GaussianDistribution)
             else:
                 transf1 = lambda fs: transform(fs, self.pconds)
                 error = propagator(transf1, fep.error)
         elif self.error is not None:
-            propagator = Propagator()
+            propagator = Propagator(ncycles=ncycles_default)
             transf2 = lambda pconds: transform(fep.fs, pconds)
             error = propagator(transf2, self.error, target_distribution=LogGaussianDistribution)
         return FreeEnergySurface2D(self.qs[0], self.qs[1], fs, fep.T, error=error, cv1_output_unit=q1_output_unit, cv2_output_unit=q2_output_unit, f_output_unit=f_output_unit, cv1_label=q1_label, cv2_label=q2_label)
