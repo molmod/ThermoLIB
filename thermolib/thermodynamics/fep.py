@@ -1298,7 +1298,7 @@ class FreeEnergySurface2D(object):
                 elif isinstance(self.error, MultiLogGaussianDistribution):
                     error = MultiLogGaussianDistribution(self.error.lmeans[indexes], self.error.lcovariance[ixs,iys], flattener=flattener)
                 else:
-                    raise RuntimeError, 'One of previous if statements should have been satisfied!'
+                    raise RuntimeError('One of previous if statements should have been satisfied!')
             else:
                 raise NotImplementedError('Type of error distribution (%s) not supported for cropping.' %(error.__class__.__name__))
 
