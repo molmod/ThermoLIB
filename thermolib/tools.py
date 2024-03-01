@@ -499,7 +499,7 @@ def _hl_envelopes_idx(s, dmin=1, dmax=1, split=False):
     lmax = lmax[[i+np.argmax(s[lmax[i:i+dmax]]) for i in range(0,len(lmax),dmax)]]
     return lmin,lmax
 
-def _blav(data: np.ndarray, blocksizes=None, fitrange: list=[1, np.inf], model_function=None):
+def _blav(data: np.ndarray, blocksizes=None, fitrange: list=[1, np.inf], model_function=None, **kwargs):
     '''
         Routine to implement block averaging in order to estimate the correlated error bar on the average of the data series as well as the corresponding integrated correlation time. This proceeds as follows:
 
@@ -573,7 +573,7 @@ def _blav(data: np.ndarray, blocksizes=None, fitrange: list=[1, np.inf], model_f
     model_fitted = lambda B: model_function(B, *list(pars))
     return errors, true_error, corrtime, model_fitted
 
-def blav(data: np.ndarray, blocksizes=None, fitrange: list=[1, np.inf], model_function=None, plot: bool=False, fn_plot: str=None, plot_ylims: list=None, unit: str='au'):
+def blav(data: np.ndarray, blocksizes=None, fitrange: list=[1, np.inf], model_function=None, plot: bool=False, fn_plot: str=None, plot_ylims: list=None, unit: str='au', **blav_kwargs):
     '''
         Wrapper routine around `_blav` to apply block averaging and estimate the correlated error bar as well as the corresponding integrated correlation time on the average of the given data series. For more details on the procedure as well as the meaning of the arguments `data`, `blocksizes`, `fitrange`, and `model_function`, see documentation of the routine `_wrap`.
 
@@ -622,7 +622,7 @@ def blav(data: np.ndarray, blocksizes=None, fitrange: list=[1, np.inf], model_fu
     assert len(data)>100, 'I will not apply block averaging on data series with only 100 or less samples'
     if blocksizes is None:
         blocksizes = np.arange(1,int(len(data)/10)+1,1)
-    errors, true_error, corrtime, model_fitted = _blav(data/parse_unit(unit), blocksizes, fitrange, model_function=model_function)
+    errors, true_error, corrtime, model_fitted = _blav(data/parse_unit(unit), blocksizes, fitrange, model_function=model_function, **blav_kwargs)
     #make plot
     if plot or fn_plot is not None:
         pp.clf()
@@ -662,7 +662,7 @@ def _acf(data, norm=True):
         acf /= acf[0]
     return acf
 
-def corrtime_from_acf(data: np.ndarray, nblocks=None, norm: bool=True, plot: bool=False, fn_plot=None, xlims=None, ylims: list=[-0.25, 1.05]):
+def corrtime_from_acf(data: np.ndarray, nblocks=None, norm: bool=True, plot: bool=False, fn_plot=None, xlims=None, ylims: list=[-0.25, 1.05], **curve_fit_kwargs):
     '''
         Routine to compute the integrated autocorrelation time as follows:
 
@@ -720,16 +720,18 @@ def corrtime_from_acf(data: np.ndarray, nblocks=None, norm: bool=True, plot: boo
         acf = _acf(data)
     #get envelope
     lower_envelope_indices, upper_envelope_indices = _hl_envelopes_idx(acf, dmin=1, dmax=1, split=False)
+    if not upper_envelope_indices[0]==0: upper_envelope_indices = np.append([0],upper_envelope_indices)
     upper_envelope = acf[upper_envelope_indices]
     #fit exponential to upper_envelope and extract integrated correlation time
     def function(t,tau):
         return np.exp(-t/tau)
-    pars, pcovs = curve_fit(function, upper_envelope_indices, upper_envelope)
+    pars, pcovs = curve_fit(function, upper_envelope_indices, upper_envelope, **curve_fit_kwargs)
     def fitted_exp(t):
         return function(t,pars[0])
     corrtime = 2*pars[0]-1 #pars[0] is the exp correlation time, corrtime is the integrated correlation time
     #Plot
     if plot or fn_plot is not None:
+        #print('Fitted following function to ACF upper envoloppe: f(t)= shift + exp(-t/tau) with shift = %.3e and tau = %.3e' %(pars[1],pars[0]))
         fig = pp.gcf()
         if acfs is not None:
             for i, f in enumerate(acfs):
@@ -750,7 +752,7 @@ def corrtime_from_acf(data: np.ndarray, nblocks=None, norm: bool=True, plot: boo
             pp.show()
     return corrtime
 
-def decorrelate(trajectories: list, method: str='acf', acf_nblocks=None, blav_model_function=None, decorrelate_only=None, plot: bool=False, fn_plot=None, verbose: bool=False, return_decorrelated_trajectories: bool=False):
+def decorrelate(trajectories: list, method: str='acf', acf_nblocks=None, blav_model_function=None, decorrelate_only=None, plot: bool=False, fn_plot=None, verbose: bool=False, return_decorrelated_trajectories: bool=False, **method_kwargs):
     '''
         Function to compute correlation times for a list of trajectories and decorrelate the trajectories by averaging over a number of samples equal to the correlation time.
 
@@ -811,10 +813,10 @@ def decorrelate(trajectories: list, method: str='acf', acf_nblocks=None, blav_mo
     assert isinstance(method, str), 'Method argument should be string, either acf or blav'
     if method.lower()=='acf':
         def method_correlation_time(data):
-            return corrtime_from_acf(data, nblocks=acf_nblocks)
+            return corrtime_from_acf(data, nblocks=acf_nblocks, **method_kwargs)
     elif method.lower()=='blav':
         def method_correlation_time(data):
-            return blav(data, model_function=blav_model_function)
+            return blav(data, model_function=blav_model_function, **method_kwargs)
     else:
         raise ValueError('Method argument should be string, either acf or blav')
     #compute correlation times
