@@ -782,7 +782,7 @@ class ConditionalProbability1D2D(ConditionalProbability):
         Class to store and compute conditional probabilities of the form :math:`p(q1,q2|cv)` which can be used to transform a 1D free energy profile in terms of the collective variable *cv* towards a 2D free energy surface in terms of the collective variables :math:`q_{1}` and :math:`q_{2}`.
 
     '''
-    def __init__(self, q1_label='Q1', q2_label='Q2', cv_label='CV', verbose=False):
+    def __init__(self, q1_label='Q1', q2_label='Q2', cv_label='CV', q1_output_unit='au', q2_output_unit='au', cv_output_unit='au', verbose=False):
         '''
             :param q1_bins: np.histogram argument for defining the bins of Q1 samples
             :type q1_bins: see np.histogram and np.histogram2d, optional
@@ -802,7 +802,7 @@ class ConditionalProbability1D2D(ConditionalProbability):
             :param cv_label: label for Q used for plotting/logging, defaults to 'CV'
             :type cv_label: str, optional
         '''
-        ConditionalProbability.__init__(self, 2, 1, q_labels=[q1_label,q2_label], cv_labels=[cv_label], verbose=verbose)
+        ConditionalProbability.__init__(self, 2, 1, q_labels=[q1_label,q2_label], cv_labels=[cv_label], q_units=[q1_output_unit,q2_output_unit], cv_units=[cv_output_unit], verbose=verbose)
 
     def process_trajectory_xyz(self, fns, Q1, Q2, CV, sub=slice(None,None,None)):
         '''
