@@ -662,7 +662,7 @@ def _acf(data, norm=True):
         acf /= acf[0]
     return acf
 
-def corrtime_from_acf(data: np.ndarray, nblocks=None, norm: bool=True, plot: bool=False, fn_plot=None, xlims=None, ylims: list=[-0.25, 1.05], **curve_fit_kwargs):
+def corrtime_from_acf(data: np.ndarray, nblocks=None, norm: bool=True, plot: bool=False, fn_plot=None, xlims=None, ylims: list=[-0.25, 1.05], n_nested_envelopes=1, **curve_fit_kwargs):
     '''
         Routine to compute the integrated autocorrelation time as follows:
 
@@ -719,13 +719,19 @@ def corrtime_from_acf(data: np.ndarray, nblocks=None, norm: bool=True, plot: boo
     else:
         acf = _acf(data)
     #get envelope
-    lower_envelope_indices, upper_envelope_indices = _hl_envelopes_idx(acf, dmin=1, dmax=1, split=False)
-    if not upper_envelope_indices[0]==0: upper_envelope_indices = np.append([0],upper_envelope_indices)
-    upper_envelope = acf[upper_envelope_indices]
+    i_nested_envelope = 0
+    upper_envelope_values = acf.copy()
+    upper_envelope_indices = np.arange(len(acf))
+    while i_nested_envelope<n_nested_envelopes:
+        indices_lower, indices_upper = _hl_envelopes_idx(upper_envelope_values, dmin=1, dmax=1, split=False)
+        if not indices_upper[0]==0: indices_upper = np.append([0],indices_upper)
+        upper_envelope_values = upper_envelope_values[indices_upper]
+        upper_envelope_indices = upper_envelope_indices[indices_upper]
+        i_nested_envelope += 1
     #fit exponential to upper_envelope and extract integrated correlation time
     def function(t,tau):
         return np.exp(-t/tau)
-    pars, pcovs = curve_fit(function, upper_envelope_indices, upper_envelope, **curve_fit_kwargs)
+    pars, pcovs = curve_fit(function, upper_envelope_indices, upper_envelope_values, **curve_fit_kwargs)
     def fitted_exp(t):
         return function(t,pars[0])
     corrtime = 2*pars[0]-1 #pars[0] is the exp correlation time, corrtime is the integrated correlation time
@@ -737,7 +743,7 @@ def corrtime_from_acf(data: np.ndarray, nblocks=None, norm: bool=True, plot: boo
             for i, f in enumerate(acfs):
                 pp.plot(f, label='iblock=%i'%i)
         pp.plot(acf, color='k',linewidth=1, label='avg')
-        pp.plot(upper_envelope_indices, upper_envelope, color='r',linewidth=2, label='avg - envelope')
+        pp.plot(upper_envelope_indices, upper_envelope_values, color='r',linewidth=2, label='avg - envelope')
         pp.plot(upper_envelope_indices, fitted_exp(upper_envelope_indices), color='r',linestyle='--',linewidth=2, label='avg - fitted')
         pp.title('Autocorrelation function', fontsize=14)
         pp.xlabel(r"$\tau$")
@@ -752,7 +758,7 @@ def corrtime_from_acf(data: np.ndarray, nblocks=None, norm: bool=True, plot: boo
             pp.show()
     return corrtime
 
-def decorrelate(trajectories: list, method: str='acf', acf_nblocks=None, blav_model_function=None, decorrelate_only=None, plot: bool=False, fn_plot=None, verbose: bool=False, return_decorrelated_trajectories: bool=False, **method_kwargs):
+def decorrelate(trajectories: list, method: str='acf', acf_nblocks=None, acf_n_nested_envelopes=1, blav_model_function=None, decorrelate_only=None, plot: bool=False, fn_plot=None, verbose: bool=False, return_decorrelated_trajectories: bool=False, **method_kwargs):
     '''
         Function to compute correlation times for a list of trajectories and decorrelate the trajectories by averaging over a number of samples equal to the correlation time.
 
@@ -813,7 +819,7 @@ def decorrelate(trajectories: list, method: str='acf', acf_nblocks=None, blav_mo
     assert isinstance(method, str), 'Method argument should be string, either acf or blav'
     if method.lower()=='acf':
         def method_correlation_time(data):
-            return corrtime_from_acf(data, nblocks=acf_nblocks, **method_kwargs)
+            return corrtime_from_acf(data, nblocks=acf_nblocks, n_nested_envelopes=acf_n_nested_envelopes, **method_kwargs)
     elif method.lower()=='blav':
         def method_correlation_time(data):
             return blav(data, model_function=blav_model_function, **method_kwargs)
