@@ -1493,7 +1493,7 @@ class FreeEnergySurface2D(object):
         if isinstance(slicer[0], slice) and isinstance(slicer[1], slice):
             ndim = 2
             xs = self.cv1s[slicer[0]]/parse_unit(self.cv1_output_unit)
-            xlabel = self.cv1_label
+            xlabel = '%s [%s]' %(self.cv1_label, self.cv1_output_unit)
             xlims = cv1_lims
             ys = self.cv2s[slicer[1]]/parse_unit(self.cv2_output_unit)
             ylabel = '%s [%s]' %(self.cv2_label, self.cv2_output_unit)
