@@ -120,14 +120,14 @@ class ConditionalProbability(object):
             #self.q_grid = self.qs[0]
         else:
             self.qs = [ 0.5*b[:-1]+0.5*b[1:] for b in self.q_bins ]
-        self.q_grid = np.meshgrid(*self.qs)
+        self.q_grid = np.meshgrid(*self.qs, indexing='ij')
         if self.ncv==1:
             self.cvs = [0.5*(self.cv_bins[0][:-1]+self.cv_bins[0][1:])]
             #self.cv_grid = self.cvs[0]
         else:
             self.cvs = [ 0.5*b[:-1]+0.5*b[1:] for b in self.cv_bins ]
-        self.cv_grid = np.meshgrid(*self.cvs)
-        self.cv_q_grid = np.meshgrid(*(self.qs+self.cvs))
+        self.cv_grid = np.meshgrid(*self.cvs, indexing='ij')
+        self.cv_q_grid = np.meshgrid(*(self.qs+self.cvs), indexing='ij')
 
     def process_simulation(self, input_q, input_cv, corr_time=1.0):
         '''
@@ -160,7 +160,7 @@ class ConditionalProbability(object):
             if q_samples is None:
                 q_samples = data.reshape(-1,1)
             else:
-                q_samples = np.append(q_samples, data.reshape(-1,1), axis=0)
+                q_samples = np.append(q_samples, data.reshape(-1,1), axis=1)
             if num_samples is None:
                 num_samples = len(data)
             else:
@@ -175,7 +175,7 @@ class ConditionalProbability(object):
             if cv_samples is None:
                 cv_samples = data.reshape(-1,1)
             else:
-                cv_samples = np.append(cv_samples, data.reshape(-1,1), axis=0)
+                cv_samples = np.append(cv_samples, data.reshape(-1,1), axis=1)
 
         #some final bookkeeping
         self.q_samples_persim.append(q_samples)
@@ -279,8 +279,8 @@ class ConditionalProbability(object):
         if self.verbose: print('  constructing histograms for all simulations')
         for isim in range(self.num_sims):
             #compute and store histograms from current simulations
-            data = np.append(self.cv_samples_persim[isim], self.q_samples_persim[isim], axis=1)
-            H, edges = np.histogramdd(data, bins=self.cv_bins+self.q_bins)
+            data = np.append(self.q_samples_persim[isim], self.cv_samples_persim[isim], axis=1)
+            H, edges = np.histogramdd(data, bins=self.q_bins+self.cv_bins)
             N, cv_edges = np.histogramdd(self.cv_samples_persim[isim], bins=self.cv_bins)
             self.histcounts_persim.append(H)
             self.histnorms_persim.append(N)
@@ -299,7 +299,7 @@ class ConditionalProbability(object):
                     Ncurrent = N[cv_index]
                     invNcurrent = np.zeros(Ncurrent.shape)*np.nan
                     invNcurrent[Ncurrent>0] = 1.0/Ncurrent[Ncurrent>0]
-                ps[cv_index + (slice(None),)*self.nq] = H[cv_index + (slice(None),)*self.nq]*invNcurrent
+                ps[(slice(None),)*self.nq + cv_index ] = H[(slice(None),)*self.nq + cv_index ]*invNcurrent
             self.pconds_persim.append(ps)
 
         if self.verbose: print('  constructing global conditional probability')
@@ -315,7 +315,7 @@ class ConditionalProbability(object):
                 mask = Ncurrent>0
                 invNcurrent = np.zeros(Ncurrent.shape)*np.nan
                 invNcurrent[mask] = 1.0/Ncurrent[mask]
-            self.pconds[cv_index + (slice(None),)*self.nq] = Htot[cv_index + (slice(None),)*self.nq]*invNcurrent
+            self.pconds[(slice(None),)*self.nq + cv_index ] = Htot[(slice(None),)*self.nq + cv_index ]*invNcurrent
 
         #define error bars based on Fisher matrix is implemented in inheriting classes
         self.error = None
@@ -355,27 +355,12 @@ class ConditionalProbability(object):
         assert self._finished, "Conditional probability needs to be finished before plotting it."
         assert isinstance(slicer, list) or isinstance(slicer, np.ndarray), 'slicer should be list or array, instead got %s' %(slicer.__class__.__name__)
         assert len(slicer)==self.nq+self.ncv, 'slicer should be list of length equal to sum of number of Qs (whic is %i) and number of CVs (which is %i), instead got list of length %i' %(self.nq, self.ncv, len(slicer))
-        #read cv slicer
-        icvs = []
-        cvstring = []
-        cv_label = None
-        for icv in range(self.ncv):
-            cvslicer = slicer[icv]
-            if isinstance(cvslicer, slice):
-                icvs.append(icv)
-                cvstring.append(self.cv_labels[icv])
-                cv_label = '%s [%s]' %(self.cv_labels[icv],self.cv_units[icv])
-            elif isinstance(cvslicer, int):
-                cvstring.append('cv=%.3f' %(self.cvs[icv][cvslicer]))
-            else:
-                raise ValueError('Slicer list elements should be of type Slice or integer, instead got %s' %(cvslicer.__class__.__name__))
-        cvstring = ','.join(cvstring)
         #read q slicer
         iqs = []
         qstring = []
         q_label = None
         for iq in range(self.nq):
-            qslicer = slicer[self.ncv+iq]
+            qslicer = slicer[iq]
             if isinstance(qslicer, slice):
                 iqs.append(iq)
                 qstring.append(self.q_labels[iq])
@@ -385,7 +370,24 @@ class ConditionalProbability(object):
             else:
                 raise ValueError('Slicer list elements should be of type Slice or integer, instead got %s' %(qslicer.__class__.__name__))
         qstring = ','.join(qstring)
-        
+        #read q slicer
+        icvs = []
+        cvstring = []
+        cv_label = None
+        for icv in range(self.ncv):
+            cvslicer = slicer[self.nq+icv]
+            if isinstance(cvslicer, slice):
+                icvs.append(icv)
+                cvstring.append(self.cv_labels[icv])
+                cv_label = '%s [%s]' %(self.cv_labels[icv],self.cv_units[icv])
+            elif isinstance(cvslicer, int):
+                cvstring.append('cv=%.3f' %(self.cvs[icv][cvslicer]))
+            else:
+                raise ValueError('Slicer list elements should be of type Slice or integer, instead got %s' %(cvslicer.__class__.__name__))
+        cvstring = ','.join(cvstring)
+        #print('Q-slicer: ', qstring)
+        #print('CV-slicer: ', cvstring)
+
         #read data 
         data = []
         labels = []
@@ -419,8 +421,11 @@ class ConditionalProbability(object):
             #transform to logscale if required
             if logscale:
                 xs = np.log(xs)
+            #print('Retrieved data for %s with dimensions: %s' %(obs, xs.shape))
             data.append(xs)
             labels.append(obs)
+        
+        
         if ndim==1 and self.error is not None:
             lower, upper = self.error.nsigma_conf_int(2)
             lower, upper = lower[slicer], upper[slicer]
@@ -440,6 +445,7 @@ class ConditionalProbability(object):
             colors = [None,]*len(data)
 
         #make plot
+        #print('Making %i-dimensional plot (icvs=%i,iqs=%i)' %(ndim,len(icvs),len(iqs)))
         pp.clf()
         if ndim==1:
             if len(iqs)==0 and len(icvs)==1:
@@ -469,12 +475,15 @@ class ConditionalProbability(object):
             if len(icvs)==2:
                 xs = self.cvs[icvs[0]]/parse_unit(self.cv_units[icvs[0]])
                 ys = self.cvs[icvs[1]]/parse_unit(self.cv_units[icvs[1]])
+                do_ij_to_xz_indexing = True
             elif len(iqs)==2:
                 xs = self.qs[iqs[0]]/parse_unit(self.q_units[iqs[0]])
                 ys = self.qs[iqs[1]]/parse_unit(self.q_units[iqs[1]])
+                do_ij_to_xz_indexing = True
             elif len(iqs)==1 and len(icvs)==1:
                 xs = self.cvs[icvs[0]]/parse_unit(self.cv_units[icvs[0]])
                 ys = self.qs[iqs[0]]/parse_unit(self.q_units[iqs[0]])
+                do_ij_to_xz_indexing = False
             else:
                 raise RuntimeError('Inconsistency in shape of sliced q and cv data!')
             
@@ -489,7 +498,10 @@ class ConditionalProbability(object):
                 fig, axs = pp.subplots(nrows,3)
                 size = [24,8*nrows]
             for i, (multi_index, ax) in enumerate(np.ndenumerate(axs)):
-                contourf = ax.contourf(xs, ys, data[i].T, cmap=cmap, **plot_kwargs) #transpose data to convert ij indexing (internal) to xy indexing (for plotting)
+                if do_ij_to_xz_indexing:
+                    contourf = ax.contourf(xs, ys, data[i].T, cmap=cmap, **plot_kwargs) #transpose data to convert ij indexing (internal) to xy indexing (for plotting)
+                else:
+                    contourf = ax.contourf(xs, ys, data[i], cmap=cmap, **plot_kwargs)
                 ax.set_xlabel(cv_label, fontsize=16)
                 ax.set_ylabel(q_label, fontsize=16)
                 ax.set_title('%s p(%s;%s)' %(labels[i],qstring,cvstring), fontsize=16)
@@ -595,23 +607,23 @@ class ConditionalProbability1D1D(ConditionalProbability):
         if self.verbose: print('  computing Fisher matrices for each simulation')
         Ngrid_q = len(self.q_grid[0])  #extra [0] because only 1 Q and then self.q_grid=[np.ndarray(...)]
         #loop over each simulation
-        self.fisher = np.zeros([len(self.cv_grid[0]), len(self.q_grid[0])+1, len(self.q_grid[0])+1])
+        self.fisher = np.zeros([len(self.q_grid[0])+1, len(self.q_grid[0])+1, len(self.cv_grid[0])])
         for isim in range(self.num_sims):
             #compute and store contribution to fisher matrix from current simulation as well as add contribution to global fisher matrix
             Is = []
             for cv_index, cv in enumerate(self.cv_grid[0]):
                 #if self.verbose: print('    for simulation %i cv[%s]=%.3f' %(isim,str(cv_index),cv))
-                I = fisher_matrix_mle_probdens(self.pconds_persim[isim][cv_index,:], method=error_estimate)
+                I = fisher_matrix_mle_probdens(self.pconds_persim[isim][:,cv_index], method=error_estimate)
                 Is.append(I)
                 n = self.histnorms_persim[isim][cv_index]/self.q_corr_time_persim[isim]
-                self.fisher[cv_index,:,:] += n*I
+                self.fisher[:,:,cv_index] += n*I
             self.fishers_persim.append(np.array(Is))
         
         if self.verbose: print('  extracting error for conditional probability')
         errors = []
         for cv_index, cv in enumerate(self.cv_grid[0]):
-            ps = self.pconds[cv_index,:].copy()
-            cov = invert_fisher_to_covariance(self.fisher[cv_index,:,:], ps, threshold=error_p_threshold)[:Ngrid_q,:Ngrid_q]
+            ps = self.pconds[:,cv_index].copy()
+            cov = invert_fisher_to_covariance(self.fisher[:,:,cv_index], ps, threshold=error_p_threshold)[:Ngrid_q,:Ngrid_q]
             if error_estimate in ['mle_p']:
                 stds = np.sqrt(np.diagonal(cov))
                 err = GaussianDistribution(ps, stds)
@@ -627,7 +639,7 @@ class ConditionalProbability1D1D(ConditionalProbability):
             else:
                 raise NotImplementedError('Error estimation method %s not supported' %error_estimate)
             errors.append(err)
-        self.error = ErrorArray(errors)
+        self.error = ErrorArray(errors, axis=-1)
 
     def average(self, target_distribution=MultiGaussianDistribution):
         '''
@@ -637,9 +649,9 @@ class ConditionalProbability1D1D(ConditionalProbability):
             qs = np.zeros(len(self.cvs[0]), dtype=float)
             norm = np.zeros(len(self.cvs[0]), dtype=float)
             for iq, q in enumerate(self.qs[0]):
-                mask = ~np.isnan(pconds[:,iq])
-                qs[mask]   += q*pconds[mask,iq]
-                norm[mask] +=   pconds[mask,iq]
+                mask = ~np.isnan(pconds[iq,:])
+                qs[mask]   += q*pconds[iq,mask]
+                norm[mask] +=   pconds[iq,mask]
             qs[norm==0] = np.nan
             #normalization in case pconds would not be normalized along second axis
             qs[norm>0] /= norm[norm>0]
@@ -686,7 +698,7 @@ class ConditionalProbability1D1D(ConditionalProbability):
         # Construct 1D FEP
         def transform(fs, pconds):
             mask = ~np.isnan(fs)
-            ps = np.trapz(pconds[mask,:]*np.exp(-fep.beta*fs[mask]), x=cvs[mask])
+            ps = np.trapz(pconds[:,mask]*np.exp(-fep.beta*fs[mask]), x=cvs[mask])
             ps /= np.trapz(ps, x=qs)
             fs_new = np.zeros([len(qs)], float)*np.nan
             fs_new[ps>0] = -np.log(ps[ps>0])/fep.beta
@@ -750,11 +762,11 @@ class ConditionalProbability1D1D(ConditionalProbability):
         def deproject(fs, pconds):
             fs_new = np.zeros([len(cvs),len(qs)], float)*np.nan
             for icv in range(len(cvs)):
-                mask = ~np.isnan(pconds[icv,:])
-                pconds[icv,:] /= pconds[icv,mask].sum() #assert pcond is proparly normalized (in case it was sampled from error distribution)
+                mask = ~np.isnan(pconds[:,icv])
+                pconds[:,icv] /= pconds[mask,icv].sum() #assert pcond is proparly normalized (in case it was sampled from error distribution)
                 for iq in range(len(qs)):
-                    if pconds[icv,iq]>0:
-                        fs_new[icv,iq] = fs[icv] - kT*np.log(pconds[icv,iq])
+                    if pconds[iq,icv]>0:
+                        fs_new[icv,iq] = fs[icv] - kT*np.log(pconds[iq,icv])
             return fs_new
         if fep.error is not None or self.error is not None:
             propagator = Propagator(ncycles=ncycles_default)
@@ -883,7 +895,7 @@ class ConditionalProbability1D2D(ConditionalProbability):
         for fn in fns:
             self.process_simulation([(fn,q1_reader), (fn,q2_reader)], [(fn,cv_reader)])
 
-    def transform(self, fep, q1_output_unit='au', q2_output_unit='au', q1_label=None, q2_label=None, f_output_unit='kjmol'):
+    def deproject(self, fep, q1_output_unit='au', q2_output_unit='au', q1_label=None, q2_label=None, f_output_unit='kjmol'):
         '''
             Transform the provided 1D FEP to a 2D FES using the current conditional probability according to the formula
 
@@ -921,7 +933,7 @@ class ConditionalProbability1D2D(ConditionalProbability):
         #construct 2D FES
         def transform(fs, pconds):
             mask = ~np.isnan(fs)
-            ps = np.trapz(pconds[mask,...]*np.exp(-fep.beta*fs[mask]), x=fep.cvs[mask])
+            ps = np.trapz(pconds[...,mask]*np.exp(-fep.beta*fs[mask]), x=fep.cvs[mask])
             ps /= integrate2d(ps, x=self.qs[0], y=self.qs[1])
             fs_new = np.zeros(ps.shape, float)*np.nan
             fs_new[ps>0] = -np.log(ps[ps>0])/fep.beta

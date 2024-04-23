@@ -819,10 +819,20 @@ def decorrelate(trajectories: list, method: str='acf', acf_nblocks=None, acf_n_n
     assert isinstance(method, str), 'Method argument should be string, either acf or blav'
     if method.lower()=='acf':
         def method_correlation_time(data):
-            return corrtime_from_acf(data, nblocks=acf_nblocks, n_nested_envelopes=acf_n_nested_envelopes, **method_kwargs)
+            corrtime = corrtime_from_acf(data, nblocks=acf_nblocks, n_nested_envelopes=acf_n_nested_envelopes, **method_kwargs)
+            if corrtime<1:
+                print('Trajectory had corrtime smaller than 1, was set to 1!')
+                return 1.0
+            else:
+                return corrtime
     elif method.lower()=='blav':
         def method_correlation_time(data):
-            return blav(data, model_function=blav_model_function, **method_kwargs)
+            corrtime = blav(data, model_function=blav_model_function, **method_kwargs)[1]
+            if corrtime<1:
+                print('Trajectory had corrtime smaller than 1, was set to 1!')
+                return 1.0
+            else:
+                return corrtime
     else:
         raise ValueError('Method argument should be string, either acf or blav')
     #compute correlation times

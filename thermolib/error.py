@@ -584,18 +584,25 @@ class MultiLogGaussianDistribution(MultiDistribution):
 
 
 class ErrorArray(object):
-    def __init__(self, errors):
+    def __init__(self, errors, axis=0):
+        assert axis==0 or axis==-1, 'For axis argument, only value 0 or -1 is supported'
+        shape = None
+        for error in errors:
+            if shape is None: shape = error.shape
+            else:
+                assert shape==error.shape, 'Detected an error with shape %s and an error with shape %s, but all errors should be of same shape.' (str(shape), str(error.shape))
         self.errors = errors
+        self.axis = axis
 
     def crop(self, indexes):
-        for error in self.serrors:
+        for error in self.errors:
             error.crop(indexes)    
 
     def mean(self):
-        return np.array([error.mean() for error in self.errors])
+        return np.stack([error.mean() for error in self.errors], axis=self.axis)
     
     def std(self):
-        return np.array([error.std() for error in self.errors])
+        return np.stack([error.std() for error in self.errors], axis=self.axis)
 
     def nsigma_conf_int(self, nsigma):
         lowers = []
@@ -604,13 +611,26 @@ class ErrorArray(object):
             lower, upper = error.nsigma_conf_int(nsigma)
             lowers.append(lower)
             uppers.append(upper)
-        return np.array(lowers), np.array(uppers)
+        return np.stack(lowers, axis=self.axis), np.stack(uppers, axis=self.axis)
 
     def sample(self, nsamples=None):
-        samples = []
-        for error in self.errors:
-            samples.append(error.sample(nsamples=nsamples))
-        return np.array(samples)
+        if nsamples is not None:
+            if self.axis==0:
+                samples = np.zeros([len(self.errors),] + list(self.errors[0].shape) +[nsamples,])
+                for i, error in enumerate(self.errors):
+                    samples[i,...] = error.sample(nsamples=nsamples)
+            elif self.axis==-1:
+                samples = np.zeros(list(self.errors[0].shape) +[len(self.errors),nsamples])
+                for i, error in enumerate(self.errors):
+                    samples[...,i,:] = error.sample(nsamples=nsamples)
+            else:
+                raise ValueError('axis attribute should be 0 or -1 but found %s' %(str(self.axis)))
+        else:
+            samples = []
+            for error in self.errors:
+                samples.append(error.sample())
+            samples = np.stack(samples, axis=self.axis)
+        return samples
 
 
 class Propagator(object):
