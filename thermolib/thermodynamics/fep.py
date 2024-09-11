@@ -313,21 +313,21 @@ class BaseProfile(object):
             values = None
             if obs.lower() in ['value']:
                 values = self.fs.copy()
-            elif obs.lower() in ['error-mean', 'mean']:
+            elif obs.lower() in ['mean']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
                 values = self.error.mean()
-            elif obs.lower() in ['error-lower', 'lower']:
+            elif obs.lower() in ['lower']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
                 values = self.error.nsigma_conf_int(2)[0]
-            elif obs.lower() in ['error-upper', 'upper']:
+            elif obs.lower() in ['upper']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
                 values = self.error.nsigma_conf_int(2)[1]
-            elif obs.lower() in ['error-half-upper-lower', 'width']:
+            elif obs.lower() in ['error']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
                 lower = self.error.nsigma_conf_int(2)[0]
                 upper = self.error.nsigma_conf_int(2)[1]
                 values = 0.5*np.abs(upper - lower)
-            elif obs.lower() in ['error-sample', 'sample']:
+            elif obs.lower() in ['sample']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
                 values = self.error.sample()
             if values is None: raise ValueError('Could not interpret observable %s' %obs)
@@ -1524,21 +1524,21 @@ class FreeEnergySurface2D(object):
             values = None
             if obs.lower() in ['value']:
                 values = self.fs.copy()[slicer[0],slicer[1]]
-            elif obs.lower() in ['error-mean', 'mean']:
+            elif obs.lower() in ['mean']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
                 values = self.error.mean()[slicer[0],slicer[1]]
-            elif obs.lower() in ['error-lower', 'lower']:
+            elif obs.lower() in ['lower']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
                 values = self.error.nsigma_conf_int(2)[0][slicer[0],slicer[1]]
-            elif obs.lower() in ['error-upper', 'upper']:
+            elif obs.lower() in ['upper']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
                 values = self.error.nsigma_conf_int(2)[1][slicer[0],slicer[1]]
-            elif obs.lower() in ['error-half-upper-lower', 'width']:
+            elif obs.lower() in ['error']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
                 lower = self.error.nsigma_conf_int(2)[0][slicer[0],slicer[1]]
                 upper = self.error.nsigma_conf_int(2)[1][slicer[0],slicer[1]]
                 values = 0.5*np.abs(upper - lower)
-            elif obs.lower() in ['error-sample', 'sample']:
+            elif obs.lower() in ['sample']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
                 values = self.error.sample()[slicer[0],slicer[1]]
             if values is None: raise ValueError('Could not interpret observable %s' %obs)

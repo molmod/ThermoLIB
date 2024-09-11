@@ -394,21 +394,21 @@ class ConditionalProbability(object):
         ndim = None
         for obs in obss:
             xs = None
-            if obs.lower() in ['base', 'mean']:
+            if obs.lower() in ['value']:
                 xs = self.pconds[slicer].copy()
-            elif obs.lower() in ['error-mean']:
+            elif obs.lower() in ['mean']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
                 xs = self.error.mean()[slicer]
-            elif obs.lower() in ['lower', 'error-lower']:
+            elif obs.lower() in ['lower']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
                 xs = self.error.nsigma_conf_int(2)[0][slicer]
-            elif obs.lower() in ['upper', 'error-upper']:
+            elif obs.lower() in ['upper']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
                 xs = self.error.nsigma_conf_int(2)[1][slicer]
-            elif obs.lower() in ['sample', 'error-sample']:
+            elif obs.lower() in ['sample']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
                 xs = self.error.sample()[slicer]
-            elif obs.lower() in ['width', 'error-half-upper-lower']:
+            elif obs.lower() in ['error']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
                 lower = self.error.nsigma_conf_int(2)[0][slicer]
                 upper = self.error.nsigma_conf_int(2)[1][slicer]
