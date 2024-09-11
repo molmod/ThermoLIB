@@ -206,12 +206,12 @@ class ConditionalProbability(object):
                 if q_ref in ['global_minimum']:
                     q_ref = np.inf
                     for isim in range(self.num_sims):
-                        q_ref = min([q_ref, self.q_samples_persim[isim][:,iq].min()])
+                        q_ref = min([q_ref, np.nanmin(self.q_samples_persim[isim][:,iq])])
                     if self.verbose: print('which is %.6f' %(q_ref))
                 elif q_ref in ['minimum_average']:
                     q_ref = np.inf
                     for isim in range(self.num_sims):
-                        q_ref = min([q_ref, self.q_samples_persim[isim][:,iq].mean()])
+                        q_ref = min([q_ref, np.nanmean(self.q_samples_persim[isim][:,iq])])
                     if self.verbose: print('which is %.6f' %(q_ref))
                 elif not isinstance(q_ref, float):
                     raise ValueError("q_ref should be either 'global_minimum', 'minimum_average' or a float value")
@@ -394,20 +394,25 @@ class ConditionalProbability(object):
         ndim = None
         for obs in obss:
             xs = None
-            if obs.lower() in ['base','mean']:
+            if obs.lower() in ['base', 'mean']:
                 xs = self.pconds[slicer].copy()
-            elif obs.lower() in ['errmean', 'errormean', 'meanerr', 'meanerror']:
+            elif obs.lower() in ['error-mean']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
                 xs = self.error.mean()[slicer]
-            elif obs.lower() in ['low', 'lower', 'lowererr', 'lowererror', 'errorlower', 'errlower', 'errlow']:
+            elif obs.lower() in ['lower', 'error-lower']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
                 xs = self.error.nsigma_conf_int(2)[0][slicer]
-            elif obs.lower() in ['up', 'upper', 'uppererr', 'uppererror', 'errorupper', 'errupper', 'errup']:
+            elif obs.lower() in ['upper', 'error-upper']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
                 xs = self.error.nsigma_conf_int(2)[1][slicer]
-            elif obs.lower() in ['sample', 'errorsample', 'errsample', 'sampleerror', 'sampleerr']:
+            elif obs.lower() in ['sample', 'error-sample']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
                 xs = self.error.sample()[slicer]
+            elif obs.lower() in ['width', 'error-half-upper-lower']:
+                assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
+                lower = self.error.nsigma_conf_int(2)[0][slicer]
+                upper = self.error.nsigma_conf_int(2)[1][slicer]
+                xs = 0.5*np.abs(upper - lower)
             if xs is None: raise ValueError('Could not interpret observable %s' %obs)
             if ndim is None:
                 ndim = len(xs.shape)

@@ -65,6 +65,8 @@ class TrajectoryReader(object):
         '''
         if len(data.shape)==2 and data.shape[1]==1:
             data = data[:,0]
+        if len(data.shape)==3 and data.shape[1]==1 and data.shape[2]==1:
+            data = data[:,0,0]
         if self.end==-1:
             return data[self.start::self.stride]
         else:

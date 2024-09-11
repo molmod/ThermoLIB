@@ -1480,6 +1480,8 @@ class FreeEnergySurface2D(object):
         '''
             Plot x[slicer], where (possibly multiple) x is/Are specified in the keyword argument obss and the argument slicer defines the subset of data that will be plotted. The resulting graph will be a regular 1D plot or 2D contourplot, depending on the dimensionality of the data x[slicer].
 
+            :obs list: list of strings representing what properties to plot. Should be one or more of: mean, lower (lower bound of error interval), upper (upper bound of error interval), width (error bar or half width of lower,upper interaval), sample (random sample according to the underlying error distribution).
+
             :param fn: name of the file to store graph in, defaults to 'condprob.png'
             :type fn: str, optional
 

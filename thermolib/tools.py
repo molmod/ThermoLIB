@@ -352,6 +352,7 @@ def read_wham_input(fn: str, trajectory_readers, trajectory_path_templates, bias
                 for trajectory_reader, trajectory_path_template in zip(trajectory_readers, trajectory_path_templates):
                     fn_traj = os.path.join(root, trajectory_path_template %name)
                     if not os.path.isfile(fn_traj):
+                        #TODO: check this part, if you only give a single trajectory reader and a certain umbrella does not have a valid trajectory (because e.g. simulation failed), it will now add the trajectory of the previous umbrella assuming the current umbrella is still valid (which is obviously WRONG)
                         print("WARNING: could not read trajectory file %s, SKIPPING!" %fn_traj)
                         continue
                     else:

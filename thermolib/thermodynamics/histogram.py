@@ -672,6 +672,9 @@ class Histogram2D(object):
 
 			:type error_estimate: str, optional, default=None
 
+			:param error_p_threshold: thresshold on the biased probability in order to take it into account for error estimating. This allows you to trim off regions off phase space that have been sampled so little with a corresponding high error that its corresponding lower bound on a sample could lead to states more stable then the well sampled reactant/product states (and hence poison error propagation for macrostate free energies).
+			:type error_p_threshold: float, optional, default=0.0
+
 			:param bias_subgrid_num: the number of grid points along each CV for the sub-grid used to compute the integrated boltzmann factor of the bias in each CV1,CV2 bin. Either a single integer is given, corresponding to identical number of subgrid points for both CVs, or a list of two integers corresponding the number of grid points in the two CVs respectively.
 			:type bias_subgrid_num: optional, defaults to [20,20]
 
