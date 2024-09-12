@@ -8,7 +8,7 @@
 # This file is part of a library developed by Louis Vanduyfhuys at
 # the Center for Molecular Modeling under supervision of prof. Veronique
 # Van Speybroeck. Usage of this package should be authorized by prof. Van
-# Vanduyfhuys or prof. Van Van Speybroeck.
+# Vanduyfhuys or prof. Van Speybroeck.
 
 
 from molmod.units import *
