@@ -554,7 +554,7 @@ class BaseFreeEnergyProfile(BaseProfile):
         '''
         qs = function(self.cvs)
         if derivative is None:
-            eps = min(qs[1:]-qs[:-1])*0.001
+            eps = min(self.cvs[1:]-self.cvs[:-1])*0.001
             def derivative(q):
                 return (function(q+eps/2)-function(q-eps/2))/eps
         dfs = derivative(qs)

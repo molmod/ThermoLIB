@@ -146,8 +146,8 @@ class Histogram1D(object):
 
 			:type error_estimate: str, optional, default=None
 
-			:param nsigma: only relevant when error estimation is turned on (i.e. when keyword ``error_estimate`` is not None), this option defines how large the error interval should be in terms of the standard deviation sigma. A ``nsigma=2`` implies a 2-sigma error bar (corresponding to 95% confidence interval) will be returned.
-			:type nsigma: int, optional, default=2
+			:param error_p_thresshold: only relevant when error estimation is enabled using the error_estimate argument. When error_p_thresshold is set to x, bins in the histogram for which the probability resulting from the trajectory is smaller than x will be disabled for error estimation (i.e. its error will be set to np.nan). This is similar as the error_p_thresshold keyword for the from_wham routine, for which the use is illustrated in one of the tutorial notebooks.
+			:type error_p_thresshold: float, optional, default=0.0
 
 			:param cv_output_unit: the unit in which cv will be plotted/printed (not the unit of the input array, that is assumed to be atomic units)
 			:type cv_output_unit: str, optional, default='au'
@@ -579,7 +579,7 @@ class Histogram2D(object):
 		return cls(cv1s, cv2s, ps, error=error, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, cv1_label=cv1_label, cv2_label=cv2_label)
 	
 	@classmethod
-	def from_single_trajectory(cls, data, bins, error_estimate=None, nsigma=2, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2'):
+	def from_single_trajectory(cls, data, bins, error_estimate=None, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2'):
 		'''
 			Routine to estimate of a probability histogram in terms of two collective variables from a trajectory series corresponding to that collective variable.
 
@@ -597,9 +597,6 @@ class Histogram2D(object):
 
 			Defaults to None, i.e. no error estimate.
 			:type error_estimate: str, optional
-
-			:param nsigma: only relevant when error estimation is turned on (i.e. when keyword ``error_estimate`` is not None), this option defines how large the error interval should be in terms of the standard deviation sigma. A ``nsigma=2`` implies a 2-sigma error bar (corresponding to 95% confidence interval) will be returned. Defaults to 2
-			:type nsigma: int, optional
 
 			:param cv1_output_unit: the unit in which the first collective variable will be plotted/printed
 			:type cv1_output_unit: str, optional, default='au'
