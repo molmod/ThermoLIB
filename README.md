@@ -1,5 +1,5 @@
-![ThermoLIB](./doc/logo_thermolib_light.png#gh-light-mode-only)
-![ThermoLIB](./doc/logo_thermolib_dark.png#gh-dark-mode-only)
+![ThermoLIB](https://github.ugent.be/lvduyfhu/ThermoLIB/blob/master/logo_thermolib_light.png#gh-light-mode-only)
+![ThermoLIB](https://github.ugent.be/lvduyfhu/ThermoLIB/blob/master/logo_thermolib_dark.png#gh-dark-mode-only)
 [![License](https://flat.badgen.net/static/LICENSE/GNU%20GPL%20(v3)/red)](https://github.ugent.be/lvduyfhu/ThermoLIB/blob/master/LICENSE)
 ![Python](https://flat.badgen.net/static/Python/3.8/blue)
 [![Documentation](https://flat.badgen.net/static/Documentation/molmod.github.io/green)](https://molmod.github.io/thermolib)
@@ -42,7 +42,7 @@ If a certain version is no longer available in the future, the user will have to
 
 # Documentation
 
-More information on the features of ThermoLIB and how to use them, including tutorials can be found at TODO.
+More information on the features of ThermoLIB and how to use them, including tutorials can be found at [https://molmod.github.io/thermolib](https://molmod.github.io/thermolib).
 
 # Therms of use
 
