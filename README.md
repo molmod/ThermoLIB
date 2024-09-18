@@ -1,22 +1,17 @@
-# ThermoLIB
+![ThermoLIB](./doc/logo_thermolib_light.png#gh-light-mode-only)
+![ThermoLIB](./doc/logo_thermolib_dark.png#gh-dark-mode-only)
+[![License](https://flat.badgen.net/static/LICENSE/GNU%20GPL%20(v3)/red)](https://github.ugent.be/lvduyfhu/ThermoLIB/blob/master/LICENSE)
+![Python](https://flat.badgen.net/static/Python/3.8/blue)
+[![Documentation](https://flat.badgen.net/static/Documentation/molmod.github.io/green)](https://molmod.github.io/thermolib)
+# What is ThermoLIB?
 
-ThermoLIB is a library for the application of Statistical Physics, Thermodynamics and/or kinetic theory to molecular simulations. The library consists of several sub modules.
+ThermoLIB is a library developed at the [Center for Molecular Modeling (CMM)](https://molmod.ugent.be/) for the application of Statistical Physics and/or Thermodynamics to molecular simulations. The library consists of several sub modules:
 
-## Thermodynamics
+*  **Thermodynamics** - Module for reading, constructing, transforming and manipulating free energy profiles. Functions include construction of free energy profiles (FEPs) from histogram(s) (including error estimation), identification of (meta)stable macrostates and computation of their free energy, transformation of FEPs from one collective variable (CV) to another, (de)projection of an free energy surface (FES) to a lower/higher dimensional FES.
 
-Module for reading, transforming and manipulating free energy profiles. Functions include:
+*  **Kinetics** - Module for computing the rate constant of a process/reaction using transition state theory (TST). Next to integrated reactant macrostate free energy and transition state microstate free energy (which are both computed using the routines in the thermodynamics module), the rate constant also requires a prefactor related to the time derivative of the collective variable in the transition state.
 
-* the construction of 1D free energy profiles and 2D free energy surfaces from a single simulation, or from multiple (pobbibly biased) simulations using WHAM including a (correlated) error estimation.
-* transformation of one collective variable to another
-* projection of 2D profiles to 1D profiles
-* "de"-projection of 1D to 2D profiles
-* estimation of thermodynamics properties derivable from the free energy surface (e.g. free energy of macrostate defined as the integral over part of the CV-space, free energy of reaction, ...)
-
-## Kinetics
-
-Module for computing the rate factor required in transition state theory required to compute the reaction rate constant. This factor is related to the time derivative of the collective variable in the transition state.
-
-# Dependencies & Installation
+# How to install?
 
 ThermoLIB has the following dependencies:
 
@@ -44,6 +39,10 @@ As molmod is currently no longer maintained, it might result in conflicting pack
     pip install git+https://github.ugent.be/lvduyfhu/ThermoLIB.git
     
 If a certain version is no longer available in the future, the user will have to manually test which later version is still compatible. In the near future, the required functions from molmod will be merged into thermolib so that molmod no longer becomes a dependency.
+
+# Documentation
+
+More information on the features of ThermoLIB and how to use them, including tutorials can be found at TODO.
 
 # Therms of use
 
