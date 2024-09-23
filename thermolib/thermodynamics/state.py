@@ -237,7 +237,7 @@ class Macrostate(State):
             print('  CV Mean = %s' %(self.cv_dist.print(unit=self.cv_unit)))
             print('  CV StD  = %s' %(self.cvstd_dist.print(unit=self.cv_unit)))
         else:
-            print('  F       = %.3f  %s' %(self.f/parse_unit(self.f_unit), self.f_unit))
+            print('  F       = %.3f  %s' %(self.F/parse_unit(self.f_unit), self.f_unit))
             print('  CV Mean = %.3f  %s' %(self.cv/parse_unit(self.cv_unit), self.cv_unit))
             print('  CV StD  = %.3f  %s' %(self.cvstd/parse_unit(self.cv_unit), self.cv_unit))
         print('')

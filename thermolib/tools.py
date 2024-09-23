@@ -860,7 +860,7 @@ def decorrelate(trajectories: list, method: str='acf', acf_nblocks=None, acf_n_n
             axs[0,icv].plot(corrtimes_all[:,icv], marker='o', color='b')
             axs[0,icv].set_ylabel('Correlation time [-]', fontsize=14)
             axs[0,icv].set_xlabel('Trajectory number [-]', fontsize=14)
-            axs[0,icv].set_title('Correlation time for CV%i' %icv)
+            axs[0,icv].set_title('Correlation time for %i-th CV' %icv)
         fig.tight_layout()
         fig.set_size_inches([8*ncvs,6])
         if fn_plot is not None:

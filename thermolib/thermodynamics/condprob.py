@@ -37,7 +37,6 @@ __all__ = ['ConditionalProbability1D1D', 'ConditionalProbability1D2D']
 class ConditionalProbability(object):
     '''
         Class to compute conditional probabilities of the form :math:`p([qs]|[cvs])`, i.e. probability of finding states characterized with collective variables qs, on the condition that the states are also characterized by collective variables cvs. Such conditional probabiliy allows to convert a free energy surface (or profile if only one cv is given) in terms of the collective variables :math:`cvs` to a free energy surface (or profile if only one q is given) in terms of the collective variables :math:`qs`.
-
     '''
     def __init__(self, nq, ncv, q_labels=None, cv_labels=None, q_units=None, cv_units=None, verbose=False):
         '''
@@ -797,7 +796,6 @@ class ConditionalProbability1D1D(ConditionalProbability):
 class ConditionalProbability1D2D(ConditionalProbability):
     '''
         Class to store and compute conditional probabilities of the form :math:`p(q1,q2|cv)` which can be used to transform a 1D free energy profile in terms of the collective variable *cv* towards a 2D free energy surface in terms of the collective variables :math:`q_{1}` and :math:`q_{2}`.
-
     '''
     def __init__(self, q1_label='Q1', q2_label='Q2', cv_label='CV', q1_output_unit='au', q2_output_unit='au', cv_output_unit='au', verbose=False):
         '''
