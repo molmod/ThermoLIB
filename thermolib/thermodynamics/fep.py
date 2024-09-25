@@ -36,30 +36,30 @@ __all__ = ['BaseProfile', 'BaseFreeEnergyProfile', 'SimpleFreeEnergyProfile', 'F
 
 class BaseProfile(object):
     '''
-        Base class to define a 1D profile of a property X as function of a certain collective variable (CV). This class will be used as the basis for (free) energy profiles.
+        Base parent class to define a 1D profile of a property X as function of a certain collective variable (CV). This class will be used as the basis for (free) energy profiles.
     '''
     def __init__(self, cvs, fs, error=None, cv_output_unit='au', f_output_unit='au', cv_label='CV', f_label='X'):
         """
-            :param cv: the collective variable values, which should be in atomic units!
-            :type cv: np.ndarray
+            :param cvs: the collective variable values, which should be in atomic units!
+            :type cvs: np.ndarray
 
             :param fs: the values of the property X, which should be in atomic units!
             :type fs: np.ndarray
 
             :param error: error distribution on the profile, defaults to None
-            :type flower: Distribution child class, optional
+            :type error: child class of :py:class:`Distribution <thermolib.error.Distribution>` class, optional
 
-            :param cv_output_unit: the units for printing and plotting of CV values (not the unit of the input array, that is assumed to be in atomic units). Units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_.
-            :type cv_output_unit: str, default=au
+            :param cv_output_unit: the units for printing and plotting of CV values (not the unit of the input array, that is assumed to be in atomic units). Units are defined using the molmod 'units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :type cv_output_unit: str, default='au'
                 
-            :param f_output_unit: the units for printing and plotting of free energy values (not the unit of the input array, that is assumed to be in atomic units). Units are defined using `the molmod routine molmod.units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_.
-            :type f_output_unit: str, default=kjmol
+            :param f_output_unit: the units for printing and plotting of free energy values (not the unit of the input array, that is assumed to be in atomic units). Units are defined using the molmod 'units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :type f_output_unit: str, default='kjmol'
 
-            :param cv_label: label for the CV, defaults to 'CV'
-            :type cv_label: str, optional
+            :param cv_label: label for the CV for printing and plotting
+            :type cv_label: str, optional, default='CV'
 
-            :param f_label: label for the observable X, defaults to 'X'
-            :type f_label: str, optional
+            :param f_label: label for the observable X for printing and plotting
+            :type f_label: str, optional, default='X'
         """
         assert len(cvs)==len(fs), "cvs and fs array should be of same length"
         self.cvs = cvs.copy()
@@ -71,11 +71,29 @@ class BaseProfile(object):
         self.f_label = f_label
 
     def flower(self, nsigma=2):
+        '''
+            Return the lower limit of an n-sigma error bar, i.e. :math:`\\mu - n\\sigma` with :math:`\\mu` the mean and :math:`\\sigma` the standard deviation.
+
+            :param nsigma: defines the n-sigma error bar
+            :type nsigma: int, optional, default=2
+
+            :return: the lower limit of the n-sigma error bar
+            :rtype: np.ndarray with dimensions determined by self.error
+        '''
         assert self.error is not None, 'Flower cannot be computed because no error distribution was defined in the error attribute'
         flower, fupper = self.error.nsigma_conf_int(nsigma)
         return flower
 
     def fupper(self, nsigma=2):
+        '''
+            Return the upper limit of an n-sigma error bar, i.e. :math:`\\mu + n\\sigma` with :math:`\\mu` the mean and :math:`\\sigma` the standard deviation.
+
+            :param nsigma: defines the n-sigma error bar
+            :type nsigma: int, optional, default=2
+            
+            :return: the upper limit of the n-sigma error bar
+            :rtype: np.ndarray with dimensions determined by self.error
+        '''
         assert self.error is not None, 'Fupper cannot be computed because no error distribution was defined in the error attribute'
         flower, fupper = self.error.nsigma_conf_int(nsigma)
         return fupper
@@ -83,43 +101,49 @@ class BaseProfile(object):
     @classmethod
     def from_txt(cls, fn, cvcol=0, fcol=1, fstdcol=None, cv_input_unit='au', f_input_unit='kjmol', cv_output_unit='au', f_output_unit='kjmol', cv_label='CV', f_label='X', cvrange=None, delimiter=None, reverse=False, cut_constant=False):
         '''
-            Read the free energy profile as function of a collective variable from a txt file.
+            Read the a property profile (and optionally its error bar) as function of a collective variable from a txt file.
 
             :param fn: the name of the txt file containing the data
             :type fn: str
 
-            :param cvcol: the column in which the collective variable is stored
+            :param cvcol: index of the column in which the collective variable is stored
             :type cvcol: int, default=0
 
-            :param fcol: the column in which the observable X is stored.
+            :param fcol: index of the column in which the observable X is stored.
             :type fcol: int, default=1
 
-            :param cv_input_unit: the units in which the CV values are stored in the file. Units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_. 
-            :type cv_input_unit: str or float, default=au
+            :param fstdcol: index of the column in which the standard deviation of observable X is stored, which is used to construct an error distribution. If None, no standard deviation will be read and no error bar will be computed.
+            :type fstdcol: int, default=None
 
-            :param cv_output_unit: the units for printing and plotting of CV values (not the unit of the input array, that is defined by cv_input_unit). Units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_. 
-            :type cv_output_unit: str or float, default=au
+            :param cv_input_unit: the units in which the CV values are stored in the file. Units are defined using the molmod 'units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :type cv_input_unit: str or float, default='au'
 
-            :param f_input_unit: the units in which the observable X values are stored in the file. Units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_
-            :type f_input_unit: str or float, default=kjmol
+            :param f_input_unit: the units in which the observable X values are stored in the file. Units are defined using the molmod 'units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :type f_input_unit: str or float, default='kjmol'
 
-            :param f_output_unit: the units for printing and plotting of observable X values (not the unit of the input array, that is defined by x_input_unit). Units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_
-            :type f_output_unit: str or float, default=kjmol
+            :param cv_output_unit: the units for printing and plotting of CV values (not the unit of the input array, that is defined by cv_input_unit). Units are defined using the molmod 'units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :type cv_output_unit: str or float, default='au'
 
-            :param cv_label: label for the new CV
+            :param f_output_unit: the units for printing and plotting of observable X values (not the unit of the input array, that is defined by x_input_unit). Units are defined using the molmod 'units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :type f_output_unit: str or float, default='kjmol'
+
+            :param cv_label: label for the CV for printing and plotting
             :type cv_label: str, optional, default='CV'
 
-            :param cvrange: only read free energy for CVs in the given range
+            :param f_label: label for the property X for printing and plotting
+            :type f_label: str, optional, default='X'
+
+            :param cvrange: only read the property X for CVs in the given range. If None, all data is read
             :type cvrange: tuple or list, default=None
             
-            :param delimiter: The delimiter used in the txt input file to separate columns. The default is set to None, corresponding to the default of `the numpy.loadtxt routine <https://numpy.org/doc/1.20/reference/generated/numpy.loadtxt.html>`_ (i.e. whitespace).
-            :type delimiter: str, default=None
+            :param delimiter: The delimiter used in the txt input file to separate columns. If None, use the default of `the numpy.loadtxt routine <https://numpy.org/doc/1.20/reference/generated/numpy.loadtxt.html>`_ (i.e. whitespace).
+            :type delimiter: str, optional, default=None
             
-            :param reverse: if set to True, reverse the X axis (usefull to make sure reactant is on the left)
-            :type reverse: bool, default=False
+            :param reverse: if set to True, reverse the CV and X values (usefull to make sure reactant is on the left)
+            :type reverse: bool, optional, default=False
 
             :param cut_constant: if set to True, the data points at the start and end of the data array that are constant will be cut. Usefull to cut out unsampled areas for large and small CV values. 
-            :type cut_constant: bool, default=False
+            :type cut_constant: bool, optional, default=False
         '''
         #TODO: deal with inf values in input file
         data = np.loadtxt(fn, delimiter=delimiter, dtype=float)
@@ -166,7 +190,7 @@ class BaseProfile(object):
 
     def savetxt(self, fn_txt):
         '''
-            Save the current profile as txt file. The values of CV and X are written in units specified by the cv_output_unit and f_output_unit attributes of the self instance. If the error attribute of self is not None, the corresponding std values will be written to the file as well.
+            Save the current profile as txt file. The values of CV and X are written in units specified by the cv_output_unit and f_output_unit attributes of the self instance. If the error attribute of self is not None, the corresponding std values will be written to the file as well in the third column.
 
             :param fn_txt: name for the output file
             :type fn_txt: str
@@ -183,32 +207,25 @@ class BaseProfile(object):
     @classmethod
     def from_average(cls, profiles, cv_output_unit=None, cv_label=None, f_output_unit=None, f_label=None, error_estimate=None):
         '''
-            Start from a set of X-profiles and compute and return the averaged X profile. If error_estimate is set to 'std', an error on the X profile will be computed from the standard deviation within the set of profiles. 
+            Construct a profile as the average of a set of given profiles. 
 
-            :param profiles: set of X-profiles to be averaged
-            :type profiles: list of BaseProfile instances
+            :param profiles: set of profiles to be averaged
+            :type profiles: list of instances of :py:class:`BaseProfile <thermolib.thermodynamics.fep.BaseProfile>` (or one of its child classes such as :py:class:`BaseFreeEnergyProfile <thermolib.thermodynamics.fep.BaseFreeEnergyProfile>` or :py:class:`SimpleFreeEnergyProfile <thermolib.thermodynamics.fep.SimpleFreeEnergyProfile>`) 
 
-            :param error_estimate: indicate if and how to perform error analysis. One of following options is available:
-            
-                *  **std** -- compute error from the standard deviation within the set of profiles.
-                *  **None** -- do not estimate the error.
-            
+            :param cv_output_unit: the units for printing and plotting of CV values. If None, use the value of the ``cv_output_unit`` attribute of the first profile. Units are defined using the molmod 'units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :type cv_output_unit: str or float, optional, default=None
+
+            :param cv_label: label for the collective variable in plots. If None, use the value of the ``cv_label`` attribute of the first profile.
+            :type cv_label: str, optional, default=None
+
+            :param f_output_unit: the units for printing and plotting of X values (not the unit of the input array, that is defined by x_input_unit). If None, use the value of the ``f_output_unit`` attribute of the first profile. Units are defined using the molmod 'units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :type f_output_unit: str or float, optional, default=None.
+
+            :param f_label: label for the X observable in plots. If None, use the value of the ``f_label`` attribute of the first profile.
+            :type f_label: str, optional, default=None
+
+            :param error_estimate: method of estimating the error. Currently, only *std* is supported, which computes the error from the standard deviation within the set of profiles.            
             :type error_estimate: str, optional, default=None
-
-            :param cv_output_unit: the units for printing and plotting of CV values. Units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_. Defaults to the cv_output_unit of the X profile given.
-            :type cv_output_unit: str or float, optional
-
-            :param cv_label: label for the collective variable in plots. Defaults to the cv_label of the first given X profile.
-            :type cv_label: str, optional
-
-            :param f_output_unit: the units for printing and plotting of X values (not the unit of the input array, that is defined by x_input_unit). Units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_. Defaults to the x_output_unit of the first X profile given.
-            :type f_output_unit: str or float, optional.
-
-            :param f_label: label for the X observable in plots. Defaults to the x_label of the first given X profile.
-            :type f_label: str, optional
-
-            :return: average X profile
-            :rtype: identical as the class of the current routine
         '''
         #sanity checks
         cv_label = None
@@ -248,10 +265,10 @@ class BaseProfile(object):
 
     def set_ref(self, ref='min'):
         '''
-            Set the energy reference of the free energy profile.
+            Set the zero energy reference of the profile.
 
-            :param ref: the choice for the zero reference of X. Currently only 'min', 'max' or an integera is implemented, resulting in setting the value of the minimum, maximum or X[i] to zero respectively. Defaults to 'min'
-            :type ref: str
+            :param ref: the choice for the zero reference of X. Currently only 'min', 'max' or an integer is implemented, resulting in setting the value of the minimum, maximum or X[i] to zero respectively.
+            :type ref: str or int, optional, default='min'
         
             :raises IOError: invalid value for keyword argument ref is given. See doc above for choices.
         '''
@@ -269,7 +286,7 @@ class BaseProfile(object):
             global_maximum.compute(self, dist_prop='stationary')
             ref = global_maximum.get_F()
         else:
-            raise IOError('Invalid REF specification, recieved %s and should be min or an integer' %ref)
+            raise IOError('Invalid REF specification, recieved %s. Check documentation for allowed options.' %ref)
         #Set ref
         self.fs -= ref
         if self.error is not None:
@@ -277,7 +294,7 @@ class BaseProfile(object):
 
     def crop(self, cvrange):
         '''
-            Crop the profile to the limits given by cvrange and throw away cropped data. If return_new_profile is set to false, a copy of the cropped profile will be returns, otherwise the current profile will be cropped and overwritten.
+            Crop the profile to the given cvrange and throw away cropped data. This routine will alter the data in the current profile.
 
             :param cvrange: the range of the collective variable defining the new range to which the FEP will be cropped.
             :type cvrange: tuple
@@ -298,10 +315,40 @@ class BaseProfile(object):
 
     def plot(self, fn: str|None=None, obss: list=['value'], linestyles: list|None=None, linewidths: list|None=None, colors: list|None=None, cvlims: list|None=None, flims: list|None=None, show_legend: bool=False, **plot_kwargs):
         '''
-            Plot x, where (possibly multiple) x is/are specified in the keyword argument obss. 
+            Plot the property stored in the current profile as function of the CV. If the error distribution is stored in self.error, various statistical quantities besides the mean (such as the error width, lower/upper limit on the error bar, random sample) can be plotted using the ``obss`` keyword.
 
-            :param fn: name of the file to store graph in, defaults to 'condprob.png'
-            :type fn: str, optional
+            :param fn: name of a file to save plot to. If None, the plot will not be saved to a file.
+            :type fn: str, optional, default=None
+
+            :param obss: Specify which statistical property/properties to plot. Multiple values are allowed, which will be plotted on the same figure. Following options are supported:
+
+                - **value** - the values stored in self.fs
+                - **mean** - the mean according to the error distribution, i.e. self.error.mean()
+                - **lower** - the lower limit of the 2-sigma error bar (which corresponds to a 95% confidence interval in case of a normal distribution), i.e. self.error.nsigma_conf_int(2)[0]
+                - **upper** - the upper limit of the 2-sigma error bar (which corresponds to a 95% confidence interval in case of a normal distribution), i.e. self.error.nsigma_conf_int(2)[1]
+                - **error** - half the width of the 2-sigma error bar (which corresponds to a 95% confidence interval in case of a normal distribution), i.e. abs(upper-lower)/2
+                - **sample** - a random sample taken from the error distribution
+            :type obss: list, optional, default=['value']
+
+            :param linestyles: Specify the line style (using matplotlib definitions) for each quantity requested in ``obss``. If None, matplotlib will choose.
+            :type linestyles: list or None, optional, default=None
+
+            :param linewidths: Specify the line width (using matplotlib definitions) for each quantity requested in ``obss``. If None, matplotlib will choose.
+            :type linewidths: list of strings or None, optional, default=None
+
+            :param colors: Specify the color (using matplotlib definitions) for each quantity requested in ``obss``. If None, matplotlib will choose.
+            :type colors: list of strings or None, optional, default=None
+
+            :param cvlims: limits to the plotting range of the cv. If None, no limits are enforced
+            :type cvlims: list of strings or None, optional, default=None
+
+            :param flims: limits to the plotting range of the X property. If None, no limits are enforced
+            :type flims: list of strings or None, optional, default=None
+
+            :param show_legend: If True, the legend is shown in the plot
+            :type show_legend: bool, optional, default=None
+            
+            :raises ValueError: if the ``obs`` argument contains an invalid specification
         '''
         #preprocess
         cvunit = parse_unit(self.cv_output_unit)
@@ -367,6 +414,20 @@ class BaseProfile(object):
         return
 
     def plot_corr_matrix(self, fn: str|None=None, flims: list|None=None, cmap: str='bwr', **plot_kwargs):
+        '''
+            Make a 2D filled contour plot of the correlation matrix (i.e. the normalized covariance matrix) containing the correlation between every pair of points on the X profile. This correlation ranges from +1 (red when cmap='bwr') over 0 (white when cmap='bwr') to -1 (blue when cmap='bwr'). For easy interpretation, the plot of the X profile itself is included above the correlation plot (top pane).
+
+            :param fn: name of file to save the plot to. If None, the plot is not saved
+            :type fn: str or None, optional, default=None
+
+            :param flims: Limit the plotting range of the X property in the original profile plot included in the top pane.
+            :type flims: list or None, optional, default=None
+
+            :param cmap: Specification of the matplotlib color map for the 2D plot of the correlation matrix
+            :type cmap: str, optional, default='bwr'
+
+            :raises ValueError: when self.error is not specified (as this is needed to compute the correlation matrix)
+        '''
         if self.error is None:
             raise ValueError('Can only plot correlation matrix if error estimation has been performed!')
         cvunit = parse_unit(self.cv_output_unit)
@@ -395,11 +456,11 @@ class BaseProfile(object):
 
 class BaseFreeEnergyProfile(BaseProfile):
     '''
-        Child class of BaseProfile to define a free energy profile F(q) (stored in self.fs) as function of a certain collective variable (CV) denoted by q (stored in self.cvs). This class will set some defaults choices as well as define  additional attributes and routines specific for manipulation of free energy profiles.
+        Child class of :py:class:`BaseProfile <thermolib.thermodynamics.fep.BaseProfile>` to define a (free) energy profile :math:`F(CV)` (stored in self.fs) as function of a certain collective variable :math:`CV` (stored in self.cvs). This class will set some defaults choices as well as define  additional attributes and routines specific for manipulation of free energy profiles.
     '''
     def __init__(self, cvs, fs, temp, error=None, cv_output_unit='au', f_output_unit='kjmol', cv_label='CV', f_label='F'):
         """
-            See BaseProfile for documentation on meaning of most arguments.
+            See documentation of :py:class:`BaseProfile <thermolib.thermodynamics.fep.BaseProfile>` for meaning of meaning of arguments not documented below..
 
             :param temp: the temperature at which the free energy is constructed, which should be in atomic units!
             :type temp: float
@@ -415,6 +476,12 @@ class BaseFreeEnergyProfile(BaseProfile):
         
     @classmethod
     def from_txt(cls, fn, temp, cvcol=0, fcol=1, fstdcol=None, cv_input_unit='au', f_input_unit='kjmol', cv_output_unit='au', f_output_unit='kjmol', cv_label='CV', f_label='F', cvrange=None, delimiter=None, reverse=False, cut_constant=False):
+        '''
+            See documentation off parent class :py:class:`BaseProfile <thermolib.thermodynamics.fep.BaseProfile>` for meaning of arguments not documented below.
+        
+            :param temp: temperature corresponding to the free (energy) profile (in atomic units, hence, in kelvin).
+            :type temp: float
+        '''
         profile = BaseProfile.from_txt(fn, cvcol=cvcol, fcol=fcol, fstdcol=fstdcol, cv_input_unit=cv_input_unit, f_input_unit=f_input_unit, cv_output_unit=cv_output_unit, f_output_unit=f_output_unit, cv_label=cv_label, f_label=f_label, cvrange=cvrange, delimiter=delimiter, reverse=reverse, cut_constant=cut_constant)
         error = None
         if profile.error is not None:
@@ -424,7 +491,11 @@ class BaseFreeEnergyProfile(BaseProfile):
     @classmethod
     def from_histogram(cls, histogram, temp, cv_output_unit=None, cv_label=None, f_output_unit='kjmol'):
         '''
-            Use the estimated probability histogram to construct the corresponding free energy profile at the given temperature.
+            Use the probability histogram :math:`p(q)` to construct the corresponding free energy profile :math:`F(q)` at the given temperature using the following formula
+
+            .. math:: 
+
+                F(q) = -k_BT\\log\\left(p(q)\\right)
         
             :param histogram: histogram from which the free energy profile is computed
             :type histogram: histogram.Histogram1D
@@ -432,17 +503,14 @@ class BaseFreeEnergyProfile(BaseProfile):
             :param temp: the temperature at which the histogram input data was simulated, in atomic units.
             :type temp: float
 
-            :param cv_output_unit: the units for printing and plotting of CV values (not the unit of the input array, that is defined by cv_input_unit). Units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_. Defaults to the cv_output_unit of the given histogram
-            :type cv_output_unit: str or float, optional
+            :param cv_output_unit: the units for printing and plotting of CV values (not the unit of the input array, that is assumed to be in atomic units). Units are defined using the molmod 'units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :type cv_output_unit: str, default='au'
+                
+            :param f_output_unit: the units for printing and plotting of free energy values (not the unit of the input array, that is assumed to be in atomic units). Units are defined using the molmod 'units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :type f_output_unit: str, default='kjmol'
 
-            :param cv_label: label for the new CV. Defaults to the cv_label of the given histogram
-            :type cv_label: str, optional
-
-            :param f_output_unit: the units for printing and plotting of free energy values (not the unit of the input array, that is defined by f_input_unit). Units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_.
-            :type f_output_unit: str or float, optional, default=kjmol
-
-            :return: free energy profile corresponding to the estimated probability histogram
-            :rtype: BaseFreeEnergyProfile (or its inheriting child class)
+            :param cv_label: label for the CV for printing and plotting
+            :type cv_label: str, optional, default='CV'
         '''
         fs = np.zeros(len(histogram.ps))*np.nan
         fs[histogram.ps>0] = -boltzmann*temp*np.log(histogram.ps[histogram.ps>0])
@@ -467,22 +535,26 @@ class BaseFreeEnergyProfile(BaseProfile):
         return cls(histogram.cvs, fs, temp, error=error, cv_output_unit=cv_output_unit, f_output_unit=f_output_unit, cv_label=cv_label)
 
     def process_states(self, *args, **kwargs):
-        raise NotImplementedError('BaseFreeEnergyProfile has no routine process_states implemented. Try to convert the free energy profile to a SimpleFreeEnergyProfile first.')
+        '''
+            This routine is not implemented in the current class, but only in its child classes. Therefore, if you want to use this routine, consider transforming your free energy profile from an instance of this class to an instance of one of its child classes (such as :py:class:`SimpleFreeEnergyProfile <thermolib.thermodynamics.fep.SimpleFreeEnergyProfile>`).
+        '''
+        raise NotImplementedError('Cannot process states of a BaseFreeEnergyProfile. First convert to a SimpleFreeEnergyProfile.')
 
-    def recollect(self, new_cvs, fn_plt=None, return_new_fes=False):
+    def recollect(self, new_cvs, fn_plot=None, return_new_fes=False):
         '''
             Redefine the CV array to the new given array. For each interval of new CV values, collect all old free energy values for which the corresponding CV value falls in this new interval and average out. As such, this routine can be used to filter out noise on a given free energy profile by means of averaging.
 
             :param new_cvs:  Array of new CV values
             :type new_cvs: np.ndarray
             
-            :param fn_plt: File name for comparison plot of old and new profile., defaults to None
-            :type fn_plt: str, optional
+            :param fn_plot: File name for comparison plot of old and new profile. If None, no such plot will be made
+            :type fn_plot: str, optional, default=None
             
-            :param return_new_fes: If set to False, the recollected data will be written to the current instance (overwritting the original data). If set to True, a new instance will be initialized with the recollected data., defaults to False
-            :type return_new_fes: bool, optional
+            :param return_new_fes: If set to False, the recollected data will be written to the current instance (overwritting the original data). If set to True, a new instance will be initialized with the recollected data and returned.
+            :type return_new_fes: bool, optional, default=False
             
             :return: Returns an instance of the current class if the keyword argument `return_new_fes` is set to True. Otherwise, None is returned.
+            :rtype: None or instance of same class as self
         '''
         assert new_cvs[0]<=self.cvs[0], 'First value of new cvs should be lower or equal to first value of original cvs, otherwise data will be lost. If you really want to delete data, use crop first.'
         assert self.cvs[-1]<=new_cvs[-1], 'Last value of new cvs should be greater or equal to last value of original cvs, otherwise data will be lost. If you really want to delete data, use crop first.'
@@ -512,7 +584,7 @@ class BaseFreeEnergyProfile(BaseProfile):
             if iold>=len(self.cvs):
                 #print('reached end of old cvs, breaking')
                 break
-        if fn_plt is not None:
+        if fn_plot is not None:
             pp.clf()
             fig, ax = pp.subplots(nrows=1, ncols=1)
             #make free energy plot
@@ -526,7 +598,7 @@ class BaseFreeEnergyProfile(BaseProfile):
             ax.legend(loc='best')
             #save
             fig.set_size_inches([8,8])
-            pp.savefig(fn_plt)
+            pp.savefig(fn_plot)
         if return_new_fes:
             return self.__class__(new_cvs, new_fs, self.T, cv_output_unit=self.cv_output_unit, f_output_unit=self.f_output_unit, cv_label=self.cv_label)
         else:
@@ -535,29 +607,35 @@ class BaseFreeEnergyProfile(BaseProfile):
 
     def transform_function(self, function, derivative=None, cv_label='Q', cv_output_unit='au'):
         '''
-            Routine to transform the current free energy profile in terms of the original CV towards a free energy profile in terms of the new collective variable Q.
+            Routine to transform the current free energy profile in terms of the original :math:`CV` towards a free energy profile in terms of a new collective variable :math:`Q=f(CV)` according to the formula:
 
-            :param function: The transformation function from the old CV towards the new Q
+            .. math:: 
+
+                F_2(Q) &= F_1(f^{-1}(Q)) + k_B T \\log\\left[\\frac{df}{dCV}(f^{-1}(Q))\\right]
+
+            :param function: The transformation function relating the old CV to the new Q, i.e. :math:`Q=f(CV)`
             :type function: callable
 
-            :param derivative: The analytical derivative of the transformation function. If set to None, the derivative will be estimated through numerical differentiation. Defaults to None
-            :type derivative: callable, optional
+            :param derivative: The analytical derivative of the transformation function :math:`f`. If set to None, the derivative will be estimated through numerical differentiation.
+            :type derivative: callable, optional, default=None
 
-            :param cv_label: The label of the new collective variable used in plotting etc, defaults to 'Q'
-            :type cv_label: str, optional
+            :param cv_label: The label of the new collective variable used in plotting etc
+            :type cv_label: str, optional, default='Q'
 
-            :param cv_output_unit: The unit of the new collective varaible used in plotting and printing, defaults to 'au'
-            :type cv_output_unit: str, optional
+            :param cv_output_unit: The unit of the new collective varaible used in plotting and printing. Units are defined using the molmod 'units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :type cv_output_unit: str, optional, default='au'
 
             :return: transformed free energy profile
             :rtype: the same class as the instance this routine is called upon
+
+            :raise ValueError: if self.error is a distribution that is neither an instance of :py:class:`GaussianDistribution <thermolib.error.GaussianDistribution>` nor of :py:class:`MultiGaussianDistribution <thermolib.error.MultiGaussianDistribution>`
         '''
         qs = function(self.cvs)
         if derivative is None:
             eps = min(self.cvs[1:]-self.cvs[:-1])*0.001
             def derivative(q):
                 return (function(q+eps/2)-function(q-eps/2))/eps
-        dfs = derivative(qs)
+        dfs = derivative(self.cvs)
         fs = self.fs + np.log(abs(dfs))/self.beta
         error = None
         if self.error is not None:
@@ -604,7 +682,7 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
             error = base.error.copy()
         return SimpleFreeEnergyProfile(base.cvs, base.fs, base.T, error=error, cv_label=base.cv_label, cv_output_unit=base.cv_output_unit, f_output_unit=base.f_output_unit)
 
-    def process_states(self, lims=[-np.inf, None, None, np.inf], verbose=False):
+    def process_states(self, lims=[-np.inf, None, None, np.inf], verbose=False, propagator=Propagator()):
         '''
             Routine to find:
             
@@ -623,7 +701,7 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
             ts_range = [-np.inf, np.inf]
         else:
             ts_range = [lims[1], lims[2]]
-        self.ts = Maximum('ts', cv_range=ts_range, cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
+        self.ts = Maximum('ts', cv_range=ts_range, cv_unit=self.cv_output_unit, f_unit=self.f_output_unit, propagator=propagator)
         self.ts.compute(self)
         if verbose: self.ts.print()
         cv_ts = self.cvs[self.ts.index]
@@ -633,7 +711,7 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
             r_range = [lims[0], cv_ts]
         else:
             r_range = [lims[0], lims[1]]
-        self.r = Minimum('r', cv_range=r_range, cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
+        self.r = Minimum('r', cv_range=r_range, cv_unit=self.cv_output_unit, f_unit=self.f_output_unit, propagator=propagator)
         self.r.compute(self)
         if verbose: self.r.print()
         
@@ -642,16 +720,16 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
             p_range = [cv_ts, lims[3]]
         else:
             p_range = [lims[2], lims[3]]
-        self.p = Minimum('p', cv_range=p_range, cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
+        self.p = Minimum('p', cv_range=p_range, cv_unit=self.cv_output_unit, f_unit=self.f_output_unit, propagator=propagator)
         self.p.compute(self)
         if verbose: self.p.print()
             
         #define macrostates
-        self.R = Integrate('R', cv_range=[lims[0], self.ts] , beta=self.beta, cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
+        self.R = Integrate('R', cv_range=[lims[0], self.ts] , beta=self.beta, cv_unit=self.cv_output_unit, f_unit=self.f_output_unit, propagator=propagator)
         self.R.compute(self)
         if verbose: self.R.print()
 
-        self.P = Integrate('P', cv_range=[self.ts, lims[3]], beta=self.beta, cv_unit=self.cv_output_unit, f_unit=self.f_output_unit)
+        self.P = Integrate('P', cv_range=[self.ts, lims[3]], beta=self.beta, cv_unit=self.cv_output_unit, f_unit=self.f_output_unit, propagator=propagator)
         self.P.compute(self)
         if verbose: self.P.print()
 
@@ -1314,7 +1392,7 @@ class FreeEnergySurface2D(object):
     def transform(self, *args, **kwargs):
         raise NotImplementedError('Transform function not yet implemented, but is comming soon!')
 
-    def project_difference(self, sign=1, cv_output_unit='au', return_class=BaseFreeEnergyProfile, error_distribution=MultiGaussianDistribution):
+    def project_difference(self, sign=1, cv_output_unit='au', return_class=BaseFreeEnergyProfile, error_distribution=MultiGaussianDistribution, propagator=Propagator()):
         '''
             Construct a 1D free energy profile representing the projection of the 2D FES onto the difference of collective variables:
 
@@ -1356,9 +1434,9 @@ class FreeEnergySurface2D(object):
                 if (abs(np.array(cvs)-q)>1e-6).all():
                     cvs.append(q)
         cvs = np.array(sorted(cvs))
-        return self.project_function(function, cvs, cv_label=cv_label, cv_output_unit=cv_output_unit, return_class=return_class, error_distribution=error_distribution)
+        return self.project_function(function, cvs, cv_label=cv_label, cv_output_unit=cv_output_unit, return_class=return_class, error_distribution=error_distribution, propagator=propagator)
 
-    def project_average(self, cv_output_unit='au', return_class=BaseFreeEnergyProfile, error_distribution=MultiGaussianDistribution):
+    def project_average(self, cv_output_unit='au', return_class=BaseFreeEnergyProfile, error_distribution=MultiGaussianDistribution, propagator=Propagator()):
         '''
             Construct a 1D free energy profile representing the projection of the 2D FES F2(CV1,CV2) onto the average q=(CV1+CV2)/2 of the collective variables:
 
@@ -1386,9 +1464,9 @@ class FreeEnergySurface2D(object):
         cvs = np.array(sorted(cvs))
         def function(q1,q2):
             return 0.5*(q1+q2)
-        return self.project_function(function, cvs, cv_label='0.5*(%s+%s)' %(self.cv1_label,self.cv1_label), cv_output_unit=cv_output_unit, return_class=return_class, error_distribution=error_distribution)
+        return self.project_function(function, cvs, cv_label='0.5*(%s+%s)' %(self.cv1_label,self.cv1_label), cv_output_unit=cv_output_unit, return_class=return_class, error_distribution=error_distribution, propagator=propagator)
 
-    def project_cv1(self, return_class=BaseFreeEnergyProfile, delta=None, error_distribution=MultiGaussianDistribution):
+    def project_cv1(self, return_class=BaseFreeEnergyProfile, delta=None, error_distribution=MultiGaussianDistribution, propagator=Propagator()):
         '''
             Construct a 1D free energy profile representing the projection of the 2D FES F2(CV1,CV2) onto q=CV1. This is implemented as follows:
 
@@ -1402,9 +1480,9 @@ class FreeEnergySurface2D(object):
         '''
         def function(q1,q2):
             return q1
-        return self.project_function(function, self.cv1s.copy(), delta=delta, cv_label=self.cv1_label, cv_output_unit=self.cv1_output_unit, return_class=return_class, error_distribution=error_distribution)
+        return self.project_function(function, self.cv1s.copy(), delta=delta, cv_label=self.cv1_label, cv_output_unit=self.cv1_output_unit, return_class=return_class, error_distribution=error_distribution, propagator=propagator)
 
-    def project_cv2(self, return_class=BaseFreeEnergyProfile, delta=None, error_distribution=MultiGaussianDistribution):
+    def project_cv2(self, return_class=BaseFreeEnergyProfile, delta=None, error_distribution=MultiGaussianDistribution, propagator=Propagator()):
         '''
             Construct a 1D free energy profile representing the projection of the 2D FES F2(CV1,CV2) onto q=CV2. This is implemented as follows:
 
@@ -1418,9 +1496,9 @@ class FreeEnergySurface2D(object):
         '''
         def function(q1,q2):
             return q2
-        return self.project_function(function, self.cv2s.copy(), delta=delta, cv_label=self.cv2_label, cv_output_unit=self.cv2_output_unit, return_class=return_class, error_distribution=error_distribution)
+        return self.project_function(function, self.cv2s.copy(), delta=delta, cv_label=self.cv2_label, cv_output_unit=self.cv2_output_unit, return_class=return_class, error_distribution=error_distribution, propagator=propagator)
 
-    def project_function(self, function, qs, delta=None, cv_label='CV', cv_output_unit='au', return_class=BaseFreeEnergyProfile, error_distribution=MultiGaussianDistribution):
+    def project_function(self, function, qs, delta=None, cv_label='CV', cv_output_unit='au', return_class=BaseFreeEnergyProfile, error_distribution=MultiGaussianDistribution, propagator=Propagator()):
         '''
             Routine to implement the general projection of a 2D FES onto a collective variable defined by the given function (which takes the original two CVs as arguments).
 
@@ -1472,7 +1550,6 @@ class FreeEnergySurface2D(object):
             fs = project(self.fs)
             error = None
         else:
-            propagator = Propagator()
             error = propagator(project, self.error, target_distribution=error_distribution, samples_are_flattened=True)
             fs = error.mean()
         return return_class(qs, fs, self.T, error=error, cv_output_unit=cv_output_unit, f_output_unit=self.f_output_unit, cv_label=cv_label)

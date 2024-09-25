@@ -44,7 +44,7 @@ If a certain version is no longer available in the future, the user will have to
 
 More information on the features of ThermoLIB and how to use them, including tutorials can be found at [https://molmod.github.io/thermolib](https://molmod.github.io/thermolib).
 
-# Therms of use
+# Terms of use
 
 ThermoLIB is developed by prof. Louis Vanduyfhuys at the Center for Molecular Modeling under supervision of prof. Veronique Van Speybroeck. Usage of ThermoLIB should be requested with prof. Van Speybroeck or prof. Vanduyfhuys.
 

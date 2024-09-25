@@ -325,7 +325,7 @@ class ConditionalProbability(object):
     def finish_error(self, error_estimate, error_p_threshold=0.0):
         raise NotImplementedError('Error estimation not yet implemented for %s' %self.__class__.__name__)
 
-    def plot(self, slicer, fn=None, obss=['base'], linestyles=None, linewidths=None, colors=None, logscale=False, ylims=None, croplims=None, cmap=pp.get_cmap('rainbow'), **plot_kwargs):
+    def plot(self, slicer, fn=None, obss=['value'], linestyles=None, linewidths=None, colors=None, logscale=False, ylims=None, croplims=None, cmap=pp.get_cmap('rainbow'), **plot_kwargs):
         '''
             Plot self.pconds[slicer], where slicer needs to be chosen such that self.pconds[slice] is 1D or 2D. The resulting graph will respectively by a regular 1D plot or 2D contourplot.
 
@@ -795,13 +795,13 @@ class ConditionalProbability1D1D(ConditionalProbability):
 
 class ConditionalProbability1D2D(ConditionalProbability):
     '''
-        Class to store and compute conditional probabilities of the form :math:`p(q1,q2|cv)` which can be used to transform a 1D free energy profile in terms of the collective variable *cv* towards a 2D free energy surface in terms of the collective variables :math:`q_{1}` and :math:`q_{2}`.
+        Class to store and compute conditional probabilities of the form :math:`p(q_1,q_2|cv)` which can be used to transform a 1D free energy profile in terms of the collective variable :math:`cv` towards a 2D free energy surface in terms of the collective variables :math:`q_1` and :math:`q_2`.
     '''
     def __init__(self, q1_label='Q1', q2_label='Q2', cv_label='CV', q1_output_unit='au', q2_output_unit='au', cv_output_unit='au', verbose=False):
         '''
             :param q1_bins: np.histogram argument for defining the bins of Q1 samples
             :type q1_bins: see np.histogram and np.histogram2d, optional
-            .
+
             :param q2_bins: np.histogram argument for defining the bins of Q2 samples
             :type q2_bins: see np.histogram and np.histogram2d, optional
 

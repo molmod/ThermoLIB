@@ -12,7 +12,7 @@
 
 from __future__ import annotations
 
-from thermolib.error import Propagator, GaussianDistribution, LogGaussianDistribution, SampleDistribution, ncycles_default
+from thermolib.error import Propagator, GaussianDistribution, LogGaussianDistribution, SampleDistribution
 from thermolib.tools import integrate
 
 from molmod.units import *
@@ -27,7 +27,7 @@ __all__ = ['Minimum', 'Maximum', 'Integrate']
 
 class State(object):
     '''Abstract class for inheriting classes Microstate and Macrostate'''
-    def __init__(self, name, cv_unit='au', f_unit='kjmol'):
+    def __init__(self, name, cv_unit='au', f_unit='kjmol', propagator=Propagator()):
         self.name = name
         self.cycles = {'cv': None, 'f': None}
         self.cv = None
@@ -36,6 +36,7 @@ class State(object):
         self.F_dist = None
         self.cv_unit = cv_unit
         self.f_unit = f_unit
+        self.propagator = propagator
     
     def get_cv(self):
         if self.cv_dist is None:
@@ -80,8 +81,8 @@ class State(object):
 
 class Microstate(State):
     '''Abstract parent class for defining microstates on a free energy profile. The routine _get_index_fep needs to be implemented in child classes.'''
-    def __init__(self, name, cv_unit='au', f_unit='kjmol'):
-        State.__init__(self, name, cv_unit=cv_unit, f_unit=f_unit)
+    def __init__(self, name, cv_unit='au', f_unit='kjmol', propagator=Propagator()):
+        State.__init__(self, name, cv_unit=cv_unit, f_unit=f_unit, propagator=propagator)
         self.cycles['indexes'] = None
         self.index = None
 
@@ -107,7 +108,6 @@ class Microstate(State):
                     return self._get_state_fep(fep.cvs, fs)[1]
                 def fun_F(fs):
                     return self._get_state_fep(fep.cvs, fs)[2]
-                self.propagator = Propagator(ncycles=ncycles_default)
                 self.propagator.gen_args_samples(fep.error)
                 self.propagator.calc_fun_values(fun_cv)
                 self.cv_dist = self.propagator.get_distribution()
@@ -139,9 +139,9 @@ class Microstate(State):
 
 class Minimum(Microstate):
     '''Microstate class that identifies the minimum in a certain range defined by either cv values, indexes or other microstates.'''
-    def __init__(self, name, cv_range=[-np.inf, np.inf], cv_unit='au', f_unit='kjmol'):
+    def __init__(self, name, cv_range=[-np.inf, np.inf], cv_unit='au', f_unit='kjmol', propagator=Propagator()):
         self.cv_range = cv_range
-        Microstate.__init__(self, name, cv_unit=cv_unit, f_unit=f_unit)
+        Microstate.__init__(self, name, cv_unit=cv_unit, f_unit=f_unit, propagator=propagator)
 
     def _get_index_fep(self, cvs, fs):
         index = np.nan
@@ -161,9 +161,9 @@ class Minimum(Microstate):
 
 class Maximum(Microstate):
     '''Microstate class that identifies the maximum in a certain range defined by either cv values, indexes or other microstates.'''
-    def __init__(self, name, cv_range=None, cv_unit='au', f_unit='kjmol'):
+    def __init__(self, name, cv_range=None, cv_unit='au', f_unit='kjmol', propagator=Propagator()):
         self.cv_range = cv_range
-        Microstate.__init__(self, name, cv_unit=cv_unit, f_unit=f_unit)
+        Microstate.__init__(self, name, cv_unit=cv_unit, f_unit=f_unit, propagator=propagator)
     
     def _get_index_fep(self, cvs, fs):
         index = None
@@ -183,8 +183,8 @@ class Maximum(Microstate):
 
 class Macrostate(State):
     '''Abstract parent class for defining macrostates on a free energy profile. The routine _get_state_fep needs to be implemented in child classes.'''
-    def __init__(self, name, cv_unit='au', f_unit='kjmol'):
-        State.__init__(self, name, cv_unit=cv_unit, f_unit=f_unit)
+    def __init__(self, name, cv_unit='au', f_unit='kjmol', propagator=Propagator()):
+        State.__init__(self, name, cv_unit=cv_unit, f_unit=f_unit, propagator=propagator)
         self.cvstd = None
         self.cvstd_dist = None
         self.Z = None
@@ -210,7 +210,6 @@ class Macrostate(State):
                 def fun_F(fs):
                     return self._get_state_fep(fep.cvs, fs)[3]
                 #init propagator
-                self.propagator = Propagator(ncycles=ncycles_default)
                 self.propagator.gen_args_samples(fep.error)
                 self.propagator.calc_fun_values(fun_cv)
                 self.cv_dist = self.propagator.get_distribution()
@@ -263,10 +262,10 @@ class Macrostate(State):
 
 
 class Integrate(Macrostate):
-    def __init__(self, name, cv_range, beta, cv_unit='au', f_unit='kjmol'):
+    def __init__(self, name, cv_range, beta, cv_unit='au', f_unit='kjmol', propagator=Propagator()):
         self.cv_range = cv_range
         self.beta = beta
-        Macrostate.__init__(self, name, cv_unit=cv_unit, f_unit=f_unit)
+        Macrostate.__init__(self, name, cv_unit=cv_unit, f_unit=f_unit, propagator=propagator)
     
     def _get_state_fep(self, cvs, fs, fdist=None):
         #get cv_range in case a microstate was used in the cv_range argument

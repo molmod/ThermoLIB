@@ -29,8 +29,9 @@ import time
 __all__ = [
     'format_scientific', 'h5_read_dataset',
     'integrate', 'integrate2d', 'rolling_average',
-    'blav', 'corrtime_from_acf', 'decorrelate',
-    'read_wham_input', 'multivariate_normal', 'invert_fisher_to_covariance', 'fisher_matrix_mle_probdens'
+    'read_wham_input', 'extract_polynomial_bias_info',
+    'blav', 'corrtime_from_acf', 'decorrelate', 'multivariate_normal',
+    'invert_fisher_to_covariance', 'fisher_matrix_mle_probdens',
 ]
 
 #Miscellaneous utility routines
@@ -50,25 +51,6 @@ def format_scientific(x, prec=3, latex=True):
 
         :returns: A formatted string representing the input value in scientific notation.
         :rtype: str
-
-        :Example:
-
-        .. code-block:: python
-
-            import numpy as np
-
-            # Example 1: Default precision and LaTeX formatting
-            result1 = format_scientific(1.2345e-8)
-            print(result1)  # Output: '$1.235\\cdot 10^{-8}$'
-
-            # Example 2: Custom precision and regular string formatting
-            result2 = format_scientific(3.14159e12, prec=2, latex=False)
-            print(result2)  # Output: '3.14e+12'
-
-        :Note:
-
-        - If the input value is a `NaN` (Not a Number), the function returns the string 'nan'.
-        - The scientific notation is represented in the format 'a * 10^b', where 'a' is the coefficient and 'b' is the exponent. The coefficient is formatted with the specified precision.
     """
     if np.isnan(x):
         return r'nan'
@@ -90,23 +72,6 @@ def h5_read_dataset(fn, dset):
 
         :returns: A NumPy array containing the data from the specified dataset.
         :rtype: numpy.ndarray
-
-        :Example:
-
-        .. code-block:: python
-
-            # Example: Reading a dataset named 'temperature' from the file 'simulation_data.h5'
-            data_array = h5_read_dataset('simulation_data.h5', 'temperature')
-
-        :Dependencies:
-
-        - This function relies on the `h5py` library, which is commonly used for working with HDF5 files in Python. Ensure that the library is installed before using this function.
-
-        :Note:
-
-        - The function uses the 'r' (read) mode when opening the HDF5 file (:code:`mode='r'`), indicating that the file will only be read and not modified.
-        - It is assumed that the specified dataset (:code:`dset`) exists within the HDF5 file. If the dataset is not present, an error may occur.
-
     """
     with h5.File(fn, mode = 'r') as f:
         data = np.array(f[dset])
@@ -129,19 +94,6 @@ def integrate(xs, ys, yerrs=None):
 
         :returns: If `yerrs` is not provided, the integrated value of the dataset using the trapezoidal rule. If `yerrs` is provided, a tuple containing the integrated value and the error in the integration.
         :rtype: float or tuple
-
-        :Assertions:
-
-        - The function includes an assertion to ensure that the lengths of `xs` and `ys` are equal.
-
-        :Note:
-
-        - The trapezoidal rule is used for numerical integration, assuming a piecewise linear interpolation between data points.
-        - If uncertainties (`yerrs`) are provided, the error in the integration is computed (assuming uncorrelated `yerrs`) and returned along with the integrated value.
-
-        :Caution:
-
-        - The function assumes that the input dataset is well-behaved, and numerical issues may arise if the dataset has irregularities or extreme variations.
         '''
     assert len(xs)==len(ys)
     result = 0.0
@@ -181,16 +133,6 @@ def integrate2d(z,x=None,y=None,dx=1.,dy=1.):
 
         :returns: The integrated value of the two-dimensional dataset using the midpoint rule.
         :rtype: float
-
-        :Note:
-
-        - The midpoint rule is used for numerical integration, assuming a piecewise constant interpolation between data points.
-        - If coordinate arrays (`x` and `y`) are provided, the function infers the grid spacings (`dx` and `dy`) based on the range of the coordinates.
-        - The integrated value is computed using a weighted sum of the corner values (`s1`), edge values (`s2`), and interior values (`s3`).
-
-        :Caution:
-
-        - The function assumes that the input dataset is well-behaved, and numerical issues may arise if the dataset has irregularities or extreme variations.
     '''
     if x is not None:
         dx = (x[-1]-x[0])/(np.shape(x)[0]-1)
@@ -203,7 +145,7 @@ def integrate2d(z,x=None,y=None,dx=1.,dy=1.):
 
 def rolling_average(ys, width, yerrs=None):
     """
-        Compute a rolling average of a given dataset, optionally accompanied by error bars. The rolling average is calculated by dividing the dataset into windows of a specified width and averaging the values within each window.
+        Compute a rolling average of a given dataset, optionally accompanied by error bars. The rolling average is calculated by dividing the dataset into windows of a specified width and averaging the values within each window. Optionally also compute the error bar on the rolling average if the input ``yerrs`` is provided.
 
         :param ys: The input dataset for which the rolling average is calculated.
         :type ys: list or numpy.ndarray
@@ -216,11 +158,6 @@ def rolling_average(ys, width, yerrs=None):
 
         :returns: If `yerrs` is not provided, a NumPy array containing the rolling averages of the input dataset. If `yerrs` is provided, a tuple containing a NumPy array with the rolling averages and a NumPy array with the corresponding error bars.
         :rtype: numpy.ndarray or tuple
-
-        :Assertions:
-
-        - The function includes assertions to ensure that the rolling average width is an integer and at least 2.
-        - If error bars (`yerrs`) are provided, an assertion checks that the lengths of `ys` and `yerrs` are the same.
     """
     assert isinstance(width, int), "Rolling average width needs to be an integer"
     assert width>=2, "Rolling average width needs to be at least 2"
@@ -246,7 +183,7 @@ def rolling_average(ys, width, yerrs=None):
 
 def read_wham_input(fn: str, trajectory_readers, trajectory_path_templates, bias_potential: str='None', q01_unit: str='au', kappa1_unit: str='au', q02_unit: str='au', kappa2_unit: str='au', inverse_cv1: bool=False, inverse_cv2: bool=False, additional_bias=None, additional_bias_dimension: str='cv1', skip_bias_names=[], verbose: bool=False):
     '''
-        Read a WHAM input file, extract relevant information, and initialize necessary objects for further analysis.
+        Read a WHAM input file (metadata file) to read the simulation temperature, trajectories (CV samples) and bias potentials.
 
         :param fn: The path to the WHAM input file, i.e. the metadata file. This file should be in the following format:
 
@@ -258,60 +195,55 @@ def read_wham_input(fn: str, trajectory_readers, trajectory_path_templates, bias
                 NAME_3 Q0_1_3 KAPPA_1_3 [Q0_2_3 KAPPA_2_3 [...]]
                 ...
             
-            where (Q0_i_j, KAPPA_i_j) is the Q0 and KAPPA value of the i-th CV in the j-th bias potential.
+            where NAME_i is a label for the i-th simulation that will be used to identify the location of its trajectory file (see parameter ``trajectory_path_templates`` below), (Q0_j_i, KAPPA_j_i) is the Q0 and KAPPA value of the j-th CV in the i-th bias potential (.i.e. of the i-th biased simulation). As a first example, a line ``W0 0.5 100`` would indicate a simulation labeled W0 with a bias applied along a single CV (1D bias) centered around CV=0.5 and with force constant 100 (the units of which can be further specified in the ``q01_unit`` and ``kappa1_unit`` arguments). As a second example, a line ``sim3 0.5 100 -1.0 150`` would indicate a simulation labeled sim3 with a bias applied along two CVs (2D bias) centered around (CV1,CV2)=(0.5,-1.0) and with force constant 100 along CV1 and 150 along CV2.
 
         :type fn: str
 
-        :param trajectory_readers: an instance (or list of instances) of the TrajectoryReader class that implements how to read the CV values from the trajectory files. If a list of readers is given, each reader should have its corresponding trajectory_path_template defined in the list of trajectory_path_templates. For information on how these trajectory files are determined, see description of :param trajectory_path_templates:.
-        :type trajectory_readers: TrajectoryReader or list of TrajectoryReader instances
+        :param trajectory_readers: implements how to read the CV values from the trajectory file of a simulation. If a list of readers is given, each reader should have its corresponding trajectory_path_template defined in the list of trajectory_path_templates. For information on how these trajectory files are determined, see description of the parameter ``trajectory_path_templates``.
+        :type trajectory_readers: instance (or list of instances) of the :py:class:`CVComputer <thermolib.thermodynamics.trajectory.CVComputer>`, :py:class:`HDF5Reader <thermolib.thermodynamics.trajectory.HDF5Reader>`, :py:class:`ColVarReader <thermolib.thermodynamics.trajectory.ColVarReader>`, :py:class:`ASEExtendedXYZReader <thermolib.thermodynamics.trajectory.ASEExtendedXYZReader>` classes
 
-        :param trajectory_path_templates: template (or list of templates) for defining the path (relative to the directory containing fn) to the trajectory file corresponding to each bias. Such template argument should be a string containing a single '%s' substring which gets replaced with the name of the biases defined in fn. For example, if trajectory_path_templates is given by 'trajectories/%s/colvar', then the trajectory for the simulation biased with the potential named NAME_2 in the file fn (see above) is given by the path 'trajectories/NAME_2/colvar' relative to the directory containing fn. Defaults to '%s'. If a list of templates is given, each template corresponds to a given trajectory reader defined in the trajectory_readers argument.
-        :type trajectory_path_templates: str or list of strings, optional
+        :param trajectory_path_templates: template (or list of templates) for defining the path (relative to the directory containing ``fn``) to the trajectory file corresponding to each simulation. Such template argument should be a string containing a single '%s' substring which gets replaced with the label of the simulation defined in fn (i.e. NAME_j in the code block above). For example, if trajectory_path_templates is given by ``trajectories/%s/colvar``, then the trajectory for the simulation labeled NAME_2 in fn is located at ``trajectories/NAME_2/colvar`` relative to the directory containing fn. If a list of templates is given, each template corresponds to a given trajectory reader defined in the ``trajectory_readers`` argument.
+        :type trajectory_path_templates: str or list of strings, optional, default='%s'
 
-        :param bias_potential: (optional, default='None') The type of bias potential, currently allowed values are 'Parabola1D', 'Parabola2D', or 'None'.
+        :param bias_potential: The type of bias potential, currently allowed values are 'Parabola1D', 'Parabola2D', or 'None'.
 
                 * **Parabola1D** -- harmonic bias of the form 0.5*kappa1*(q1-q01)**2
                 * **Parabola2D** -- harmonic bias of the form 0.5*kappa1*(q1-q01)**2 + 0.5*kappa2*(q2-q02)**2
 
-        :type bias_potential: str
+        :type bias_potential: str, optional, allowed_values=['Parabola1D','Parabola2D','None'], default='None'
 
-        :param q01_unit: (optional, default='au') The unit for the q01 value for each bias potential, q01 corresponds to the minimum in CV (or CV1 in case of a 2D bias) of the harmonic bias potential.
-        :type q01_unit: str
+        :param q01_unit: The unit for the q01 value for each bias potential, q01 corresponds to the minimum in CV (or CV1 in case of a 2D bias) of the harmonic bias potential.
+        :type q01_unit: str, optional, default='au'
 
-        :param kappa1_unit: (optional, default='au') The unit for kappa1 value for each bias potential, kappa1 corresponds to the force constant along CV (or CV1 in case of a 2D bias) of the harmonic bias potential.
-        :type kappa1_unit: str
+        :param kappa1_unit: The unit for kappa1 value for each bias potential, kappa1 corresponds to the force constant along CV (or CV1 in case of a 2D bias) of the harmonic bias potential.
+        :type kappa1_unit: str, optional, default='au'
 
-        :param q02_unit: (optional, default='au') The unit for the q02 value for each bias potential, q02 corresponds to the minimum in CV2 of the SD harmonic bias potential. This argument is ignored in case of a 1D bias.
-        :type q02_unit: str
+        :param q02_unit: The unit for the q02 value for each bias potential, q02 corresponds to the minimum in CV2 of the SD harmonic bias potential. This argument is ignored in case of a 1D bias.
+        :type q02_unit: str, optional, default='au'
 
-        :param kappa2_unit: (optional, default='au') The unit for kappa2 value for each bias potential, kappa2 corresponds to the force constant along CV2 of the harmonic bias potential. This argument is ignored in case of a 1D bias.
-        :type kappa2_unit: str
+        :param kappa2_unit: The unit for kappa2 value for each bias potential, kappa2 corresponds to the force constant along CV2 of the harmonic bias potential. This argument is ignored in case of a 1D bias.
+        :type kappa2_unit: str, optional, default='au'
 
-        :param inverse_cv1: (optional, default=False) If `True`, the CV1-axis will be inverted prior to bias evaluation. WARNING: the rest value parameter q01 of the potential will not be multiplied with -1!
-        :type inverse_cv1: bool
+        :param inverse_cv1: If `True`, the CV1-axis will be inverted prior to bias evaluation. WARNING: the rest value parameter q01 of the potential will not be multiplied with -1!
+        :type inverse_cv1: bool, optional, default=False
 
-        :param inverse_cv2: (optional, default=False) If `True`, the CV2-axis will be inverted prior to bias evaluation. WARNING: the rest value parameter q01 of the potential will not be multiplied with -1! This argument is ignored in case of a 2D bias.
-        :type inverse_cv2: bool
+        :param inverse_cv2: If `True`, the CV2-axis will be inverted prior to bias evaluation. WARNING: the rest value parameter q01 of the potential will not be multiplied with -1! This argument is ignored in case of a 2D bias.
+        :type inverse_cv2: bool, optional, default=False
 
-        :param additional_bias: (optional, default=None) Additional bias potential to be added to the primary bias potential.
-        :type additional_bias: object or None
+        :param additional_bias: Additional bias potential to be added for each simulation on top of the  bias potential defined in fn
+        :type additional_bias: object or None, optional, default=None
 
-        :param additional_bias_dimension: (optional, default='cv1') The dimension in which the additional bias potential operates ('cv1'/'q1' or 'cv2'/'q2').
-        :type additional_bias_dimension: str
+        :param additional_bias_dimension: The dimension in which the additional bias potential operates ('cv1'/'q1' or 'cv2'/'q2').
+        :type additional_bias_dimension: str, optional, default='cv1'
 
-        :param skip_bias_names: (optional, default=[]) A list of bias names to be skipped during processing.
-        :type skip_bias_names: list
+        :param skip_bias_names: A list of bias names to be skipped during processing.
+        :type skip_bias_names: list, optional, default=[]
 
-        :param verbose: (optional, default=False) If `True`, print additional information during the reading process.
-        :type verbose: bool
+        :param verbose: If `True`, print additional information during the reading process.
+        :type verbose: bool, optional, default=False
 
         :returns: A tuple containing temperature, a list of bias potentials, and a list of trajectories.
         :rtype: tuple
-
-        :Note:
-
-        - The function supports 1D and 2D bias potentials, as well as the option to add an additional bias potential.
-        - The units for collective variables (`q01_unit`, `kappa1_unit`, `q02_unit`, `kappa2_unit`) can be specified to ensure unit consistency.
     '''
     from thermolib.thermodynamics.bias import Parabola1D, Parabola2D, MultipleBiasses1D, MultipleBiasses2D
     #some argument dressing
@@ -440,13 +372,12 @@ def extract_polynomial_bias_info(fn_plumed: str='plumed.dat'):
     '''
         Extracts polynomial bias coefficients from a PLUMED input file.
 
-        :param fn_plumed: (optiona, default='plumed.dat') The filename of the PLUMED input file.
-        :type fn_plumed: str
+        :param fn_plumed: The filename of the PLUMED input file.
+        :type fn_plumed: str, optional, default='plumed.dat'
 
         :return: A list of polynomial coefficients for the bias potential.
         :rtype: list of float
     '''
-    #TODO make less error phrone. include check.
     with open(fn_plumed,'r') as plumed:
         for line in plumed:
             idx = line.find('COEFFICIENTS',0)
@@ -463,8 +394,11 @@ def extract_polynomial_bias_info(fn_plumed: str='plumed.dat'):
 
 def _next_pow_two(n):
     '''
-        Utility routine required in _acf routine to find the clostest power of two that is larger than the argument.
+        Utility routine required in _acf routine to find the clostest power of two that is larger than the argument n.
         (Taken from https://dfm.io/posts/autocorr/)
+
+        :param n: lower bound for the sought after power of two
+        :type n: float
     '''
     i = 1
     while i < n:
@@ -473,15 +407,23 @@ def _next_pow_two(n):
 
 def _hl_envelopes_idx(s, dmin=1, dmax=1, split=False):
     """
-    Utility routine required in acf routine to determine upper and lower envolopes.
-    Taken from https://stackoverflow.com/questions/34235530/how-to-get-high-and-low-envelope-of-a-signal
+        Utility routine required in acf routine to determine upper and lower envolopes.
+        Taken from https://stackoverflow.com/questions/34235530/how-to-get-high-and-low-envelope-of-a-signal
 
-    Input :
-    s: 1d-array, data signal from which to extract high and low envelopes
-    dmin, dmax: int, optional, size of chunks, use this if the size of the input signal is too big
-    split: bool, optional, if True, split the signal in half along its mean, might help to generate the envelope in some cases
-    Output :
-    lmin,lmax : high/low envelope idx of input signal s
+        :param s: data signal from which to extract high and low envelopes
+        :type s: 1D numpy array
+
+        :param dmin: minimum size of chunks, use this if the size of the input signal is too big
+        :type dmin: int, optional, default=1
+
+        :param dmax: maximum size of chunks, use this if the size of the input signal is too big
+        :type dmax:nt, optional, default=1
+
+        :param split: if True, split the signal in half along its mean, might help to generate the envelope in some cases
+        :type split: bool, optional, default=False
+
+        :return: high/low envelope idx of input signal s
+        :rtype: two lists of indices
     """
     # locals min      
     lmin = (np.diff(np.sign(np.diff(s))) > 0).nonzero()[0] + 1 
@@ -506,47 +448,30 @@ def _blav(data: np.ndarray, blocksizes=None, fitrange: list=[1, np.inf], model_f
 
         * Block the data in groups of a given blocksize B and compute the average for each block. These are denoted as the block averages.
         * Estimate the original data total average as the average of block averages, as well as the 'naive' error on this total average, i.e., assuming the block averages are uncorrelated.
-        * This naive error bar is, in fact, not the true error because of correlations. However, upon increasing the block size, the correlations will diminish, and hence the naive error will converge towards the true error. Therefore, we vary the block size and fit a mathematical model on the naive error bars as a function of the block size. This model is defined by the argument `model_function`.
+        * This naive error bar is, in fact, not the true error because of correlations. However, upon increasing the block size, the correlations will diminish, and hence the naive error will converge towards the true error. Therefore, we vary the block size and fit a mathematical model on the naive error bars as a function of the block size. This model is defined by the argument ``model_function``.
 
-        Parameters
-        ----------
-
-        :data: 1D array representing the data to be analyzed
+        :param data: 1D array representing the data to be analyzed
         :type data: np.ndarray
 
-        :blocksizes: array of block sizes, defaults to np.arange(1, len(data)+1, 1)
-        :type blocksizes: np.ndarray, optional
+        :param blocksizes: array of block sizes
+        :type blocksizes: np.ndarray, optional, default=np.arange(1, len(data)+1, 1)
 
-        :model_function: mathematical model for the naive error on block averages as a function of the block size. Should be a callable with as the first argument the block size and as the remaining arguments the model parameters to be fitted. The default model is given by:
+        :param fitrange: range of blocksizes to which the fit will be performed
+        :type fitrange: list, optional, default=[1,np.inf]
+
+        :param model_function: mathematical model for the naive error on block averages as a function of the block size. Should be a callable with as the first argument the block size and as the remaining arguments the model parameters to be fitted. The default model is given by:
 
         \[
         \Delta(B;\Delta_{\text{true}},\tau_{\text{int}}) = \Delta_{\text{true}} \cdot \sqrt{\frac{B}{B + \tau_{\text{int}} - 1}}
         \]
 
-        :type model_function: callable, optional
+        :type model_function: callable, optional, default: see description
 
-        :fitrange: range of blocksizes to which the fit will be performed
-        :type fitrange: list, optional
-
-        Returns
-        -------
-
-        * **errors** (*np.ndarray*): The correlated error bars as a function of block sizes.
-        * **true_error** (*float*): The uncorrelated error on the sample mean.
-        * **corrtime** (*float*): The correlation time (in units of the timestep) of the original sample data.
-        * **model_pars** (*list*): Additional fitted parameters of the mathematical model for the naive error bars if any.
-
-        Note
-        ----
-
-        - The default mathematical model for the naive error bars is given by:
-
-        \[
-        \Delta(B; \Delta_{\text{true}}, \tau_{\text{int}}) = \Delta_{\text{true}} \cdot \sqrt{\frac{B}{B + \tau_{\text{int}} - 1}}
-        \]
-
-        - The function uses curve fitting to estimate the parameters of the mathematical model for the naive error bars.
-        - The correlation time (`corrtime`) represents the characteristic time scale of the correlations in the original sample data.
+        :returns:
+            - **errors** (*np.ndarray*) - The correlated error bars as a function of block sizes.
+            - **true_error** (*float*) - The uncorrelated error on the sample mean.
+            - **corrtime** (*float*) - The correlation time (in units of the timestep) of the original sample data.
+            - **model_pars** (*list*) - Additional fitted parameters of the mathematical model for the naive error bars if any.
     '''
     #define model function for naive errors if not specified
     if model_function is None:
@@ -576,48 +501,24 @@ def _blav(data: np.ndarray, blocksizes=None, fitrange: list=[1, np.inf], model_f
 
 def blav(data: np.ndarray, blocksizes=None, fitrange: list=[1, np.inf], model_function=None, plot: bool=False, fn_plot: str=None, plot_ylims: list=None, unit: str='au', **blav_kwargs):
     '''
-        Wrapper routine around `_blav` to apply block averaging and estimate the correlated error bar as well as the corresponding integrated correlation time on the average of the given data series. For more details on the procedure as well as the meaning of the arguments `data`, `blocksizes`, `fitrange`, and `model_function`, see documentation of the routine `_wrap`.
-
-        Parameters
-        ----------
-
-        :param data: 1D array representing the data to be analyzed
-        :type data: np.ndarray
-
-        :param blocksizes: array of block sizes, defaults to np.arange(1, len(data)//10+1, 1)
-        :type blocksizes: np.ndarray or None, optional
-
-        :param fitrange: range of block sizes to which the fit will be performed, defaults to [1, np.inf]
-        :type fitrange: list, optional
-
-        :param model_function: mathematical model for the naive error on block averages as a function of the block size. Should be a callable with as the first argument the block size and as the remaining arguments the model parameters to be fitted. The default model is a square root model.
-        :type model_function: callable, optional
+        Wrapper routine around `_blav` to apply block averaging and estimate the correlated error bar as well as the corresponding integrated correlation time on the average of the given data series. For more details on the procedure as well as the meaning of the arguments `data`, `blocksizes`, `fitrange`, and `model_function`, see documentation of the routine :py:meth:`_wrap <thermolib.tools._blav>`.
 
         :param plot: If True, a plot of the samples and error estimates will be generated. Ignored if fn_plot is not None. Defaults to False.
-        :type plot: bool, optional
+        :type plot: bool, optional, default=False
 
-        :param fn_plot: file name to which to write the plot, defaults to None which means either no plot is made (if plot=False) or the plot is not saved (if plot=True)
-        :type fn_plot: str or None, optional
+        :param fn_plot: file name to which to write the plot. If None is given, either no plot is made (if plot=False) or the plot is not saved (if plot=True)
+        :type fn_plot: str or None, optional, default=None
 
-        :param plot_ylims: Limits for the y-axis in the error plot. Defaults to None.
-        :type plot_ylims: list or None, optional
+        :param plot_ylims: Limits for the y-axis in the error plot.
+        :type plot_ylims: list or None, optional, default=None
 
-        :param unit: unit in which to plot the data, defaults to 'au'
-        :type unit: str, optional
+        :param unit: unit in which to plot the data
+        :type unit: str, optional, default='au'
 
-        Returns
-        -------
-
-        * **mean** (*float*): The sample mean.
-        * **error** (*float*): The error on the sample mean.
-        * **corrtime** (*float*): The correlation time (in units of the timestep) of the original sample data.
-
-        Note
-        ----
-
-        - The function provides an option to generate a plot showing the samples and error estimates as a function of block size.
-        - The `unit` parameter allows for specifying the unit in which to plot the data.
-        - The y-axis limits for the error plot can be adjusted using the `plot_ylims` parameter.
+        :returns: 
+            - **mean** (*float*)- the sample mean.
+            - **error** (*float*) - the error on the sample mean.
+            - **corrtime** (*float*) - the correlation time (in units of the timestep) of the original sample data.
     '''
     #define blocksizes if not specified
     assert len(data)>100, 'I will not apply block averaging on data series with only 100 or less samples'
@@ -649,7 +550,15 @@ def blav(data: np.ndarray, blocksizes=None, fitrange: list=[1, np.inf], model_fu
     return true_error*parse_unit(unit), corrtime
 
 def _acf(data, norm=True):
-    'Compute autocorrelation function (taken from https://dfm.io/posts/autocorr/)'
+    '''
+        Compute autocorrelation function (taken from https://dfm.io/posts/autocorr/)
+
+        :param data: time series for which to construct autocorrelation function
+        :type data: np.ndarray
+
+        :param norm: if True, the acf will be normalized such that acf(0)=1
+        :type norm: boolean, optional, default=True
+    '''
     x = np.atleast_1d(data)
     if len(x.shape) != 1:
         raise ValueError("invalid dimensions for 1D autocorrelation function")
@@ -663,52 +572,38 @@ def _acf(data, norm=True):
         acf /= acf[0]
     return acf
 
-def corrtime_from_acf(data: np.ndarray, nblocks=None, norm: bool=True, plot: bool=False, fn_plot=None, xlims=None, ylims: list=[-0.25, 1.05], n_nested_envelopes=1, **curve_fit_kwargs):
+def corrtime_from_acf(data: np.ndarray, nblocks=None, norm: bool=True, plot: bool=False, fn_plot=None, xlims=None, ylims: list=[-0.25, 1.05], n_nested_envelopes=1, legend=True, **curve_fit_kwargs):
     '''
         Routine to compute the integrated autocorrelation time as follows:
 
-        - Compute the autocorrelation function (possibly after blocking data for noise suppression) using the routine `_acf`.
-        - Extract the upper envelope of the autocorrelation function to eliminate short time oscillations.
-        - Fit a single decaying exponential function to the upper envelope to extract the exponential correlation time.
-        - Translate the exponential correlation time to the integrated correlation time as: :math:`\tau_\text{int} = 2\tau_\text{exp} - 1`.
+        - Compute the autocorrelation function (possibly after blocking data for noise suppression) using the routine :py:meth:`_acf <thermolib.tools._acf>`.
+        - Optionally extract the upper envelope of the autocorrelation function to eliminate short time oscillations (when n_nested_envelopes>1).
+        - Fit a single decaying exponential function of the form :math:`\\exp(-\\frac{t}{\\tau_exp})` to the acf (or its upper envelope) to extract the exponential correlation time.
+        - Translate the exponential correlation time to the integrated correlation time as: :math:`\\tau_\\text{int} = 2\\tau_\\text{exp} - 1`.
 
-        Parameters
-        ----------
-
-        :param data: 1D array representing the data to be analyzed
+        :param data: 1D array representing the time series for which the correlation time needs to be computed
         :type data: np.ndarray
 
-        :param nblocks: Number of blocks for blocking data. Defaults to None.
-        :type nblocks: int or None, optional
+        :param nblocks: If not None, the data will be blocked (in a number of blocks given to nblocks) prior to constructing the acf. This is usefull for surpressing noise.
+        :type nblocks: int or None, optional, default=None
 
-        :param norm: If True, normalize the autocorrelation function. Defaults to True.
-        :type norm: bool, optional
+        :param norm: If True, normalize the autocorrelation function such that acf(0)=1
+        :type norm: bool, optional, default=True
 
-        :param plot: If True, generate a plot showing the autocorrelation function, its average, the upper envelope, and the fitted exponential function. Ignored if fn_plot is not None. Defaults to False.
-        :type plot: bool, optional
+        :param plot: If True, generate a plot of the acf and resulting fit. This parameter is ignored if fn_plot is not None.
+        :type plot: bool, optional, default=False
 
-        :param fn_plot: File name to which to write the plot, defaults to None which means no plot is made.
-        :type fn_plot: str or None, optional
+        :param fn_plot: If not None, a plot will be made of the acf and resulting fit and stored to a file with the given file name
+        :type fn_plot: str or None, optional, default=None
 
-        :param xlims: Limits for the x-axis in the plot. Defaults to None.
-        :type xlims: list or None, optional
+        :param xlims: Limits for the x-axis in the plot.
+        :type xlims: list or None, optional, default=None
 
-        :param ylims: Limits for the y-axis in the plot. Defaults to [-0.25, 1.05].
-        :type ylims: list, optional
+        :param ylims: Limits for the y-axis in the plot.
+        :type ylims: list, optional, default=[-0.25, 1.05]
 
-        Returns
-        -------
-
-        * **corrtime** (*float*): The integrated autocorrelation time.
-
-        Note
-        ----
-
-        - The function provides an option to generate a plot showing the autocorrelation function, its average, the upper envelope, and the fitted exponential function.
-        - The `nblocks` parameter allows for blocking data to suppress noise in the autocorrelation function.
-        - The `norm` parameter controls whether the autocorrelation function should be normalized.
-        - The `xlims` parameter allows for adjusting the limits of the x-axis in the plot.
-        - The `ylims` parameter allows for adjusting the limits of the y-axis in the plot.
+        :return: The integrated autocorrelation time
+        :rtype: float
     '''
     acfs = None
     if nblocks is not None:
@@ -743,14 +638,17 @@ def corrtime_from_acf(data: np.ndarray, nblocks=None, norm: bool=True, plot: boo
         if acfs is not None:
             for i, f in enumerate(acfs):
                 pp.plot(f, label='iblock=%i'%i)
-        pp.plot(acf, color='k',linewidth=1, label='avg')
-        pp.plot(upper_envelope_indices, upper_envelope_values, color='r',linewidth=2, label='avg - envelope')
-        pp.plot(upper_envelope_indices, fitted_exp(upper_envelope_indices), color='r',linestyle='--',linewidth=2, label='avg - fitted')
+        pp.plot(acf, color='k',linewidth=1, label='acf')
+        if n_nested_envelopes>0:
+            pp.plot(upper_envelope_indices, upper_envelope_values, color='r',linewidth=2, label='acf - envelope')
+        pp.plot(upper_envelope_indices, fitted_exp(upper_envelope_indices), color='r',linestyle='--',linewidth=2, label=r"Fit exp ($2\tau-1$=%.1f)" %corrtime)
         pp.title('Autocorrelation function', fontsize=14)
-        pp.xlabel(r"$\tau$")
-        pp.ylabel(r"$acf(\tau)$")
+        pp.xlabel(r"Time delay t")
+        pp.ylabel(r"acf(t)")
         if xlims is not None: pp.xlim(xlims)
         pp.ylim(ylims)
+        if legend:
+            pp.legend(loc='upper right')
         fig.set_size_inches([8,8])
         fig.tight_layout()
         if fn_plot is not None:
@@ -759,56 +657,33 @@ def corrtime_from_acf(data: np.ndarray, nblocks=None, norm: bool=True, plot: boo
             pp.show()
     return corrtime
 
-def decorrelate(trajectories: list, method: str='acf', acf_nblocks=None, acf_n_nested_envelopes=1, blav_model_function=None, decorrelate_only=None, plot: bool=False, fn_plot=None, verbose: bool=False, return_decorrelated_trajectories: bool=False, **method_kwargs):
+def decorrelate(trajectories: list, method: str='acf', decorrelate_only=None, plot: bool=False, fn_plot=None, verbose: bool=False, return_decorrelated_trajectories: bool=False, **method_kwargs):
     '''
-        Function to compute correlation times for a list of trajectories and decorrelate the trajectories by averaging over a number of samples equal to the correlation time.
-
-        Parameters
-        ----------
+        Function to compute correlation times for a list of trajectories and optionally decorrelate the trajectories by averaging over a number of samples equal to the correlation time.
 
         :param trajectories: List of trajectories to be decorrelated.
         :type trajectories: list
 
-        :param method: Method to compute correlation time. Either 'acf' for autocorrelation function or 'blav' for block averaging. Defaults to 'acf'.
-        :type method: str, optional
+        :param method: Method to compute correlation time, either 'acf' for fit to autocorrelation function or 'blav' for block averaging. Keyword arguments specific to the chosen method can be parsed to that method by specifyinng them at the end of the argument list. For example ``decorrelate(traj, method='acf', plot=True, n_nested_enveloppes=2, p0=[1000])`` will correctly parse the ``n_nested_enveloppes`` and ``p0`` parameters to the ``corrtime_from_acf`` routine.
+        :type method: str, optional, default='acf'
 
-        :param acf_nblocks: Number of blocks for blocking data when using autocorrelation function. Defaults to None.
-        :type acf_nblocks: int or None, optional
+        :param decorrelate_only: Index of the collective variable (CV) to be used for decorrelation when multiple CVs are present in the trajectories. If set to None, all CVs will be decorrelated simultaneously which generally leads to higher correlation times.
+        :type decorrelate_only: int or None, optional, default=None
 
-        :param blav_model_function: Mathematical model for the naive error on block averages as a function of the block size when using block averaging. Defaults to the default set in the blav routine.
-        :type blav_model_function: callable or None, optional
-
-        :param decorrelate_only: Index of the collective variable (CV) to be used for decorrelation when multiple CVs are present in the trajectories. Defaults to None, meaning all CVs will be decorrelated simultaneously which generally leads to higher correlation times.
-        :type decorrelate_only: int or None, optional
-
-        :param plot: If True, generate a plot showing the correlation times for each trajectory and collective variable. Ignored if fn_plot is not None. Defaults to False.
-        :type plot: bool, optional
+        :param plot: If True, generate a plot showing the correlation times for each trajectory and collective variable. Ignored if fn_plot is not None.
+        :type plot: bool, optional, default=False
 
         :param fn_plot: File name to which to write the plot, defaults to None which means no plot is made (if plot=False) or the plot is not saved (if plot=True).
         :type fn_plot: str or None, optional
 
-        :param verbose: If True, print additional information during computation. Defaults to False.
-        :type verbose: bool, optional
+        :param verbose: If True, print additional information during computation.
+        :type verbose: bool, optional, default=False
 
-        :param return_decorrelated_trajectories: If True, return the decorrelated trajectories along with the correlation times. Defaults to False.
-        :type return_decorrelated_trajectories: bool, optional
+        :param return_decorrelated_trajectories: If True, also return the decorrelated trajectories which have been block averaged with a block size given by the correlation time
+        :type return_decorrelated_trajectories: bool, optional, default=False
 
-        Returns
-        -------
-
-        * **corrtimes** (*np.ndarray*): Array containing the computed correlation times for each trajectory.
-
-        * **trajectories_decor** (*list*): List containing the decorrelated trajectories if `return_decorrelated_trajectories` is True.
-
-        Note
-        ----
-
-        - The `method` parameter allows for choosing between 'acf' (autocorrelation function) and 'blav' (block averaging) to compute the correlation time.
-        - The `acf_nblocks` parameter is used to specify the number of blocks when using the autocorrelation function method.
-        - The `blav_model_function` parameter is a mathematical model for the naive error on block averages as a function of the block size when using block averaging.
-        - The `decorrelate_only` parameter allows selecting a specific collective variable (CV) index for decorrelation when multiple CVs are present in the trajectories.
-        - The `plot` parameter generates a plot showing the correlation times for each trajectory and collective variable if set to True.
-        - The `return_decorrelated_trajectories` parameter, if set to True, returns the decorrelated trajectories along with the correlation times.
+        :return: correlation time, optionally (if ``return_decorrelated_trajectories=True``) also the decorrelated trajectories are returned
+        :rtype: np.ndarray or (if ``return_decorrelated_trajectories=True``) [np.ndarray, list]
     '''
     #determine the number of trajectories as well as cvs present in trajectory data
     ntrajs = len(trajectories)
@@ -820,7 +695,7 @@ def decorrelate(trajectories: list, method: str='acf', acf_nblocks=None, acf_n_n
     assert isinstance(method, str), 'Method argument should be string, either acf or blav'
     if method.lower()=='acf':
         def method_correlation_time(data):
-            corrtime = corrtime_from_acf(data, nblocks=acf_nblocks, n_nested_envelopes=acf_n_nested_envelopes, **method_kwargs)
+            corrtime = corrtime_from_acf(data, **method_kwargs)
             if corrtime<1:
                 print('Trajectory had corrtime smaller than 1, was set to 1!')
                 return 1.0
@@ -828,7 +703,7 @@ def decorrelate(trajectories: list, method: str='acf', acf_nblocks=None, acf_n_n
                 return corrtime
     elif method.lower()=='blav':
         def method_correlation_time(data):
-            corrtime = blav(data, model_function=blav_model_function, **method_kwargs)[1]
+            corrtime = blav(data, **method_kwargs)[1]
             if corrtime<1:
                 print('Trajectory had corrtime smaller than 1, was set to 1!')
                 return 1.0
@@ -896,10 +771,7 @@ def decorrelate(trajectories: list, method: str='acf', acf_nblocks=None, acf_n_n
 
 def multivariate_normal(means: np.ndarray, covariance: np.ndarray, size=None):
     '''
-        Wrapper around `numpy.random.multivariate_normal` to handle `np.nan` columns in the covariance matrix.
-
-        Parameters
-        ----------
+        Wrapper around `numpy.random.multivariate_normal <https://numpy.org/doc/stable/reference/random/generated/numpy.random.multivariate_normal.html>`_ to handle `np.nan` columns in the covariance matrix. It also enforces symmetry on the covariance matrix to filter out non-symmetric noise. To generate the samples, Iit will first try the cholesky method in np.random.multivariate_normal as it is much faster. If that fails, the function tries again with the eigh setting and informs the user.
 
         :param means: Means of the multivariate normal distribution.
         :type means: np.ndarray
@@ -907,21 +779,11 @@ def multivariate_normal(means: np.ndarray, covariance: np.ndarray, size=None):
         :param covariance: Covariance matrix of the multivariate normal distribution.
         :type covariance: np.ndarray
 
-        :param size: Number of samples to generate. Defaults to `None`.
-        :type size: int, list, np.ndarray, or None, optional
+        :param size: Number of samples to generate. If None, a single sample is generated
+        :type size: int, list, np.ndarray or None, optional, default=None
 
-        Returns
-        -------
-
-        * **samples** (*np.ndarray*): Array containing the generated samples from the multivariate normal distribution.
-
-        Note
-        ----
-
-        - This function acts as a wrapper around `numpy.random.multivariate_normal` to handle `np.nan` columns in the covariance matrix.
-        - It filters out `np.nan` columns from the covariance matrix, enforces a symmetric covariance matrix, and handles exceptions during the sampling process.
-        - It will first try the cholesky method in np.random.multivariate_normal as it is much faster. If that fails, the function tries again with the eigh setting and informs the user.
-        - The `size` parameter specifies the number of samples to generate. If `size` is `None`, a single sample is generated.
+        :return: the generated samples from the multivariate normal distribution
+        :rtype: np.ndarray
     '''
     #wrapper around np.random.multivariate_normal to deal with np.nan columns in the covariance matrix
     mask = np.ones(len(means), dtype=bool)
@@ -955,25 +817,20 @@ def invert_fisher_to_covariance(F: np.ndarray, ps: np.ndarray, threshold: float=
     '''
         Inverts the Fisher information matrix to obtain the covariance matrix, handling specified thresholds.
 
-        Parameters
-        ----------
-
         :param F: Fisher information matrix.
         :type F: np.ndarray
 
         :ps: Array of probabilities used to apply the threshold.
         :type ps: np.ndarray
 
-        :threshold: Threshold value for removing columns and rows corresponding with a probability lower than the thresshold from the Fisher information matrix. Defaults to `0.0`.
-        :type threshold: float, optional
+        :threshold: Threshold value for removing columns and rows corresponding with a probability lower than the thresshold from the Fisher information matrix.
+        :type threshold: float, optional, default=0.0
 
-        :verbose: If `True`, print information about removed columns and rows. Defaults to `False`.
-        :type verbose: bool, optional
+        :verbose: If `True`, print information about removed columns and rows.
+        :type verbose: bool, optional, default=False
 
-        Returns
-        -------
-
-        * **cov** (*np.ndarray*): Covariance matrix obtained by inverting the Fisher information matrix.
+        :return: Covariance matrix obtained by inverting the Fisher information matrix.
+        :rtype: np.ndarray
     '''
     mask = np.ones(F.shape, dtype=bool)
     for index in range(F.shape[0]-1):
@@ -989,33 +846,21 @@ def invert_fisher_to_covariance(F: np.ndarray, ps: np.ndarray, threshold: float=
     cov[mask] = np.linalg.inv(F_mask).reshape(N_mask2)
     return cov
 
-def fisher_matrix_mle_probdens(ps: np.ndarray, method: str='mle_p', verbose: bool=False):
+def fisher_matrix_mle_probdens(ps: np.ndarray, method: str='mle_f', verbose: bool=False):
     '''
         Computes the Fisher information matrix for the maximum likelihood estimation (MLE) of probability distribution parameters given in argument ps.
-
-        Parameters
-        ----------
 
         :param ps: Probability histogram values
         :type ps: np.ndarray
 
-        :param method: Method used for computing the Fisher information matrix. Options include 'mle_p', 'mle_p_cov', 'mle_f', and 'mle_f_cov'. Defaults to 'mle_p'.
-        :type method: str, optional
+        :param method: Method used for computing the Fisher information matrix. Options include 'mle_p', 'mle_p_cov', 'mle_f', and 'mle_f_cov'.
+        :type method: str, optional, default='mle_f'
 
-        :param verbose: If `True`, prints additional information when no Fisher information is found. Defaults to `False`.
-        :type verbose: bool, optional
+        :param verbose: If `True`, prints additional information when no Fisher information is found.
+        :type verbose: bool, optional, default=False
 
-        Returns
-        -------
-
-        * **F** (*np.ndarray*): Fisher information matrix computed for the maximum likelihood estimation of probability distribution parameters.
-
-        Note
-        ----
-
-        - This function computes the Fisher information matrix for the maximum likelihood estimation of probability distribution parameters.
-        - The `method` parameter allows selecting different methods for computing the Fisher matrix.
-        - If `verbose` is set to `True`, additional information is printed when no Fisher information is found.
+        :return: Fisher information matrix computed for the maximum likelihood estimation of probability distribution parameters.
+        :rtype: np.ndarray
     '''
     F = np.zeros([len(ps)+1,len(ps)+1])
     if not np.isnan(ps).all():
@@ -1040,7 +885,9 @@ def fisher_matrix_mle_probdens(ps: np.ndarray, method: str='mle_p', verbose: boo
 
 def trajectory_xyz_to_CV(fns, CV):
     '''
-        ROUTINE IS DEPRICATED, included only for backward compatibility. Please use CVComputer class from thermolib.trajectory module.
+        .. deprecated:: 1.7
+        
+            Use :py:class:`CVComputer <thermolib.trajectory.CVComputer>` class instead. This old function is still included for backward compatibility, but it will be removed in the near future.
         
         Compute the CV along an XYZ trajectory. The XYZ trajectory is assumed to be defined in a (list of subsequent) XYZ file(s).
 
@@ -1063,75 +910,10 @@ def trajectory_xyz_to_CV(fns, CV):
     return np.array(cvs)
 
 def read_wham_input_old(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1, kappa_unit='kjmol', q0_unit='au', start=0, end=-1, stride=1, bias_potential='Parabola1D', additional_bias=None, inverse_cv=False, verbose=False):
-    ''' THIS ROUTINE IS DEPRECATED AND WILL BE DELETED IN THE FUTURE. It is still included for backward compatibility with the old read_wham_input routine.
-
-        Read the input for a WHAM reconstruction of the free energy profile from a set of Umbrella Sampling simulations. The file specified by fn should have the following format:
-
-        .. code-block:: python
-
-            T = XXXK
-            NAME_1 Q0_1 KAPPA_1
-            NAME_2 Q0_2 KAPPA_2
-            NAME_3 Q0_3 KAPPA_3
-            ...
-
-        when a line starts with a T, it is supposed to specify the temperature. If no temperature line is found, a temperature of None will be returned. All other lines define the bias potential for each simulation as a parabola centered around ``Q0_i`` and with force constants ``KAPPA_i``(the units used in this file can be specified the keyword arguments ``q0_unit`` and ``kappa_unit``). For each bias with name ``NAME_i`` defined in this file, there should be a colvar trajectory file accessible through the path given by the string:
+    '''
+        .. deprecated:: 1.7
         
-        .. code-block:: python
-        
-            os.path.join(root, path_template_colvar_fns %name)
-        
-        For example, if path_template_colvar_fns is defined as 'trajectories/%s/COLVAR' and the wham input file contains a line 'Window1/r1 1.40 1000.0', then the trajectory file containing the CV values of the biased simulation with bias name 'Window1/r1' can be found in the directory trajectories/Window1/r1/COLVAR. Finally, these trajectory files should be formatted as outputted by PLUMED:
-
-        .. code-block:: python
-
-            time_1 cv_value_1
-            time_2 cv_value_2
-            time_3 cv_value_3
-            ...
-
-        where the cv values again have a unit that can be specified by the keyword argument ``q0_unit``.
-
-        :param fn: file name of the wham input file
-        :type fn: str
-
-        :param path_template_colvar_fns: Template for defining the path (relative to the directory containing the wham input file given by argument fn) to the colvar trajectory file corresponding to each bias. See documentation above for more details. This argument should be string containing a single '%s' substring.
-        :type path_template_colvar_fns: str. Defaults to '%s'
-
-        :param kappa_unit: unit used to express kappa in the wham input file, defaults to 'kjmol'
-        :type kappa_unit: str, optional
-
-        :param q0_unit: unit used to express q0 in the wham input file as well as the cv values in the trajectory files, defaults to 'au'
-        :type q0_unit: str, optional
-
-        :param stride: defines the sub sampling applied to the trajectory data to deal with correlations. For example a stride of 10 means only taking 1 in 10 samples and throw away 90% of the data. Defaults to 1 (i.e. no sub sampling).
-        :type stride: int, optional
-
-        :param start: defines the start point from which to take samples into account. This can be usefull for eliminating equilibration times as well as for taking various subsamples trajectories from the original data each starting at different timesteps. Defaults to 0.
-        :type start: int, optional
-
-        :param end: defines the end point to which to take samples into account. This can be usefull when it is desired to cut the original trajectory into blocks. Defaults to -1.
-        :type end: int, optional
-
-        :param bias_potential: mathematical form of the bias potential used, allowed values are
-
-            * **parabola/harmonic** -- harmonic bias of the form 0.5*kappa*(q-q0)**2
-
-        defaults to parabola
-
-        :type bias_potantial: str, optional
-
-        :param additional_bias: A single additional bias that is added for each simulation on top of the simulation-specific biases. Defaults to None
-        :type additional_bias: BiasPotential1D, optional
-
-        :param verbose: increases verbosity if set to True, defaults to False
-        :type verbose: bool, optional
-
-        :return: temp, biasses, trajectories:
-
-            * **temp** (float) -- temperature at which the simulations were performed
-            * **biasses** (list of callables) -- list of bias potentials (defined as callable functions) for all Umbrella Sampling simulations
-            * **trajectories** (list of np.ndarrays) -- list of trajectory data arrays containing the CV trajectory for all Umbrella Sampling simulations
+            Use :py:meth:`read_wham_input <thermolib.tools.read_wham_input>` instead. This old function is still included for backward compatibility, but it will be removed in the near future.
     '''
     from thermolib.thermodynamics.trajectory import ColVarReader
     trajectory_reader = ColVarReader([colvar_cv_column_index], units=['au'], start=start, stride=stride, end=end, verbose=verbose)
@@ -1144,72 +926,10 @@ def read_wham_input_old(fn, path_template_colvar_fns='%s', colvar_cv_column_inde
     )
 
 def read_wham_input_h5_old(fn, h5_cv_path, path_template_h5_fns='%s', kappa_unit='kjmol', q0_unit='au', cv_unit='au', start=0, end=-1, stride=1, bias_potential='Parabola1D', additional_bias=None, inverse_cv=False, verbose=False):
-    ''' THIS ROUTINE IS DEPRECATED AND WILL BE DELETED IN THE FUTURE. It is still included for backward compatibility with the old read_wham_input_h5 routine.
-
-        Read the input for a WHAM reconstruction of the free energy profile from a set of Umbrella Sampling simulations. The file specified by fn should have the following format:
-
-        .. code-block:: python
-
-            T = XXXK
-            NAME_1 Q0_1 KAPPA_1
-            NAME_2 Q0_2 KAPPA_2
-            NAME_3 Q0_3 KAPPA_3
-            ...
-
-        when a line starts with a T, it is supposed to specify the temperature. If no temperature line is found, a temperature of None will be returned. All other lines define the bias potential for each simulation as a parabola centered around ``Q0_i`` and with force constants ``KAPPA_i``(the units used in this file can be specified the keyword arguments ``q0_unit`` and ``kappa_unit``). For each bias with name ``NAME_i`` defined in this file, there should be a colvar trajectory file accessible through the path given by the string:
+    '''
+        .. deprecated:: 1.7
         
-        .. code-block:: python
-        
-            os.path.join(root, path_template_h5_fns %name)
-        
-        For example, if path_template_h5_fns is defined as 'trajectories/%s/traj.h5' and the wham input file contains a line 'Window1/r1 1.40 1000.0', then the trajectory file with path trajectories/Window1/r1/traj.h5 contains a dataset given by ``h5_cv_path`` that represents the cv values of the biased simulation with bias name 'Window1/r1'. Finally, the cv values in these trajectory files have a unit that can be specified by the keyword argument ``cv_unit``.
-
-        :param fn: file name of the wham input file
-        :type fn: str
-        
-        :param h5_cv_path: the path of the dataset corresponding to the cv values in the h5 file.
-        :type h5_cv_path: str
-
-        :param path_template_h5_fns: Template for defining the path (relative to the directory containing the wham input file given by argument fn) to the HDF5 trajectory file corresponding to each biased simulation. See documentation above for more details. This argument should be string containing a single '%s' substring. 
-        :type path_template_h5_fns: str. Defaults to '%s'
-
-        :param kappa_unit: unit used to express kappa in the wham input file, defaults to 'kjmol'
-        :type kappa_unit: str, optional
-
-        :param q0_unit: unit used to express q0 in the wham input file, defaults to 'au'
-        :type q0_unit: str, optional
-
-        :param cv_unit: unit used to express the cv values in the trajectory files, defaults to 'au'
-        :type cv_unit: str, optional
-        
-        :param stride: defines the sub sampling applied to the trajectory data to deal with correlations. For example a stride of 10 means only taking 1 in 10 samples and throw away 90% of the data. Defaults to 1 (i.e. no sub sampling).
-        :type stride: int, optional
-
-        :param start: defines the start point from which to take samples into account. This can be usefull for eliminating equilibration times as well as for taking various subsamples trajectories from the original data each starting at different timesteps. Defaults to 0.
-        :type start: int, optional
-
-        :param end: defines the end point to which to take samples into account. This can be usefull when it is desired to cut the original trajectory into blocks. Defaults to -1.
-        :type end: int, optional
-
-        :param bias_potential: mathematical form of the bias potential used, allowed values are
-
-            * **parabola/harmonic** -- harmonic bias of the form 0.5*kappa*(q-q0)**2
-
-        defaults to parabola
-
-        :type bias_potantial: str, optional
-
-        :param additional_bias: A single additional bias that is added for each simulation on top of the simulation-specific biases. Defaults to None
-        :type additional_bias: BiasPotential1D, optional
-
-        :param verbose: increases verbosity if set to True, defaults to False
-        :type verbose: bool, optional
-
-        :return: temp, biasses, trajectories:
-
-            * **temp** (float) -- temperature at which the simulations were performed
-            * **biasses** (list of callables) -- list of bias potentials (defined as callable functions) for all Umbrella Sampling simulations
-            * **trajectories** (list of np.ndarrays) -- list of trajectory data arrays containing the CV trajectory for all Umbrella Sampling simulations
+            Use :py:meth:`read_wham_input <thermolib.tools.read_wham_input>` instead. This old function is still included for backward compatibility, but it will be removed in the near future.
     '''
     from thermolib.thermodynamics.trajectory import HDF5Reader
     trajectory_reader = HDF5Reader([h5_cv_path], units=[cv_unit], start=start, stride=stride, end=end, verbose=verbose)
@@ -1222,89 +942,10 @@ def read_wham_input_h5_old(fn, h5_cv_path, path_template_h5_fns='%s', kappa_unit
     )
 
 def read_wham_input_2D_old(fn, path_template_colvar_fns='%s', colvar_cv1_column_index=1, colvar_cv2_column_index=2, kappa1_unit='kjmol', kappa2_unit='kjmol', q01_unit='au', q02_unit='au', start=0, end=-1, stride=1, bias_potential='Parabola2D',additional_bias=None,additional_bias_dimension='q1',inverse_cv1=False,inverse_cv2=False, verbose=False):
-    ''' THIS ROUTINE IS DEPRECATED AND WILL BE DELETED IN THE FUTURE. It is still included for backward compatibility with the old read_wham_input_2D routine.
-    
-        Read the input for a WHAM reconstruction of the 2D free energy surface from a set of Umbrella Sampling simulations. The wham input file specified by fn should have the following format:
-
-        .. code-block:: python
-
-            T = XXXK
-            NAME_1 Q01_1 Q02_1 KAPPA1_1 KAPPA1_1
-            NAME_2 Q01_2 Q02_2 KAPPA1_2 KAPPA1_2
-            NAME_3 Q01_3 Q02_3 KAPPA1_3 KAPPA1_3
-            ...
-
-        when a line starts with a T, it is supposed to specify the temperature. If no temperature line is found, a temperature of None will be returned. All other lines define the bias potential for each simulation as a parabola centered around (``Q01_i``,``Q02_i``) and with force constants (``KAPPA1_i``,``KAPPA2_i``) (the units used in this file can be specified the keyword arguments ``kappa1_unit``, ``kappa2_unit``, ``q01_unit`` and ``q02_unit``). For each bias with name ``NAME_i`` defined in this file, there should be a colvar trajectory file accessible through the path given by the string:
+    '''
+        .. deprecated:: 1.7
         
-        .. code-block:: python
-        
-            os.path.join(root, path_template_colvar_fns %name)
-        
-        For example, if path_template_colvar_fns is defined as 'trajectories/%s/COLVAR' and the wham input file contains a line 'Window1/r1 1.40 -0.2 1000.0 1000.0', then the trajectory file containing the CV values of the biased simulation with bias name 'Window1/r1' has the path trajectories/Window1/r1/COLVAR. Finally, these trajectory files should be formatted as outputted by PLUMED (if the desired collective variable columns are not the default second and third, these can be specified with colvar_cv1_column_index and colvar_cv2_column_index):
-
-        .. code-block:: python
-
-            time_1 cv1_value_1 cv2_value_1
-            time_2 cv1_value_2 cv2_value_2
-            time_3 cv1_value_3 cv2_value_3
-            ...
-
-        where the cv1 and cv2 values again have a unit that can be specified by the keyword arguments ``q01_unit`` and ``q02_unit`` respectively.
-
-        :param fn: file name of the wham input file
-        :type fn: str
-
-        :param path_template_colvar_fns: Template for defining the path (relative to the directory containing the wham input file given by argument fn) to the colvar trajectory file corresponding to each bias. See documentation above for more details. This argument should be string containing a single '%s' substring.
-        :type path_template_colvar_fns: str. Defaults to '%s'
-
-        :param kappa1_unit: unit used to express the CV1 force constant kappa1 in the wham input file, defaults to 'kjmol'
-        :type kappa1_unit: str, optional
-
-        :param kappa2_unit: unit used to express the CV2 force constant kappa1 in the wham input file, defaults to 'kjmol'
-        :type kappa2_unit: str, optional
-
-        :param q01_unit: unit used to express q01 in the wham input file as well as the cv values in the trajectory files, defaults to 'au'
-        :type q01_unit: str, optional
-
-        :param q02_unit: unit used to express q02 in the wham input file as well as the cv values in the trajectory files, defaults to 'au'
-        :type q02_unit: str, optional
-
-        :param stride: defines the sub sampling applied to the trajectory data to deal with correlations. For example a stride of 10 means only taking 1 in 10 samples and throw away 90% of the data. Defaults to 1 (i.e. no sub sampling).
-        :type stride: int, optional
-
-        :param start: defines the start point from which to take samples into account. This can be usefull for eliminating equilibration times as well as for taking various subsamples trajectories from the original data each starting at different timesteps. Defaults to 0.
-        :type start: int, optional
-
-        :param end: defines the end point to which to take samples into account. This can be usefull when it is desired to cut the original trajectory into blocks. Defaults to -1.
-        :type end: int, optional
-
-        :param bias_potential: mathematical form of the bias potential used, allowed values are
-
-            * **parabola2D/harmonic2D** -- harmonic bias of the form 0.5*kappa1*(q1-q01)**2 + 0.5*kappa2*(q2-q02)**2
-
-        defaults to parabola2D
-
-        :type bias_potantial: str, optional
-
-        :param additional_bias: A single additional bias that is added for each simulation on top of the simulation-specific biases. Defaults to None
-        :type additional_bias: BiasPotential1D, optional
-
-        :param inverse_q1: Define whether to invert q1 values. Defaults to False
-        :type inverse_q1: boolean, optional
-
-        :param inverse_q2: Define whether to invert q2 values. Defaults to False
-        :type inverse_q2: boolean, optional
-
-        :param verbose: increases verbosity if set to True, defaults to False
-        :type verbose: bool, optional
-
-        :raises ValueError: when a line in the wham input file cannot be interpreted
-
-        :return: temp, biasses, trajectories:
-
-            * **temp** (float) -- temperature at which the simulations were performed
-            * **biasses** (list of callables) -- list of bias potentials (defined as callable functions) for all Umbrella Sampling simulations
-            * **trajectories** (list of np.ndarrays) -- list of trajectory data arrays containing the CV trajectory for all Umbrella Sampling simulations
+            Use :py:meth:`read_wham_input <thermolib.tools.read_wham_input>` instead. This old function is still included for backward compatibility, but it will be removed in the near future.
     '''
     from thermolib.thermodynamics.trajectory import ColVarReader
     trajectory_reader = ColVarReader([colvar_cv1_column_index, colvar_cv2_column_index], units=['au','au'], start=start, stride=stride, end=end, verbose=verbose)
@@ -1318,102 +959,10 @@ def read_wham_input_2D_old(fn, path_template_colvar_fns='%s', colvar_cv1_column_
     )
 
 def read_wham_input_2D_h5_old(fn, h5_cv1_path, h5_cv2_path, path_template_h5_fns='%s', kappa1_unit='kjmol', kappa2_unit='kjmol', q01_unit='au', q02_unit='au', cv1_unit='au', cv2_unit='au', start=0, end=-1, stride=1, bias_potential='Parabola2D', additional_bias=None, additional_bias_dimension='q1', inverse_cv1=False, inverse_cv2=False, verbose=False):
-    ''' THIS ROUTINE IS DEPRECATED AND WILL BE DELETED IN THE FUTURE. It is still included for backward compatibility with the old read_wham_input_2D_h5 routine.
+    '''
+        .. deprecated:: 1.7
         
-        Read the input for a WHAM reconstruction of the 2D free energy surface from a set of Umbrella Sampling simulations. The file specified by fn should have the following format:
-
-        .. code-block:: python
-
-            T = XXXK
-            NAME_1 Q01_1 Q02_1 KAPPA1_1 KAPPA1_1
-            NAME_2 Q01_2 Q02_2 KAPPA1_2 KAPPA1_2
-            NAME_3 Q01_3 Q02_3 KAPPA1_3 KAPPA1_3
-            ...
-
-        when a line starts with a T, it is supposed to specify the temperature. If no temperature line is found, a temperature of None will be returned. All other lines define the bias potential for each simulation as a parabola centered around (``Q01_i``,``Q02_i``) and with force constants (``KAPPA1_i``,``KAPPA2_i``) (the units used in this file can be specified the keyword arguments ``kappa1_unit``, ``kappa2_unit``, ``q01_unit`` and ``q02_unit``). For each bias with name ``NAME_i`` defined in this file, there should be a colvar trajectory file accessible through the path given by the string 'path_template_colvar_fns %(NAME_i)'. For example, if path_template_colvar_fns is defined as 'trajectories/%s/COLVAR' and the wham input file contains the following lines:
-
-        .. code-block:: python
-
-            T = 300K
-            Window1/r1 1.40 -0.2 1000.0 1000.0
-            Window2/r2 1.45 -0.2 1000.0 1000.0
-            Window3/r1 1.50 -0.2 1000.0 1000.0
-            ...
-        
-        when a line starts with a T, it is supposed to specify the temperature. If no temperature line is found, a temperature of None will be returned. All other lines define the bias potential for each simulation as a parabola centered around (``Q01_i``,``Q02_i``) and with force constants (``KAPPA1_i``,``KAPPA2_i``) (the units used in this file can be specified the keyword arguments ``kappa1_unit``, ``kappa2_unit``, ``q01_unit`` and ``q02_unit``). For each bias with name ``NAME_i`` defined in this file, there should be a colvar trajectory dataset accessible in the HDF5 file with path given by the string:
-        
-        .. code-block:: python
-        
-            os.path.join(root, path_template_h5_fns %name)
-        
-        For example, if path_template_h5_fns is defined as 'trajectories/%s/traj.h5' and the wham input file contains a line 'Window1/r1 1.40 -0.2 1000.0 1000.0', then the trajectory HDF5 file 'trajectories/Window1/r1/traj.h5' contains a dataset with path ``h5_cv1_path`` representing the CV1 values of the biased simulation with bias name 'Window1/r1' (and similar for the CV2 values). The units of the cv1 and cv2 values in these trajectories can be specified by the keyword arguments ``cv1_unit`` and ``cv2_unit`` respectively.
-
-        :param fn: file name of the wham input file
-        :type fn: str
-
-        :param h5_cv1_path: the path of the dataset corresponding to the cv1 values in the h5 file.
-        :type h5_cv1_path: str
-
-        :param h5_cv2_path: the path of the dataset corresponding to the cv2 values in the h5 file.
-        :type h5_cv2_path: str
-
-        :param path_template_h5_fns: Template for defining the path (relative to the directory containing the wham input file given by argument fn) to the colvar trajectory file corresponding to each bias. See documentation above for more details. This argument should be string containing a single '%s' substring. 
-        :type path_template_h5_fns: str. Defaults to '%s'
-
-        :param kappa1_unit: unit used to express the CV1 force constant kappa1 in the wham input file, defaults to 'kjmol'
-        :type kappa1_unit: str, optional
-
-        :param kappa2_unit: unit used to express the CV2 force constant kappa1 in the wham input file, defaults to 'kjmol'
-        :type kappa2_unit: str, optional
-
-        :param q01_unit: unit used to express q01 in the wham input file as well as the cv values in the trajectory files, defaults to 'au'
-        :type q01_unit: str, optional
-
-        :param q02_unit: unit used to express q02 in the wham input file as well as the cv values in the trajectory files, defaults to 'au'
-        :type q02_unit: str, optional
-        
-        :param cv1_unit: unit used to express the cv1 values in the trajectory files, defaults to 'au'
-        :type cv1_unit: str, optional
-
-        :param cv2_unit: unit used to express the cv2 values in the trajectory files, defaults to 'au'
-        :type cv2_unit: str, optional
-
-        :param stride: defines the sub sampling applied to the trajectory data to deal with correlations. For example a stride of 10 means only taking 1 in 10 samples and throw away 90% of the data. Defaults to 1 (i.e. no sub sampling).
-        :type stride: int, optional
-
-        :param start: defines the start point from which to take samples into account. This can be usefull for eliminating equilibration times as well as for taking various subsamples trajectories from the original data each starting at different timesteps. Defaults to 0.
-        :type start: int, optional
-
-        :param end: defines the end point to which to take samples into account. This can be usefull when it is desired to cut the original trajectory into blocks. Defaults to -1.
-        :type end: int, optional
-
-        :param bias_potential: mathematical form of the bias potential used, allowed values are
-
-            * **parabola2D/harmonic2D** -- harmonic bias of the form 0.5*kappa1*(q1-q01)**2 + 0.5*kappa2*(q2-q02)**2
-
-        defaults to parabola2D
-
-        :type bias_potantial: str, optional
-        
-        :param additional_bias: A single additional bias that is added for each simulation on top of the simulation-specific biases. Defaults to None
-        :type additional_bias: BiasPotential1D, optional
-
-        :param inverse_q1: Define whether to invert q1 values. Defaults to False
-        :type inverse_q1: boolean, optional
-        
-        :param inverse_q2: Define whether to invert q2 values. Defaults to False
-        :type inverse_q2: boolean, optional
-        
-        :param verbose: increases verbosity if set to True, defaults to False
-        :type verbose: bool, optional
-        
-        :raises ValueError: when a line in the wham input file cannot be interpreted
-
-        :return: temp, biasses, trajectories:
-
-            * **temp** (float) -- temperature at which the simulations were performed
-            * **biasses** (list of callables) -- list of bias potentials (defined as callable functions) for all Umbrella Sampling simulations
-            * **trajectories** (list of np.ndarrays) -- list of trajectory data arrays containing the CV trajectory for all Umbrella Sampling simulations
+            Use :py:meth:`read_wham_input <thermolib.tools.read_wham_input>` instead. This old function is still included for backward compatibility, but it will be removed in the near future.
     '''
     from thermolib.thermodynamics.trajectory import HDF5Reader
     trajectory_reader = HDF5Reader([h5_cv1_path, h5_cv2_path], units=[cv1_unit,cv2_unit], start=start, stride=stride, end=end, verbose=verbose)
