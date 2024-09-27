@@ -32,23 +32,24 @@ __all__ = [
 ]
 
 class Histogram1D(object):
+	'''
+		Class representing a 1D probability histogram :math:`p(CV)` in terms of a single collective variable :math:`CV`.
+	'''
 	def __init__(self, cvs, ps, error=None, cv_output_unit='au', cv_label='CV'):
 		'''
-			Class to implement the estimation of a probability histogram in terms of a collective variable from a trajectory series corresponding to that collective variable.
+			:param cvs: the bin values of the collective variable CV, which should be in atomic units! If you need help properly converting to atomic units, we refer to the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+			:type cvs: np.ndarray
 
-			:param cvs: array corresponding the collective variable grid points, which should be in atomic units.
-			:type data: np.ndarray
+			:param ps: the histogram probability values at the given CV values. The probabilities should be in atomic units! If you need help properly converting to atomic units, we refer to the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+			:type ps: np.ndarray
 
-			:param ps: array corresponding to the histogram probability values at the grid points, which should be in atomic units.
-			:type bins: np.ndarray
-
-			:param error: error distribution on the histogram, defaults to None
-			:type error: Distribution child class, optional
-
-			:param cv_output_unit: the unit in which cv will be plotted/printed
+			:param error: error distribution on the free energy profile
+			:type error: child of :py:class:`Distribution <thermolib.error.Distribution>`, optional, default=None
+			
+			:param cv_output_unit: the units for printing and plotting of CV values (not the unit of the input array, that is assumed to be in atomic units). Units are defined using the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
 			:type cv_output_unit: str, optional, default='au'
-
-			:param cv_label: the label of the cv that will be used on plots
+			
+			:param cv_label: label for the CV for printing and plotting
 			:type cv_label: str, optional, default='CV'
 		'''
 		self.cvs = cvs.copy()
@@ -60,16 +61,41 @@ class Histogram1D(object):
 		self.cv_label = cv_label
 
 	def plower(self, nsigma=2):
+		'''
+            Return the lower limit of an n-sigma error bar on the histogram probability, i.e. :math:`\\mu - n\\sigma` with :math:`\\mu` the mean and :math:`\\sigma` the standard deviation.
+
+            :param nsigma: defines the n-sigma error bar
+            :type nsigma: int, optional, default=2
+
+            :return: the lower limit of the n-sigma error bar
+            :rtype: np.ndarray with dimensions determined by self.error
+
+            :raises AssertionError: if self.error is not defined.
+        '''
 		assert self.error is not None, 'Plower cannot be computed because no error distribution was defined in the error attribute'
 		plower, pupper = self.error.nsigma_conf_int(nsigma)
 		return plower
 
 	def pupper(self, nsigma=2):
+		'''
+            Return the upper limit of an n-sigma error bar on the histogram probability, i.e. :math:`\\mu + n\\sigma` with :math:`\\mu` the mean and :math:`\\sigma` the standard deviation.
+
+            :param nsigma: defines the n-sigma error bar
+            :type nsigma: int, optional, default=2
+
+            :return: the upper limit of the n-sigma error bar
+            :rtype: np.ndarray with dimensions determined by self.error
+
+            :raises AssertionError: if self.error is not defined.
+        '''
 		assert self.error is not None, 'Pupper cannot be computed because no error distribution was defined in the error attribute'
 		plower, pupper = self.error.nsigma_conf_int(nsigma)
 		return pupper
 
 	def copy(self):
+		'''
+            Make and return a copy of the current Histogram1D instance.
+        '''
 		if self.error is not None:
 			error = self.error.copy()
 		else:
@@ -79,20 +105,13 @@ class Histogram1D(object):
 	@classmethod
 	def from_average(cls, histograms, error_estimate=None, cv_output_unit=None, cv_label=None):
 		'''
-			Start from a set of histograms and compute and return the averaged histogram. If error_estimate is set to 'std', an error on the histogram will be computed from the standard deviation within the set of histograms.
+			Start from a set of 1D histograms and compute and return the averaged histogram (and optionally the error bar).
 
 			:param histograms: set of histrograms to be averaged
-			:type histograms: list(Histogram1D)
+			:type histograms: list of :py:class:`Histogram1D <thermolib.thermodynamics.histogram.Histogram1D>` instances
 
-			:param error_estimate: indicate if and how to perform error analysis. One of following options is available:
-
-				*  **std** -- compute error from the standard deviation within the set of histograms.
-				*  **None** -- do not estimate the error.
-
+			:param error_estimate: indicate how to perform error analysis. Currently, only one method is supported, 'std', which will compute the error bar from the standard deviation within the set of histograms.
 			:type error_estimate: str, optional, default=None
-
-			:param nsigma: only relevant when error estimation is turned on (i.e. when keyword ``error_estimate`` is not None), this option defines how large the error interval should be in terms of the standard deviation sigma. A ``nsigma=2`` implies a 2-sigma error bar (corresponding to 95% confidence interval) will be returned.
-			:type nsigma: int, optional, default=2
 
 			:param cv_output_unit: the unit in which cv will be plotted/printed. Defaults to the cv_output_unit of the first histogram given.
 			:type cv_output_unit: str, optional
@@ -100,8 +119,8 @@ class Histogram1D(object):
 			:param cv_label: label for the new CV. Defaults to the cv_label of the first given histogram.
 			:type cv_label: str, optional
 
-			:return: averages histogram
-			:rtype: Histrogram1D
+			:raises AssertionError: if the histograms do not have a consistent CV grid
+			:raises AssertionError: if the histograms do not have a consistent CV label
 		'''
 		#sanity checks
 		cvs = None
@@ -130,30 +149,36 @@ class Histogram1D(object):
 	@classmethod
 	def from_single_trajectory(cls, data, bins, error_estimate=None, error_p_thresshold=0.0, cv_output_unit='au', cv_label='CV'):
 		'''
-			Routine to estimate of a probability histogram in terms of a collective variable from a trajectory series corresponding to that collective variable.
+			Routine to estimate a 1D probability histogram in terms of a single collective variable from a series of samples of that collective variable.
 
-			:param data: array corresponding to the trajectory series of the collective variable in atomic units
+			:param data: series of samples of the collective variable. Should be in atomic units! If you need help properly converting to atomic units, we refer to the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
 			:type data: np.ndarray
 
-			:param bins: array representing the edges of the bins for which a histogram will be constructed. This argument is parsed to `the numpy.histogram routine <https://numpy.org/doc/stable/reference/generated/numpy.histogram.html>`_. Hence, more information on its meaning and allowed values can be found there.
+			:param bins: the edges of the bins for which a histogram will be constructed. This argument is parsed to `the numpy.histogram routine <https://numpy.org/doc/stable/reference/generated/numpy.histogram.html>`_. Hence, more information on its meaning and allowed values can be found there.
 			:type bins: np.ndarray
 
 			:param error_estimate: indicate if and how to perform error analysis. One of following options is available:
 
-				*  **mle_p/mle_p_cov** -- compute error through the asymptotic normality of the maximum likelihood estimator for the probability itself. WARNING: due to positivity constraint of the probability, this only works for low variance. Otherwise the standard error interval for the normal distribution (i.e. mle +- n*sigma) might give rise to negative lower error bars. In case mle_p_cov is given, the full covariance matrix will be accounted for instead of only the (uncorrelated) variance at each grid point.
-				*  **mle_f/mle_f_cov** -- compute error through the asymptotic normality of the maximum likelihood estimator for -log(p) (hence for the beta-scaled free energy). This estimation does not suffor from the same WARNING as for ``mle_p``. Furthermore, in case of low variance, the error estimation using ``mle_f`` and ``mle_p`` are consistent (i.e. one can be computed from the other using f=-log(p)). In case mle_f_cov is given, the full covariance matrix will be accounted for instead of only the (uncorrelated) variance at each grid point.
-				*  **None** -- do not estimate the error.
+				- **mle_p** - Estimating the error directly for the probability of each bin in the histogram. This method does not explicitly impose the positivity of the probability.
 
-			:type error_estimate: str, optional, default=None
+				- **mle_p_cov** - Estimate the full covariance matrix for the probability of all bins in the histogram. In other words, appart from the error on the probability/free energy of a bin itself, we now also account for the covariance between the probabilty/free energy of the bins. This method does not explicitly impose the positivity of the probability.
 
-			:param error_p_thresshold: only relevant when error estimation is enabled using the error_estimate argument. When error_p_thresshold is set to x, bins in the histogram for which the probability resulting from the trajectory is smaller than x will be disabled for error estimation (i.e. its error will be set to np.nan). This is similar as the error_p_thresshold keyword for the from_wham routine, for which the use is illustrated in one of the tutorial notebooks.
+				- **mle_f** - Estimating the error for minus the logarithm of the probability, which is proportional to the free energy (hence f in mle_f). As the probability is expressed as :math:`\propto e^{-f}`, its positivity is explicitly accounted for.
+
+				- **mle_f_cov** - Estimate the full covariance matrix for minus the logarithm of the probability of all bins in the histogram. In other words, appart from the error on the probabilty/free energy of a bin itself (including explicit positivity constraint), we now also account for the covariance between the probability/free energy of the bins.
+
+			:type error_estimate: str or None, optional, default=None
+
+			:param error_p_thresshold: only relevant when error estimation is enabled (see parameter ``error_estimate``). When ``error_p_thresshold`` is set to x, bins in the histogram for which the probability resulting from the trajectory is smaller than x will be disabled for error estimation (i.e. its error will be set to np.nan). This is similar as the error_p_thresshold keyword for the from_wham routine, for which the use is illustrated in :doc:`one of the tutorial notebooks <tut/advanced_projection>`.
 			:type error_p_thresshold: float, optional, default=0.0
 
-			:param cv_output_unit: the unit in which cv will be plotted/printed (not the unit of the input array, that is assumed to be atomic units)
+			:param cv_output_unit: the unit in which cv will be plotted/printed (not the unit of the input array, that is assumed to be atomic units). If you need help properly converting to atomic units, we refer to the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
 			:type cv_output_unit: str, optional, default='au'
 
-			:param cv_label: the label of the cv that will be used on plots, defaults to 'CV'
-			:type cv_label: str, optional
+			:param cv_label: label of the cv that will be used for plotting and printing
+			:type cv_label: str, optional, default='CV'
+
+			:raises ValueError: if no valid error_estimate value is given
 		'''
 		#initialization
 		cvs = None
@@ -187,60 +212,68 @@ class Histogram1D(object):
 		return cls(cvs, ps, error=error, cv_output_unit=cv_output_unit, cv_label=cv_label)
 
 	@classmethod
-	def from_wham(cls, bins, traj_input, biasses, temp, error_estimate=None, corrtimes=None, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, bias_thress=1e-3, cv_output_unit='au', cv_label='CV', verbose=None, verbosity='low'):
+	def from_wham(cls, bins, traj_input, biasses, temp, error_estimate=None, corrtimes=None, error_p_thresshold=0.0, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, bias_thress=1e-3, cv_output_unit='au', cv_label='CV', verbosity='low'):
 		'''
-			Routine that implements the Weighted Histogram Analysis Method (WHAM) for reconstructing the overall probability histogram from a series of biased molecular simulations.
+			Routine that implements the Weighted Histogram Analysis Method (WHAM) for reconstructing the overall 1D probability histogram in terms of collective variable CV from a series of molecular simulations that are (possibly) biased in terms of CV.
 
 			:param bins: number of bins for the CV grid or array representing the bin edges for th CV grid.
 			:type bins: int or np.ndarray(float)
 
-			:param trajectories: list or array of numpy arrays containing the CV trajectory data for each simulation. Alternatively, a list of PLUMED file names containing the trajectory data can be specified as well. The arguments trajectories and biasses should be of the same length.
-			:type trajectories: list(np.ndarray)/np.ndarray(np.ndarray)
+			:param traj_input: list of CV trajectories, one for each simulation. This input can be generated using the :py:meth:`read_wham_input <thermolib.tools.read_wham_input>` routine. The arguments trajectories and biasses should be of the same length.
+			:type trajectories: list of np.ndarrays
 
-			:param biasses: list of callables, each representing a function to compute the bias at a given value of the collective variable. The arguments trajectories and biasses should be of the same length.
+			:param biasses: list of bias potentials, one for each simulation allowing to compute the bias at a given value of the collective variable in that simulation. This input can be generated using the :py:meth:`read_wham_input <thermolib.tools.read_wham_input>` routine. The arguments traj_input and biasses should be of the same length.
 			:type biasses: list(callable)
 
 			:param temp: the temperature at which all simulations were performed
 			:type temp: float
 
 			:param error_estimate: indicate if and how to perform error analysis. One of following options is available:
-				*  **mle_p** -- compute error through the asymptotic normality of the maximum likelihood estimator for the probability itself and IGNORE the correlation between histogram bins. WARNING: due to positivity constraint of the probability, this only works for high probability and low variance. Otherwise the standard error interval for the normal distribution (i.e. mle +- n*sigma) might give rise to negative lower error bars.
-				*  **mle_p_cov** -- compute error through the asymptotic normality of the maximum likelihood estimator for the probability itself and ACCOUNT for the correlation between histogram bins. WARNING: due to positivity constraint of the probability, this only works for high probability and low variance. Otherwise the standard error interval for the normal distribution (i.e. mle +- n*sigma) might give rise to negative lower error bars.
-				*  **mle_f** -- compute error through the asymptotic normality of the maximum likelihood estimator for -log(p) (hence for the beta-scaled free energy) and IGNORE the correlation between histogram bins. This estimation does not suffor from the same WARNING as for ``mle_p``. Furthermore, in case of high probability and low variance, the error estimation using ``mle_f`` and ``mle_p`` are consistent (i.e. one can be computed from the other using f=-log(p)).
-				*  **mle_f_cov** -- compute error through the asymptotic normality of the maximum likelihood estimator for -log(p) (hence for the beta-scaled free energy) and ACCOUNT for the correlation between histogram bins. This estimation does not suffor from the same WARNING as for ``mle_p``. Furthermore, in case of high probability and low variance, the error estimation using ``mle_f`` and ``mle_p`` are consistent (i.e. one can be computed from the other using f=-log(p)).
-				*  **None** -- do not estimate the error.
-			:type error_estimate: str, optional, default=None
 
-			:param bias_subgrid_num: the number of grid points for the sub-grid used to compute the integrated boltzmann factor of the bias in each CV bin.
-			:type bias_subgrid_num: optional, default=20
+				- **mle_p** - Estimating the error directly for the probability of each bin in the histogram. This method does not explicitly impose the positivity of the probability.
+
+				- **mle_p_cov** - Estimate the full covariance matrix for the probability of all bins in the histogram. In other words, appart from the error on the probability/free energy of a bin itself, we now also account for the covariance between the probabilty/free energy of the bins. This method does not explicitly impose the positivity of the probability.
+
+				- **mle_f** - Estimating the error for minus the logarithm of the probability, which is proportional to the free energy (hence f in mle_f). As the probability is expressed as :math:`\propto e^{-f}`, its positivity is explicitly accounted for.
+
+				- **mle_f_cov** - Estimate the full covariance matrix for minus the logarithm of the probability of all bins in the histogram. In other words, appart from the error on the probabilty/free energy of a bin itself (including explicit positivity constraint), we now also account for the covariance between the probability/free energy of the bins.
+
+			:type error_estimate: str or None, optional, default=None
+
+			:param corrtimes: list of (integrated) correlation times of the CV, one for each simulation. Such correlation times will be taken into account during the error estimation and hence make it more reliable. If set to None, the CV trajectories will be assumed to contain fully uncorrelated samples (which is not true when using trajectories representing each subsequent step from a molecular dynamics simulation). More information can be found in :ref:`the user guide <seclab_ug_errorestimation>`. This input can be generated using the :py:meth:`decorrelate <thermolib.tools.decorrelate>` routine. This argument needs to have the same length as the ``traj_input`` and ``biasses`` arguments.
+			:type corrtimes: list or np.ndarray, optional, default=None
+			
+			:param error_p_thresshold: only relevant when error estimation is enabled (see parameter ``error_estimate``). When ``error_p_thresshold`` is set to x, bins in the histogram for which the probability resulting from the trajectory is smaller than x will be disabled for error estimation (i.e. its error will be set to np.nan). It is mainly usefull in the case of 2D histograms,as illustrated in :doc:`one of the tutorial notebooks <tut/advanced_projection>`.
+			:type error_p_thresshold: float, optional, default=0.0
+
+			:param bias_subgrid_num: see documentation for this argument in the :py:meth:`wham1d_bias <thermolib.ext.wham1d_bias>` routine
+			:type bias_subgrid_num: int, optional, default=20
 
 			:param Nscf: the maximum number of steps in the self-consistent loop to solve the WHAM equations
-			:type Nscf: int, default=1000
+			:type Nscf: int, optional, default=1000
 
 			:param convergence: convergence criterium for the WHAM self consistent solver. The SCF loop will stop whenever the integrated absolute difference between consecutive probability densities is less then the specified value.
-			:type convergence: float, default=1e-6
+			:type convergence: float, optional, default=1e-6
 
-			:param verbose: set to True to turn on more verbosity during the self consistent solution cycles of the WHAM equations.
-			:type verbose: bool, optional, default=False
+			:param bias_thress: see documentation for the thresshold argument in the :py:meth:`wham1d_bias <thermolib.ext.wham1d_bias>` routine
+			:type bias_thress:
 
-			:param cv_output_unit: the unit in which cv will be plotted/printed
+			:param verbosity: controls the level of verbosity for logging during the WHAM algorithm. 
+			:type verbose: str, optional, allowed='none'|'low'|'medium'|'high', default='low'
+
+			:param cv_output_unit: the unit in which cv will be plotted/printed. If you need help properly converting to atomic units, we refer to the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
 			:type cv_output_unit: str, optional, default='au'
 
 			:param cv_label: the label of the cv that will be used on plots
 			:type cv_label: str, optional, default='CV'
 
-			:return: probability histogram
-			:rtype: Histogram1D
+			:raises AssertionError: if traj_input and biasses are not of equal length
+			:raises AssertionError: if traj_input has an element that is not a numpy.ndarray
+			:raises AssertionError: if the CV grid defined by bins argument does not have a uniform spacing.
+			:raises ValueError: if an invalid definition for error_estimate is provided
 		'''
 		timings = {}
 		timings['start'] = time.time()
-		#backward compatibility between verbose and verbosity.
-		if verbose is not None:
-			print('The keyword verbose is depricated and will be removed in the near future. Use the keyword verbosity instead.')
-			if verbose:
-				verbosity = 'high'
-			else:
-				verbosity = 'none'
 		if verbosity.lower() in ['medium', 'high']:
 			print('Initialization ...')
 
@@ -258,7 +291,7 @@ class Histogram1D(object):
 			if isinstance(trajectory, str):
 				trajectory = np.loadtxt(trajectory)[:,1] #first column is the time, second column is the CV
 			else:
-				assert isinstance(trajectory, np.ndarray)
+				assert isinstance(trajectory, np.ndarray), 'All trajectories should be numpy.ndarrays'
 			Nis[i] = len(trajectory)
 			trajectories[i] = trajectory
 
@@ -314,7 +347,7 @@ class Histogram1D(object):
 			if verbosity.lower() in ['medium', 'high']:
 				print('Estimating error ...')
 			if corrtimes is None: corrtimes = np.ones(len(traj_input), float)
-			error = wham1d_error(Nsims, Ngrid, Nis, ps, fs, bs, corrtimes, method=error_estimate, verbosity=verbosity)
+			error = wham1d_error(Nsims, Ngrid, Nis, ps, fs, bs, corrtimes, method=error_estimate, verbosity=verbosity, p_thresshold=error_p_thresshold)
 		elif error_estimate is not None and error_estimate not in ["None"]:
 			raise ValueError('Received invalid value for keyword argument error_estimate, got %s. See documentation for valid choices.' %error_estimate)
 		timings['error'] = time.time()
@@ -340,25 +373,25 @@ class Histogram1D(object):
 
 	@classmethod
 	def from_wham_c(cls, bins, trajectories, biasses, temp, error_estimate=None, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, cv_output_unit='au', cv_label='CV', verbosity='low'):
-		'''This routine sole purpose is backward compatibility and serves as an alias for from_wham. 
-		
-		There used to be a distinction between the from_wham and from_wham_c routine (former was full python implementation, latter used Cython for speed up). This distinction has been removed after deliberate testing confirmed that both routines gave identical results. As a result, only the former from_wham_c routine (which is faster) remains, but it has been renamed to from_wham, while the current from_wham_c routine remains in place for backward compatibility.
+		'''
+			.. deprecated:: v1.7
+
+				This routine sole purpose is backward compatibility and serves as an alias for from_wham. Please start using the from_wham routine as this routine will be removed in the near future.
+			
+				There used to be a distinction between the from_wham and from_wham_c routine (former was full python implementation, latter used Cython for speed up). This distinction has been removed after deliberate testing confirmed that both routines gave identical results. As a result, only the former from_wham_c routine (which is faster) remains, but it has been renamed to from_wham, while the current from_wham_c routine remains in place for backward compatibility.
 		'''
 		return cls.from_wham(bins, trajectories, biasses, temp, error_estimate=error_estimate, bias_subgrid_num=bias_subgrid_num, Nscf=Nscf, convergence=convergence, cv_output_unit=cv_output_unit, cv_label=cv_label, verbosity=verbosity)
 
 	@classmethod
 	def from_fep(cls, fep, temp):
 		'''
-			Use the given free energy profile to construct the corresponding probability histogram at the given temperature.
+			Compute a probability histogram from the given free energy profile at the given temperature.
 
 			:param fep: free energy profile from which the probability histogram is computed
 			:type fep: fep.BaseFreeEnergyProfile/fep.SimpleFreeEnergyProfile
 
 			:param temp: the temperature at which the histogram input data was simulated
 			:type temp: float
-
-			:return: probability histogram corresponding to the given free energy profile
-			:rtype: Histogram1D
 		'''
 		ps = np.zeros(len(fep.fs))
 		beta = 1.0/(boltzmann*temp)
@@ -374,13 +407,40 @@ class Histogram1D(object):
 
 	def plot(self, fn=None, obss=['value'], linestyles=None, linewidths=None, colors=None, cvlims=None, plims=None, show_legend=False, **plot_kwargs):
 		'''
-			Make a plot of the probability histogram.
+			Plot the probability histogram as function of the CV. If the error distribution is stored in self.error, various statistical quantities besides the estimated mean probabilty ietsel (such as the error width, lower/upper limit on the error bar, random sample) can be plotted using the ``obss`` keyword. You can specify additional matplotlib keyword arguments that will be parsed to the matplotlib plotter (`plot` and/or `fill_between`) at the end of the argument list of this routine.
 
-			:param fn: file name of the resulting plot
-			:type fn: str
+            :param fn: name of a file to save plot to. If None, the plot will not be saved to a file.
+            :type fn: str, optional, default=None
 
-			:param flim: upper limit of the free energy axis in plots.
-			:type flim: float, optional, default=None
+            :param obss: Specify which statistical property/properties to plot. Multiple values are allowed, which will be plotted on the same figure. Following options are supported:
+
+                - **value** - the values stored in self.ps
+                - **mean** - the mean according to the error distribution, i.e. self.error.mean()
+                - **lower** - the lower limit of the 2-sigma error bar (which corresponds to a 95% confidence interval in case of a normal distribution), i.e. self.error.nsigma_conf_int(2)[0]
+                - **upper** - the upper limit of the 2-sigma error bar (which corresponds to a 95% confidence interval in case of a normal distribution), i.e. self.error.nsigma_conf_int(2)[1]
+                - **error** - half the width of the 2-sigma error bar (which corresponds to a 95% confidence interval in case of a normal distribution), i.e. abs(upper-lower)/2
+                - **sample** - a random sample taken from the error distribution, i.e. self.error.sample()
+            :type obss: list, optional, default=['value']
+
+            :param linestyles: Specify the line style (using matplotlib definitions) for each quantity requested in ``obss``. If None, all linestyles are set to '-'
+            :type linestyles: list or None, optional, default=None
+
+            :param linewidths: Specify the line width (using matplotlib definitions) for each quantity requested in ``obss``. If None, al linewidths are set to 1
+            :type linewidths: list of strings or None, optional, default=None
+
+            :param colors: Specify the color (using matplotlib definitions) for each quantity requested in ``obss``. If None, matplotlib will choose.
+            :type colors: list of strings or None, optional, default=None
+
+            :param cvlims: limits to the plotting range of the cv. If None, no limits are enforced
+            :type cvlims: list of strings or None, optional, default=None
+
+            :param plims: limits to the plotting range of the probability. If None, no limits are enforced
+            :type plims: list of strings or None, optional, default=None
+
+            :param show_legend: If True, the legend is shown in the plot
+            :type show_legend: bool, optional, default=None
+            
+            :raises ValueError: if the ``obs`` argument contains an invalid specification
 		'''
 		#preprocess
 		cvunit = parse_unit(self.cv_output_unit)
@@ -448,32 +508,33 @@ class Histogram1D(object):
 
 
 class Histogram2D(object):
+	'''
+		Class representing a 2D probability histogram :math:`p(CV1,CV2)` in terms of two collective variable :math:`CV1` and :math:`CV2`.
+	'''
 	def __init__(self, cv1s, cv2s, ps, error=None, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2'):
 		'''
-			Class to implement the estimation of a probability histogram in terms of a collective variable from a trajectory series corresponding to that collective variable.
-
-			:param cv1s: 1D array corresponding the grid points of the first collective variable, which should be in atomic units.
+			:param cv1s: the bin values of the first collective variable CV1, which should be in atomic units! If you need help properly converting to atomic units, we refer to the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
 			:type data: np.ndarray
 
-			:param cv2s: 1D array corresponding the grid points of the second collective variable, which should be in atomic units.
+			:param cv2s: the bin values of the second collective variable CV2, which should be in atomic units! If you need help properly converting to atomic units, we refer to the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
 			:type data: np.ndarray
 
-			:param ps: 2D array corresponding to the histogram probability values at the (CV1,CV2) grid points, which should be in atomic units.
+			:param ps: 2D array corresponding to  the histogram probability values at the given CV1,CV2 grid. The probabilities should be in atomic units! If you need help properly converting to atomic units, we refer to the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
 			:type bins: np.ndarray
 
-			:param error: error distribution on the histogram, defaults to None
-            :type error: Distribution child class, optional
+			:param error: error distribution on the free energy profile
+			:type error: child of :py:class:`Distribution <thermolib.error.Distribution>`, optional, default=None
 
-			:param cv1_output_unit: the unit in which the first collective variable will be plotted/printed.
-			:type cv_output_unit: str, optional, default='au'
+			:param cv1_output_unit: the units for printing and plotting of CV1 values (not the unit of the input array, that is assumed to be in atomic units). Units are defined using the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+			:type cv1_output_unit: str, optional, default='au'
 
-			:param cv2_output_unit: the unit in which the second collective variable will be plotted/printed.
-			:type cv_output_unit: str, optional, default='au'
+			:param cv2_output_unit: the units for printing and plotting of CV2 values (not the unit of the input array, that is assumed to be in atomic units). Units are defined using the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+			:type cv2_output_unit: str, optional, default='au'
 
-			:param cv1_label: the label of the first collective variable that will be used on plots.
+			:param cv1_label: label for CV1 for printing and plotting
 			:type cv1_label: str, optional, default='CV1'
 
-			:param cv2_label: the label of the first collective variable that will be used on plots.
+			:param cv2_label: label for CV2 for printing and plotting
 			:type cv2_label: str, optional, default='CV2
 		'''
 		self.cv1s = cv1s.copy()
@@ -488,12 +549,34 @@ class Histogram2D(object):
 		self.cv2_label = cv2_label
 
 	def plower(self, nsigma=2):
+		'''
+            Return the lower limit of an n-sigma error bar on the histogram probability, i.e. :math:`\\mu - n\\sigma` with :math:`\\mu` the mean and :math:`\\sigma` the standard deviation.
+
+            :param nsigma: defines the n-sigma error bar
+            :type nsigma: int, optional, default=2
+
+            :return: the lower limit of the n-sigma error bar
+            :rtype: np.ndarray with dimensions determined by self.error
+
+            :raises AssertionError: if self.error is not defined.
+        '''
 		assert self.error is not None, 'Plower cannot be computed because no error distribution was defined in the error attribute'
 		plower, pupper = self.error.nsigma_conf_int(nsigma)
 		plower /= plower.sum()
 		return plower
 
 	def pupper(self, nsigma=2):
+		'''
+            Return the upper limit of an n-sigma error bar on the histogram probability, i.e. :math:`\\mu + n\\sigma` with :math:`\\mu` the mean and :math:`\\sigma` the standard deviation.
+
+            :param nsigma: defines the n-sigma error bar
+            :type nsigma: int, optional, default=2
+
+            :return: the upper limit of the n-sigma error bar
+            :rtype: np.ndarray with dimensions determined by self.error
+
+            :raises AssertionError: if self.error is not defined.
+        '''
 		assert self.error is not None, 'Pupper cannot be computed because no error distribution was defined in the error attribute'
 		plower, pupper = self.error.nsigma_conf_int(nsigma)
 		pupper /= pupper.sum()
@@ -501,10 +584,7 @@ class Histogram2D(object):
 
 	def copy(self):
 		'''
-		Make and return a copy of the current instance.
-
-		:return: copy of the current instance
-		:rtype: Histogram2D
+			Make and return a copy of the current 2D probability histogram.
 		'''
 		error = None
 		if self.error is not None:
@@ -518,35 +598,29 @@ class Histogram2D(object):
 	@classmethod
 	def from_average(cls, histograms, error_estimate=None, cv1_output_unit=None, cv2_output_unit=None, cv1_label=None, cv2_label=None):
 		'''
-			Start from a set of histograms and compute and return the averaged histogram. If error_estimate is set to 'std', an error on the histogram will be computed from the standard deviation within the set of histograms.
+			Start from a set of 2D histograms and compute and return the averaged histogram (and optionally the error bar).
 
 			:param histograms: set of histrograms to be averaged
-			:type histograms: list(Histogram1D)
+			:type histograms: list of :py:class:`Histogram1D <thermolib.thermodynamics.histogram.Histogram1D>` instances
 
-			:param error_estimate: indicate if and how to perform error analysis. One of following options is available:
-
-				*  **std** -- compute error from the standard deviation within the set of histograms.
-				*  **None** -- do not estimate the error.
-
+			:param error_estimate: indicate how to perform error analysis. Currently, only one method is supported, 'std', which will compute the error bar from the standard deviation within the set of histograms.
 			:type error_estimate: str, optional, default=None
 
-			:param nsigma: only relevant when error estimation is turned on (i.e. when keyword ``error_estimate`` is not None), this option defines how large the error interval should be in terms of the standard deviation sigma. A ``nsigma=2`` implies a 2-sigma error bar (corresponding to 95% confidence interval) will be returned.
-			:type nsigma: int, optional, default=2
+			:param cv1_output_unit: the unit in which the new CV1 will be plotted/printed. Defaults to the cv1_output_unit of the first histogram given.
+			:type cv1_output_unit: str, optional
 
-			:param cv1_output_unit: the units for printing and plotting of CV1 values. Units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_. Defaults to the cv1_output_unit of the first histogram given.
-            :type cv1_output_unit: str or float, optional
+			:param cv2_output_unit: the unit in which the new CV2 will be plotted/printed. Defaults to the cv2_output_unit of the first histogram given.
+			:type cv2_output_unit: str, optional
 
-			:param cv2_output_unit: the units for printing and plotting of CV2 values. Units are defined using `the molmod routine <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_. Defaults to the cv2_output_unit of the first histogram given.
-            :type cv2_output_unit: str or float, optional
+			:param cv1_label: label for the new CV1. Defaults to the cv1_label of the first given histogram.
+			:type cv1_label: str, optional
 
-			:param cv1_label: label for the first collective variable in plots. Defaults to the cv1_label of the first given histogram.
-            :type cv1_label: str, optional
+			:param cv2_label: label for the new CV2. Defaults to the cv2_label of the first given histogram.
+			:type cv2_label: str, optional
 
-			:param cv2_label: label for the second collective variable in plots. Defaults to the cv2_label of the first given histogram.
-            :type cv2_label: str, optional
+			:raises AssertionError: if the histograms do not have a consistent CV1 grid
+			:raises AssertionError: if the histograms do not have a consistent CV2 grid
 
-			:return: averages histogram
-			:rtype: Histrogram1D
 		'''
 		#sanity checks
 		cv1s, cv2s = None, None
@@ -581,34 +655,35 @@ class Histogram2D(object):
 	@classmethod
 	def from_single_trajectory(cls, data, bins, error_estimate=None, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2'):
 		'''
-			Routine to estimate of a probability histogram in terms of two collective variables from a trajectory series corresponding to that collective variable.
+			Routine to estimate a 2D probability histogram in terms of two collective variable from a series of samples of those two collective variables.
 
-			:param data: 2D array corresponding to the trajectory series of the two collective variables. The first column is assumed to correspond to the first collective variable, the second column to the second CV.
-			:type data: np.ndarray([N,2])
+			:param data: array representing series of samples of the two collective variables. The first column is assumed to correspond to the first collective variable, the second column to the second CV.
+			:type data: np.ndarray([Nsamples,2])
 
 			:param bins: array representing the edges of the bins for which a histogram will be constructed. This argument is parsed to `the numpy.histogram2d routine <https://numpy.org/doc/stable/reference/generated/numpy.histogram.html>`_. Hence, more information on its meaning and allowed values can be found there.
 			:type bins: np.ndarray
 
-			:param error_estimate: indicate if and how to perform error analysis. One of following options is available:
+			param error_estimate: indicate if and how to perform error analysis. One of following options is available:
 
-				*  **mle_p** -- compute error through the asymptotic normality of the maximum likelihood estimator for the probability itself. WARNING: due to positivity constraint of the probability, this only works for low variance. Otherwise the standard error interval for the normal distribution (i.e. mle +- n*sigma) might give rise to negative lower error bars.
-				*  **mle_f** -- compute error through the asymptotic normality of the maximum likelihood estimator for -log(p) (hence for the beta-scaled free energy). This estimation does not suffor from the same WARNING as for ``mle_p``. Furthermore, in case of low variance, the error estimation using ``mle_f`` and ``mle_p`` are consistent (i.e. one can be computed from the other using f=-log(p)).
-				*  **None** -- do not estimate the error.
+				- **mle_p** - Estimating the error directly for the probability of each bin in the histogram. This method does not explicitly impose the positivity of the probability.
 
-			Defaults to None, i.e. no error estimate.
-			:type error_estimate: str, optional
+				- **mle_f** - Estimating the error for minus the logarithm of the probability, which is proportional to the free energy (hence f in mle_f). As the probability is expressed as :math:`\propto e^{-f}`, its positivity is explicitly accounted for.
 
-			:param cv1_output_unit: the unit in which the first collective variable will be plotted/printed
+			:type error_estimate: str or None, optional, default=None
+
+			:param cv1_output_unit: the unit in which CV1 will be plotted/printed (not the unit of the input array, that is assumed to be atomic units). If you need help properly converting to atomic units, we refer to the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
 			:type cv1_output_unit: str, optional, default='au'
 
-			:param cv2_output_unit: the unit in which the second collective variable will be plotted/printed
+			:param cv2_output_unit: the unit in which CV2 will be plotted/printed (not the unit of the input array, that is assumed to be atomic units). If you need help properly converting to atomic units, we refer to the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
 			:type cv2_output_unit: str, optional, default='au'
 
-			:param cv1_label: the label of the first collective variable that will be used on plots
+			:param cv1_label: label of CV1 that will be used for plotting and printing
 			:type cv1_label: str, optional, default='CV1'
 
-			:param cv2_label: the label of the first collective variable that will be used on plots
+			:param cv2_label: label of CV2 that will be used for plotting and printing
 			:type cv2_label: str, optional, default='CV2'
+
+			:raises ValueError: if no valid error_estimate value is given
 		'''
 		#initialization
 		cv1s, cv2s = None, None
@@ -636,21 +711,17 @@ class Histogram2D(object):
 		return cls(cv1s, cv2s, ps, error=error, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, cv1_label=cv1_label, cv2_label=cv2_label)
 	
 	@classmethod
-	def from_wham(cls, bins, traj_input, biasses, temp, pinit=None, error_estimate=None, error_p_threshold=0.0, corrtimes=None, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, bias_thress=1e-3, overflow_threshold=1e-150, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2', plot_biases=False, verbose=None, verbosity='low'):
+	def from_wham(cls, bins, traj_input, biasses, temp, pinit=None, error_estimate=None, error_p_threshold=0.0, corrtimes=None, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, bias_thress=1e-3, overflow_threshold=1e-150, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2', plot_biases=False, verbosity='low'):
 		'''
-			Routine that implements the Weighted Histogram Analysis Method (WHAM) for reconstructing the overall 2D probability histogram from a series of biased molecular simulations in terms of two collective variables CV1 and CV2.
-			
-			:param data: 2D array corresponding to the trajectory series of the two collective variables. The first column is assumed to correspond to the first collective variable, the second column to the second CV.
-			:type data: np.ndarray([N,2])
+			Routine that implements the Weighted Histogram Analysis Method (WHAM) for reconstructing the overall 2D probability histogram in terms of two collective variables CV1 and CV2 from a series of molecular simulations that are (possibly) biased in terms of CV1 and/or CV2.
 
-			:param bins: list of the form [bins1, bins2] where bins1 and bins2 are numpy arrays each representing the bin edges of their corresponding CV for which a histogram will be constructed. For example the following definition: 	[np.arange(-1,1.05,0.05), np.arange(0,5.1,0.1)]
-			will result in a 2D histogram with bins of width 0.05 between -1 and 1 for CV1 and bins of width 0.1 between 0 and 5 for CV2.
+			:param bins: list of the form [bins1, bins2] where bins1 and bins2 are numpy arrays each representing the bin edges of their corresponding CV for which a histogram will be constructed. For example the following definition: 	[np.arange(-1,1.05,0.05), np.arange(0,5.1,0.1)] will result in a 2D histogram with bins of width 0.05 between -1 and 1 for CV1 and bins of width 0.1 between 0 and 5 for CV2.
 			:type bins: np.ndarray
 
-			:param trajectories: list or array of 2D numpy arrays containing the [CV1,CV2] trajectory data for each simulation. Alternatively, a list of PLUMED file names containing the trajectory data can be specified as well. The arguments trajectories and biasses should be of the same length.
-			:type trajectories: list(np.ndarray([Nmd,2]))/np.ndarray([Ntraj,Nmd,2])
+			:param traj_input: list of [CV1,CV2] trajectories, one for each simulation. This input can be generated using the :py:meth:`read_wham_input <thermolib.tools.read_wham_input>` routine. The arguments trajectories and biasses should be of the same length.
+			:type trajectories: list of np.ndarrays
 
-			:param biasses: list of callables, each representing a function to compute the bias at a given value of the collective variables CV1 and CV2. The arguments trajectories and biasses should be of the same length.
+			:param biasses: list of bias potentials, one for each simulation allowing to compute the bias at given values of the collective variables CV1 and CV2 in that simulation. This input can be generated using the :py:meth:`read_wham_input <thermolib.tools.read_wham_input>` routine. The arguments traj_input and biasses should be of the same length.
 			:type biasses: list(callable)
 
 			:param temp: the temperature at which all simulations were performed
@@ -661,18 +732,23 @@ class Histogram2D(object):
 
 			:param error_estimate: indicate if and how to perform error analysis. One of following options is available:
 
-				* `mle_p` -- compute error through the asymptotic normality of the maximum likelihood estimator for the probability itself. WARNING: due to positivity constraint of the probability, this only works for high probability and low variance. Otherwise the standard error interval for the normal distribution (i.e. mle +- n*sigma) might give rise to negative lower error bars.
-				
-				* `mle_f` -- compute error through the asymptotic normality of the maximum likelihood estimator for -log(p) (hence for the beta-scaled free energy). This estimation does not suffer from the same WARNING as for ``mle_p``. Furthermore, in case of high probability and low variance, the error estimation using ``mle_f`` and ``mle_p`` are consistent (i.e. one can be computed from the other using f=-log(p)).
-				
-				* `None` -- do not estimate the error.
+				- **mle_p** - Estimating the error directly for the probability of each bin in the histogram. This method does not explicitly impose the positivity of the probability.
 
-			:type error_estimate: str, optional, default=None
+				- **mle_p_cov** - Estimate the full covariance matrix for the probability of all bins in the histogram. In other words, appart from the error on the probability/free energy of a bin itself, we now also account for the covariance between the probabilty/free energy of the bins. This method does not explicitly impose the positivity of the probability.
 
-			:param error_p_threshold: thresshold on the biased probability in order to take it into account for error estimating. This allows you to trim off regions off phase space that have been sampled so little with a corresponding high error that its corresponding lower bound on a sample could lead to states more stable then the well sampled reactant/product states (and hence poison error propagation for macrostate free energies).
-			:type error_p_threshold: float, optional, default=0.0
+				- **mle_f** - Estimating the error for minus the logarithm of the probability, which is proportional to the free energy (hence f in mle_f). As the probability is expressed as :math:`\propto e^{-f}`, its positivity is explicitly accounted for.
 
-			:param bias_subgrid_num: the number of grid points along each CV for the sub-grid used to compute the integrated boltzmann factor of the bias in each CV1,CV2 bin. Either a single integer is given, corresponding to identical number of subgrid points for both CVs, or a list of two integers corresponding the number of grid points in the two CVs respectively.
+				- **mle_f_cov** - Estimate the full covariance matrix for minus the logarithm of the probability of all bins in the histogram. In other words, appart from the error on the probabilty/free energy of a bin itself (including explicit positivity constraint), we now also account for the covariance between the probability/free energy of the bins.
+
+			:type error_estimate: str or None, optional, default=None
+
+			:param error_p_thresshold: only relevant when error estimation is enabled (see parameter ``error_estimate``). When ``error_p_thresshold`` is set to x, bins in the histogram for which the probability resulting from the trajectory is smaller than x will be disabled for error estimation (i.e. its error will be set to np.nan). Its use is illustrated in :doc:`one of the tutorial notebooks <tut/advanced_projection>`.
+			:type error_p_thresshold: float, optional, default=0.0
+
+			:param corrtimes: list of (integrated) correlation times of the CVs, one for each simulation. Such correlation times will be taken into account during the error estimation and hence make it more reliable. If set to None, the CV trajectories will be assumed to contain fully uncorrelated samples (which is not true when using trajectories representing each subsequent step from a molecular dynamics simulation). More information can be found in :ref:`the user guide <seclab_ug_errorestimation>`. This input can be generated using the :py:meth:`decorrelate <thermolib.tools.decorrelate>` routine. This argument needs to have the same length as the ``traj_input`` and ``biasses`` arguments.
+			:type corrtimes: list or np.ndarray, optional, default=None
+
+			:param bias_subgrid_num: see documentation for this argument in the :py:meth:`wham2d_bias <thermolib.ext.wham2d_bias>` routine
 			:type bias_subgrid_num: optional, defaults to [20,20]
 
 			:param Nscf: the maximum number of steps in the self-consistent loop to solve the WHAM equations
@@ -681,42 +757,32 @@ class Histogram2D(object):
 			:param convergence: convergence criterium for the WHAM self consistent solver. The SCF loop will stop whenever the integrated absolute difference between consecutive probability densities is less then the specified value.
 			:type convergence: float, defaults to 1e-6
 
-			:param verbose: set to True to turn on more verbosity during the self consistent solution cycles of the WHAM equations, defaults to False.
-			:type verbose: bool, optional
-
-			:param cv1_output_unit: the unit in which the first collective variable will be plotted/printed
-			:type cv1_output_unit: str, optional, default='au'
-
-			:param cv2_output_unit: the unit in which the second collective variable will be plotted/printed
-			:type cv2_output_unit: str, optional, default='au'
-
-			:param cv1_label: the label of the first collective variable that will be used on plots
-			:type cv1_label: str, optional, default='CV1'
-
-			:param cv2_label: the label of the first collective variable that will be used on plots
-			:type cv2_label: str, optional, default='CV2'
-
-			:param plot_biases: if set to True, a 2D plot of the boltzmann factor of the bias integrated over each bin will be made.
-			:type plot_biases: bool, optional, default=False
-
-			:param bias_thress: threshold for determining whether the exact bin integration of the bias boltzmann factors is required, or the boltzmann factor of the bin center suffices as an approximation. Setting the threshold to 0 implies exact integration for all bins, setting the threshold to 1 implies the bin center approximation for all cells and setting the threshold to x implies that only those bins with a center approximation higher than x will be integrated exactly.
+			:param bias_thress: see documentation for this argument in the :py:meth:`wham1d_bias <thermolib.ext.wham1d_bias>` routine
 			:type bias_thress: double, optional, default=1e-3
 
-			:param overflow_threshold: threshold used in the scf procedure to avoid overflow errors, this determines which simulations and which grid points to ignore. Decreasing it results in a FES with a larger maximum free energy (lower unbiased probability). If it is too low, imaginary errors (sigma^2) arise, so increase if necessary.
+			:param overflow_threshold: see documentation for this argument in the :py:meth:`wham2d_scf <thermolib.ext.wham2d_scf>` routine
 			:type overflow_threshold: double, optional, default=1e-150
 
-			:return: 2D probability histogram
-			:rtype: Histogram2D
+			:param cv1_output_unit: the unit in which CV1 will be plotted/printed. If you need help properly converting to atomic units, we refer to the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+			:type cv1_output_unit: str, optional, default='au'
+
+			:param cv2_output_unit: the unit in which CV2 will be plotted/printed. If you need help properly converting to atomic units, we refer to the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+			:type cv2_output_unit: str, optional, default='au'
+
+			:param cv1_label: label of CV1 used for plotting and printing
+			:type cv1_label: str, optional, default='CV1'
+
+			:param cv2_label: label of CV2 used for plotting and printing
+			:type cv2_label: str, optional, default='CV2'
+
+			:param plot_biases: if set to True, a 2D plot of the boltzmann factor of the bias integrated over each bin will be made. This routine (mainly) exists for debugging purposes.
+			:type plot_biases: bool, optional, default=False
+
+			:param verbosity: controls the level of verbosity for logging during the WHAM algorithm. 
+			:type verbose: str, optional, allowed='none'|'low'|'medium'|'high', default='low'
 		'''
 		timings = {}
 		timings['start'] = time.time()
-		#backward compatibility between verbose and verbosity.
-		if verbose is not None:
-			print('The keyword verbose is depricated and will be removed in the near future. Use the keyword verbosity instead.')
-			if verbose:
-				verbosity = 'high'
-			else:
-				verbosity = 'none'
 		if verbosity.lower() in ['medium', 'high']:
 			print('Initialization ...')
 
@@ -844,25 +910,25 @@ class Histogram2D(object):
 
 	@classmethod
 	def from_wham_c(cls, bins, trajectories, biasses, temp, pinit=None, error_estimate=None, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2', plot_biases=False, verbose=None, verbosity='low'):
-		'''This routine sole purpose is backward compatibility and serves as an alias for from_wham. 
+		'''
+			.. deprecated:: v1.7
+
+				This routine sole purpose is backward compatibility and serves as an alias for from_wham. Please start using the from_wham routine as this routine will be removed in the near future.
 		
-		There used to be a distinction between the from_wham and from_wham_c routine (former was full python implementation, latter used Cython for speed up). This distinction has been removed after deliberate testing confirmed that both routines gave identical results. As a result, only the former from_wham_c routine (which is faster) remains, but it has been renamed to from_wham, while the current from_wham_c routine remains in place for backward compatibility.
+				There used to be a distinction between the from_wham and from_wham_c routine (former was full python implementation, latter used Cython for speed up). This distinction has been removed after deliberate testing confirmed that both routines gave identical results. As a result, only the former from_wham_c routine (which is faster) remains, but it has been renamed to from_wham, while the current from_wham_c routine remains in place for backward compatibility.
 		'''
 		return cls.from_wham(bins, trajectories, biasses, temp, pinit=pinit, error_estimate=error_estimate, bias_subgrid_num=bias_subgrid_num, Nscf=Nscf, convergence=convergence, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, cv1_label=cv1_label, cv2_label=cv2_label, plot_biases=plot_biases, verbose=verbose, verbosity=verbosity)
 
 	@classmethod
 	def from_fes(cls, fes, temp):
 		'''
-			Use the given 2D free energy surface to construct the corresponding 2D probability histogram at the given temperature.
+			Compute a probability histogram from the given free energy surface at the given temperature.
 
 			:param fes: free energy surfave from which the probability histogram is computed
 			:type fes: fep.FreeEnergySurface2D
 
 			:param temp: the temperature at which the histogram input data was simulated
 			:type temp: float
-
-			:return: probability histogram corresponding to the given free energy profile
-			:rtype: Histogram2D
 		'''
 		assert isinstance(fes, FreeEnergySurface2D), 'Input argument fes should be type FreeEnergySurface2D'
 		ps = np.zeros(len(fes.fs))
@@ -874,21 +940,27 @@ class Histogram2D(object):
 			raise NotImplementedError #TODO
 		return cls(fes.cv1s, fes.cv2s, ps, error=error, cv1_output_unit=fes.cv1_output_unit, cv2_output_unit=fes.cv2_output_unit, cv1_label=fes.cv1_label, cv2_label=fes.cv2_label)
 	
-	def average_cv_constraint_other(self, index, target_distribution=MultiGaussianDistribution, verbose=False):
-		'''S
-			Routine to compute the average of one CV (denoted as y/Y below, y for integration values and Y for resulting averaged values) 
-		   	as function of the other CV (denoted as x below), i.e. the other CV Y is contraint to one of its bin values) using the following formula:
+	def average_cv_constraint_other(self, index, target_distribution=MultiGaussianDistribution, propagator=Propagator()):
+		'''
+			Routine to compute a profile representing the average of one CV (denoted as y/Y below, y for integration values and Y for resulting averaged values) as function of the other CV (denoted as x below), i.e. the other CV is contraint to one of its bin values x. This is done using the following formula:
 
-			Y(x) = int(y*p(x,y),y)/int(p(x,y),dy)
-
+			.. math::
+				
+				Y(x) = \\frac{\\int y\\cdot p(x,y) dy}{\\int p(x,y)dy}
+			
 			:param index: the index of the CV which will be averaged (the other is then contraint). If index=1, then y=CV1 and x=CV2, while if index=2, then y=CV2 and x=CV1.
 			:type index: int (1 or 2)
-
-			:param error_estimate: Specify the method of error propagation, either by propagating the FES distribution samples (propdist) or by propagating the FES 2 sigma confidence interval (prop2sigma), defaults to propdist
-			:type error_estimate: str, optional
-
-			:return: xs, ys (and yerrs) with xs the constraint CV values, ys the averaged CV values and yerrs the error bar on the averaged values assuming do_err was set to True
-			:rtype: xs, ys | xs, ys, yerrs all np.ndarrays
+			
+			:param target_distribution: model for the error distribution of the resulting profile.
+			:type target_distribution: child instance of :py:class:`Distribution <thermolib.error.Distribution>`, optional, default=:py:class:`MultiGaussianDistribution <thermolib.error.MultiGaussianDistribution>`
+			
+			:param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken)
+			:type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=Propagator()
+			
+			:return: Profile of the average
+			:rtype: :py:class:`BaseProfile <thermolib.thermodynamics.fep.BaseProfile>`
+			
+			:raises ValueError: if index is not 1 or 2
 		'''
 		#set x,y and p arrays according to chosen index
 		if index==1:
@@ -933,25 +1005,60 @@ class Histogram2D(object):
 			raise ValueError('Index should be 1 or 2 for 2D Histogram')
 		#compute average Y (and possibly its error) on grid of x
 		if self.error is not None:
-			if verbose: print('Error propagation is done numerically')
-			propagator = Propagator(verbose=verbose)
 			error = propagator(function, self.error, target_distribution=target_distribution, samples_are_flattened=True)
 			Ys = error.mean()
 		else:
-			if verbose: print('No error detected in current histogram, so no error propagation possible!')
 			Ys = function(self.ps)
 			error = None
 		return BaseProfile(xs, Ys, error=error, cv_output_unit=cv_output_unit, f_output_unit=f_output_unit, cv_label=cv_label, f_label=f_label)
 	
-	def plot(self, fn=None, slicer=[slice(None),slice(None)], obss=['value'], linestyles=None, linewidths=None, colors=None, cv1lims=None, cv2lims=None, plims=None, ncolors=8, ref_max=False, **plot_kwargs):
+	def plot(self, fn=None, slicer=[slice(None),slice(None)], obss=['value'], linestyles=None, linewidths=None, colors=None, cv1_lims=None, cv2_lims=None, plims=None, ncolors=8, ref_max=False, **plot_kwargs):
 		'''
-            Plot x[slicer], where (possibly multiple) x is/Are specified in the keyword argument obss and the argument slicer defines the subset of data that will be plotted. The resulting graph will be a regular 1D plot or 2D contourplot, depending on the dimensionality of the data x[slicer].
+            Make either a 2D contour plot of p(CV1,CV2) or a 1D sliced plot of the probability along a slice in the direction specified by the slicer argument. Appart from the value of the probability itself, other (statistical) related properties can be plotted as defined in the obbs argument. At the end of the argument list, you can also specify any matplotlib keyword arguments you wish to parse to the matplotlib plotter. E.g. if you want to specify the colormap, you can just add at the end of the arguments ``cmap='rainbow'``.
 
-            :param fn: name of the file to store graph in, defaults to 'condprob.png'
-            :type fn: str, optional
+            :param fn: name of a file to save plot to. If None, the plot will not be saved to a file.
+            :type fn: str, optional, default=None
 
-            :param cmap: color map to be used, only relevant in case of 2D contourplot, defaults to pp.get_cmap('rainbow')
-            :type cmap: color map from matplotlib, optional
+            :param slicer: determines which degrees of freedom (CV1/CV2) vary/stay fixed in the plot. If slice(none) is specified, the probability will be plotted as function of the corresponding CV. If an integer `i` is specified, that corresponding CV will be kept fixed at its `i-th` value. Some examples:
+
+                - [slice(None),slice(Nonne)] -- a 2D contour plot will be made of the probability as function of both CVs
+                - [slice(None),10] -- a 1D plot will be made of the probability as function of CV1 with CV2 fixed at self.cv2s[10]
+                - [23,slice(None)] -- a 1D plot will be made of the probability as function of CV2 with CV1 fixed at self.cv1s[23]
+            :type slicer: list of `slices <https://www.w3schools.com/python/ref_func_slice.asp>`_ or integers, optional, default=[slice(None),slice(None)]
+
+            :param obss: Specify which statistical property/properties to plot. Multiple values are allowed, which will be plotted on the same figure. Following options are supported:
+
+                - **value** - the values stored in self.ps
+                - **mean** - the mean according to the error distribution, i.e. self.error.mean()
+                - **lower** - the lower limit of the 2-sigma error bar (which corresponds to a 95% confidence interval in case of a normal distribution), i.e. self.error.nsigma_conf_int(2)[0]
+                - **upper** - the upper limit of the 2-sigma error bar (which corresponds to a 95% confidence interval in case of a normal distribution), i.e. self.error.nsigma_conf_int(2)[1]
+                - **error** - half the width of the 2-sigma error bar (which corresponds to a 95% confidence interval in case of a normal distribution), i.e. abs(upper-lower)/2
+                - **sample** - a random sample taken from the error distribution, i.e. self.error.sample()
+            :type obss: list, optional, default=['value']
+
+            :param linestyles: Specify the line style (using matplotlib definitions) for each quantity requested in ``obss``. If None, matplotlib will choose.
+            :type linestyles: list or None, optional, default=None
+
+            :param linewidths: Specify the line width (using matplotlib definitions) for each quantity requested in ``obss``. If None, matplotlib will choose.
+            :type linewidths: list of strings or None, optional, default=None
+
+            :param colors: Specify the color (using matplotlib definitions) for each quantity requested in ``obss``. If None, matplotlib will choose.
+            :type colors: list of strings or None, optional, default=None
+
+            :param cv1_lims: limits to the plotting range of CV1. If None, no limits are enforced
+            :type cv1_lims: list of strings or None, optional, default=None
+
+            :param cv2_lims: limits to the plotting range of CV2. If None, no limits are enforced
+            :type cv2_lims: list of strings or None, optional, default=None
+
+            :param plims: limits to the plotting range of the probability. If None, no limits are enforced
+            :type plims: list of strings or None, optional, default=None
+
+            :param ncolors: only relevant for 2D contour plot, represents the number of contours (and hence colors) to be used in plot.
+            :type ncolors: int, optional, default=8
+
+			:param ref_max: if True, the probability histogram(s) will be rescaled such that the maximum probability is 1.0
+			:type ref_max: bool, optional, default=False 
         '''
         #preprocess
 		assert isinstance(slicer, list) or isinstance(slicer, np.ndarray), 'Slicer should be list or array, instead got %s' %(slicer.__class__.__name__)
@@ -961,23 +1068,23 @@ class Histogram2D(object):
 			ndim = 2
 			xs = self.cv1s[slicer[0]]/parse_unit(self.cv1_output_unit)
 			xlabel = self.cv1_label
-			xlims = cv1lims
+			xlims = cv1_lims
 			ys = self.cv2s[slicer[1]]/parse_unit(self.cv2_output_unit)
 			ylabel = '%s [%s]' %(self.cv2_label, self.cv2_output_unit)
-			ylims = cv2lims
-			title = 'P(:,:)'
+			ylims = cv2_lims
+			title = 'p(:,:)'
 		elif isinstance(slicer[0], slice) or isinstance(slicer[1],slice):
 			ndim = 1
 			if isinstance(slicer[0], slice):
 				xs = self.cv1s[slicer[0]]/parse_unit(self.cv1_output_unit)
 				xlabel = '%s [%s]' %(self.cv1_label, self.cv1_output_unit)
 				xlims = cv1_lims
-				title = 'F(:,%s[%i]=%.3f %s)' %(self.cv2_label,slicer[1],self.cv2s[slicer[1]]/parse_unit(self.cv2_output_unit),self.cv2_output_unit)
+				title = 'p(:,%s[%i]=%.3f %s)' %(self.cv2_label,slicer[1],self.cv2s[slicer[1]]/parse_unit(self.cv2_output_unit),self.cv2_output_unit)
 			else:
 				xs = self.cv2s[slicer[1]]/parse_unit(self.cv2_output_unit)
 				xlabel = '%s [%s]' %(self.cv2_label, self.cv2_output_unit)
 				xlims = cv2_lims
-				title = 'P(%s[%i]=%.3f %s,:)' %(self.cv1_label,slicer[0],self.cv1s[slicer[0]]/parse_unit(self.cv1_output_unit),self.cv1_output_unit)
+				title = 'p(%s[%i]=%.3f %s,:)' %(self.cv1_label,slicer[0],self.cv1s[slicer[0]]/parse_unit(self.cv1_output_unit),self.cv1_output_unit)
 		else:
 			raise ValueError('At least one of the two elements in slicer should be a slice instance!')
 		punit = 1.0/(parse_unit(self.cv1_output_unit)*parse_unit(self.cv2_output_unit))
@@ -1052,9 +1159,9 @@ class Histogram2D(object):
 				fig, axs = pp.subplots(nrows,3)
 				size = [24,8*nrows]
 			for i, (multi_index, ax) in enumerate(np.ndenumerate(axs)):
-				if flims is not None:
-					delta = (flims[1]-flims[0])/ncolors
-					levels = np.arange(flims[0], flims[1]+delta, delta)
+				if plims is not None:
+					delta = (plims[1]-plims[0])/ncolors
+					levels = np.arange(plims[0], plims[1]+delta, delta)
 					contourf = ax.contourf(xs, ys, data[i].T/punit, levels=levels, **plot_kwargs) #transpose data to convert ij indexing (internal) to xy indexing (for plotting)
 					contour = ax.contour(xs, ys, data[i].T/punit, levels=levels, colors='gray') #transpose data to convert ij indexing (internal) to xy indexing (for plotting)
 				else:
@@ -1083,31 +1190,31 @@ class Histogram2D(object):
 
 def plot_histograms(histograms, fn=None, temp=None, labels=None, flims=None, colors=None, linestyles=None, linewidths=None):
 	'''
-		Make a plot to compare multiple probability histograms and possible the corresponding free energy (if the argument ``temp`` is specified).
-
-		:param fn: file name to write the figure to, the extension determines the format (PNG or PDF).
-		:type fn: str
-
+		Make a plot to compare multiple 1D probability histograms (and possibly teh corresponding free energy profiles)
+		
 		:param histograms: list of histrograms to plot
-		:type histograms: list(Histogram1D)
-
+		:type histograms: list of :py:class:`Histogram1D <thermolib.thermodynamics.histogram.Histogram1D>` or child classes
+		
+		:param fn: file name to save the figure to. If None, the plot will not be saved.
+		:type fn: str, optional, default=None
+		
 		:param temp: if defined, the free energy profile corresponding to each histogram will be computed and plotted with its corresponding temperature. If a single float is given, all histograms are assumed to be at the same temperature, if a list or array of floats is given, each entry is assumed to be the temperature of the corresponding entry in the input list of histograms.
 		:type temp: float/list(float)/np.ndarray, optional, default=None
-
-		:param labels: list of labels for the legend, one for each histogram.
+		
+		:param labels: list of labels for the legend, one for each histogram. Order is assumed to be consistent with profiles.
 		:type labels: list(str), optional, default=None
-
-		:param flims: [lower,upper] limit of the free energy axis in plots.
+		
+		:param flims: [lower,upper] limit of the free energy axis in plots. Ignored if temp argument is not given.
 		:type flims: float, optional, default=None
-
-		:param colors: List of matplotlib color definitions for each entry in histograms. If an entry is None, a color will be chosen internally. Defaults to None, implying all colors are chosen internally.
-		:type colors: List(str), optional
-
-		:param linestyles: List of matplotlib line style definitions for each entry in histograms. If an entry is None, the default line style of '-' will be chosen . Defaults to None, implying all line styles are set to the default of '-'.
-		:type linestyles: List(str), optional
-
-		:param linewidths: List of matplotlib line width definitions for each entry in histograms. If an entry is None, the default line width of 1 will be chosen. Defaults to None, implying all line widths are set to the default of 2.
-		:type linewidths: List(str), optional
+		
+		:param colors: List of matplotlib color definitions for each entry in histograms. If an entry is None, a color will be chosen internally. If colors=None, all colors are chosen internally.
+		:type colors: List(str), optional, default=None
+		
+		:param linestyles: List of matplotlib line style definitions for each entry in histograms. If an entry is None, the default line style of '-' will be chosen internally. If linestyles=None, all line styles are set to '-'.
+		:type linestyles: List(str), optional, default=None
+		
+		:param linewidths: List of matplotlib line width definitions for each entry in histograms. If an entry is None, the default line width of 1 will be chosen. If linewidths=None, all line widths are set to 2.
+		:type linewidths: List(str), optional, default=None
 	'''
 	#initialize
 	linewidth_default = 2

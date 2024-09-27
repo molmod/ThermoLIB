@@ -56,6 +56,12 @@ def wham1d_bias(int Nsims, int Ngrid, double beta, list biasses, double delta, i
         .. math:: b_{ik} = \\frac{1}{\\delta}\\int_{Q_k-\\frac{\\delta}{2}}^{Q_k+\\frac{\\delta}{2}} e^{-\\beta W_i(q)}dq
 
         This routine implements a conservative algorithm which takes into account that for a given simulation i, only a limited number of grid points k will give rise to a non-zero :math:`b_{ik}`. This is achieved by first using the bin-center approximation to the integral by computing the factor :math:`\\exp(-\\beta\\cdot W_i(q_k))` on the CV grid (which is faster as there is no integral involved and which is also already a good approximation for the b array) and only performing the precise integral when the approximation exceeds a thresshold.
+
+        :param bias_subgrid_num: the number of grid points used by the :py:meth:`wham1d_bias <thermolib.ext.wham1d_bias>` routine for the sub-grid to compute the boltzmann-integrated bias factors in each CV bin.
+		:type bias_subgrid_num: int, optional, default=20
+
+        :param thresshold: see general documentation above
+        :type thressholdm: float, optional, default=1e-3
     '''
     from thermolib.tools import integrate
     cdef np.ndarray[double, ndim=2] bs = np.zeros([Nsims, Ngrid], dtype=float)
@@ -385,7 +391,7 @@ def wham2d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=3] Hs, np.ndarray[dou
         :param convergence: convergence criterion for scf cycle, if integrated difference (sum of the absolute element-wise difference between subsequent predictions of the unbiased probability a_k) is lower than this value, SCF is converged
         :type convergence: double, optional, default=1e-6
 
-        :param overflow_threshold: numerical threshold to avoid overflow errors when calculating the normalization factors and the denominator of the unbiased probability a_k
+        :param overflow_threshold: numerical threshold to avoid overflow errors when calculating the normalization factors and the denominator of the unbiased probability a_k. This determines which simulations and which grid points to ignore. Decreasing it results in a FES with a larger maximum free energy (lower unbiased probability). If it is too low, imaginary errors (sigma^2) arise, so increase if necessary.
         :type overflow_threshold: double, optional, default=1e-150
     '''
     cdef double integrated_diff, pmax

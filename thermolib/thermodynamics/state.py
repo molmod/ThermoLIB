@@ -267,7 +267,7 @@ class Integrate(Macrostate):
         self.beta = beta
         Macrostate.__init__(self, name, cv_unit=cv_unit, f_unit=f_unit, propagator=propagator)
     
-    def _get_state_fep(self, cvs, fs, fdist=None):
+    def _get_state_fep(self, cvs, fs):
         #get cv_range in case a microstate was used in the cv_range argument
         cv_range = [None, None]
         if isinstance(self.cv_range[0], Microstate):
@@ -293,9 +293,4 @@ class Integrate(Macrostate):
         F = -np.log(Z)/self.beta
         mean = integrate(cvs_indexed[mask2], ps_indexed[mask2]*cvs_indexed[mask2])/P
         std = np.sqrt(integrate(cvs_indexed[mask2], ps_indexed[mask2]*(cvs_indexed[mask2]-mean)**2)/P)
-        if fdist is None:
-            return mean, std, Z, F,
-        else:
-            raise NotImplementedError
-            ferrs_indexed = fdist.std()[index_mask]
-
+        return mean, std, Z, F,
