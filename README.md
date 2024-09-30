@@ -29,16 +29,16 @@ More information on how to use ThermoLIB, including tutorials, can be found in i
 
 ThermoLIB has the following dependencies:
 
-* Cython
-* numpy
-* scipy
-* molmod
-* scikit-learn
-* matplotlib
-* h5py
-* ase
+* [Cython](http://cython.org/)
+* [numpy](http://numpy.org/)
+* [scipy](http://www.scipy.org/)
+* [molmod](https://molmod.github.io/molmod/)
+* [scikit-learn](https://scikit-learn.org/)
+* [matplotlib](http://matplotlib.sourceforge.net)
+* [h5py](https://www.h5py.org/)
+* [ase](https://wiki.fysik.dtu.dk/ase/)
 
-As molmod is currently no longer maintained, it might result in conflicting package versions with some of the new versions of the above packages. Therefore, below I show how to set up a conda environment with confirmed non-conflicting and working versions of all dependencies above. 
+As [molmod](https://molmod.github.io/molmod/) is currently no longer maintained, it might result in conflicting package versions with some of the new versions of the above packages. Therefore, below I show how to set up a conda environment with confirmed non-conflicting and working versions of all dependencies above. 
 
     conda create -n thermolib python==3.8.5
     conda activate thermolib

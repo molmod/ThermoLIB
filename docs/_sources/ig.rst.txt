@@ -12,7 +12,7 @@ Some software packages should be installed before ThermoLIB can be installed and
 
 *  Python3 <= 3.8 (including the development files): http://www.python.org/
 *  Cython: http://cython.org/
-*  Numpy: http://numpy.scipy.org/
+*  Numpy: http://numpy.org/
 *  Scipy: http://www.scipy.org/
 *  matplotlib: http://matplotlib.sourceforge.net
 *  scikit-learn: https://scikit-learn.org/
