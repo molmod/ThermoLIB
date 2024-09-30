@@ -1,15 +1,29 @@
-![ThermoLIB](https://github.ugent.be/lvduyfhu/ThermoLIB/blob/master/logo_thermolib_light.png#gh-light-mode-only)
-![ThermoLIB](https://github.ugent.be/lvduyfhu/ThermoLIB/blob/master/logo_thermolib_dark.png#gh-dark-mode-only)
+<img src='https://github.ugent.be/lvduyfhu/ThermoLIB/blob/master/logo_thermolib_light.png#gh-light-mode-only' width='200'>
+<img src='https://github.ugent.be/lvduyfhu/ThermoLIB/blob/master/logo_thermolib_dark.png#gh-dark-mode-only' width='200'>
+
 [![License](https://flat.badgen.net/static/LICENSE/GNU%20GPL%20(v3)/red)](https://github.ugent.be/lvduyfhu/ThermoLIB/blob/master/LICENSE)
 ![Python](https://flat.badgen.net/static/Python/3.8/blue)
 [![Documentation](https://flat.badgen.net/static/Documentation/molmod.github.io/green)](https://github.ugent.be/pages/lvduyfhu/ThermoLIB/)
 # What is ThermoLIB?
 
-ThermoLIB is a library developed at the [Center for Molecular Modeling (CMM)](https://molmod.ugent.be/) for the application of Statistical Physics and/or Thermodynamics to molecular simulations. The library consists of several sub modules:
+ThermoLIB is a library developed at the [Center for Molecular Modeling (CMM)](https://molmod.ugent.be/) for the application of Statistical Physics and/or Thermodynamics to molecular simulations. The library consists of:
 
-*  **Thermodynamics** - Module for reading, constructing, transforming and manipulating free energy profiles. Functions include construction of free energy profiles (FEPs) from histogram(s) (including error estimation), identification of (meta)stable macrostates and computation of their free energy, transformation of FEPs from one collective variable (CV) to another, (de)projection of an free energy surface (FES) to a lower/higher dimensional FES.
+*  ***Thermodynamics*** - Module for constructing, manipulating and post-processing of 1D free energy profiles (FEP) and 2D free energy surfaces (FES). Functions include 
 
-*  **Kinetics** - Module for computing the rate constant of a process/reaction using transition state theory (TST). Next to integrated reactant macrostate free energy and transition state microstate free energy (which are both computed using the routines in the thermodynamics module), the rate constant also requires a prefactor related to the time derivative of the collective variable in the transition state.
+    - construction of FEPs using WHAM including error estimatoin
+    - definition of (meta)stable micro- and macrostates
+    - transformation of FEPs from one collective variable to another
+    - (de)projection of a FES to a lower/higher dimensional FES.
+
+*  ***Kinetics*** - Module for computing the rate constant of a process/reaction using transition state theory (TST). Functions include:
+
+    - compute rate constant (which is theoretically indepedent of used CV)
+    - compute associated phenomenological free energy barrier
+    - error propagation from FEP to rate constant/phenomenological barrier
+
+# Documentation
+
+More information on how to use ThermoLIB, including tutorials, can be found in its manual at [https://github.ugent.be/pages/lvduyfhu/ThermoLIB/](https://github.ugent.be/pages/lvduyfhu/ThermoLIB/).
 
 # How to install?
 
@@ -39,10 +53,6 @@ As molmod is currently no longer maintained, it might result in conflicting pack
     pip install git+https://github.ugent.be/lvduyfhu/ThermoLIB.git
     
 If a certain version is no longer available in the future, the user will have to manually test which later version is still compatible. In the near future, the required functions from molmod will be merged into thermolib so that molmod no longer becomes a dependency.
-
-# Documentation
-
-More information on the features of ThermoLIB and how to use them, including tutorials can be found at [https://github.ugent.be/pages/lvduyfhu/ThermoLIB/](https://github.ugent.be/pages/lvduyfhu/ThermoLIB/).
 
 # Terms of use
 
