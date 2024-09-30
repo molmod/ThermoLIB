@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>thermolib.thermodynamics.cv &mdash; ThermoLIB v1.7.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/custom.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=131c94de"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            ThermoLIB
+              <img src="../../../_static/logo_thermolib_light.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                1.7
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ig.html">Installation Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../ig.html#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ig.html#download-and-install-thermolib">Download and install ThermoLIB</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../ig.html#direct-install-using-pip">Direct install using pip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../ig.html#developers-download">Developers download</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ig.html#test-installation">Test installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ug.html">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../ug_1DFEP.html">Constructing 1D histograms &amp; free energy profiles</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../ug_1DFEP.html#construct-a-1d-histrogam">Construct a 1D histrogam …</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../ug_1DFEP.html#from-a-single-simulation">… from a single simulation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../ug_1DFEP.html#from-multiple-simulations-using-wham">… from multiple simulations using WHAM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../ug_1DFEP.html#constructing-a-1d-free-energy-profile">Constructing a 1D free energy profile …</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../ug_1DFEP.html#using-the-constructor">… using the constructor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../ug_1DFEP.html#reading-from-a-text-file">… reading from a text file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../ug_1DFEP.html#from-a-histogram">… from a histogram</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ug_2DFES.html">Constructing 2D histograms &amp; free energy surfaces</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../ug_2DFES.html#constructing-a-2d-histogram">Constructing a 2D histogram …</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../ug_2DFES.html#from-single-simulation">… from single simulation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../ug_2DFES.html#from-multiple-simulations-using-wham">… from multiple simulations using WHAM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../ug_2DFES.html#constructing-a-2d-free-energy-surface">Constructing a 2D free energy surface …</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../ug_2DFES.html#using-the-constructor">… using the constructor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../ug_2DFES.html#reading-from-a-text-file">… reading from a text file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../ug_2DFES.html#from-a-histogram">… from a histogram</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ug_corrtime.html">Computing the correlation time</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../ug_corrtime.html#fit-to-autocorrelation-function-for-single-trajectory">Fit to autocorrelation function for single trajectory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../ug_corrtime.html#compute-correlation-time-for-trajectory-series">Compute correlation time for trajectory series</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ug_error.html">Error estimation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../ug_error.html#without-correlations">Without correlations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../ug_error.html#with-correlations">With correlations</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ug_plotting.html">Plotting histograms and FEP/FES</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../ug_plotting.html#d-histograms-free-energy-profile">1D Histograms &amp; free energy profile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../ug_plotting.html#d-histograms-free-energy-surfaces">2D Histograms &amp; free energy surfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ug_micromacro.html">Extracting micro- and macrostate free energy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ug_kinetics.html">Computing the reaction rate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ug_transformation.html">Transformations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../ug_transformation.html#deterministic-transformation">Deterministic transformation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../ug_transformation.html#probabilistic-transformation">Probabilistic transformation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ug_projection.html">(De)projections</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../ug_projection.html#projecting-2d-fes-to-1d-fep">Projecting 2D FES to 1D FEP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../ug_projection.html#deprojecting-1d-fep-to-2d-fes">Deprojecting 1D FEP to 2D FES</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials.html">Tutorials</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../tut/basic_wham1d.html">Tutorial 1 - Construction of 1D free energy profile using WHAM</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../tut/basic_wham1d.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../tut/basic_wham1d.html#WHAM-without-error-estimation">WHAM without error estimation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../tut/basic_wham1d.html#WHAM-with-error-estimation">WHAM with error estimation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../tut/basic_wham1d.html#Defining-macrostates-and-microstates">Defining macrostates and microstates</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../tut/basic_kinetics.html">Tutorial 2 - Extracting kinetic reaction rates in 1D</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../tut/basic_kinetics.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../tut/basic_kinetics.html#Construct-free-energy-profile">Construct free energy profile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../tut/basic_kinetics.html#Compute-rate-prefactor">Compute rate prefactor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../tut/basic_kinetics.html#Add-kinetic-information-to-FEP-plot">Add kinetic information to FEP plot</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../tut/basic_wham2d.html">Tutorial 3 - Construction of 2D free energy surface using WHAM</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../tut/basic_wham2d.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../tut/basic_wham2d.html#2D-WHAM-without-error-estimation">2D WHAM without error estimation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../tut/basic_wham2d.html#2D-WHAM-with-error-estimate">2D WHAM with error estimate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../tut/basic_wham2d.html#Alternative-plotting">Alternative plotting</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../tut/advanced_error_estimation.html">Tutorial 4 - Advanced techniques in error estimation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../tut/advanced_error_estimation.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../tut/advanced_error_estimation.html#Impact-correlation-between-samples-on-FEP">Impact correlation between samples on FEP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../tut/advanced_error_estimation.html#Estimating-the-autocorrelation-time">Estimating the autocorrelation time</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../tut/advanced_error_estimation.html#Constructing-the-FEP-with-correlated-error-estimate">Constructing the FEP with correlated error estimate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../tut/advanced_error_estimation.html#Evaluating-the-correlated-error-estimate">Evaluating the correlated error estimate</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../tut/advanced_error_estimation.html#Delayed-strided-WHAM-profiles">Delayed-strided WHAM profiles</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../tut/advanced_error_estimation.html#Blocked-WHAM-profile">Blocked WHAM profile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../tut/advanced_error_estimation.html#Bootstrapped-WHAM-profiles">Bootstrapped WHAM profiles</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../tut/advanced_error_estimation.html#Covariance-between-different-points-on-FEP">Covariance between different points on FEP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../tut/advanced_error_estimation.html#Error-propagation">Error propagation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../tut/advanced_projection.html">Tutorial 5 - Projection of 2D FES to 1D FEP with error propagation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../tut/advanced_projection.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../tut/advanced_projection.html#Constructing-2D-FES">Constructing 2D FES</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../tut/advanced_projection.html#Projection-onto-1D-profile">Projection onto 1D profile</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../tut/advanced_projection.html#Along-predefined-direction">Along predefined direction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../tut/advanced_projection.html#Along-any-custom-direction">Along any custom direction</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../tut/advanced_projection.html#Error-propagation">Error propagation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../tut/advanced_projection.html#Deal-with-the-unsufficiently-sampled-edges-of-phase-space-in-FES-projection">Deal with the unsufficiently sampled edges of phase space in FES projection</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../tut/advanced_deprojection.html">Tutorial 6 - Deprojecting 1D FEP to 2D FES</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../tut/advanced_deprojection.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../tut/advanced_deprojection.html#Construct-1D-FEP">Construct 1D FEP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../tut/advanced_deprojection.html#Deproject-to-2D-FES">Deproject to 2D FES</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../tut/advanced_deprojection.html#Direct-route---2D-WHAM">Direct route - 2D WHAM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../tut/advanced_deprojection.html#Indirect-route---deproject-1D-FEP">Indirect route - deproject 1D FEP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../tut/advanced_deprojection.html#CONSISTENCY-CHECK:-project-2D-FES-to-1D-FEP">CONSISTENCY CHECK: project 2D FES to 1D FEP</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../tut/advanced_deprojection.html#U(CV)-profile">U(CV) profile</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../tut/advanced_deprojection.html#Method-1---from-2D-FES">Method 1 - from 2D FES</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../tut/advanced_deprojection.html#Method-2---from-conditional-probability">Method 2 - from conditional probability</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../tut/advanced_deprojection.html#comparison">comparison</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../tut/advanced_transformations.html">Tutorial 7 - Transformations of 1D FEP and kinetics</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../tut/advanced_transformations.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../tut/advanced_transformations.html#FEP-and-rate-with-original-CV">FEP and rate with original CV</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../tut/advanced_transformations.html#FEP-and-rate-in-terms-of-alternative-CV">FEP and rate in terms of alternative CV</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../rg.html">Reference Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../rg_thermo.html">Thermodynamics – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_thermo.html#module-thermolib.thermodynamics.fep">Free energy profiles – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.fep</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.fep.BaseFreeEnergyProfile"><code class="docutils literal notranslate"><span class="pre">BaseFreeEnergyProfile</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.fep.BaseProfile"><code class="docutils literal notranslate"><span class="pre">BaseProfile</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.fep.FreeEnergySurface2D"><code class="docutils literal notranslate"><span class="pre">FreeEnergySurface2D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.fep.SimpleFreeEnergyProfile"><code class="docutils literal notranslate"><span class="pre">SimpleFreeEnergyProfile</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.fep.plot_profiles"><code class="docutils literal notranslate"><span class="pre">plot_profiles()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_thermo.html#module-thermolib.thermodynamics.histogram">Histograms – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.histogram</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram1D"><code class="docutils literal notranslate"><span class="pre">Histogram1D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram2D"><code class="docutils literal notranslate"><span class="pre">Histogram2D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.plot_histograms"><code class="docutils literal notranslate"><span class="pre">plot_histograms()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_thermo.html#module-thermolib.thermodynamics.trajectory">Trajectory readers – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.trajectory</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.trajectory.ASEExtendedXYZReader"><code class="docutils literal notranslate"><span class="pre">ASEExtendedXYZReader</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.trajectory.CVComputer"><code class="docutils literal notranslate"><span class="pre">CVComputer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.trajectory.ColVarReader"><code class="docutils literal notranslate"><span class="pre">ColVarReader</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.trajectory.HDF5Reader"><code class="docutils literal notranslate"><span class="pre">HDF5Reader</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_thermo.html#module-thermolib.thermodynamics.bias">Bias potentials – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.bias</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.bias.BiasPotential1D"><code class="docutils literal notranslate"><span class="pre">BiasPotential1D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.bias.BiasPotential2D"><code class="docutils literal notranslate"><span class="pre">BiasPotential2D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.bias.MultipleBiasses1D"><code class="docutils literal notranslate"><span class="pre">MultipleBiasses1D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.bias.Parabola1D"><code class="docutils literal notranslate"><span class="pre">Parabola1D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.bias.Parabola2D"><code class="docutils literal notranslate"><span class="pre">Parabola2D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.bias.PlumedSplinePotential1D"><code class="docutils literal notranslate"><span class="pre">PlumedSplinePotential1D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.bias.Polynomial1D"><code class="docutils literal notranslate"><span class="pre">Polynomial1D</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_thermo.html#module-thermolib.thermodynamics.cv">Collective variables – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.cv</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.Average"><code class="docutils literal notranslate"><span class="pre">Average</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.CoordinationNumber"><code class="docutils literal notranslate"><span class="pre">CoordinationNumber</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.Difference"><code class="docutils literal notranslate"><span class="pre">Difference</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.DistOrthProjOrig"><code class="docutils literal notranslate"><span class="pre">DistOrthProjOrig</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.Distance"><code class="docutils literal notranslate"><span class="pre">Distance</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.DistanceCOP"><code class="docutils literal notranslate"><span class="pre">DistanceCOP</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.DotProduct"><code class="docutils literal notranslate"><span class="pre">DotProduct</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.LinearCombination"><code class="docutils literal notranslate"><span class="pre">LinearCombination</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.Minimum"><code class="docutils literal notranslate"><span class="pre">Minimum</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.NormalizedAxis"><code class="docutils literal notranslate"><span class="pre">NormalizedAxis</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.OrthogonalDistanceToPore"><code class="docutils literal notranslate"><span class="pre">OrthogonalDistanceToPore</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_thermo.html#module-thermolib.thermodynamics.state">State – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.state</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.state.Integrate"><code class="docutils literal notranslate"><span class="pre">Integrate</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.state.Maximum"><code class="docutils literal notranslate"><span class="pre">Maximum</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.state.Minimum"><code class="docutils literal notranslate"><span class="pre">Minimum</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_thermo.html#module-thermolib.thermodynamics.condprob">Conditional probability – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.condprob</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.condprob.ConditionalProbability1D1D"><code class="docutils literal notranslate"><span class="pre">ConditionalProbability1D1D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.condprob.ConditionalProbability1D2D"><code class="docutils literal notranslate"><span class="pre">ConditionalProbability1D2D</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../rg_kin.html">Kinetics – <code class="docutils literal notranslate"><span class="pre">thermolib.kinetics</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_kin.html#module-thermolib.kinetics.rate">Rate constant – <code class="docutils literal notranslate"><span class="pre">thermolib.kinetics.rate</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_kin.html#thermolib.kinetics.rate.RateFactorEquilibrium"><code class="docutils literal notranslate"><span class="pre">RateFactorEquilibrium</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../rg_error.html">Error distributions – <code class="docutils literal notranslate"><span class="pre">thermolib.error</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_error.html#thermolib.error.Distribution"><code class="docutils literal notranslate"><span class="pre">Distribution</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_error.html#thermolib.error.GaussianDistribution"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_error.html#thermolib.error.LogGaussianDistribution"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_error.html#thermolib.error.MultiGaussianDistribution"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_error.html#thermolib.error.MultiGaussianDistribution.from_samples"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.from_samples()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_error.html#thermolib.error.MultiLogGaussianDistribution"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_error.html#thermolib.error.MultiLogGaussianDistribution.from_samples"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.from_samples()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_error.html#thermolib.error.Propagator"><code class="docutils literal notranslate"><span class="pre">Propagator</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_error.html#thermolib.error.SampleDistribution"><code class="docutils literal notranslate"><span class="pre">SampleDistribution</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../rg_tools.html">Tools – <code class="docutils literal notranslate"><span class="pre">thermolib.tools</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_tools.html#thermolib.tools.blav"><code class="docutils literal notranslate"><span class="pre">blav()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_tools.html#thermolib.tools.corrtime_from_acf"><code class="docutils literal notranslate"><span class="pre">corrtime_from_acf()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_tools.html#thermolib.tools.decorrelate"><code class="docutils literal notranslate"><span class="pre">decorrelate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_tools.html#thermolib.tools.extract_polynomial_bias_info"><code class="docutils literal notranslate"><span class="pre">extract_polynomial_bias_info()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_tools.html#thermolib.tools.fisher_matrix_mle_probdens"><code class="docutils literal notranslate"><span class="pre">fisher_matrix_mle_probdens()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_tools.html#thermolib.tools.format_scientific"><code class="docutils literal notranslate"><span class="pre">format_scientific()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_tools.html#thermolib.tools.h5_read_dataset"><code class="docutils literal notranslate"><span class="pre">h5_read_dataset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_tools.html#thermolib.tools.integrate"><code class="docutils literal notranslate"><span class="pre">integrate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_tools.html#thermolib.tools.integrate2d"><code class="docutils literal notranslate"><span class="pre">integrate2d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_tools.html#thermolib.tools.invert_fisher_to_covariance"><code class="docutils literal notranslate"><span class="pre">invert_fisher_to_covariance()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_tools.html#thermolib.tools.multivariate_normal"><code class="docutils literal notranslate"><span class="pre">multivariate_normal()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_tools.html#thermolib.tools.read_wham_input"><code class="docutils literal notranslate"><span class="pre">read_wham_input()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_tools.html#thermolib.tools.rolling_average"><code class="docutils literal notranslate"><span class="pre">rolling_average()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../rg_ext.html">Extensions – <code class="docutils literal notranslate"><span class="pre">thermolib.ext</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_ext.html#thermolib.ext.wham1d_bias"><code class="docutils literal notranslate"><span class="pre">wham1d_bias()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_ext.html#thermolib.ext.wham1d_error"><code class="docutils literal notranslate"><span class="pre">wham1d_error()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_ext.html#thermolib.ext.wham1d_hs"><code class="docutils literal notranslate"><span class="pre">wham1d_hs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_ext.html#thermolib.ext.wham1d_scf"><code class="docutils literal notranslate"><span class="pre">wham1d_scf()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_ext.html#thermolib.ext.wham2d_bias"><code class="docutils literal notranslate"><span class="pre">wham2d_bias()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_ext.html#thermolib.ext.wham2d_error"><code class="docutils literal notranslate"><span class="pre">wham2d_error()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_ext.html#thermolib.ext.wham2d_hs"><code class="docutils literal notranslate"><span class="pre">wham2d_hs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../rg_ext.html#thermolib.ext.wham2d_scf"><code class="docutils literal notranslate"><span class="pre">wham2d_scf()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ThermoLIB</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">thermolib.thermodynamics.cv</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for thermolib.thermodynamics.cv</h1><div class="highlight"><pre>
+<span></span><span class="ch">#! /usr/bin/env python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright (C) 2019 - 2024 Louis Vanduyfhuys &lt;Louis.Vanduyfhuys@UGent.be&gt;</span>
+<span class="c1"># Center for Molecular Modeling (CMM), Ghent University, Ghent, Belgium;</span>
+<span class="c1"># all rights reserved unless otherwise stated.</span>
+<span class="c1">#</span>
+<span class="c1"># This file is part of a library developed by Louis Vanduyfhuys at</span>
+<span class="c1"># the Center for Molecular Modeling under supervision of prof. Veronique</span>
+<span class="c1"># Van Speybroeck. Usage of this package should be authorized by prof. Van</span>
+<span class="c1"># Vanduyfhuys or prof. Van Speybroeck.</span>
+
+<span class="kn">from</span> <span class="nn">molmod.units</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">molmod.constants</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">molmod.io.xyz</span> <span class="kn">import</span> <span class="n">XYZReader</span>
+<span class="kn">from</span> <span class="nn">molmod.unit_cells</span> <span class="kn">import</span> <span class="n">UnitCell</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;CenterOfMass&#39;</span><span class="p">,</span> <span class="s1">&#39;CenterOfPosition&#39;</span><span class="p">,</span> <span class="s1">&#39;NormalizedAxis&#39;</span><span class="p">,</span> <span class="s1">&#39;NormalToPlane&#39;</span><span class="p">,</span> <span class="s1">&#39;Distance&#39;</span><span class="p">,</span> <span class="s1">&#39;DistanceCOP&#39;</span><span class="p">,</span> <span class="s1">&#39;CoordinationNumber&#39;</span><span class="p">,</span> <span class="s1">&#39;OrthogonalDistanceToPore&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Average&#39;</span><span class="p">,</span> <span class="s1">&#39;Difference&#39;</span><span class="p">,</span> <span class="s1">&#39;Minimum&#39;</span><span class="p">,</span> <span class="s1">&#39;LinearCombination&#39;</span><span class="p">,</span> <span class="s1">&#39;DotProduct&#39;</span><span class="p">,</span> <span class="s1">&#39;DistOrthProjOrig&#39;</span>
+<span class="p">]</span>
+
+<span class="k">class</span> <span class="nc">CollectiveVariable</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="nb">type</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_name</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="k">if</span> <span class="n">unit_cell_pars</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">unit_cell</span> <span class="o">=</span> <span class="n">UnitCell</span><span class="o">.</span><span class="n">from_parameters3</span><span class="p">(</span><span class="o">*</span><span class="n">unit_cell_pars</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">unit_cell</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;CV&#39;</span>
+    
+    <span class="k">def</span> <span class="nf">_unwrap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="s1">&#39;This routine will unwrap the PBC conditions around the given ref, i.e. make sure that for each r in coords, r-ref is the shortest vec&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_cell</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">coords</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ref</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">ref</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">,:]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">unwrapped</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">coords</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
+            <span class="n">unwrapped</span><span class="p">[</span><span class="mi">0</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">,:]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">coords</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">i</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="n">unwrapped</span><span class="p">[</span><span class="n">i</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">ref</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_cell</span><span class="o">.</span><span class="n">shortest_vector</span><span class="p">(</span><span class="n">r</span><span class="o">-</span><span class="n">ref</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">unwrapped</span>
+    
+    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+<span class="k">class</span> <span class="nc">CenterOfMass</span><span class="p">(</span><span class="n">CollectiveVariable</span><span class="p">):</span>
+
+    <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;vector&#39;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">masses</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">indices</span> <span class="o">=</span> <span class="n">indices</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">masses</span> <span class="o">=</span> <span class="n">masses</span>
+        <span class="n">CollectiveVariable</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="n">unit_cell_pars</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;COM(</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">]))</span>
+    
+    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="c1">#unwrap coords of given indices with periodic boundary conditions if unit_cell is specified</span>
+        <span class="n">rs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unwrap</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">])</span>
+        <span class="c1">#Compute center of mass</span>
+        <span class="n">mass</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">com</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">deriv</span><span class="p">:</span>
+            <span class="n">grad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">),</span> <span class="mi">3</span><span class="p">],</span> <span class="nb">float</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">,</span> <span class="n">rs</span><span class="p">):</span>
+            <span class="n">mass</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">masses</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">com</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">masses</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">*</span><span class="n">r</span>
+            <span class="k">if</span> <span class="n">deriv</span><span class="p">:</span>
+                <span class="n">grad</span><span class="p">[:,</span><span class="n">index</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">masses</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">com</span> <span class="o">/=</span> <span class="n">mass</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">deriv</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">com</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">grad</span> <span class="o">/=</span> <span class="n">mass</span>
+            <span class="k">return</span> <span class="n">com</span><span class="p">,</span> <span class="n">grad</span>
+
+<span class="k">class</span> <span class="nc">CenterOfPosition</span><span class="p">(</span><span class="n">CollectiveVariable</span><span class="p">):</span>
+
+    <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;vector&#39;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">indices</span> <span class="o">=</span> <span class="n">indices</span>
+        <span class="n">CollectiveVariable</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="n">unit_cell_pars</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;COP(</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">]))</span>
+    
+    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="c1">#unwrap coords of given indices with periodic boundary conditions if unit_cell is specified</span>
+        <span class="n">rs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unwrap</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">,:])</span>
+        <span class="n">cop</span> <span class="o">=</span> <span class="n">rs</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">deriv</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">cop</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">grad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">),</span> <span class="mi">3</span><span class="p">],</span> <span class="nb">float</span><span class="p">)</span>
+            <span class="n">grad</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">)</span>
+            <span class="n">grad</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">)</span>
+            <span class="n">grad</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">cop</span><span class="p">,</span> <span class="n">grad</span>
+
+<div class="viewcode-block" id="NormalizedAxis"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.NormalizedAxis">[docs]</a><span class="k">class</span> <span class="nc">NormalizedAxis</span><span class="p">(</span><span class="n">CollectiveVariable</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Class to implement a vectorial CV that defines a normalized axis between two points, i.e. as the normalized difference of two input vectors.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;vector&#39;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vec1</span><span class="p">,</span> <span class="n">vec2</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vec1</span> <span class="o">=</span> <span class="n">vec1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vec2</span> <span class="o">=</span> <span class="n">vec2</span>
+        <span class="n">CollectiveVariable</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="n">unit_cell_pars</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;NormalAxis(</span><span class="si">%s</span><span class="s1">,</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vec1</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vec2</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">deriv</span><span class="p">:</span>
+            <span class="n">v1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vec1</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">v2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vec2</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_unwrap</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="n">v1</span><span class="p">),</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">v2</span><span class="o">-</span><span class="n">v1</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">v2</span><span class="o">-</span><span class="n">v1</span><span class="p">)</span><span class="o">/</span><span class="n">norm</span>
+        <span class="k">if</span> <span class="n">deriv</span><span class="p">:</span>
+            <span class="n">v1</span><span class="p">,</span> <span class="n">grad1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vec1</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">v2</span><span class="p">,</span> <span class="n">grad2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vec2</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_unwrap</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="n">v1</span><span class="p">),</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">v2</span><span class="o">-</span><span class="n">v1</span><span class="p">)</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="n">grad2</span> <span class="o">-</span> <span class="n">grad1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;a,bic,b-&gt;aic&#39;</span><span class="p">,</span><span class="n">v2</span><span class="o">-</span><span class="n">v1</span><span class="p">,</span> <span class="n">grad2</span><span class="o">-</span><span class="n">grad1</span><span class="p">,</span><span class="n">v2</span><span class="o">-</span><span class="n">v1</span><span class="p">)</span><span class="o">/</span><span class="n">norm</span><span class="o">**</span><span class="mi">2</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">v2</span><span class="o">-</span><span class="n">v1</span><span class="p">)</span><span class="o">/</span><span class="n">norm</span><span class="p">,</span> <span class="n">tmp</span><span class="o">/</span><span class="n">norm</span></div>
+
+<span class="k">class</span> <span class="nc">NormalToPlane</span><span class="p">(</span><span class="n">CollectiveVariable</span><span class="p">):</span>
+    
+    <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;vector&#39;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">indices</span> <span class="o">=</span> <span class="n">indices</span>
+        <span class="n">CollectiveVariable</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="n">unit_cell_pars</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;NormalToPlane(</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">]))</span>
+
+    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="c1">#this routine to compute the normal to the ring plane assumes that the n atoms that constitute</span>
+        <span class="c1">#the ring are ordered and at the cornerpoints of a regular n-fold polygon.</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">)</span>
+        <span class="c1">#unwrap ring coords with periodic boundary conditions if unit_cell is specified</span>
+        <span class="n">rs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unwrap</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">,:])</span>
+        <span class="n">R1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
+        <span class="n">R2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">rs</span><span class="p">):</span>
+            <span class="n">R1</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">((</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">theta</span><span class="p">)</span><span class="o">*</span><span class="n">r</span>
+            <span class="n">R2</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">((</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">theta</span><span class="p">)</span><span class="o">*</span><span class="n">r</span>
+        <span class="n">vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">R1</span><span class="p">,</span> <span class="n">R2</span><span class="p">)</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">vec</span><span class="p">)</span>
+        <span class="n">normal</span> <span class="o">=</span> <span class="n">vec</span><span class="o">/</span><span class="n">v</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">deriv</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">normal</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">grad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">),</span> <span class="mi">3</span><span class="p">],</span> <span class="nb">float</span><span class="p">)</span>
+            <span class="n">tensor</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">vec</span><span class="p">,</span> <span class="n">vec</span><span class="p">)</span><span class="o">/</span><span class="n">v</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="n">v</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">):</span>
+                <span class="n">cosi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">((</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">theta</span><span class="p">)</span>
+                <span class="n">sini</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">((</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">theta</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">alpha</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]:</span>
+                    <span class="n">e_alpha</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
+                    <span class="n">e_alpha</span><span class="p">[</span><span class="n">alpha</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+                    <span class="n">grad</span><span class="p">[:,</span> <span class="n">index</span><span class="p">,</span> <span class="n">alpha</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">cosi</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">e_alpha</span><span class="p">,</span><span class="n">R2</span><span class="p">)</span><span class="o">+</span><span class="n">sini</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">R1</span><span class="p">,</span><span class="n">e_alpha</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">normal</span><span class="p">,</span> <span class="n">grad</span>
+
+<div class="viewcode-block" id="DotProduct"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.DotProduct">[docs]</a><span class="k">class</span> <span class="nc">DotProduct</span><span class="p">(</span><span class="n">CollectiveVariable</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Class to implement a collective variable that is the dot product of two given vectors</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;scalar&#39;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vec1</span><span class="p">,</span> <span class="n">vec2</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">vec1</span><span class="p">,</span> <span class="n">CollectiveVariable</span><span class="p">)</span> <span class="ow">and</span> <span class="n">vec1</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;vector&#39;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">vec2</span><span class="p">,</span> <span class="n">CollectiveVariable</span><span class="p">)</span> <span class="ow">and</span> <span class="n">vec2</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;vector&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vec1</span> <span class="o">=</span> <span class="n">vec1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vec2</span> <span class="o">=</span> <span class="n">vec2</span>
+        <span class="n">CollectiveVariable</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="n">unit_cell_pars</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;Dot(</span><span class="si">%s</span><span class="s1">,</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vec1</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vec2</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">deriv</span><span class="p">:</span>
+            <span class="n">v1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vec1</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">v2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vec2</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">v1</span><span class="p">,</span> <span class="n">grad1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vec1</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">v2</span><span class="p">,</span> <span class="n">grad2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vec2</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">cv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span><span class="n">v2</span><span class="p">)</span>
+            <span class="n">grad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ikl,i-&gt;kl&#39;</span><span class="p">,</span> <span class="n">grad1</span><span class="p">,</span> <span class="n">v2</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;i,ikl-&gt;kl&#39;</span><span class="p">,</span> <span class="n">v1</span><span class="p">,</span> <span class="n">grad2</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">cv</span><span class="p">,</span> <span class="n">grad</span></div>
+
+<div class="viewcode-block" id="Distance"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.Distance">[docs]</a><span class="k">class</span> <span class="nc">Distance</span><span class="p">(</span><span class="n">CollectiveVariable</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Class to implement a collective variable representing the distance</span>
+<span class="sd">        between two atoms given by index1 and index2.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    
+    <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;scalar&#39;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index1</span><span class="p">,</span> <span class="n">index2</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">i1</span> <span class="o">=</span> <span class="n">index1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">i2</span> <span class="o">=</span> <span class="n">index2</span>
+        <span class="n">CollectiveVariable</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="n">unit_cell_pars</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;Distance(</span><span class="si">%i</span><span class="s1">,</span><span class="si">%i</span><span class="s1">)&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">i1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">i2</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Distance.compute"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.Distance.compute">[docs]</a>    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Compute the value of the collective variable given the coordinates.</span>
+<span class="sd">            If deriv is set to True, also compute and return the analytical</span>
+<span class="sd">            derivative of Q towards the cartesian coordinates.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1">#computation of value</span>
+        <span class="n">r1</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">i1</span><span class="p">,:]</span>
+        <span class="n">r2</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">i2</span><span class="p">,:]</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">r2</span><span class="o">-</span><span class="n">r1</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_cell</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_cell</span><span class="o">.</span><span class="n">shortest_vector</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">deriv</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">value</span>
+        <span class="c1">#computation of deriv</span>
+        <span class="n">grad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">coords</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
+        <span class="n">grad</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">i1</span><span class="p">,:]</span> <span class="o">+=</span> <span class="o">-</span><span class="n">r</span><span class="o">/</span><span class="n">value</span>
+        <span class="n">grad</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">i2</span><span class="p">,:]</span> <span class="o">+=</span> <span class="n">r</span><span class="o">/</span><span class="n">value</span>
+        <span class="k">return</span> <span class="n">value</span><span class="p">,</span> <span class="n">grad</span></div></div>
+
+<div class="viewcode-block" id="DistanceCOP"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.DistanceCOP">[docs]</a><span class="k">class</span> <span class="nc">DistanceCOP</span><span class="p">(</span><span class="n">CollectiveVariable</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Class to implement a collective variable representing the distance</span>
+<span class="sd">        between an atom (index1) and the center of position (i.e. the geometric</span>
+<span class="sd">        center) of two other atoms (index2a and index2b).</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    
+    <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;scalar&#39;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index1</span><span class="p">,</span> <span class="n">index2a</span><span class="p">,</span> <span class="n">index2b</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">i1</span>  <span class="o">=</span> <span class="n">index1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">i2a</span> <span class="o">=</span> <span class="n">index2a</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">i2b</span> <span class="o">=</span> <span class="n">index2b</span>
+        <span class="n">CollectiveVariable</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="n">unit_cell_pars</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;DistanceCOP(</span><span class="si">%i</span><span class="s1">,</span><span class="si">%i</span><span class="s1">,</span><span class="si">%i</span><span class="s1">)&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">i1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">i2a</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">i2b</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="c1">#computation of value</span>
+        <span class="n">r1</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">i1</span><span class="p">,:]</span>
+        <span class="n">com</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">i2a</span><span class="p">,:]</span><span class="o">+</span><span class="n">coords</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">i2b</span><span class="p">,:])</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">r1</span><span class="o">-</span><span class="n">com</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_cell</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_cell</span><span class="o">.</span><span class="n">shortest_vector</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">deriv</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">value</span>
+        <span class="c1">#computation of deriv</span>
+        <span class="n">grad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">coords</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
+        <span class="n">grad</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">i1</span> <span class="p">,:]</span> <span class="o">+=</span> <span class="n">r</span><span class="o">/</span><span class="n">value</span>
+        <span class="n">grad</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">i2a</span><span class="p">,:]</span> <span class="o">+=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="n">r</span><span class="o">/</span><span class="n">value</span>
+        <span class="n">grad</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">i2b</span><span class="p">,:]</span> <span class="o">+=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="n">r</span><span class="o">/</span><span class="n">value</span>
+        <span class="k">return</span> <span class="n">value</span><span class="p">,</span> <span class="n">grad</span></div>
+
+<div class="viewcode-block" id="CoordinationNumber"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.CoordinationNumber">[docs]</a><span class="k">class</span> <span class="nc">CoordinationNumber</span><span class="p">(</span><span class="n">CollectiveVariable</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Class to implement a collective variable representing the coordination</span>
+<span class="sd">        number of a certain atom pair or a set of atom pairs. If n atom pairs</span>
+<span class="sd">        are defined, the coordination number should be a number between 0 and n.</span>
+
+<span class="sd">            CN = sum( (1-x_ij^nn)/(1-x_ij^nd), ij in pairs)</span>
+
+<span class="sd">        with</span>
+
+<span class="sd">            x_ij = r_ij/r0</span>
+
+<span class="sd">        in which r_ij is the distance between the atoms of pair ij, r0 is a</span>
+<span class="sd">        reference distance set to 2 angstrom by default but can ge defined by</span>
+<span class="sd">        the user and nn and nd are integers that are set to 6,12 by default but</span>
+<span class="sd">        can also be defined by the user.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    
+    <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;scalar&#39;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pairs</span><span class="p">,</span> <span class="n">r0</span><span class="o">=</span><span class="mf">2.0</span><span class="o">*</span><span class="n">angstrom</span><span class="p">,</span> <span class="n">nn</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">nd</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pairs</span> <span class="o">=</span> <span class="n">pairs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">r0</span> <span class="o">=</span> <span class="n">r0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nn</span> <span class="o">=</span> <span class="n">nn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nd</span> <span class="o">=</span> <span class="n">nd</span>
+        <span class="n">CollectiveVariable</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="n">unit_cell_pars</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;CoordinationNumber([&#39;</span> <span class="o">+</span> <span class="s1">&#39; , &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;(</span><span class="si">%i</span><span class="s1">,</span><span class="si">%i</span><span class="s1">)&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pairs</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;])&#39;</span>
+
+    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">grad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">coords</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pairs</span><span class="p">:</span>
+            <span class="n">ri</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="n">i</span><span class="p">,:]</span>
+            <span class="n">rj</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="n">j</span><span class="p">,:]</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">ri</span><span class="o">-</span><span class="n">rj</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_cell</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_cell</span><span class="o">.</span><span class="n">shortest_vector</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+            <span class="n">rij</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+            <span class="n">xij</span> <span class="o">=</span> <span class="n">rij</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">r0</span>
+            <span class="n">cij</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">xij</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">nn</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">xij</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">)</span>
+            <span class="n">value</span> <span class="o">+=</span> <span class="n">cij</span>
+            <span class="k">if</span> <span class="n">deriv</span><span class="p">:</span>
+                <span class="n">T</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nn</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">)</span><span class="o">*</span><span class="n">xij</span><span class="o">**</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nn</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="o">*</span><span class="n">xij</span><span class="o">**</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">nn</span><span class="o">*</span><span class="n">xij</span><span class="o">**</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nn</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">N</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">xij</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+                <span class="n">dcij_drij</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">r0</span><span class="o">*</span><span class="n">T</span><span class="o">/</span><span class="n">N</span>
+                <span class="n">grad</span><span class="p">[</span><span class="n">i</span><span class="p">,:]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">ri</span><span class="o">-</span><span class="n">rj</span><span class="p">)</span><span class="o">/</span><span class="n">rij</span><span class="o">*</span><span class="n">dcij_drij</span>
+                <span class="n">grad</span><span class="p">[</span><span class="n">j</span><span class="p">,:]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">rj</span><span class="o">-</span><span class="n">ri</span><span class="p">)</span><span class="o">/</span><span class="n">rij</span><span class="o">*</span><span class="n">dcij_drij</span>
+        <span class="k">if</span> <span class="n">deriv</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">value</span><span class="p">,</span> <span class="n">grad</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">value</span></div>
+
+<div class="viewcode-block" id="OrthogonalDistanceToPore"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.OrthogonalDistanceToPore">[docs]</a><span class="k">class</span> <span class="nc">OrthogonalDistanceToPore</span><span class="p">(</span><span class="n">DotProduct</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Class to implement a collective variable that represents the orthogonal</span>
+<span class="sd">        distance between the center of mass of a guest molecule defined by its</span>
+<span class="sd">        atom indices (guest_indices) on the one hand, and a pore ring defined</span>
+<span class="sd">        by the atom indices of its constituting atoms (ring_indices) on the</span>
+<span class="sd">        other hand.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    
+    <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;scalar&#39;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ring_indices</span><span class="p">,</span> <span class="n">guest_indices</span><span class="p">,</span> <span class="n">masses</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">guest_indices</span> <span class="o">=</span> <span class="n">guest_indices</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ring_indices</span> <span class="o">=</span> <span class="n">ring_indices</span>
+        <span class="n">com</span>  <span class="o">=</span> <span class="n">CenterOfMass</span><span class="p">(</span><span class="n">guest_indices</span><span class="p">,</span> <span class="n">masses</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="n">unit_cell_pars</span><span class="p">)</span>
+        <span class="n">cop</span>  <span class="o">=</span> <span class="n">CenterOfPosition</span><span class="p">(</span><span class="n">ring_indices</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="n">unit_cell_pars</span><span class="p">)</span>
+        <span class="n">vec1</span> <span class="o">=</span> <span class="n">Difference</span><span class="p">(</span><span class="n">cop</span><span class="p">,</span> <span class="n">com</span><span class="p">)</span>
+        <span class="n">vec2</span> <span class="o">=</span> <span class="n">NormalToPlane</span><span class="p">(</span><span class="n">ring_indices</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="n">unit_cell_pars</span><span class="p">)</span>
+        <span class="n">DotProduct</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vec1</span><span class="p">,</span> <span class="n">vec2</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;OrthogonalDistanceToPore(ring=[</span><span class="si">%s</span><span class="s1">],guest=[</span><span class="si">%s</span><span class="s1">])&#39;</span> <span class="o">%</span><span class="p">(</span>
+            <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ring_indices</span><span class="p">]),</span> 
+            <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">guest_indices</span><span class="p">])</span>
+        <span class="p">)</span></div>
+
+<span class="k">class</span> <span class="nc">OrthogonalDistanceToPore_depricated</span><span class="p">(</span><span class="n">CollectiveVariable</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Old implementation of OrthogonalDistanceToPore, is depricated and will be removed soon</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    
+    <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;scalar&#39;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ring_indices</span><span class="p">,</span> <span class="n">guest_indices</span><span class="p">,</span> <span class="n">masses</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">com</span>  <span class="o">=</span> <span class="n">CenterOfMass</span><span class="p">(</span><span class="n">guest_indices</span><span class="p">,</span> <span class="n">masses</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="n">unit_cell_pars</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cop</span>  <span class="o">=</span> <span class="n">CenterOfPosition</span><span class="p">(</span><span class="n">ring_indices</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="n">unit_cell_pars</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">norm</span> <span class="o">=</span> <span class="n">NormalToPlane</span><span class="p">(</span><span class="n">ring_indices</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="n">unit_cell_pars</span><span class="p">)</span>
+        <span class="n">CollectiveVariable</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="n">unit_cell_pars</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;OrthogonalDistanceToPore(ring=[</span><span class="si">%s</span><span class="s1">],guest=[</span><span class="si">%s</span><span class="s1">])&#39;</span> <span class="o">%</span><span class="p">(</span>
+            <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cop</span><span class="o">.</span><span class="n">indices</span><span class="p">]),</span> 
+            <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">com</span><span class="o">.</span><span class="n">indices</span><span class="p">])</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">deriv</span><span class="p">:</span>
+            <span class="n">com</span> <span class="p">,</span> <span class="n">grad_com</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">com</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">cop</span> <span class="p">,</span> <span class="n">grad_cop</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cop</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">norm</span><span class="p">,</span> <span class="n">grad_norm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">com</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">com</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">cop</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cop</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">norm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="c1">#compute cv</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_cell</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unit_cell</span><span class="o">.</span><span class="n">shortest_vector</span><span class="p">(</span><span class="n">com</span><span class="o">-</span><span class="n">cop</span><span class="p">),</span> <span class="n">norm</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">com</span><span class="o">-</span><span class="n">cop</span><span class="p">,</span> <span class="n">norm</span><span class="p">)</span>
+        <span class="c1">#compute derivative</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">deriv</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">cv</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">grad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;bia,b-&gt;ia&#39;</span><span class="p">,</span> <span class="n">grad_com</span><span class="o">-</span><span class="n">grad_cop</span><span class="p">,</span> <span class="n">norm</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;b,bia-&gt;ia&#39;</span><span class="p">,</span> <span class="n">com</span><span class="o">-</span><span class="n">cop</span><span class="p">,</span> <span class="n">grad_norm</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">cv</span><span class="p">,</span> <span class="n">grad</span>
+
+<div class="viewcode-block" id="Average"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.Average">[docs]</a><span class="k">class</span> <span class="nc">Average</span><span class="p">(</span><span class="n">CollectiveVariable</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Class to implement a collective variable representing the average of two</span>
+<span class="sd">        other collective variables:</span>
+
+<span class="sd">            CV = 0.5*(CV1 + CV2)</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    
+    <span class="nb">type</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1">#depends on type of argument cvs</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cv1</span><span class="p">,</span> <span class="n">cv2</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">cv1</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="n">cv2</span><span class="o">.</span><span class="n">type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">cv1</span><span class="o">.</span><span class="n">type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cv1</span> <span class="o">=</span> <span class="n">cv1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cv2</span> <span class="o">=</span> <span class="n">cv2</span>
+        <span class="n">CollectiveVariable</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="n">unit_cell_pars</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;0.5*(</span><span class="si">%s</span><span class="s1">+</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cv1</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv2</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="c1">#computation of value</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">deriv</span><span class="p">:</span>
+            <span class="n">cv1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv1</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">cv2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv2</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">cv1</span><span class="o">+</span><span class="n">cv2</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cv1</span><span class="p">,</span> <span class="n">grad1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv1</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">cv2</span><span class="p">,</span> <span class="n">grad2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv2</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">cv1</span><span class="o">+</span><span class="n">cv2</span><span class="p">)</span>
+            <span class="n">grad</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">grad1</span> <span class="o">+</span> <span class="n">grad2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span><span class="p">,</span> <span class="n">grad</span></div>
+
+<div class="viewcode-block" id="Difference"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.Difference">[docs]</a><span class="k">class</span> <span class="nc">Difference</span><span class="p">(</span><span class="n">CollectiveVariable</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Class to implement a collective variable representing the difference</span>
+<span class="sd">        between two other collective variables:</span>
+
+<span class="sd">            CV = CV2 - CV1</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    
+    <span class="nb">type</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1">#depends on type of argument cvs</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cv1</span><span class="p">,</span> <span class="n">cv2</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">cv1</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="n">cv2</span><span class="o">.</span><span class="n">type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">cv1</span><span class="o">.</span><span class="n">type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cv1</span> <span class="o">=</span> <span class="n">cv1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cv2</span> <span class="o">=</span> <span class="n">cv2</span>
+        <span class="n">CollectiveVariable</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="n">unit_cell_pars</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;Diff(</span><span class="si">%s</span><span class="s1">,</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cv2</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv1</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="c1">#computation of value</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">deriv</span><span class="p">:</span>
+            <span class="n">cv1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv1</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">cv2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv2</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">cv2</span><span class="o">-</span><span class="n">cv1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cv1</span><span class="p">,</span> <span class="n">grad1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv1</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">cv2</span><span class="p">,</span> <span class="n">grad2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv2</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">-</span><span class="n">cv1</span>
+            <span class="n">grad</span> <span class="o">=</span> <span class="n">grad2</span> <span class="o">-</span> <span class="n">grad1</span>
+        <span class="k">return</span> <span class="n">value</span><span class="p">,</span> <span class="n">grad</span></div>
+
+<div class="viewcode-block" id="Minimum"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.Minimum">[docs]</a><span class="k">class</span> <span class="nc">Minimum</span><span class="p">(</span><span class="n">CollectiveVariable</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Class to implement a collective variable representing the minimum of two</span>
+<span class="sd">        other collective variables:</span>
+
+<span class="sd">            CV = min(CV1,CV2)</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    
+    <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;scalar&#39;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cv1</span><span class="p">,</span> <span class="n">cv2</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cv1</span> <span class="o">=</span> <span class="n">cv1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cv2</span> <span class="o">=</span> <span class="n">cv2</span>
+        <span class="n">CollectiveVariable</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;Min(</span><span class="si">%s</span><span class="s1">,</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cv1</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv2</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="c1">#computation of value</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">deriv</span><span class="p">:</span>
+            <span class="n">cv1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv1</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">cv2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv2</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">cv1</span><span class="p">,</span><span class="n">cv2</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cv1</span><span class="p">,</span> <span class="n">grad1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv1</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">cv2</span><span class="p">,</span> <span class="n">grad2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv2</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">cv1</span><span class="p">,</span><span class="n">cv2</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">cv1</span><span class="o">&lt;</span><span class="n">cv2</span><span class="p">:</span>
+                <span class="n">grad</span> <span class="o">=</span> <span class="n">grad1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">grad</span> <span class="o">=</span> <span class="n">grad2</span>
+        <span class="k">return</span> <span class="n">value</span><span class="p">,</span> <span class="n">grad</span></div>
+    
+<div class="viewcode-block" id="LinearCombination"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.LinearCombination">[docs]</a><span class="k">class</span> <span class="nc">LinearCombination</span><span class="p">(</span><span class="n">CollectiveVariable</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Class to implement a collective variable that is the linear combination of other collective variables</span>
+
+<span class="sd">            CV = sum(coeffs[i]*cvs[i], i=1..N)</span>
+<span class="sd">        </span>
+<span class="sd">        in which cvs is the list of involved collective variables and coeffs is list of equal length with the corresponing coefficients</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    
+    <span class="nb">type</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1">#depends on type of argument cvs</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cvs</span><span class="p">,</span> <span class="n">coeffs</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">cvs</span><span class="p">)</span><span class="o">==</span><span class="nb">len</span><span class="p">(</span><span class="n">coeffs</span><span class="p">),</span> <span class="s2">&quot;List of cvs and list of coefficients should be of equal length&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">cvs</span><span class="p">)):</span>
+            <span class="k">assert</span> <span class="n">cvs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="n">cvs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="s1">&#39;cvs[</span><span class="si">%i</span><span class="s1">] and cvs[0] are not both scalar CVS or vector CVS&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">cvs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cvs</span> <span class="o">=</span> <span class="n">cvs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coeffs</span> <span class="o">=</span> <span class="n">coeffs</span>
+        <span class="n">CollectiveVariable</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;</span><span class="si">%+.2f%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">coeff</span><span class="p">,</span><span class="n">cv</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">coeff</span><span class="p">,</span><span class="n">cv</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coeffs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cvs</span><span class="p">)])</span>
+
+    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="c1">#computation of value</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">deriv</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="k">for</span> <span class="n">coeff</span><span class="p">,</span> <span class="n">cv</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coeffs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cvs</span><span class="p">):</span>
+                <span class="n">value</span> <span class="o">+=</span> <span class="n">coeff</span><span class="o">*</span><span class="n">cv</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">grad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">coords</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">coeff</span><span class="p">,</span> <span class="n">cv</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coeffs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cvs</span><span class="p">):</span>
+                <span class="n">v</span><span class="p">,</span><span class="n">g</span> <span class="o">=</span> <span class="n">cv</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">value</span> <span class="o">+=</span> <span class="n">coeff</span><span class="o">*</span><span class="n">v</span>
+                <span class="n">grad</span> <span class="o">+=</span> <span class="n">coeff</span><span class="o">*</span><span class="n">g</span>
+            <span class="k">return</span> <span class="n">value</span><span class="p">,</span> <span class="n">grad</span></div>
+
+<div class="viewcode-block" id="DistOrthProjOrig"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.DistOrthProjOrig">[docs]</a><span class="k">class</span> <span class="nc">DistOrthProjOrig</span><span class="p">(</span><span class="n">DotProduct</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Class to implement a collective variable that represents distance between (1) the orthogonal projection of a position (defined by a vector CV denoted as pos) on the axis (defined by a normalized vector CV denoted as axis) through an origin (defined by a vector CV denoted as orig) and (2) the origin.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;scalar&#39;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">orig</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="n">pos</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">axis</span> <span class="o">=</span> <span class="n">axis</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">orig</span> <span class="o">=</span> <span class="n">orig</span>
+        <span class="n">DotProduct</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Difference</span><span class="p">(</span><span class="n">orig</span><span class="p">,</span><span class="n">pos</span><span class="p">),</span> <span class="n">axis</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;DistOrthProjOrig(orig=</span><span class="si">%s</span><span class="s1">,pos=</span><span class="si">%s</span><span class="s1">,axis=</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">orig</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div>
+
+<span class="k">class</span> <span class="nc">FunctionCV</span><span class="p">(</span><span class="n">CollectiveVariable</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">CV</span><span class="p">,</span> <span class="n">function</span><span class="p">,</span> <span class="n">derivative</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CV</span> <span class="o">=</span> <span class="n">CV</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">function</span> <span class="o">=</span> <span class="n">function</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">derivative</span> <span class="o">=</span> <span class="n">derivative</span>
+        <span class="n">CollectiveVariable</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="n">unit_cell_pars</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;fun(</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CV</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">deriv</span><span class="p">:</span>
+            <span class="n">cv</span><span class="p">,</span> <span class="n">grad</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CV</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="p">(</span><span class="n">cv</span><span class="p">)</span>
+            <span class="n">qgrad</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">derivative</span><span class="p">(</span><span class="n">cv</span><span class="p">)</span><span class="o">*</span><span class="n">grad</span>
+            <span class="k">return</span> <span class="n">q</span><span class="p">,</span> <span class="n">qgrad</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CV</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="p">(</span><span class="n">cv</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">test_CV_implementations</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">cvs</span><span class="p">,</span> <span class="n">dx</span><span class="o">=</span><span class="mf">0.001</span><span class="o">*</span><span class="n">angstrom</span><span class="p">,</span> <span class="n">maxframes</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+    <span class="n">xyz</span> <span class="o">=</span> <span class="n">XYZReader</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">cv</span> <span class="ow">in</span> <span class="n">cvs</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Testing consistency between value and gradient of </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">cv</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">coords</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">xyz</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">&gt;=</span><span class="n">maxframes</span><span class="p">:</span> <span class="k">break</span>
+            <span class="n">value</span><span class="p">,</span> <span class="n">grad</span> <span class="o">=</span> <span class="n">cv</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">aindex</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)):</span>
+                <span class="k">for</span> <span class="n">carindex</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                    <span class="n">delta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">coords</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
+                    <span class="n">delta</span><span class="p">[</span><span class="n">aindex</span><span class="p">,</span><span class="n">carindex</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="n">v1</span> <span class="o">=</span> <span class="n">cv</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="o">-</span><span class="n">delta</span><span class="o">*</span><span class="n">dx</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                    <span class="n">v2</span> <span class="o">=</span> <span class="n">cv</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="o">+</span><span class="n">delta</span><span class="o">*</span><span class="n">dx</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                    <span class="n">numerical</span> <span class="o">=</span> <span class="p">(</span><span class="n">v2</span><span class="o">-</span><span class="n">v1</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">dx</span><span class="p">)</span>
+                    <span class="k">assert</span> <span class="nb">abs</span><span class="p">(</span><span class="n">numerical</span><span class="o">-</span><span class="n">grad</span><span class="p">[</span><span class="n">aindex</span><span class="p">,</span><span class="n">carindex</span><span class="p">])</span><span class="o">&lt;</span><span class="mf">1e-9</span><span class="p">,</span> <span class="s1">&#39;Analytical derivative check failed! grad[</span><span class="si">%i</span><span class="s1">,</span><span class="si">%i</span><span class="s1">]=</span><span class="si">%20.15e</span><span class="s1">    numerical=</span><span class="si">%20.15e</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">aindex</span><span class="p">,</span><span class="n">carindex</span><span class="p">,</span><span class="n">grad</span><span class="p">[</span><span class="n">aindex</span><span class="p">,</span><span class="n">carindex</span><span class="p">],</span><span class="n">numerical</span><span class="p">)</span>
+    <span class="k">del</span> <span class="n">xyz</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Louis Vanduyfhuys.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>
