@@ -228,6 +228,8 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../rg_thermo.html#module-thermolib.thermodynamics.cv">Collective variables – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.cv</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.Average"><code class="docutils literal notranslate"><span class="pre">Average</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.CenterOfMass"><code class="docutils literal notranslate"><span class="pre">CenterOfMass</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.CenterOfPosition"><code class="docutils literal notranslate"><span class="pre">CenterOfPosition</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.CoordinationNumber"><code class="docutils literal notranslate"><span class="pre">CoordinationNumber</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.Difference"><code class="docutils literal notranslate"><span class="pre">Difference</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.DistOrthProjOrig"><code class="docutils literal notranslate"><span class="pre">DistOrthProjOrig</span></code></a></li>
@@ -236,6 +238,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.DotProduct"><code class="docutils literal notranslate"><span class="pre">DotProduct</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.LinearCombination"><code class="docutils literal notranslate"><span class="pre">LinearCombination</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.Minimum"><code class="docutils literal notranslate"><span class="pre">Minimum</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.NormalToPlane"><code class="docutils literal notranslate"><span class="pre">NormalToPlane</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.NormalizedAxis"><code class="docutils literal notranslate"><span class="pre">NormalizedAxis</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.OrthogonalDistanceToPore"><code class="docutils literal notranslate"><span class="pre">OrthogonalDistanceToPore</span></code></a></li>
 </ul>
@@ -358,7 +361,7 @@
 
 <div class="viewcode-block" id="BiasPotential1D"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.bias.BiasPotential1D">[docs]</a><span class="k">class</span> <span class="nc">BiasPotential1D</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        A base class for 1-dimensional bias potentials. This abstract class serves as a parent for inheriting child classes which should implement the __call__ routine.</span>
+<span class="sd">        Abstract class for 1-dimensional bias potentials. Its inheriting child classes should implement the ``__call__`` and ``print_pars`` routines.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">inverse_cv</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
@@ -373,16 +376,43 @@
         <span class="k">if</span> <span class="n">inverse_cv</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">sign_q</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
     
-    <span class="k">def</span> <span class="nf">print</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">pars_units</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> (</span><span class="si">%s</span><span class="s1">): </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">print_pars</span><span class="p">(</span><span class="o">**</span><span class="n">pars_units</span><span class="p">))</span>
+<div class="viewcode-block" id="BiasPotential1D.print"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.bias.BiasPotential1D.print">[docs]</a>    <span class="k">def</span> <span class="nf">print</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">pars_units</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Routine to return a formatted string defining the current bias for logging purposes. The keywords arguments in ``pars_units`` are defined in the ``print_pars`` routine defined in the child classes.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> (</span><span class="si">%s</span><span class="s1">): </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">print_pars</span><span class="p">(</span><span class="o">**</span><span class="n">pars_units</span><span class="p">))</span></div>
 
-    <span class="k">def</span> <span class="nf">print_pars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">pars_units</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+<div class="viewcode-block" id="BiasPotential1D.print_pars"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.bias.BiasPotential1D.print_pars">[docs]</a>    <span class="k">def</span> <span class="nf">print_pars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">pars_units</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Routine to format a string containing the parameters of the bias for printing/logging purposes. This routine needs to be implemented in each child class.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Routine to compute the value of the bias as function of the given CV value. This routine needs to be implemented in each child class.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
     
-    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="n">cvs</span><span class="p">,</span> <span class="n">e_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">cv_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv_label</span><span class="o">=</span><span class="s1">&#39;CV1&#39;</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="BiasPotential1D.plot"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.bias.BiasPotential1D.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cvs</span><span class="p">,</span> <span class="n">fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">e_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">cv_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv_label</span><span class="o">=</span><span class="s1">&#39;CV1&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Routine to make a plot of the bias potential as function of the CV.</span>
+
+<span class="sd">            :param cvs: array representing the cv grid on which the bias is evaluated</span>
+<span class="sd">            :type cvs: np.ndarray</span>
+<span class="sd">            </span>
+<span class="sd">            :param fn: file name to write the plot to. If None, the plot is not written to a file.</span>
+<span class="sd">            :type fn: str, optional, default=None</span>
+
+<span class="sd">            :param e_unit: energy unit in which the bias potential will be plotted</span>
+<span class="sd">            :type e_unit: str, optional, default=&#39;kjmol&#39;</span>
+
+<span class="sd">            :param cv_unit: unit in which the CV will be plotted</span>
+<span class="sd">            :type cv_unit: str, optional, default=&#39;au&#39;</span>
+
+<span class="sd">            :param cv_label: Label of the CV to be used in the x-label of the plot</span>
+<span class="sd">            :type cv_label: str, optional, default=&#39;CV1&#39;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">cvs</span><span class="p">)</span>
         <span class="n">pp</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
         <span class="n">pp</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">cvs</span><span class="o">/</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">cv_unit</span><span class="p">),</span> <span class="n">obs</span><span class="o">/</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">e_unit</span><span class="p">))</span>
@@ -391,14 +421,17 @@
         <span class="n">pp</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Bias </span><span class="si">%s</span><span class="s1"> (</span><span class="si">%s</span><span class="s1">):</span><span class="se">\n</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span><span class="s1">&#39;\_&#39;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">print_pars</span><span class="p">()),</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
         <span class="n">fig</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
         <span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">([</span><span class="mi">8</span><span class="p">,</span><span class="mi">8</span><span class="p">])</span>
-        <span class="n">pp</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span></div>
+        <span class="k">if</span> <span class="n">fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pp</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="Parabola1D"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.bias.Parabola1D">[docs]</a><span class="k">class</span> <span class="nc">Parabola1D</span><span class="p">(</span><span class="n">BiasPotential1D</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        A 1-dimensional parabolic bias potential:</span>
+<span class="sd">        A 1-dimensional parabolic bias potential</span>
 
-<span class="sd">        .. math:: V(q) = \\frac{\\kappa}{2}\\left(sign_q*q-q_0\\right)^2</span>
+<span class="sd">        .. math:: V(q) = \\frac{\\kappa}{2}\\left(s*q-q_0\\right)^2</span>
+
+<span class="sd">        The potential can be computed for a given CV value using its ``__call__`` routine, the bias definition can be printed in a formated way using its ``print`` routine and a plot can be made using its ``plot`` routine.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">q0</span><span class="p">,</span> <span class="n">kappa</span><span class="p">,</span> <span class="n">inverse_cv</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
@@ -411,17 +444,32 @@
 <span class="sd">            :param kappa: the force constant of the parabola</span>
 <span class="sd">            :type kappa: float</span>
 
-<span class="sd">            :param inverse_cv: If set to True, the CV-axis will be inverted prior to bias evaluation. WARNING: the rest value parameter q0 of the potential will not be multiplied with -1!</span>
+<span class="sd">            :param inverse_cv: If set to True, the CV-axis will be inverted prior to bias evaluation (sets :math:`s=-1` in the above formula for the bias potential). WARNING: the rest value parameter q0 of the potential will not be multiplied with -1!</span>
 <span class="sd">            :type inverse_cv: bool, optional, defaults to False</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">BiasPotential1D</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">inverse_cv</span><span class="o">=</span><span class="n">inverse_cv</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">q0</span> <span class="o">=</span> <span class="n">q0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">kappa</span> <span class="o">=</span> <span class="n">kappa</span>
     
-    <span class="k">def</span> <span class="nf">print_pars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kappa_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">q0_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s1">&#39;K=</span><span class="si">%.0f</span><span class="s1"> </span><span class="si">%s</span><span class="s1">  q0=</span><span class="si">%.3e</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kappa</span><span class="o">/</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">kappa_unit</span><span class="p">),</span> <span class="n">kappa_unit</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">q0</span><span class="o">/</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">q0_unit</span><span class="p">),</span> <span class="n">q0_unit</span><span class="p">)</span>
+<div class="viewcode-block" id="Parabola1D.print_pars"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.bias.Parabola1D.print_pars">[docs]</a>    <span class="k">def</span> <span class="nf">print_pars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kappa_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">q0_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Routine used by the :py:meth:`print &lt;thermolib.thermodynamics.bias.BiasPotential1D.print&gt;` routine defined in the parent :py:class:`BiasPotential1D &lt;thermolib.thermodynamics.bias.BiasPotential1D&gt;` to print the parameters of the bias potential in a formatted way. The keyword arguments defined below, can be specified upon calling the :py:meth:`print &lt;thermolib.thermodynamics.bias.BiasPotential1D.print&gt;` routine.</span>
+
+<span class="sd">            :param kappa_unit: Unit of the parabola force constant kappa</span>
+<span class="sd">            :type kappa_unit: str, optional, default=&#39;kjmol&#39;</span>
+
+<span class="sd">            :param q0_unit: Unit of the parabola equilibrium CV value q0</span>
+<span class="sd">            :type q0_unit: str, optional, default=&#39;au&#39;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="s1">&#39;K=</span><span class="si">%.0f</span><span class="s1"> </span><span class="si">%s</span><span class="s1">  q0=</span><span class="si">%.3e</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kappa</span><span class="o">/</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">kappa_unit</span><span class="p">),</span> <span class="n">kappa_unit</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">q0</span><span class="o">/</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">q0_unit</span><span class="p">),</span> <span class="n">q0_unit</span><span class="p">)</span></div>
     
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Compute the value of the bias potential for the given CV value</span>
+
+<span class="sd">            :param q: CV value at which the bias potential will be evaluated</span>
+<span class="sd">            :type q: float</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">kappa</span><span class="o">*</span><span class="p">(</span><span class="n">q</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">sign_q</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">q0</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span></div>
 
 
@@ -429,7 +477,9 @@
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Bias potential given by general polynomial of any degree:</span>
 
-<span class="sd">        .. math:: V(q) = \\sum_{n}a_n\\left(sign_q*q\\right)^n</span>
+<span class="sd">        .. math:: V(q) = \\sum_{n}a_n\\left(s*q\\right)^n</span>
+
+<span class="sd">        The potential can be computed for a given CV value using its ``__call__`` routine, the bias definition can be printed in a formated way using its ``print`` routine and a plot can be made using its ``plot`` routine.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">coeffs</span><span class="p">,</span> <span class="n">inverse_cv</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
@@ -439,8 +489,8 @@
 <span class="sd">            :param coeffs: list of expansion coefficients of the polynomial in increasing order starting with the coefficient of power 0. The degree of the polynomial is given by len(coeffs)-1</span>
 <span class="sd">            :type coeffs: list/np.ndarray</span>
 
-<span class="sd">            :param inverse_cv: If set to True, the CV-axis will be inverted prior to bias evaluation.</span>
-<span class="sd">            :type inverse_cv: bool, optional, defaults to False</span>
+<span class="sd">            :param inverse_cv: If True, the CV-axis will be inverted prior to bias evaluation (sets :math:`s=-1` in the above formula for the bias potential).</span>
+<span class="sd">            :type inverse_cv: bool, optional, default=False</span>
 
 <span class="sd">            :param unit: unit in which the bias is given</span>
 <span class="sd">            :type unit: str, optional, default=&#39;au&#39;</span>
@@ -449,10 +499,25 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">coeffs</span> <span class="o">=</span> <span class="n">coeffs</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="n">unit</span>
     
-    <span class="k">def</span> <span class="nf">print_pars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">q_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;a</span><span class="si">%i</span><span class="s1">=</span><span class="si">%.3e</span><span class="s1"> </span><span class="si">%s</span><span class="s1">/</span><span class="si">%s</span><span class="s1">^</span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">n</span><span class="p">,(</span><span class="n">an</span><span class="o">/</span><span class="p">(</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">e_unit</span><span class="p">)</span><span class="o">/</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">q_unit</span><span class="p">)))</span><span class="o">**</span><span class="n">n</span><span class="p">,</span> <span class="n">e_unit</span><span class="p">,</span> <span class="n">q_unit</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span><span class="n">an</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coeffs</span><span class="p">)])</span>
+<div class="viewcode-block" id="Polynomial1D.print_pars"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.bias.Polynomial1D.print_pars">[docs]</a>    <span class="k">def</span> <span class="nf">print_pars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">q_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Routine used by the :py:meth:`print &lt;thermolib.thermodynamics.bias.BiasPotential1D.print&gt;` routine defined in the parent :py:class:`BiasPotential1D &lt;thermolib.thermodynamics.bias.BiasPotential1D&gt;` to print the parameters of the bias potential in a formatted way. The keyword arguments defined below, can be specified upon calling the :py:meth:`print &lt;thermolib.thermodynamics.bias.BiasPotential1D.print&gt;` routine.</span>
+
+<span class="sd">            :param e_unit: energy unit to be used in defining the units of the coefficients</span>
+<span class="sd">            :type kappa_unit: str, optional, default=&#39;kjmol&#39;</span>
+
+<span class="sd">            :param q0_unit: cv unit to be used in defining the units of the coefficients</span>
+<span class="sd">            :type q0_unit: str, optional, default=&#39;au&#39;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;a</span><span class="si">%i</span><span class="s1">=</span><span class="si">%.3e</span><span class="s1"> </span><span class="si">%s</span><span class="s1">/</span><span class="si">%s</span><span class="s1">^</span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">n</span><span class="p">,(</span><span class="n">an</span><span class="o">/</span><span class="p">(</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">e_unit</span><span class="p">)</span><span class="o">/</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">q_unit</span><span class="p">)))</span><span class="o">**</span><span class="n">n</span><span class="p">,</span> <span class="n">e_unit</span><span class="p">,</span> <span class="n">q_unit</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span><span class="n">an</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coeffs</span><span class="p">)])</span></div>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Compute the value of the bias potential for the given CV value</span>
+
+<span class="sd">            :param q: CV value at which the bias potential will be evaluated</span>
+<span class="sd">            :type q: float</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">result</span> <span class="o">=</span> <span class="mf">0.0</span>
         <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">an</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coeffs</span><span class="p">):</span>
             <span class="n">result</span> <span class="o">+=</span> <span class="n">an</span><span class="o">*</span><span class="p">(</span><span class="n">q</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">sign_q</span><span class="p">)</span><span class="o">**</span><span class="n">n</span>
@@ -461,7 +526,7 @@
 
 <div class="viewcode-block" id="PlumedSplinePotential1D"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.bias.PlumedSplinePotential1D">[docs]</a><span class="k">class</span> <span class="nc">PlumedSplinePotential1D</span><span class="p">(</span><span class="n">BiasPotential1D</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        A bias potential read from a PLUMED file, which is spline-interpolated.</span>
+<span class="sd">        A bias potential read from a PLUMED file, which is spline-interpolated. The potential can be computed for a given CV value using its ``__call__`` routine, the bias definition can be printed in a formated way using its ``print`` routine and a plot can be made using its ``plot`` routine.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="n">inverse_cv</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
@@ -472,13 +537,13 @@
 <span class="sd">            :type fn: str</span>
 
 <span class="sd">            :param inverse_cv: If set to True, the CV-axis will be inverted prior to bias evaluation.</span>
-<span class="sd">            :type inverse_cv: bool, optional, defaults to False</span>
+<span class="sd">            :type inverse_cv: bool, optional, default=False</span>
 <span class="sd">            </span>
-<span class="sd">            :param unit: unit used to express the external potential, defaults to &#39;au&#39;</span>
-<span class="sd">            :type unit: str, optional</span>
+<span class="sd">            :param unit: unit used to express the external potential</span>
+<span class="sd">            :type unit: str, optional, default=&#39;au&#39;</span>
 
-<span class="sd">            :param scale: scaling factor for the external potential (useful to invert free energy surfaces), default to 1.0</span>
-<span class="sd">            :type scale: float, optional</span>
+<span class="sd">            :param scale: scaling factor for the bias potential (useful to invert free energy surfaces)</span>
+<span class="sd">            :type scale: float, optional, default=1.0</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">BiasPotential1D</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">inverse_cv</span><span class="o">=</span><span class="n">inverse_cv</span><span class="p">)</span>
         <span class="n">pars</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
@@ -486,11 +551,20 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="n">unit</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">=</span> <span class="n">scale</span>
     
-    <span class="k">def</span> <span class="nf">print_pars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="PlumedSplinePotential1D.print_pars"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.bias.PlumedSplinePotential1D.print_pars">[docs]</a>    <span class="k">def</span> <span class="nf">print_pars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Not implemented, will just return empty string.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="c1">#TODO</span>
-        <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">return</span> <span class="s1">&#39;&#39;</span></div>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Compute the value of the bias potential for the given CV value</span>
+
+<span class="sd">            :param q: CV value at which the bias potential will be evaluated</span>
+<span class="sd">            :type q: float</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">value</span> <span class="o">=</span> <span class="n">interpolate</span><span class="o">.</span><span class="n">splev</span><span class="p">(</span><span class="n">q</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">sign_q</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">splint</span><span class="p">,</span> <span class="n">der</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">value</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="o">*</span><span class="n">parse_unit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="p">)</span></div>
 
@@ -502,10 +576,15 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">biasses</span><span class="p">,</span> <span class="n">coeffs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            :param biasses: list of bias potentials</span>
-<span class="sd">            :type biasses: list(BiasPotential1D)</span>
+<span class="sd">            :type biasses: list of instances of child classes of :py:class:`BiasPotential1D &lt;thermolib.thermodynamics.bias.BiasPotential1D&gt;`</span>
 
-<span class="sd">            :param coeffs: array of weigth coefficients. If not given, defaults to an array of ones (i.e. no weighting).</span>
-<span class="sd">            :type coeffs: list/np.ndarray, optional</span>
+<span class="sd">            :param coeffs: array of weigth coefficients. If None, coeffs is set to an array of ones (i.e. no weighting is applied).</span>
+<span class="sd">            :type coeffs: list/np.ndarray, optional, default=None</span>
+
+<span class="sd">            :raises AssertionError: if biasses argument is not a list</span>
+<span class="sd">            :raises AssertionError: if a bias in the biasses list is not an instance of :py:class:`BiasPotential1D &lt;thermolib.thermodynamics.bias.BiasPotential1D&gt;`</span>
+<span class="sd">            :raises AssertionError: if coeffs is not a np.ndarray</span>
+<span class="sd">            :raises AssertionError: if biasses and coeffs are not of equal length</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">biasses</span><span class="p">,</span> <span class="nb">list</span><span class="p">),</span> <span class="s1">&#39;Biasses should be a list&#39;</span>
         <span class="k">for</span> <span class="n">bias</span> <span class="ow">in</span> <span class="n">biasses</span><span class="p">:</span>
@@ -521,13 +600,22 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">biasses</span> <span class="o">=</span> <span class="n">biasses</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">coeffs</span> <span class="o">=</span> <span class="n">coeffs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
     
-    <span class="k">def</span> <span class="nf">print_pars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">par_units</span><span class="p">):</span>
+<div class="viewcode-block" id="MultipleBiasses1D.print_pars"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.bias.MultipleBiasses1D.print_pars">[docs]</a>    <span class="k">def</span> <span class="nf">print_pars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">par_units</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Routine used by the :py:meth:`print &lt;thermolib.thermodynamics.bias.BiasPotential1D.print&gt;` routine defined in the parent :py:class:`BiasPotential1D &lt;thermolib.thermodynamics.bias.BiasPotential1D&gt;` to print the parameters of the bias potential in a formatted way. The keyword arguments defined below, can be specified upon calling the :py:meth:`print &lt;thermolib.thermodynamics.bias.BiasPotential1D.print&gt;` routine  and will be parsed to the individual ``print`` routines of each bias. Hence, you can append the unit definitions of each bias in the list as keyword arguments of the current routine.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">string</span> <span class="o">=</span> <span class="s1">&#39;MultipleBias:</span><span class="se">\n</span><span class="s1">&#39;</span>
         <span class="k">for</span> <span class="n">bias</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">biasses</span><span class="p">:</span>
             <span class="n">string</span> <span class="o">+=</span> <span class="s1">&#39;  </span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">bias</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="o">**</span><span class="n">par_units</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">string</span>
+        <span class="k">return</span> <span class="n">string</span></div>
     
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Compute the value of the bias potential for the given CV value</span>
+
+<span class="sd">            :param q: CV value at which the bias potential will be evaluated</span>
+<span class="sd">            :type q: float</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">result</span> <span class="o">=</span> <span class="mf">0.0</span>
         <span class="k">for</span> <span class="n">idx</span><span class="p">,</span><span class="n">bias</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">biasses</span><span class="p">):</span>
             <span class="n">result</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coeffs</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">*</span><span class="n">bias</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
@@ -536,7 +624,7 @@
 
 <div class="viewcode-block" id="BiasPotential2D"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.bias.BiasPotential2D">[docs]</a><span class="k">class</span> <span class="nc">BiasPotential2D</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        A base class for 2-dimensional bias potentials. This abstract class serves as a parent for inheriting child classes which should implement the __call__ routine.</span>
+<span class="sd">        A base class for 2-dimensional bias potentials. Its inheriting child classes should implement the ``__call__`` and ``print_pars`` routines.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">inverse_cv1</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">inverse_cv2</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
@@ -546,7 +634,7 @@
 <span class="sd">            :param inverse_cv1: If set to True, the CV1-axis will be inverted prior to bias evaluation. WARNING: possible rest value parameters of the potential (such as the rest value q01 of the Parabola2D potential) will not be multiplied with -1!</span>
 <span class="sd">            :type inverse_cv1: bool, optional, defaults to False</span>
 
-<span class="sd">            :param inverse_cv2: If set to True, the CV2-axis will be inverted prior to bias evaluation. WARNING: possible rest value parameters of the potential (such as the rest value q02 of the Parabola1D potential) will not be multiplied with -1!</span>
+<span class="sd">            :param inverse_cv2: If set to True, the CV2-axis will be inverted prior to bias evaluation. WARNING: possible rest value parameters of the potential (such as the rest value q02 of the Parabola2D potential) will not be multiplied with -1!</span>
 <span class="sd">            :type inverse_cv2: bool, optional, defaults to False</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
@@ -558,37 +646,91 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">sign_q2</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
     
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
-    
-    <span class="k">def</span> <span class="nf">print</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">pars_units</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> (</span><span class="si">%s</span><span class="s1">): </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">print_pars</span><span class="p">(</span><span class="o">*</span><span class="n">pars_units</span><span class="p">))</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Compute the value of the bias potential for the given CV value</span>
 
-    <span class="k">def</span> <span class="nf">print_pars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">pars_units</span><span class="p">):</span>
+<span class="sd">            :param q1: value of first CV at which the bias potential will be evaluated</span>
+<span class="sd">            :type q1: float</span>
+
+<span class="sd">            :param q2: value of second CV at which the bias potential will be evaluated</span>
+<span class="sd">            :type q2: float</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
     
-    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="n">cv1s</span><span class="p">,</span> <span class="n">cv2s</span><span class="p">,</span> <span class="n">obs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">obs_unit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv1_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv2_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv1_label</span><span class="o">=</span><span class="s1">&#39;CV1&#39;</span><span class="p">,</span> <span class="n">cv2_label</span><span class="o">=</span><span class="s1">&#39;CV2&#39;</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">obs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">CV1</span><span class="p">,</span> <span class="n">CV2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">cv1s</span><span class="p">,</span> <span class="n">cv2s</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s1">&#39;ij&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="BiasPotential2D.print"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.bias.BiasPotential2D.print">[docs]</a>    <span class="k">def</span> <span class="nf">print</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">pars_units</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Routine to return a formatted string defining the current bias for logging purposes. The keywords arguments in ``pars_units`` are defined in the ``print_pars`` routine defined in the child classes.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> (</span><span class="si">%s</span><span class="s1">): </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">print_pars</span><span class="p">(</span><span class="o">*</span><span class="n">pars_units</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="BiasPotential2D.print_pars"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.bias.BiasPotential2D.print_pars">[docs]</a>    <span class="k">def</span> <span class="nf">print_pars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">pars_units</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Routine to format a string containing the parameters of the bias for printing/logging purposes. This routine needs to be implemented in each child class.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+    
+<div class="viewcode-block" id="BiasPotential2D.plot"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.bias.BiasPotential2D.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cv1s</span><span class="p">,</span> <span class="n">cv2s</span><span class="p">,</span> <span class="n">fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">e_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">cv1_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv2_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv1_label</span><span class="o">=</span><span class="s1">&#39;CV1&#39;</span><span class="p">,</span> <span class="n">cv2_label</span><span class="o">=</span><span class="s1">&#39;CV2&#39;</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">11</span><span class="p">)):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Routine to make a plot of the bias potential as function of the CV.</span>
+
+<span class="sd">            :param cv1s: array representing the cv1 grid on which the bias is evaluated</span>
+<span class="sd">            :type cv1s: np.ndarray</span>
+
+<span class="sd">            :param cv2s: array representing the cv2 grid on which the bias is evaluated</span>
+<span class="sd">            :type cv2s: np.ndarray</span>
+<span class="sd">            </span>
+<span class="sd">            :param fn: file name to write the plot to. If None, the plot is not written to a file.</span>
+<span class="sd">            :type fn: str, optional, default=None</span>
+
+<span class="sd">            :param temp: If None, the bias potential itself is plotted. Else, the boltzmann factor exp(-V/kT) corresponding with the bias potential V is computed at the corresponding temperature given by temp.</span>
+<span class="sd">            :type temp: float or None, optional, default=None</span>
+
+<span class="sd">            :param e_unit: energy unit in which the bias potential will be plotted. This parameter is ignored if temp is not None</span>
+<span class="sd">            :type e_unit: str, optional, default=&#39;kjmol&#39;</span>
+
+<span class="sd">            :param cv1_unit: unit in which the CV1 will be plotted</span>
+<span class="sd">            :type cv1_unit: str, optional, default=&#39;au&#39;</span>
+
+<span class="sd">            :param cv2_unit: unit in which the CV2 will be plotted</span>
+<span class="sd">            :type cv2_unit: str, optional, default=&#39;au&#39;</span>
+
+<span class="sd">            :param cv1_label: Label of the CV1 to be used in the x-label of the plot</span>
+<span class="sd">            :type cv1_label: str, optional, default=&#39;CV1&#39;</span>
+
+<span class="sd">            :param cv2_label: Label of the CV2 to be used in the x-label of the plot</span>
+<span class="sd">            :type cv2_label: str, optional, default=&#39;CV2&#39;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">CV1</span><span class="p">,</span> <span class="n">CV2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">cv1s</span><span class="p">,</span> <span class="n">cv2s</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s1">&#39;ij&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">temp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">CV1</span><span class="p">,</span><span class="n">CV2</span><span class="p">)</span>
-            <span class="n">obs_unit</span> <span class="o">=</span> <span class="s1">&#39;kjmol&#39;</span>
-            <span class="n">levels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">11</span><span class="p">)</span>
+            <span class="n">obs_unit</span> <span class="o">=</span> <span class="n">e_unit</span>
+            <span class="n">obs_label</span> <span class="o">=</span> <span class="s1">&#39;Bias energy [</span><span class="si">%s</span><span class="s1">]&#39;</span> <span class="o">%</span><span class="n">e_unit</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">beta</span> <span class="o">=</span> <span class="mf">1.0</span><span class="o">/</span><span class="p">(</span><span class="n">botlzmann</span><span class="o">*</span><span class="n">temp</span><span class="p">)</span>
+            <span class="n">obs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">beta</span><span class="o">*</span><span class="bp">self</span><span class="p">(</span><span class="n">CV1</span><span class="p">,</span><span class="n">CV2</span><span class="p">))</span>
+            <span class="n">obs_unit</span> <span class="o">=</span> <span class="s1">&#39;au&#39;</span>
+            <span class="n">obs_label</span> <span class="o">=</span> <span class="s1">&#39;Bias boltzmann factor [-]&#39;</span>
         <span class="n">pp</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
         <span class="n">contourf</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">contourf</span><span class="p">(</span><span class="n">cv1s</span><span class="o">/</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">cv1_unit</span><span class="p">),</span> <span class="n">cv2s</span><span class="o">/</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">cv2_unit</span><span class="p">),</span> <span class="n">obs</span><span class="o">.</span><span class="n">T</span><span class="o">/</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">obs_unit</span><span class="p">),</span> <span class="n">cmap</span><span class="o">=</span><span class="n">pp</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">&#39;rainbow&#39;</span><span class="p">),</span> <span class="n">levels</span><span class="o">=</span><span class="n">levels</span><span class="p">)</span>
         <span class="n">contour</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">cv1s</span><span class="o">/</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">cv1_unit</span><span class="p">),</span> <span class="n">cv2s</span><span class="o">/</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">cv2_unit</span><span class="p">),</span> <span class="n">obs</span><span class="o">.</span><span class="n">T</span><span class="o">/</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">obs_unit</span><span class="p">),</span> <span class="n">levels</span><span class="o">=</span><span class="n">levels</span><span class="p">)</span>
         <span class="n">pp</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> [</span><span class="si">%s</span><span class="s1">]&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">cv1_label</span><span class="p">,</span> <span class="n">cv1_unit</span><span class="p">),</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
         <span class="n">pp</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> [</span><span class="si">%s</span><span class="s1">]&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">cv2_label</span><span class="p">,</span> <span class="n">cv2_unit</span><span class="p">),</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
         <span class="n">cbar</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">contourf</span><span class="p">,</span> <span class="n">extend</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">)</span>
-        <span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s1">&#39;Bias boltzmann factor [-]&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+        <span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="n">obs_label</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
         <span class="n">pp</span><span class="o">.</span><span class="n">clabel</span><span class="p">(</span><span class="n">contour</span><span class="p">,</span> <span class="n">inline</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
-        <span class="n">pp</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Bias </span><span class="si">%s</span><span class="s1"> (</span><span class="si">%s</span><span class="s1">):</span><span class="se">\n</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span><span class="s1">&#39;\_&#39;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">print_pars</span><span class="p">()),</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+        <span class="n">pp</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Bias: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">print</span><span class="p">()),</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
         <span class="n">fig</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
         <span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">([</span><span class="mi">12</span><span class="p">,</span><span class="mi">8</span><span class="p">])</span>
-        <span class="n">pp</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span></div>
+        <span class="n">pp</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="Parabola2D"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.bias.Parabola2D">[docs]</a><span class="k">class</span> <span class="nc">Parabola2D</span><span class="p">(</span><span class="n">BiasPotential2D</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        A 2-dimensional parabolic bias potential.</span>
+
+<span class="sd">        .. math:: V(q_1,q_2) = \\frac{\\kappa_1}{2}\\left(s_1*q_1-q_{1,0}\\right)^2 + \\frac{\\kappa_2}{2}\\left(s_2*q_2-q_{2,0}\\right)^2</span>
+
+<span class="sd">        The potential can be computed for a given CV value using its ``__call__`` routine, the bias definition can be printed in a formated way using its ``print`` routine and a plot can be made using its ``plot`` routine.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">q01</span><span class="p">,</span> <span class="n">q02</span><span class="p">,</span> <span class="n">kappa1</span><span class="p">,</span> <span class="n">kappa2</span><span class="p">,</span> <span class="n">inverse_cv1</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">inverse_cv2</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
@@ -607,10 +749,10 @@
 <span class="sd">            :param kappa2: the force constant of the parabola in the direction of the second collective variable</span>
 <span class="sd">            :type kappa: float</span>
 
-<span class="sd">            :param inverse_cv1: If set to True, the CV1-axis will be inverted prior to bias evaluation. WARNING: the rest value parameter q01 will not be multiplied with -1!</span>
+<span class="sd">            :param inverse_cv1: If set to True, the CV1-axis will be inverted prior to bias evaluation (sets :math:`s_1=-1` in the expression above). WARNING: the rest value parameter q01 will not be multiplied with -1!</span>
 <span class="sd">            :type inverse_cv1: bool, optional, defaults to False</span>
 
-<span class="sd">            :param inverse_cv2: If set to True, the CV2-axis will be inverted prior to bias evaluation. WARNING: the rest value parameter q02 will not be multiplied with -1!</span>
+<span class="sd">            :param inverse_cv2: If set to True, the CV2-axis will be inverted prior to bias evaluation (sets :math:`s_2=-1` in the expression above). WARNING: the rest value parameter q02 will not be multiplied with -1!</span>
 <span class="sd">            :type inverse_cv2: bool, optional, defaults to False</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">BiasPotential2D</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">inverse_cv1</span><span class="o">=</span><span class="n">inverse_cv1</span><span class="p">,</span> <span class="n">inverse_cv2</span><span class="o">=</span><span class="n">inverse_cv2</span><span class="p">)</span>
@@ -619,28 +761,57 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">kappa1</span> <span class="o">=</span> <span class="n">kappa1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">kappa2</span> <span class="o">=</span> <span class="n">kappa2</span>
     
-    <span class="k">def</span> <span class="nf">print_pars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kappa1_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">kappa2_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">q01_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">q02_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s1">&#39;K1=</span><span class="si">%.0f</span><span class="s1"> </span><span class="si">%s</span><span class="s1">  q01=</span><span class="si">%.3e</span><span class="s1"> </span><span class="si">%s</span><span class="s1">  K2=</span><span class="si">%.0f</span><span class="s1"> </span><span class="si">%s</span><span class="s1">  q02=</span><span class="si">%.3e</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kappa1</span><span class="o">/</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">kappa1_unit</span><span class="p">),</span> <span class="n">kappa1_unit</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">q01</span><span class="o">/</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">q01_unit</span><span class="p">),</span> <span class="n">q01_unit</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kappa2</span><span class="o">/</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">kappa2_unit</span><span class="p">),</span> <span class="n">kappa2_unit</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">q02</span><span class="o">/</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">q02_unit</span><span class="p">),</span> <span class="n">q02_unit</span><span class="p">)</span>
+<div class="viewcode-block" id="Parabola2D.print_pars"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.bias.Parabola2D.print_pars">[docs]</a>    <span class="k">def</span> <span class="nf">print_pars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kappa1_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">kappa2_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">q01_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">q02_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Routine used by the :py:meth:`print &lt;thermolib.thermodynamics.bias.BiasPotential1D.print&gt;` routine defined in the parent :py:class:`BiasPotential1D &lt;thermolib.thermodynamics.bias.BiasPotential1D&gt;` to print the parameters of the bias potential in a formatted way. The keyword arguments defined below, can be specified upon calling the :py:meth:`print &lt;thermolib.thermodynamics.bias.BiasPotential2D.print&gt;` routine.</span>
+
+<span class="sd">            :param kappa1_unit: Unit of the parabola force constant kappa along the first CV</span>
+<span class="sd">            :type kappa1_unit: str, optional, default=&#39;kjmol&#39;</span>
+
+<span class="sd">            :param kappa2_unit: Unit of the parabola force constant kappa along the second CV</span>
+<span class="sd">            :type kappa2_unit: str, optional, default=&#39;kjmol&#39;</span>
+
+<span class="sd">            :param q01_unit: Unit of the CV1 value corresponding to the parabola equilibrium (minimum)</span>
+<span class="sd">            :type q01_unit: str, optional, default=&#39;au&#39;</span>
+
+<span class="sd">            :param q02_unit: Unit of the CV2 value corresponding to the parabola equilibrium (minimum)</span>
+<span class="sd">            :type q02_unit: str, optional, default=&#39;au&#39;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="s1">&#39;K1=</span><span class="si">%.0f</span><span class="s1"> </span><span class="si">%s</span><span class="s1">  q01=</span><span class="si">%.3e</span><span class="s1"> </span><span class="si">%s</span><span class="s1">  K2=</span><span class="si">%.0f</span><span class="s1"> </span><span class="si">%s</span><span class="s1">  q02=</span><span class="si">%.3e</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kappa1</span><span class="o">/</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">kappa1_unit</span><span class="p">),</span> <span class="n">kappa1_unit</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">q01</span><span class="o">/</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">q01_unit</span><span class="p">),</span> <span class="n">q01_unit</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kappa2</span><span class="o">/</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">kappa2_unit</span><span class="p">),</span> <span class="n">kappa2_unit</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">q02</span><span class="o">/</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">q02_unit</span><span class="p">),</span> <span class="n">q02_unit</span><span class="p">)</span></div>
     
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Compute the value of the bias potential for the given values of CV1 and CV2</span>
+
+<span class="sd">            :param q1: CV1 value at which the bias potential will be evaluated</span>
+<span class="sd">            :type q1: float</span>
+
+<span class="sd">            :param q2: CV2 value at which the bias potential will be evaluated</span>
+<span class="sd">            :type q2: float</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">kappa1</span><span class="o">*</span><span class="p">(</span><span class="n">q1</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">sign_q1</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">q01</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">kappa2</span><span class="o">*</span><span class="p">(</span><span class="n">q2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">sign_q2</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">q02</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span></div>
 
 
 
 <span class="k">class</span> <span class="nc">MultipleBiasses2D</span><span class="p">(</span><span class="n">BiasPotential2D</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        A class to add multiple bias potentials together, possibly weighted by given coefficients.</span>
+<span class="sd">        A class to add multiple bias potentials (either 1D or 2D) together, possibly weighted by given coefficients.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">biasses</span><span class="p">,</span> <span class="n">additional_bias_dimension</span><span class="o">=</span><span class="s1">&#39;cv1&#39;</span><span class="p">,</span> <span class="n">coeffs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">            :param biasses: list of bias potentials</span>
-<span class="sd">            :type biasses: list(BiasPotential2D,BiasPotential1D)</span>
+<span class="sd">            :param biasses: list of bias potentials to be added</span>
+<span class="sd">            :type biasses: list(BiasPotential1D,BiasPotential2D)</span>
 
 <span class="sd">            :param additional_bias_dimension: For each 1D potential in the list of biasses, apply the bias along the cv defined by this parameter.</span>
-<span class="sd">            :type additional_bias_dimension: str, optional</span>
+<span class="sd">            :type additional_bias_dimension: str, optional, default=&#39;cv1&#39;</span>
 <span class="sd">            </span>
 <span class="sd">            :param coeffs: array of weigth coefficients. If not given, defaults to an array of ones (i.e. no weighting).</span>
 <span class="sd">            :type coeffs: list/np.ndarray, optional</span>
+
+<span class="sd">            :raises AssertionError: if argument biasses is not a list</span>
+<span class="sd">            :raises AssertionError: if a memeber of biasses is not an instance of the :py:class:`BiasPotential1D &lt;thermolib.thermodynamics.bias.BiasPotential1D&gt;` or :py:class:`BiasPotential2D &lt;thermolib.thermodynamics.bias.BiasPotential2D&gt;`class</span>
+<span class="sd">            :raises AssertionError: if argument coeffs is not a np.ndarray</span>
+<span class="sd">            :raises AssertionError: if argument coeffs is given and is not of same length as argument biasses</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">biasses</span><span class="p">,</span> <span class="nb">list</span><span class="p">),</span> <span class="s1">&#39;Biasses should be a list&#39;</span>
         <span class="k">for</span> <span class="n">bias</span> <span class="ow">in</span> <span class="n">biasses</span><span class="p">:</span>
@@ -658,12 +829,24 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">coeffs</span> <span class="o">=</span> <span class="n">coeffs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
     
     <span class="k">def</span> <span class="nf">print_pars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">par_units</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Routine used by the :py:meth:`print &lt;thermolib.thermodynamics.bias.BiasPotential2D.print&gt;` routine defined in the parent :py:class:`BiasPotential2D &lt;thermolib.thermodynamics.bias.BiasPotential2D&gt;` to print the parameters of the bias potential in a formatted way. The keyword arguments defined below, can be specified upon calling the :py:meth:`print &lt;thermolib.thermodynamics.bias.BiasPotential2D.print&gt;` routine and will be parsed to the individual ``print`` routines of each bias. Hence, you can append the unit definitions of each bias in the list as keyword arguments of the current routine.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">string</span> <span class="o">=</span> <span class="s1">&#39;MultipleBias:</span><span class="se">\n</span><span class="s1">&#39;</span>
         <span class="k">for</span> <span class="n">bias</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">biasses</span><span class="p">:</span>
             <span class="n">string</span> <span class="o">+=</span> <span class="s1">&#39;  </span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">bias</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="o">**</span><span class="n">par_units</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">string</span>
     
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Compute the value of the bias potential for the given values of CV1 and CV2</span>
+
+<span class="sd">            :param q1: CV1 value at which the bias potential will be evaluated</span>
+<span class="sd">            :type q1: float</span>
+
+<span class="sd">            :param q2: CV2 value at which the bias potential will be evaluated</span>
+<span class="sd">            :type q2: float</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">result</span> <span class="o">=</span> <span class="mf">0.0</span>
         <span class="k">for</span> <span class="n">idx</span><span class="p">,</span><span class="n">bias</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">biasses</span><span class="p">):</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bias</span><span class="p">,</span> <span class="n">BiasPotential1D</span><span class="p">):</span>

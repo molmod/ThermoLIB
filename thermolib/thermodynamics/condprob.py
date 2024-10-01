@@ -36,7 +36,7 @@ __all__ = ['ConditionalProbability1D1D', 'ConditionalProbability1D2D']
 
 class ConditionalProbability(object):
     '''
-        Class to compute conditional probabilities of the form :math:`p([qs]|[cvs])`, i.e. probability of finding states characterized with collective variables qs, on the condition that the states are also characterized by collective variables cvs. Such conditional probabiliy allows to convert a free energy surface (or profile if only one cv is given) in terms of the collective variables :math:`cvs` to a free energy surface (or profile if only one q is given) in terms of the collective variables :math:`qs`.
+        Class to compute conditional probabilities of the form :math:`p([qs]|[cvs])`, i.e. probability of finding states characterized with collective variables qs, on the condition that the states are also characterized by collective variables cvs. Such conditional probabiliy allows to convert a free energy surface/profile in terms of the collective variables :math:`cvs` to a free energy surface/profile in terms of the collective variables :math:`qs`.
     '''
     def __init__(self, nq, ncv, q_labels=None, cv_labels=None, q_units=None, cv_units=None, verbose=False):
         '''
@@ -46,17 +46,20 @@ class ConditionalProbability(object):
             :param ncv: dimension of cv-space
             :type ncv: int
 
-            :param q_labels: list of labels (one for each q) to be used in plots or prints, defaults to ['Q1', ['Q2', [...]]]
-            :type q_labels: list of strings, optional
+            :param q_labels: list of labels (one for each q) to be used in plots or prints
+            :type q_labels: list of strings, optional, default=['Q1', ['Q2', [...]]]
 
-            :param cv_labels: list of labels (one for each cv) to be used in plots or prints, defaults to ['CV1', ['CV2', [...]]]
-            :type cv_labels: list of strings, optional
+            :param cv_labels: list of labels (one for each cv) to be used in plots or prints
+            :type cv_labels: list of strings, optional, default=['CV1', ['CV2', [...]]]
 
-            :param q_units: list of units (one for each q) to be used in plots or prints, defaults to ['au', ['au', [...]]]
-            :type q_units: list of strings, optional
+            :param q_units: list of units (one for each q) to be used in plots or prints
+            :type q_units: list of strings, optional, default=['au', ['au', [...]]]
 
-            :param cv_labels: list of units (one for each cv) to be used in plots or prints, defaults to ['au', ['au', [...]]]
-            :type cv_labels: list of strings, optional
+            :param cv_labels: list of units (one for each cv) to be used in plots or prints
+            :type cv_labels: list of strings, optional, default=['au', ['au', [...]]]
+
+            :param verbose: make all class routines more verbose in their logging
+            :type verbose: bool, optional, default=False
         '''
         self.nq = nq
         self.ncv = ncv
@@ -88,11 +91,13 @@ class ConditionalProbability(object):
 
     def init_bins_grids(self, q_bins, cv_bins):
         '''
+            Routine to initialize the bins used for constructing the conditional probability histograms
+
             :param q_bins: list of numpy arrays, each array corresponding to the bin edges for one of the Qs. Alternatively, a single numpy array can be given which is then interpreted as the bin edges for all of the Qs.
-            :type q_bins: list or numpy array, optional
+            :type q_bins: list(np.ndarray) or np.ndarray
 
             :param cv_bins: list of numpy arrays, each array corresponding to the bin edges for one of the CVs. Alternatively, a single numpy array can be given which is then interpreted as the bin edges for all of the CVs.
-            :type cv_bins: list or numpy array, optional
+            :type cv_bins: list(np.ndarray) or np.ndarray
         '''
         if self.verbose: print('Initializing grids for CV and Q ...')
         #type checking and storing of input arguments
@@ -130,19 +135,21 @@ class ConditionalProbability(object):
 
     def process_simulation(self, input_q, input_cv, corr_time=1.0):
         '''
-            extracting data samples of CVs and QS from given files that later will be histogrammed per value of CVs.
+            Routine to extract data samples for the CVs and Qs from given files. In a later stage, these samples will be used to histogram in terms of Q for each conditional CV.
 
             :param input_q: list of tuples of the form (fn, reader), one for each Q to be included, with fn the file name of the trajectory from which reader will extract the q-values
-            :type input_q: list of tuples
+            :type input_q: list
 
             :param input_cv: list of tuples of the form (fn, reader), one for each CV to be included, with fn the file name of the trajectory from which reader will extract the cv-values
-            :type input_cv: list of tuples
-
-            :param finish: set this to True if the given file name(s) are the only relevant trajectories and hence the conditional probability should be computed from only these trajectories. Setting it to True will therefore trigger propper normalisation of the conditional probability. Set this to False if you intend to call the routine *process_trajectory_xyz* again later on with additional trajectory files.
-            :type finish: bool, optional, default=True
+            :type input_cv: list
             
-            :param corr_times: only relevant if error estimation is also desired, in which case corr_time represent the correlation time within the Q samples which will be used for more accurate error estimation.
-            :type corr_times_q: float, optional, default=1.0
+            :param corr_time: only relevant if error estimation is also desired, in which case corr_time represent the correlation time within the Q samples which will be used for more accurate error estimation.
+            :type corr_time: float, optional, default=1.0
+
+            :raises RuntimeError: if attempted to add additional simulations after the ``finish`` routine has been called already.
+            :raises AssertionError: if any 2 Q-readers detect different number of samples in any simulation
+            :raises AssertionError: if any 2 CV-readers detect different number of samples in any simulation
+            :raises AssertionError: if any combination of one Q-reader and one CV-reader detect different number of samples in any simulation
         '''
         #init
         if self._finished:
@@ -185,7 +192,20 @@ class ConditionalProbability(object):
         if self.verbose: print('  detected %i samples, from which %i independent (correlation time = %i)' %(num_samples, num_samples/corr_time, corr_time))
 
     def set_ref(self, q_index=None, q_ref=None, cv_index=None, cv_ref=None):
-        '''Set the reference value of the Q and/or CV samples.
+        '''
+            Routine that allows to re-reference all samples of a given Q/CV collective variable. This is usefull, e.g. if a certain collective variable represents an energy and you want to put the zero for that energy at the minimum across all samples.
+
+            :param q_index: specify the index of the Q collective variable you want to re-ref with the given q_ref. If an integer is given, it should be larger than (or equal to) 0 and smaller then the number of Qs. If None, no Q re-reffing will be done. If set to 'all', all Qs will be re-reffed.
+            :type q_index: int|'all'|None, optional, default=None
+
+            :param q_ref: specify how to re-reference. If a float is given, substract the given float from all samples of all processed simulations of the corresponding Q. If the string 'global_minimum' is given, first compute the global min of all samples of all processed simulations of the corresponding Q and then substract that value from all those samples. If the string 'minimum_average' is given, first compute the minima of the samples of the corresponding Q for each simulation separately, then compute the average of all those simulation minima. Finally, substract that average from all the samples of all simulatios of the corresponding Q. Value None only allowed if q_index is also None, in which case no re-reffing is done for any Q.
+            :type q_ref: float|str|None, optional, default=None
+
+            :param cv_index: specify the index of the CVcollective variable you want to re-ref with the given cv_ref. If an integer is given, it should be larger than (or equal to) 0 and smaller then the number of CVs. If None, no CV re-reffing will be done. If set to 'all', all Qs will be re-reffed.
+            :type cv_index: int|'all'|None, optional, default=None
+
+            :param cv_ref: specify how to re-reference. If a float is given, substract the given float from all samples of all processed simulations of the corresponding CV. If the string 'global_minimum' is given, first compute the global min of all samples of all processed simulations of the corresponding CV and then substract that value from all those samples. If the string 'minimum_average' is given, first compute the minima of the samples of the corresponding CV for each simulation separately, then compute the average of all those simulation minima. Finally, substract that average from all the samples of all simulatios of the corresponding CV. Value None only allowed if cv_index is also None, in which case no re-reffing is done for any CV.
+            :type cv_ref: float|str|None, optional, default=None
         '''
         #set q references
         if q_index is not None:
@@ -252,11 +272,19 @@ class ConditionalProbability(object):
     
     def finish(self, q_bins, cv_bins, error_estimate=None, error_p_threshold=0.0):
         '''
+            Flag the process of adding simulation data as finished and process all samples to compute the conditional probability histograms.
+
             :param q_bins: see init_bins_grids
             :type q_bins: see init_bins_grids
 
             :param cv_bins: see init_bins_grids
             :type cv_bins: see init_bins_grids
+
+            :param error_estimate: If not None, this will turn on error estimation an call the ``finish_error`` routine at then end. See ``finish_error`` routine for more information.
+
+            :param error_p_threshold: Only relevant if error_estimate is not None. See ``finish_error`` routine for more information.
+
+            :raises AssertionError: if attempting to finish the conditional probability that is already finished.
         '''
         assert not self._finished, "Can't finish current conditional probability as it has already been finished."
         if self.verbose: print('Finishing conditional probability')
@@ -323,6 +351,9 @@ class ConditionalProbability(object):
         self._finished = True
         
     def finish_error(self, error_estimate, error_p_threshold=0.0):
+        '''
+            This routine is not (yet) implemented in the most general case. Instead, it is (will be) implemented in the child classes.
+        '''
         raise NotImplementedError('Error estimation not yet implemented for %s' %self.__class__.__name__)
 
     def plot(self, slicer, fn=None, obss=['value'], linestyles=None, linewidths=None, colors=None, logscale=False, ylims=None, croplims=None, cmap=pp.get_cmap('rainbow'), **plot_kwargs):
@@ -332,23 +363,36 @@ class ConditionalProbability(object):
             :param fn: name of the file to store graph in, defaults to 'condprob.png'
             :type fn: str, optional
 
-            :param x_unit: unit to be used for the cv/q on the x-axis, defaults to 'au'
-            :type x_unit: str, optional
+            :param obss: Specify which statistical property/properties to plot. Multiple values are allowed, which will be plotted on the same figure. Following options are supported:
 
-            :param y_unit: unit to be used for the cv/q on the y-axis, only relevant when 2D contourplot is made, defaults to 'au'
-            :type y_unit: str, optional
+                - **value** - the values stored in self.pconds
+                - **mean** - the mean according to the error distribution, i.e. self.error.mean()
+                - **lower** - the lower limit of the 2-sigma error bar (which corresponds to a 95% confidence interval in case of a normal distribution), i.e. self.error.nsigma_conf_int(2)[0]
+                - **upper** - the upper limit of the 2-sigma error bar (which corresponds to a 95% confidence interval in case of a normal distribution), i.e. self.error.nsigma_conf_int(2)[1]
+                - **error** - half the width of the 2-sigma error bar (which corresponds to a 95% confidence interval in case of a normal distribution), i.e. abs(upper-lower)/2
+                - **sample** - a random sample taken from the error distribution, i.e. self.error.sample()
+            :type obss: list, optional, default=['value']
 
-            :param x_label: label to be used for the cv/q on the x-axis, defaults to 'Q'/'Q1' for q-data or 'CV'/'CV1' for cv-data
-            :type x_label: str, optional
+            :param linestyles: Specify the line style (using matplotlib definitions) for each quantity requested in ``obss``. If None, all linestyles are set to '-'
+            :type linestyles: list or None, optional, default=None
 
-            :param y_label: label to be used for the cv/q on the x-axis, defaults to 'Q'/'Q2' for q-data or 'CV'/'CV2' for cv-data
-            :type y_label: str, optional
+            :param linewidths: Specify the line width (using matplotlib definitions) for each quantity requested in ``obss``. If None, al linewidths are set to 1
+            :type linewidths: list of strings or None, optional, default=None
+
+            :param colors: Specify the color (using matplotlib definitions) for each quantity requested in ``obss``. If None, matplotlib will choose.
+            :type colors: list of strings or None, optional, default=None
 
             :param logscale: applying log scale to y-axis (in case of 1D plot) or color axis (in case of 2D plot), defaults to False
             :type logscale: bool, optional
 
-            :param cmap: color map to be used, only relevant in case of 2D contourplot, defaults to pp.get_cmap('rainbow')
-            :type cmap: color map from matplotlib, optional
+            :param croplims: limits to the plotting range of the cv(s) in case of a 1D plot. If None, no cropping is done
+            :type croplims: list, optional, default=None
+
+            :param ylims: limits to the plotting range of the probability in case of a 1D plot. If None, no limits are enforced
+            :type ylims: list, optional, default=None
+
+            :param cmap: color map to be used, only relevant in case of 2D contourplot
+            :type cmap: color map from matplotlib, optional, default=pp.get_cmap('rainbow')
         '''
         #preprocess
         assert self._finished, "Conditional probability needs to be finished before plotting it."
@@ -526,7 +570,7 @@ class ConditionalProbability(object):
 
 class ConditionalProbability1D1D(ConditionalProbability):
     '''
-        Routine to store and compute conditional probabilities of the form :math:`p(q_1|cv)` which allow to convert a free energy profile in terms of the collective variable :math:`cv` to a free energy profile in terms of the collective variable :math:`q_1`.
+        Class to compute and store conditional probabilities of the form :math:`p(q|cv)` which allow to convert a free energy profile in terms of the collective variable :math:`cv` to a free energy profile in terms of the collective variable :math:`q`.
 
     '''
     def __init__(self, q_label='Q', cv_label='CV', q_output_unit='au', cv_output_unit='au', verbose=False):
@@ -542,12 +586,19 @@ class ConditionalProbability1D1D(ConditionalProbability):
             
             :param cv_label: label for Q used for plotting/logging, defaults to 'CV'
             :type cv_label: str, optional
+
+            :param verbose: make all class routines more verbose in their logging
+            :type verbose: bool, optional, default=False
         '''
         ConditionalProbability.__init__(self, 1, 1, q_labels=[q_label], cv_labels=[cv_label], q_units=[q_output_unit], cv_units=[cv_output_unit], verbose=verbose)
 
     def process_trajectory_xyz(self, fns, Q, CV, sub=slice(None,None,None), verbose=False):
         '''
-            Included for backwards compatibility , this routine will call the more general process_trajectory routine of the parent class. WARNING: it is no longer possible to finishe automatically after processing a trajectory. Finishing must alwasy be done manually by calling the finish routine!
+            Included for backwards compatibility , this routine will call the more general process_trajectory routine of the parent class.
+
+            .. warning:: 
+            
+                It is no longer possible to finish automatically after processing a trajectory. Finishing must alwasy be done manually by calling the finish routine!
 
             Extract Q and CV samples from the given XYZ trajectories. These samples will later be utilized by the finish routine to construct the conditional probability. The trajectory files may also contain data from simulations that are biased in CV space (not Q space!!).
 
@@ -560,11 +611,11 @@ class ConditionalProbability1D1D(ConditionalProbability):
             :param CV: collective variable used to compute the CV value from a trajectory file
             :type CV: CollectiveVariable
 
-            :param sub: python slice instance to subsample the trajectory, defaults to slice(None, None, None)
-            :type sub: slice, optional
+            :param sub: python slice instance to subsample the trajectory
+            :type sub: slice, optional, default=slice(None, None, None)
 
-            :param verbose: set to True to increase verbosity, defaults to False
-            :type verbose: bool, optional
+            :param verbose: set to True to increase verbosity of the CVComputer to compute CV values from the trajectories
+            :type verbose: bool, optional, default=False
         '''
         cv_reader = CVComputer([CV], name=self.cv_labels[0], start=sub.start, stride=sub.step, end=sub.stop, verbose=verbose)
         q_reader = CVComputer([Q], name=self.q_labels[0], start=sub.start, stride=sub.step, end=sub.stop, verbose=verbose)
@@ -573,7 +624,11 @@ class ConditionalProbability1D1D(ConditionalProbability):
 
     def process_trajectory_cvs(self, fns, col_q=1, col_cv=2, sub=slice(None,None,None), unit_q='au', unit_cv='au', verbose=False):
         '''
-            Included for backwards compatibility, this routine will call the more general process_trajectory routine of the parent class. WARNING: it is no longer possible to finishe automatically after processing a trajectory. Finishing must alwasy be done manually by calling the finish routine!
+            Included for backwards compatibility, this routine will call the more general process_trajectory routine of the parent class. 
+            
+            .. warning:: 
+            
+                It is no longer possible to finish automatically after processing a trajectory. Finishing must alwasy be done manually by calling the finish routine!
 
             Extract Q and CV samples from the given COLVAR trajectories. These samples will later be utilized by the finish routine to construct the conditional probability. The trajectory files may also contain data from simulations that are biased in CV space (not Q space!!). Each CV trajectory file contains rows of the form
 
@@ -584,23 +639,23 @@ class ConditionalProbability1D1D(ConditionalProbability):
             :param fns: file name (or list of file names) of colvar files with the above formatting containing the trajectory data.
             :type fns: str or list(str)
 
-            :param col_q: column index of the collective variable Q in the given input file, defaults to 1
-            :type col_q: int, optional
+            :param col_q: column index of the collective variable Q in the given input file
+            :type col_q: int, optional, default=1
 
-            :param col_cv: column index of the collective variable CV in the given input file, defaults to 2
-            :type col_cv: int, optional
+            :param col_cv: column index of the collective variable CV in the given input file
+            :type col_cv: int, optional, default=2
 
-            :param unit_q: unit in which the q values are stored in the file, defaults to 'au'
-            :type unit_q: str, optional
+            :param unit_q: unit in which the q values are stored in the file
+            :type unit_q: str, optional, default='au'
 
-            :param unit_cv: unit in which the cv values are stored in the file, defaults to 'au'
-            :type unit_cv: str, optional
+            :param unit_cv: unit in which the cv values are stored in the file
+            :type unit_cv: str, optional, default='au'
             
-            :param sub: python slice instance to subsample the trajectory, defaults to slice(None, None, None)
-            :type sub: slice, optional
+            :param sub: python slice instance to subsample the trajectory
+            :type sub: slice, optional, default=slice(None, None, None)
 
-            :param verbose: set to True to increase verbosity, defaults to False
-            :type verbose: bool, optional
+            :param verbose: set to True to increase verbosity of the ColVarReader when reading samples from the trajectory files.
+            :type verbose: bool, optional, default=False
         '''
         q_reader  = ColVarReader([col_q] , units=[unit_q] , name='Q' , start=sub.start, stride=sub.step, end=sub.stop, verbose=verbose)
         cv_reader = ColVarReader([col_cv], units=[unit_cv], name='CV', start=sub.start, stride=sub.step, end=sub.stop, verbose=verbose)
@@ -608,6 +663,26 @@ class ConditionalProbability1D1D(ConditionalProbability):
             self.process_simulation([(fn, q_reader )], [(fn, cv_reader)])
 
     def finish_error(self, error_estimate, error_p_threshold=0.0):
+        '''
+            Estimate error bars on the conditional probability. This routine will be called by the ``finish`` routine if the error_estimate keyword parsed there is not None.
+
+            :param error_estimate: indicate if and how to perform error analysis. One of following options is available:
+
+				- **mle_p** - Estimating the error directly for the probability of each bin in the histogram. This method does not explicitly impose the positivity of the probability.
+
+				- **mle_p_cov** - Estimate the full covariance matrix for the probability of all bins in the histogram. In other words, appart from the error on the probability/free energy of a bin itself, we now also account for the covariance between the probabilty/free energy of the bins. This method does not explicitly impose the positivity of the probability.
+
+				- **mle_f** - Estimating the error for minus the logarithm of the probability, which is proportional to the free energy (hence f in mle_f). As the probability is expressed as :math:`\propto e^{-f}`, its positivity is explicitly accounted for.
+
+				- **mle_f_cov** - Estimate the full covariance matrix for minus the logarithm of the probability of all bins in the histogram. In other words, appart from the error on the probabilty/free energy of a bin itself (including explicit positivity constraint), we now also account for the covariance between the probability/free energy of the bins.
+
+			:type error_estimate: str
+
+            :param error_p_threshold: When ``error_p_threshold`` is set to x, bins in the histogram for which the probability resulting from the trajectory is smaller than x will be disabled for error estimation (i.e. its error will be set to np.nan).
+			:type error_p_threshold: float, optional, default=0.0
+
+            :raises ValueError: if an invalid definition for error_estimate is provided
+        '''
         if self.verbose: print('  computing Fisher matrices for each simulation')
         Ngrid_q = len(self.q_grid[0])  #extra [0] because only 1 Q and then self.q_grid=[np.ndarray(...)]
         #loop over each simulation
@@ -641,13 +716,19 @@ class ConditionalProbability1D1D(ConditionalProbability):
                 fs = -np.log(ps)
                 err = MultiLogGaussianDistribution(-fs, cov)
             else:
-                raise NotImplementedError('Error estimation method %s not supported' %error_estimate)
+                raise ValueError('Error estimation method %s not supported' %error_estimate)
             errors.append(err)
         self.error = ErrorArray(errors, axis=-1)
 
-    def average(self, target_distribution=MultiGaussianDistribution):
+    def average(self, error_distribution=MultiGaussianDistribution):
         '''
             Compute the average of Q as function of CV
+
+            :param error_distribution: the model for the error distribution of Q profile
+            :type error_distribution: class from :py:mod:`error <thermolib.error>` module, optional, default= :py:class:`MultiGaussianDistribution <thermolib.error.MultiGaussianDistribution>`
+
+            :returns: Q profile as function of CV
+            :rtype: :py:class:`BaseProfile <thermolib.thermodynamics.fep.BaseProfile>`
         '''
         def function(pconds):
             qs = np.zeros(len(self.cvs[0]), dtype=float)
@@ -665,30 +746,34 @@ class ConditionalProbability1D1D(ConditionalProbability):
             error = None
         else:
             propagator = Propagator()
-            error = propagator(function, self.error, target_distribution=target_distribution, samples_are_flattened=True)
+            error = propagator(function, self.error, target_distribution=error_distribution, samples_are_flattened=True)
             xs = error.mean()
         return BaseProfile(self.cvs[0], xs, error=error, cv_output_unit=self.cv_units[0], f_output_unit=self.q_units[0], cv_label=self.cv_labels[0], f_label=self.q_labels[0])
 
-    def transform(self, fep, q_output_unit='au', f_output_unit=None, q_label=None, f_output_class=BaseFreeEnergyProfile, error_distribution=MultiGaussianDistribution):
+    def transform(self, fep, f_output_unit=None, f_label=None, f_output_class=BaseFreeEnergyProfile, error_distribution=MultiGaussianDistribution):
         '''
             Transform the provided 1D FES to a different 1D FES using the current conditional probability according to the formula. 
 
             .. math:: F(q) &= -kT \\ln\\left(\\int p(q|v)\\cdot e^{-\\beta F(v)} dv\\right)
             
             :param fep: the input free energy profile F(cv) which will be transformed towards F(q)
-            :type fep: BaseFreeEnergyProfile or child classes
+            :type fep: :py:class:`BaseFreeEnergyProfile <thermolib.thermodynamics.fep.BaseFreeEnergyProfile>`
 
-            :param q_output_unit: the unit of the new collective variable Q to be used in plotting and printing, defaults to 'au'
-            :type q_output_unit: str, optional
+            :param f_output_unit: the unit of the transformed free energy profile to be used in plotting and printing of energies. If None, the f_output_unit of the original free energy profile will be used.
+            :type f_output_unit: str, optional, default=None
 
-            :param f_output_unit: the unit of the the transformed free energy profile to be used in plotting and printing of energies. By default, the f_output_unit of the given free energy profile will be used.
-            :type f_output_unit: str, optional
+            :param f_label: the label of the transformed free energy profile to be used in plotting and printing. If None, the f_label of the original free energy profile will be used.
+            :type f_output_unit: str, optional, default=None
 
-            :param f_output_class: the class of the output free energy profile, defaults to BaseFreeEnergyProfile
-            :type f_output_class: class, optional
+            :param f_output_class: the class of the output free energy profile. If you want to use specific features of the :py:class:`SimpleFreeEnergyProfile <thermolib.thermodynamics.fep.SimpleFreeEnergyProfile>` class (such as e.g. automatic detection of reactant, transition state and product state micro/macrostates) in the transformed fep, define this argument as :py:class:`SimpleFreeEnergyProfile <thermolib.thermodynamics.fep.SimpleFreeEnergyProfile>`.
+            :type f_output_class: class, optional, default= :py:class:`BaseFreeEnergyProfile <thermolib.thermodynamics.fep.BaseFreeEnergyProfile>`
 
-            :param q_label: the label of the new collective variable Q to be used in plot labels. This argument is deprecated, the q_labels[0] as defined upon initializing the class instance is used by default.
-            :type cv_label: str, optional
+            :param error_distribution: the model for the error distribution of Q profile
+            :type error_distribution: class from :py:mod:`error <thermolib.error>` module, optional, default= :py:class:`MultiGaussianDistribution <thermolib.error.MultiGaussianDistribution>`
+
+            :raises AssertionError: if the conditional probability has not been finished yetµ
+            :raises AssertionError: if the fep argument is not a :py:class:`BaseFreeEnergyProfile <thermolib.thermodynamics.fep.BaseFreeEnergyProfile>`
+            :raises AssertionError: if the cv grids in self.cvs[0] and fep.cvs are not consistent
         '''
         #consistency checks and initalization
         qs = self.qs[0]
@@ -697,8 +782,8 @@ class ConditionalProbability1D1D(ConditionalProbability):
         assert isinstance(fep, BaseFreeEnergyProfile), 'Input argument should be instance of (child of) BaseFreeEnergyProfile, instead received %s' %fep.__class__.__name__
         assert len(fep.cvs)==len(cvs), 'Dimension of 1D CV in conditional probability inconsistent with 1D FEP'
         assert (abs(fep.cvs-cvs)<1e-6).all(), 'Values of 1D CV in conditional probability not identical to those of 1D FEP'
-        if q_label is None: q_label = self.q_labels[0]
         if f_output_unit is None: f_output_unit = fep.f_output_unit
+        if f_label is None: f_label = fep.f_label
         # Construct 1D FEP
         def transform(fs, pconds):
             mask = ~np.isnan(fs)
@@ -723,9 +808,9 @@ class ConditionalProbability1D1D(ConditionalProbability):
         else:
             fs = transform(fep.fs, self.pconds)
             error = None
-        return f_output_class(self.qs[0], fs, fep.T, error=error, cv_output_unit=q_output_unit, f_output_unit=f_output_unit, cv_label=q_label)
+        return f_output_class(self.qs[0], fs, fep.T, error=error, cv_output_unit=self.q_units[0], f_output_unit=f_output_unit, cv_label=self.q_labels[0], f_label=f_label)
 
-    def deproject(self, fep, cv_output_unit='au', q_output_unit='au', f_output_unit=None, f_output_class=FreeEnergySurface2D, cv_label='CV', q_label='Q', error_distribution=MultiGaussianDistribution):
+    def deproject(self, fep, f_output_unit=None, f_label=None, f_output_class=FreeEnergySurface2D, error_distribution=MultiGaussianDistribution):
         '''
             Deproject the provided 1D FEP F(q) to a 2D FES F(q,v) using the current conditional probability according to the formula
 
@@ -734,23 +819,21 @@ class ConditionalProbability1D1D(ConditionalProbability):
             :param fep: the free energy profile F(q_2) which will be transformed
             :type fep: (child of) BaseFreeEnergyProfile
 
-            :param q_output_unit: the unit of the new additional collective variable Q to be used in plotting and printing, defaults to 'au'
-            :type q_output_unit: str, optional
+            :param f_output_unit: the unit of the deprojected free energy profile to be used in plotting and printing of energies. If None, the f_output_unit of the original 1D free energy profile will be used.
+            :type f_output_unit: str, optional, default=None
 
-            :param cv_output_unit: the unit of the original collective variable CV to be used in plotting and printing, defaults to 'au'
-            :type q2_output_unit: str, optional
-
-            :param f_output_unit: the unit of the the transformed free energy profile to be used in plotting and printing of energies. If set to None, the f_output_unit of the given free energy profile will be use. Defaults to None
-            :type f_output_unit: str, optional
+            :param f_label: the label of the deprojected free energy profile to be used in plotting and printing. If None, the f_label of the original 1D free energy profile will be used.
+            :type f_label: str, optional, default=None
 
             :param f_output_class: the class of the output free energy profile, defaults to FreeEnergySurface2D
             :type f_output_class: class, optional
 
-            :param q_label: the label of the new additional collective variable Q to be used in plot labels. This argument is deprecated, the q_labels[0] as defined upon initializing the class instance is used by default.
-            :type q_label: str, optional
+            :param error_distribution: the model for the error distribution of Q profile
+            :type error_distribution: class from :py:mod:`error <thermolib.error>` module, optional, default= :py:class:`MultiGaussianDistribution <thermolib.error.MultiGaussianDistribution>`
 
-            :param cv_label: the label of the oribinal collective variable CV to be used in plot labels. This argument is deprecated, the cv_labels[0] as defined upon initializing the class instance is used by default.
-            :type cv_label: str, optional
+            :raises AssertionError: if the conditional probability has not been finished yetµ
+            :raises AssertionError: if the fep argument is not a :py:class:`BaseFreeEnergyProfile <thermolib.thermodynamics.fep.BaseFreeEnergyProfile>`
+            :raises AssertionError: if the cv grids in self.cvs[0] and fep.cvs are not consistent
         '''
         #consistency checks and initalization
         qs, cvs = self.qs[0], self.cvs[0]
@@ -758,8 +841,7 @@ class ConditionalProbability1D1D(ConditionalProbability):
         assert isinstance(fep, BaseFreeEnergyProfile), 'Input argument should be instance of (child of) BaseFreeEnergyProfile, instead received %s' %fep.__class__.__name__
         assert len(fep.cvs)==len(cvs), 'Dimension of collective variable v in conditional probability p(q|v) inconsistent with collective variable in 1D FEP'
         assert (abs(fep.cvs-cvs)<1e-6).all(), 'Values of collective variable v in conditional probability p(q|v) not identical to those of collective variable in 1D FEP'
-        if q_label is None: q_label = self.q_labels[0]
-        if cv_label is None: cv_label = self.cv_labels[0]
+        if f_label is None: f_label = fep.f_label
         if f_output_unit is None: f_output_unit = fep.f_output_unit
         # Construct 2D FES
         kT = boltzmann*fep.T
@@ -788,7 +870,7 @@ class ConditionalProbability1D1D(ConditionalProbability):
         else:
             fs = deproject(fep.fs, self.pconds)
             error = None
-        return f_output_class(cvs, qs, fs, fep.T, error=error, cv1_output_unit=cv_output_unit, cv2_output_unit=q_output_unit, f_output_unit=f_output_unit, cv1_label=cv_label, cv2_label=q_label)
+        return f_output_class(cvs, qs, fs, fep.T, error=error, cv1_output_unit=fep.cv_output_unit, cv2_output_unit=self.q_units[0], f_output_unit=f_output_unit, cv1_label=fep.cv_label, cv2_label=self.q_labels[0], f_label=f_label)
 
 
 
@@ -799,23 +881,17 @@ class ConditionalProbability1D2D(ConditionalProbability):
     '''
     def __init__(self, q1_label='Q1', q2_label='Q2', cv_label='CV', q1_output_unit='au', q2_output_unit='au', cv_output_unit='au', verbose=False):
         '''
-            :param q1_bins: np.histogram argument for defining the bins of Q1 samples
-            :type q1_bins: see np.histogram and np.histogram2d, optional
+            :param q1_label: label for Q1 used for plotting/logging
+            :type q1_label: str, optional, default='Q1'
 
-            :param q2_bins: np.histogram argument for defining the bins of Q2 samples
-            :type q2_bins: see np.histogram and np.histogram2d, optional
-
-            :param cv_bins: np.histogram argument for defining the bins of CV samples
-            :type cv_bins: see np.histogram and np.histogram2d, optional
-
-            :param q1_label: label for Q1 used for plotting/logging, defaults to 'Q1'
-            :type q1_label: str, optional
-
-            :param q2_label: label for Q2 used for plotting/logging, defaults to 'Q2'
-            :type q2_label: str, optional
+            :param q2_label: label for Q2 used for plotting/logging
+            :type q2_label: str, optional, default='Q2'
             
-            :param cv_label: label for Q used for plotting/logging, defaults to 'CV'
-            :type cv_label: str, optional
+            :param cv_label: label for Q used for plotting/logging
+            :type cv_label: str, optional, default='CV'
+
+            :param verbose: set to True to increase verbosity of TrajectoryReaders used to compute the various CV samples along an XYZ trajectory
+            :type verbose: bool, optional, default=False
         '''
         ConditionalProbability.__init__(self, 2, 1, q_labels=[q1_label,q2_label], cv_labels=[cv_label], q_units=[q1_output_unit,q2_output_unit], cv_units=[cv_output_unit], verbose=verbose)
 
@@ -829,22 +905,16 @@ class ConditionalProbability1D2D(ConditionalProbability):
             :type fns: str or list(str)
 
             :param Q1: collective variable used to compute the Q1 value from a trajectory file
-            :type Q1: CollectiveVariable
+            :type Q1: :py:class:`CollectiveVariable <thermolib.thermodynamics.cv.CollectiveVariable>`
 
             :param Q2: collective variable used to compute the Q2 value from a trajectory file
-            :type Q2: CollectiveVariable
+            :type Q2: :py:class:`CollectiveVariable <thermolib.thermodynamics.cv.CollectiveVariable>`
 
             :param CV: collective variable used to compute the CV value from a trajectory file
-            :type CV: CollectiveVariable
+            :type CV: :py:class:`CollectiveVariable <thermolib.thermodynamics.cv.CollectiveVariable>`
 
-            :param sub: python slice instance to subsample the trajectory, defaults to slice(None, None, None)
-            :type sub: slice, optional
-
-            :param finish: set to True if the given file name(s) are the only relevant trajectories and hence the conditional probability should be computed from only these trajectories. Setting it to True will trigger histogram construction and normalization. Set to False if you would like to call a process_trajectory routine again afterwards. Defaults to True
-            :type finish: bool, optional
-
-            :param verbose: set to True to increase verbosity, defaults to False
-            :type verbose: bool, optional
+            :param sub: python slice instance to subsample the trajectory
+            :type sub: slice, optional, default=slice(None, None, None)
         '''
         cv_reader = CVComputer([CV], name=self.cv_labels[0], start=sub.start, stride=sub.step, end=sub.stop, verbose=self.verbose)
         q1_reader = CVComputer([Q1], name=self.q_labels[1], start=sub.start, stride=sub.step, end=sub.stop, verbose=self.verbose)
@@ -865,32 +935,26 @@ class ConditionalProbability1D2D(ConditionalProbability):
             :param fns: file name (or list of file names) of colvar files with the above formatting containing the trajectory data.
             :type fns: str or list(str)
 
-            :param col_q1: column index of the collective variable Q1 in the given input file, defaults to 1
-            :type col_q1: int, optional
+            :param col_q1: column index of the collective variable Q1 in the given input file
+            :type col_q1: int, optional, default=1
 
-            :param col_q2: column index of the collective variable Q2 in the given input file, defaults to 2
-            :type col_q2: int, optional
+            :param col_q2: column index of the collective variable Q2 in the given input file
+            :type col_q2: int, optional, defaults=2
 
-            :param col_cv: column index of the collective variable CV in the given input file, defaults to 3
-            :type col_cv: int, optional
+            :param col_cv: column index of the collective variable CV in the given input file
+            :type col_cv: int, optional, default=3
 
-            :param unit_q1: unit in which the q1 values are stored in the file, defaults to 'au'
-            :type unit_q1: str, optional
+            :param unit_q1: unit in which the q1 values are stored in the file
+            :type unit_q1: str, optional, default='au'
 
-            :param unit_q2: unit in which the q2 values are stored in the file, defaults to 'au'
-            :type unit_q2: str, optional
+            :param unit_q2: unit in which the q2 values are stored in the file
+            :type unit_q2: str, optional, default='au'
 
-            :param unit_cv: unit in which the cv values are stored in the file, defaults to 'au'
-            :type unit_cv: str, optional
+            :param unit_cv: unit in which the cv values are stored in the file
+            :type unit_cv: str, optional, default='au'
             
-            :param sub: python slice instance to subsample the trajectory, defaults to slice(None, None, None)
-            :type sub: slice, optional
-
-            :param finish: set to True if the given file name(s) are the only relevant trajectories and hence the conditional probability should be computed from only these trajectories. Setting it to True will trigger histogram construction and normalization. Set to False if you would like to call a process_trajectory routine again afterwards. Defaults to True
-            :type finish: bool, optional
-
-            :param verbose: set to True to increase verbosity, defaults to False
-            :type verbose: bool, optional
+            :param sub: python slice instance to subsample the trajectory
+            :type sub: slice, optional, default=slice(None, None, None)
         '''
         q1_reader  = ColVarReader([col_q1] , units=[unit_q1] , name='Q1' , start=sub.start, stride=sub.step, end=sub.stop, verbose=self.verbose)
         q2_reader  = ColVarReader([col_q2] , units=[unit_q2] , name='Q2' , start=sub.start, stride=sub.step, end=sub.stop, verbose=self.verbose)
@@ -898,7 +962,7 @@ class ConditionalProbability1D2D(ConditionalProbability):
         for fn in fns:
             self.process_simulation([(fn,q1_reader), (fn,q2_reader)], [(fn,cv_reader)])
 
-    def deproject(self, fep, q1_output_unit='au', q2_output_unit='au', q1_label=None, q2_label=None, f_output_unit='kjmol'):
+    def deproject(self, fep, f_output_unit=None, f_label=None, f_output_class=FreeEnergySurface2D, error_distribution=MultiGaussianDistribution):
         '''
             Transform the provided 1D FEP to a 2D FES using the current conditional probability according to the formula
 
@@ -907,31 +971,28 @@ class ConditionalProbability1D2D(ConditionalProbability):
             :param fep: the input free energy profile F(cv) which will be transformed towards F(q)
             :type fep: BaseFreeEnergyProfile or child classes
 
-            :param q1_output_unit: the unit of the new collective variable Q1 to be used in plotting and printing, defaults to 'au'
-            :type q1_output_unit: str, optional
+            :param f_output_unit: the unit of the deprojected free energy profile to be used in plotting and printing of energies. If None, the f_output_unit of the original 1D free energy profile will be used.
+            :type f_output_unit: str, optional, default=None
 
-            :param q2_output_unit: the unit of the new collective variable Q2 to be used in plotting and printing, defaults to 'au'
-            :type q2_output_unit: str, optional
+            :param f_label: the label of the deprojected free energy profile to be used in plotting and printing. If None, the f_label of the original 1D free energy profile will be used.
+            :type f_label: str, optional, default=None
 
-            :param f_output_unit: the unit of the the transformed free energy profile to be used in plotting and printing of energies. By default, the f_output_unit of the given free energy profile will be used.
-            :type f_output_unit: str, optional
-
-            :param f_output_class: the class of the output free energy profile, defaults to BaseFreeEnergyProfile
+            :param f_output_class: the class of the output free energy profile, defaults to FreeEnergySurface2D
             :type f_output_class: class, optional
 
-            :param q1_label: the label of the new collective variable Q1 to be used in plot labels. This argument is deprecated, the q_labels[0] as defined upon initializing the class instance is used by default.
-            :type q1_label: str, optional
+            :param error_distribution: the model for the error distribution of Q profile
+            :type error_distribution: class from :py:mod:`error <thermolib.error>` module, optional, default= :py:class:`MultiGaussianDistribution <thermolib.error.MultiGaussianDistribution>`
 
-            :param q2_label: the label of the new collective variable Q2 to be used in plot labels. This argument is deprecated, the q_labels[1] as defined upon initializing the class instance is used by default.
-            :type q2_label: str, optional
+            :raises AssertionError: if the conditional probability has not been finished yetµ
+            :raises AssertionError: if the fep argument is not a :py:class:`BaseFreeEnergyProfile <thermolib.thermodynamics.fep.BaseFreeEnergyProfile>`
+            :raises AssertionError: if the cv grids in self.cvs[0] and fep.cvs are not consistent
         '''
         #consistency checks and initalization
         assert self._finished, "Conditional probability needs to be finished before applying at in transformations."
         assert isinstance(fep, BaseFreeEnergyProfile), 'Input argument should be instance of (child of) BaseFreeEnergyProfile, instead received %s' %fep.__class__.__name__
         assert len(fep.cvs)==len(self.cvs[0]), 'Dimension of 1D CV in conditional probability inconsistent with 1D FEP'
         assert (abs(fep.cvs-self.cvs[0])<1e-6).all(), 'Values of 1D CV in conditional probability not identical to those of 1D FEP'
-        if q1_label is None: q1_label = self.q_labels[0]
-        if q2_label is None: q2_label = self.q_labels[1]
+        if f_label is None: f_label = fep.f_label
         if f_output_unit is None: f_output_unit = fep.f_output_unit
         #construct 2D FES
         def transform(fs, pconds):
@@ -947,12 +1008,12 @@ class ConditionalProbability1D2D(ConditionalProbability):
         if fep.error is not None:
             propagator = Propagator(ncycles=ncycles_default)
             if self.error is not None:
-                error = propagator(transform, fep.error, self.error, target_distribution=GaussianDistribution)
+                error = propagator(transform, fep.error, self.error, target_distribution=error_distribution)
             else:
                 transf1 = lambda fs: transform(fs, self.pconds)
                 error = propagator(transf1, fep.error)
         elif self.error is not None:
             propagator = Propagator(ncycles=ncycles_default)
             transf2 = lambda pconds: transform(fep.fs, pconds)
-            error = propagator(transf2, self.error, target_distribution=LogGaussianDistribution)
-        return FreeEnergySurface2D(self.qs[0], self.qs[1], fs, fep.T, error=error, cv1_output_unit=q1_output_unit, cv2_output_unit=q2_output_unit, f_output_unit=f_output_unit, cv1_label=q1_label, cv2_label=q2_label)
+            error = propagator(transf2, self.error, target_distribution=error_distribution)
+        return f_output_class(self.qs[0], self.qs[1], fs, fep.T, error=error, cv1_output_unit=self.q_units[0], cv2_output_unit=self.q_units[1], f_output_unit=f_output_unit, cv1_label=self.q_labels[0], cv2_label=self.q_labels[1], f_label=f_label)

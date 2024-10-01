@@ -49,19 +49,19 @@ def wham1d_hs(int Nsims, int Ngrid, np.ndarray[object] trajectories, np.ndarray[
 
 
 #
-def wham1d_bias(int Nsims, int Ngrid, double beta, list biasses, double delta, int bias_subgrid_num, np.ndarray[double] bin_centers, double thresshold=1e-3):
+def wham1d_bias(int Nsims, int Ngrid, double beta, list biasses, double delta, int bias_subgrid_num, np.ndarray[double] bin_centers, double threshold=1e-3):
     '''
         Compute the integrated boltzmann factors of the bias potentials W in each grid interval:
 
         .. math:: b_{ik} = \\frac{1}{\\delta}\\int_{Q_k-\\frac{\\delta}{2}}^{Q_k+\\frac{\\delta}{2}} e^{-\\beta W_i(q)}dq
 
-        This routine implements a conservative algorithm which takes into account that for a given simulation i, only a limited number of grid points k will give rise to a non-zero :math:`b_{ik}`. This is achieved by first using the bin-center approximation to the integral by computing the factor :math:`\\exp(-\\beta\\cdot W_i(q_k))` on the CV grid (which is faster as there is no integral involved and which is also already a good approximation for the b array) and only performing the precise integral when the approximation exceeds a thresshold.
+        This routine implements a conservative algorithm which takes into account that for a given simulation i, only a limited number of grid points k will give rise to a non-zero :math:`b_{ik}`. This is achieved by first using the bin-center approximation to the integral by computing the factor :math:`\\exp(-\\beta\\cdot W_i(q_k))` on the CV grid (which is faster as there is no integral involved and which is also already a good approximation for the b array) and only performing the precise integral when the approximation exceeds a threshold.
 
         :param bias_subgrid_num: the number of grid points used by the :py:meth:`wham1d_bias <thermolib.ext.wham1d_bias>` routine for the sub-grid to compute the boltzmann-integrated bias factors in each CV bin.
 		:type bias_subgrid_num: int, optional, default=20
 
-        :param thresshold: see general documentation above
-        :type thressholdm: float, optional, default=1e-3
+        :param threshold: see general documentation above
+        :type thresholdm: float, optional, default=1e-3
     '''
     from thermolib.tools import integrate
     cdef np.ndarray[double, ndim=2] bs = np.zeros([Nsims, Ngrid], dtype=float)
@@ -73,7 +73,7 @@ def wham1d_bias(int Nsims, int Ngrid, double beta, list biasses, double delta, i
         #first compute bin-center approximation
         bs[i,:] = np.exp(-beta*bias(bin_centers))
         #find large bias factors for exact computation
-        ks = np.where(bs[i,:]>thresshold)[0]
+        ks = np.where(bs[i,:]>threshold)[0]
         for k in ks:
             Ws = np.exp(-beta*bias(bin_centers[k]+subgrid))
             bs[i,k] = integrate_c(bin_centers[k]+subgrid, Ws)/delta
@@ -335,13 +335,13 @@ def wham2d_hs(int Nsims, int Ngrid1, int Ngrid2, np.ndarray[object] trajectories
 
 
 #
-def wham2d_bias(int Nsims, int Ngrid1, int Ngrid2, double beta, list biasses, double delta1, double delta2, int bias_subgrid_num1, int bias_subgrid_num2, np.ndarray[double] bin_centers1, np.ndarray[double] bin_centers2, double thresshold=1e-3):
+def wham2d_bias(int Nsims, int Ngrid1, int Ngrid2, double beta, list biasses, double delta1, double delta2, int bias_subgrid_num1, int bias_subgrid_num2, np.ndarray[double] bin_centers1, np.ndarray[double] bin_centers2, double threshold=1e-3):
     '''
         Compute the integrated boltzmann factors of the biases in each grid interval:
 
         .. math:: b_ikl = \\frac{1}{\\delta1\\cdot\\delta2}\\int_{Q_{1,k}-\\frac{\\delta1}{2}}^{Q_{1,k}+\\frac{\\delta1}{2}}\\int_{Q_{2,l}-\\frac{\\delta2}{2}}^{Q_{2,l}+\\frac{\\delta2}{2}} e^{-\\beta W_i(q_1,q_2)}dq_1dq_2
 
-        This routine implements a conservative algorithm which takes into account that for a given simulation i, only a limited number of grid points (k,l) will give rise to a non-zero b_ikl. This is achieved by first using the bin-center approximation to the integral by computing the factor :math:`\\exp(-\\beta\\cdot bias(Q_{1,k},Q_{2,l}))` on the CV1 and CV2 grid (which is faster as there is no integral involved and which is also already a good approximation for the :math:`b_{ikl}` array) and only performing the precise integral when the approximation exceeds a thresshold.
+        This routine implements a conservative algorithm which takes into account that for a given simulation i, only a limited number of grid points (k,l) will give rise to a non-zero b_ikl. This is achieved by first using the bin-center approximation to the integral by computing the factor :math:`\\exp(-\\beta\\cdot bias(Q_{1,k},Q_{2,l}))` on the CV1 and CV2 grid (which is faster as there is no integral involved and which is also already a good approximation for the :math:`b_{ikl}` array) and only performing the precise integral when the approximation exceeds a threshold.
     '''
     cdef np.ndarray[double, ndim=3] bs = np.zeros([Nsims, Ngrid1, Ngrid2], dtype=float)
     cdef np.ndarray[double, ndim=2] CV1, CV2, Ws
@@ -353,7 +353,7 @@ def wham2d_bias(int Nsims, int Ngrid1, int Ngrid2, double beta, list biasses, do
         CV1, CV2 = np.meshgrid(bin_centers1, bin_centers2, indexing='ij')
         bs[i,:,:] = np.exp(-beta*bias(CV1, CV2))
         #find large bias factors for exact computation
-        ks, ls = np.where(bs[i,:,:]>thresshold)
+        ks, ls = np.where(bs[i,:,:]>threshold)
         #perform exact computation
         for (k,l) in zip(ks,ls):
             CV1, CV2 = np.meshgrid(bin_centers1[k]+subgrid1, bin_centers2[l]+subgrid2, indexing='ij')

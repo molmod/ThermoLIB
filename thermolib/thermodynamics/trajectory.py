@@ -22,31 +22,32 @@ import numpy as np, h5py as h5, os
 __all__ = ['CVComputer', 'HDF5Reader', 'ColVarReader', 'ASEExtendedXYZReader']
 
 class TrajectoryReader(object):
-    '''Abstract class for reading trajectory files and extracting CV values. Child classes will implement specific readers depending of the format of the trajectory files (COLVAR, HDF5, XYZ, ...)
+    '''
+        Abstract class for reading trajectory files and extracting CV values. Child classes will implement specific readers depending of the format of the trajectory files (COLVAR, HDF5, XYZ, ...)
     '''
 
     def __init__(self, units: list=[], name: str=None, start: int=0, stride: int=1, end: int=-1, reload: bool=False, verbose: bool=False):
         '''
-        :param units: List of units for each CV that needs to be read. Defaults to 'au' for each CV., defaults to []
-        :type units: list, optional
+            :param units: List of units for each CV that needs to be read.
+            :type units: list, optional, default=[]
 
-        :param name: a name for printing/logging purposes, defaults to None
-        :type name: str, optional
+            :param name: a name for printing/logging purposes
+            :type name: str, optional, default=None
 
-        :param start: index of starting point in trajectory to extract CV values, can be used to crop out initial equilibration time. Defaults to 0
-        :type start: int, optional
+            :param start: index of starting point in trajectory to extract CV values, can be used to crop out initial equilibration time.
+            :type start: int, optional, default=0
 
-        :param stride: integer defining how to subsample the trajectory CV data. If set to a value larger than 1, only take sub samples every 'stride' steps. If set to 1, sample all trajectory steps. Can be used to decrease correlations between subsequent samples. Defaults to 1
-        :type stride: int, optional
+            :param stride: integer defining how to subsample the trajectory CV data. If set to a value larger than 1, only take sub samples every 'stride' steps. If set to 1, sample all trajectory steps. Can be used to decrease correlations between subsequent samples.
+            :type stride: int, optional, default=1
 
-        :param end: index of last trajectory step to be sampled. Can be used to crop out the final part of a simulation trajectory. If set to -1, take all trajectory samples, i.e. no cropping. Defaults to -1
-        :type end: int, optional
+            :param end: index of last trajectory step to be sampled. Can be used to crop out the final part of a simulation trajectory. If set to -1, take all trajectory samples, i.e. no cropping.
+            :type end: int, optional, default=-1
 
-        :param reload: if set to true, the first time the __call__ routine is called, the data read/computed from trajectory will also be written in numpy format to a file (with name equal to original trajectory file name but with additional '.reload' at the end). The next time the __call__ routine is called again afterwards, the trajectory data will read directly from the .reload file. This results in a considerable speedup in the case the CV is computed from a XYZ trajectory. Defaults to False
-        :type reload: bool, optional
+            :param reload: If True, the first time the __call__ routine is called, the data that is read/computed from the trajectory will be written in numpy format to a file (with name equal to original trajectory file name appended with '.reload' at the end). The next time the __call__ routine is called again afterwards, the trajectory data will read directly from the .reload file. This results in a considerable speedup in the case the CV is computed from a XYZ trajectory. If False, the data will be read from the trajectory file with every call to the __call__ routine.
+            :type reload: bool, optional, default=False
 
-        :param verbose: Switch on the routine verbosity and print more logging, defaults to False
-        :type verbose: bool, optional
+            :param verbose: If True, switch on the routine verbosity and print more logging
+            :type verbose: bool, optional, default=False
         '''
         self.units = units
         self.name = name
@@ -57,11 +58,21 @@ class TrajectoryReader(object):
         self.reload = reload
 
     def print(self, line):
+        '''
+            Small wrapper around the python built-in print statement to allow for verbosity control.
+
+            :param line: Line/data to be printed
+            :type line: any python printable data type
+        '''
         if self.verbose:
             print(line)
 
     def _slice(self, data):
-        '''Slices the input data to crop between self.start and self.end and take sub sample according to self.stride
+        '''
+            Slices the input data to crop between self.start and self.end and take sub sample according to self.stride
+
+            :param data: the data to be sliced
+            :type data: np.ndarray
         '''
         if len(data.shape)==2 and data.shape[1]==1:
             data = data[:,0]
@@ -73,9 +84,23 @@ class TrajectoryReader(object):
             return data[self.start:self.end:self.stride]
 
     def _read(self, fn):
+        '''
+            Routine to handle how a given file should be read, will be called by the __call__ routine. Needs to be implemented in each inheriting child class.
+        '''
         raise NotImplementedError('Read routine must be implemented in child class')
 
     def __call__(self, fn):
+        '''
+            Call routine to read the required data from the trajectory file fn using the _read routine §implemented in each child class) and return the corresponding CV samples along the trajectory.
+
+            :param fn: file name of the trajectory file
+            :type fn: str
+
+            :raises ValueError: if no data could be read from the file using the _read routine.
+            _
+            :return: trajectory samples
+            :rtype: np.ndarray
+        '''
         fn_reload = fn+'.reload'
         if self.reload and os.path.isfile(fn_reload):
             return np.loadtxt(fn_reload)
@@ -94,33 +119,34 @@ class TrajectoryReader(object):
 
 
 class CVComputer(TrajectoryReader):
-    '''Compute the specified CV along a given trajectory defined as XYZ or HDF5 files.
+    '''
+        Child class of TrajectoryReader to compute the specified CVs along a given trajectory stored in XYZ or HDF5 files.
     '''
     def __init__(self, CVs: list, coords_key: str=None, name: str=None, start: int=0, stride: int=1, end: int=-1, reload: bool=False, verbose: bool=False):
         '''
-        :param CVs: a list of collective variable defining how to compute the collective variable along the trajectory
-        :type CVs: list of instances from thermolib.thermodynamics.cv module
+            :param CVs: a list of collective variable defining how to compute each collective variable along the trajectory
+            :type CVs: list of instances from :py:mod:`cv <thermolib.thermodynamics.cv>` module
 
-        :param :coords_key string to possibly define location of the coordinates in the trajectory file (e.g. name of coords data set in HDF5 file), defaults to None
-        :type coords_key: str, optional
+            :param coords_key: This parameter is only relevant when trajectory files require data set names to find the coordinates (i.e. in HDF5 files) and will be ignored otherwise (i.e. if trajectory files are XYZ files). This parameter then defines the location of the coordinates in the trajectory file (e.g. name of coordinates data set in HDF5 file)
+            :type coords_key: str, optional, default=None
 
-        :param name: a name for printing/logging purposes, defaults to names of CVs
-        :type name: str, optional
+            :param name: a name for printing/logging purposes. If None, set to '/'-seperated list of the name attributes of the CVs
+            :type name: str, optional, default=None
 
-        :param start: index of starting point in trajectory to extract CV values, can be used to crop out initial equilibration time. Defaults to 0
-        :type start: int, optional
+            :param start: index of starting point in trajectory to extract CV values, can be used to crop out initial equilibration time.
+            :type start: int, optional, default=0
 
-        :param stride: integer defining how to subsample the trajectory CV data. If set to a value larger than 1, only take sub samples every 'stride' steps. If set to 1, sample all trajectory steps. Can be used to decrease correlations between subsequent samples. Defaults to 1
-        :type stride: int, optional
+            :param stride: integer defining how to subsample the trajectory CV data. If set to a value larger than 1, only take sub samples every 'stride' steps. If set to 1, sample all trajectory steps. Can be used to decrease correlations between subsequent samples.
+            :type stride: int, optional, default=1
 
-        :param end: index of last trajectory step to be sampled. Can be used to crop out the final part of a simulation trajectory. If set to -1, take all trajectory samples, i.e. no cropping. Defaults to -1
-        :type end: int, optional
+            :param end: index of last trajectory step to be sampled. Can be used to crop out the final part of a simulation trajectory. If set to -1, take all trajectory samples, i.e. no cropping.
+            :type end: int, optional, default=-1
 
-        :param reload: if set to true, the first time the __call__ routine is called, the data read/computed from trajectory will also be written in numpy format to a file (with name equal to original trajectory file name but with additional '.reload' at the end). The next time the __call__ routine is called again afterwards, the trajectory data will read directly from the .reload file. This results in a considerable speedup in the case the CV is computed from a XYZ trajectory. Defaults to False
-        :type reload: bool, optional
+            :param reload: If True, the first time the __call__ routine is called, the data that is read/computed from the trajectory will be written in numpy format to a file (with name equal to original trajectory file name appended with '.reload' at the end). The next time the __call__ routine is called again afterwards, the trajectory data will read directly from the .reload file. This results in a considerable speedup in the case the CV is computed from a XYZ trajectory. If False, the data will be read from the trajectory file with every call to the __call__ routine.
+            :type reload: bool, optional, default=False
 
-        :param verbose: Switch on the routine verbosity and print more logging, defaults to False
-        :type verbose: bool, optional
+            :param verbose: If True, switch on the routine verbosity and print more logging
+            :type verbose: bool, optional, default=False
         '''
         if not (isinstance(CVs, list) or isinstance(CVs, tuple)):
             CVs = [CVs]
@@ -136,7 +162,18 @@ class CVComputer(TrajectoryReader):
     def ncvs(self):
         return len(self.CVs)
 
-    def _read(self, fn):
+    def _read(self, fn: str):
+        '''
+            Wrapper to decide whether to use _read_xyz (of .xyz files) or _read_h5 (for .h5 files) to read trajectory file based on the extension. 
+
+            :param fn: file containing the trajectory coordinates
+            :type fn: str
+
+            :raises NotImplementedError: if fn has neither .xyz nor .h5 extension.
+            
+            :return: trajectory data representing CV samples
+            :rtype: np.ndarray
+        '''
         if fn.endswith('.xyz'):
             return self._read_xyz(fn)
         if fn.endswith('.h5'):
@@ -144,7 +181,19 @@ class CVComputer(TrajectoryReader):
         else:
             raise NotImplementedError('Extension in file %s not recognized or supported (yet).' %(fn))
     
-    def _read_xyz(self, fn):
+    def _read_xyz(self, fn: str):
+        '''
+            Routine to read .xyz trajectory file and for each frame extract coordinates and compute CV.
+
+            :param fn: Name of XYZ file containing the trajectory coordinates
+            :type fn: str
+
+            :raises ValueError: if no data could be extracted from trajectory, i.e. because start:end:stride were chosen to restrictive.
+            :raises AssertionError: if the various CVs computed from the trajectory do not have matching number of samples.
+            
+            :return: trajectory data representing CV samples
+            :rtype: np.ndarray
+        '''
         cvdata = None
         xyz = mmXYZReader(fn)
         for i, CV in enumerate(self.CVs):
@@ -163,7 +212,19 @@ class CVComputer(TrajectoryReader):
                 cvdata[:,i] = col
         return cvdata
 
-    def _read_h5(self, fn):
+    def _read_h5(self, fn: str):
+        '''
+            Routine to read .h5 trajectory file and for each frame extract coordinates and compute CV.
+
+            :param fn: Name of HDF5 file containing the trajectory coordinates
+            :type fn: str
+
+            :raises ValueError: if no data could be extracted from trajectory, i.e. because start:end:stride were chosen to restrictive.
+            :raises AssertionError: if the various CVs computed from the trajectory do not have matching number of samples.
+            
+            :return: trajectory data representing CV samples
+            :rtype: np.ndarray
+        '''
         cvdata = None
         f = h5.File(fn, mode = 'r')
         Nsteps = len(f['/trajectory/time'])
@@ -189,32 +250,34 @@ class CVComputer(TrajectoryReader):
 
 
 class HDF5Reader(TrajectoryReader):
-    '''Read the precomputed CVs from datasets stored in HDF5 file(s)'''
+    '''
+        Child class of TrajectoryReader to read the precomputed CVs from data sets stored in HDF5 file(s)
+    '''
     def __init__(self, keys: list, units: list=[], name: str=None, start: int=0, stride: int=1, end: int=-1, reload: bool=False, verbose: bool=False):
-        '''
-        :param keys: Represent the keys of datasets in HDF5 from which to read CV values.
-        :type keys: list
+        '''        
+            :param keys: Represent the keys of data sets in HDF5 from which to read CV values.
+            :type keys: list
 
-        :param units: List of units for each CV that needs to be read. Defaults to 'au' for each CV., defaults to []
-        :type units: list, optional
+            :param units: List of units for each CV that needs to be read. If set to [], each CV will be assigned unit 'au' (i.e. atomic unit)
+            :type units: list of str, optional, default=[]
 
-        :param name: a name for printing/logging purposes, defaults to None
-        :type name: str, optional
+            :param name: a name for printing/logging purposes
+            :type name: str, optional, default=None
         
-        :param start: index of starting point in trajectory to extract CV values, can be used to crop out initial equilibration time. Defaults to 0
-        :type start: int, optional
+            :param start: index of starting point in trajectory to extract CV values, can be used to crop out initial equilibration time.
+            :type start: int, optional, default=0
 
-        :param stride: integer defining how to subsample the trajectory CV data. If set to a value larger than 1, only take sub samples every 'stride' steps. If set to 1, sample all trajectory steps. Can be used to decrease correlations between subsequent samples. Defaults to 1
-        :type stride: int, optional
+            :param stride: integer defining how to subsample the trajectory CV data. If set to a value larger than 1, only take sub samples every 'stride' steps. If set to 1, sample all trajectory steps. Can be used to decrease correlations between subsequent samples.
+            :type stride: int, optional, default=1
 
-        :param end: index of last trajectory step to be sampled. Can be used to crop out the final part of a simulation trajectory. If set to -1, take all trajectory samples, i.e. no cropping. Defaults to -1
-        :type end: int, optional
+            :param end: index of last trajectory step to be sampled. Can be used to crop out the final part of a simulation trajectory. If set to -1, take all trajectory samples, i.e. no cropping.
+            :type end: int, optional, default=-1
 
-        :param reload: if set to true, the first time the __call__ routine is called, the data read/computed from trajectory will also be written in numpy format to a file (with name equal to original trajectory file name but with additional '.reload' at the end). The next time the __call__ routine is called again afterwards, the trajectory data will read directly from the .reload file. This results in a considerable speedup in the case the CV is computed from a XYZ trajectory. Defaults to False
-        :type reload: bool, optional
+            :param reload: If True, the first time the __call__ routine is called, the data that is read/computed from the trajectory will be written in numpy format to a file (with name equal to original trajectory file name appended with '.reload' at the end). The next time the __call__ routine is called again afterwards, the trajectory data will read directly from the .reload file. This results in a considerable speedup in the case the CV is computed from a XYZ trajectory. If False, the data will be read from the trajectory file with every call to the __call__ routine.
+            :type reload: bool, optional, default=False
 
-        :param verbose: Switch on the routine verbosity and print more logging, defaults to False
-        :type verbose: bool, optional
+            :param verbose: If True, switch on the routine verbosity and print more logging
+            :type verbose: bool, optional, default=False
         '''
         if len(keys)==0:
             raise ValueError('No dataset keys defined, received empty list for argument keys.')
@@ -229,7 +292,19 @@ class HDF5Reader(TrajectoryReader):
     def ncvs(self):
         return len(self.keys)
     
-    def _read(self, fn):
+    def _read(self, fn: str):
+        '''
+            Read CV samples from the data set(s) in the HDF5 trajectory file defined by the given name
+
+            :param fn: name of HDF5 file containing CV trajectory samples
+            :type fn: str
+
+            :raises ValueError: if no data could be extracted from trajectory, i.e. because start:end:stride were chosen to restrictive.
+            :raises AssertionError: if the various CVs computed from the trajectory do not have matching number of samples.
+
+            :return: trajectory data representing CV samples
+            :rtype: np.ndarray
+        '''
         f = h5.File(fn, mode = 'r')
         for key in self.keys:
             assert key in f.keys(), 'Specified dataset key %s was not found in HDF5 file %s. Possible keys are: %s' %(key, fn, ','.join(f.keys()))
@@ -249,31 +324,34 @@ class HDF5Reader(TrajectoryReader):
 
 
 class ColVarReader(TrajectoryReader):
+    '''
+        Child class of TrajectoryReader to read the CV samples from a COLVAR file. COLVAR files (as used by e.g. Plumed) are just numpy readable text files representing arrays in which the columns represent different CVs and the rows represent the various timesteps.
+    '''
     def __init__(self, indices: list, units: list=[], name: str=None, start: int=0, stride: int=1, end: int=-1, reload: bool=False, verbose: bool=False):
         '''
-        :param indices: Represents the indices of the columns in COLVAR file from which to read the CV values.
-        :type indices: list
+            :param indices: Represents the indices of the columns in COLVAR file from which to read the CV values.
+            :type indices: list
 
-        :param units: List of units for each CV that needs to be read. Defaults to 'au' for each CV., defaults to []
-        :type units: list, optional
+            :param units: List of units for each CV that needs to be read. If set to [], each CV will be assigned unit 'au' (i.e. atomic unit)
+            :type units: list of str, optional, default=[]
 
-        :param name: a name for printing/logging purposes, defaults to None
-        :type name: str, optional
+            :param name: a name for printing/logging purposes
+            :type name: str, optional, default=None
         
-        :param start: index of starting point in trajectory to extract CV values, can be used to crop out initial equilibration time. Defaults to 0
-        :type start: int, optional
+            :param start: index of starting point in trajectory to extract CV values, can be used to crop out initial equilibration time.
+            :type start: int, optional, default=0
 
-        :param stride: integer defining how to subsample the trajectory CV data. If set to a value larger than 1, only take sub samples every 'stride' steps. If set to 1, sample all trajectory steps. Can be used to decrease correlations between subsequent samples. Defaults to 1
-        :type stride: int, optional
+            :param stride: integer defining how to subsample the trajectory CV data. If set to a value larger than 1, only take sub samples every 'stride' steps. If set to 1, sample all trajectory steps. Can be used to decrease correlations between subsequent samples.
+            :type stride: int, optional, default=1
 
-        :param end: index of last trajectory step to be sampled. Can be used to crop out the final part of a simulation trajectory. If set to -1, take all trajectory samples, i.e. no cropping. Defaults to -1
-        :type end: int, optional
+            :param end: index of last trajectory step to be sampled. Can be used to crop out the final part of a simulation trajectory. If set to -1, take all trajectory samples, i.e. no cropping.
+            :type end: int, optional, default=-1
 
-        :param reload: if set to true, the first time the __call__ routine is called, the data read/computed from trajectory will also be written in numpy format to a file (with name equal to original trajectory file name but with additional '.reload' at the end). The next time the __call__ routine is called again afterwards, the trajectory data will read directly from the .reload file. This results in a considerable speedup in the case the CV is computed from a XYZ trajectory. Defaults to False
-        :type reload: bool, optional
+            :param reload: If True, the first time the __call__ routine is called, the data that is read/computed from the trajectory will be written in numpy format to a file (with name equal to original trajectory file name appended with '.reload' at the end). The next time the __call__ routine is called again afterwards, the trajectory data will read directly from the .reload file. This results in a considerable speedup in the case the CV is computed from a XYZ trajectory. If False, the data will be read from the trajectory file with every call to the __call__ routine.
+            :type reload: bool, optional, default=False
 
-        :param verbose: Switch on the routine verbosity and print more logging, defaults to False
-        :type verbose: bool, optional
+            :param verbose: If True, switch on the routine verbosity and print more logging
+            :type verbose: bool, optional, default=False
         '''
         if len(indices)==0:
             raise ValueError('No column indices defined, received empty list for argument indices.')
@@ -289,6 +367,18 @@ class ColVarReader(TrajectoryReader):
         return len(self.indices)
 
     def _read(self, fn):
+        '''
+            Read CV samples from the COLVAR file defined by the given name
+
+            :param fn: name of COLVAR file containing CV trajectory samples
+            :type fn: str
+
+            :raises ValueError: if no data could be extracted from trajectory, i.e. because start:end:stride were chosen to restrictive.
+            :raises AssertionError: if the various CVs computed from the trajectory do not have matching number of samples.
+
+            :return: trajectory data representing CV samples
+            :rtype: np.ndarray
+        '''
         data = np.loadtxt(fn)
         cvdata = None
         for i, (index, unit) in enumerate(zip(self.indices,self.units)):
@@ -313,32 +403,34 @@ class ColVarReader(TrajectoryReader):
 
 
 class ASEExtendedXYZReader(TrajectoryReader):
+    '''
+        Child class of TrajectoryReader to read a series of CVs, defined in keys, from an extended XYZ file using ASE. 
+    '''
     def __init__(self, keys: list, units: list=[], name: str=None, start: int=0, stride: int=1, end: int=-1, reload: bool=False, verbose: bool=False):
-        '''Read a series of CVs, defined in keys, from an extended XYZ file using ASE. For each key defined, the value of frame.info[key] will be extracted from the trajectory constructed with ase.io.read routine.
-
-        :param keys: list of ASE trajectory info keys to be read from the XYZ title.  
-        :type keys: list
+        '''
+            :param keys: list of ASE trajectory info keys to be read from the title of each frame in the XYZ file. For each key defined, the value of frame.info[key] will be extracted from the trajectory constructed with ase.io.read routine.
+            :type keys: list
         
-        :param units: List of units for each CV that needs to be read. Defaults to 'au' for each CV., defaults to []
-        :type units: list, optional
+            :param units: List of units for each CV that needs to be read. If set to [], each CV will be assigned unit 'au' (i.e. atomic unit)
+            :type units: list of str, optional, default=[]
 
-        :param name: a name for printing/logging purposes, defaults to None
-        :type name: str, optional
+            :param name: a name for printing/logging purposes
+            :type name: str, optional, default=None
         
-        :param start: index of starting point in trajectory to extract CV values, can be used to crop out initial equilibration time. Defaults to 0
-        :type start: int, optional
+            :param start: index of starting point in trajectory to extract CV values, can be used to crop out initial equilibration time.
+            :type start: int, optional, default=0
 
-        :param stride: integer defining how to subsample the trajectory CV data. If set to a value larger than 1, only take sub samples every 'stride' steps. If set to 1, sample all trajectory steps. Can be used to decrease correlations between subsequent samples. Defaults to 1
-        :type stride: int, optional
+            :param stride: integer defining how to subsample the trajectory CV data. If set to a value larger than 1, only take sub samples every 'stride' steps. If set to 1, sample all trajectory steps. Can be used to decrease correlations between subsequent samples.
+            :type stride: int, optional, default=1
 
-        :param end: index of last trajectory step to be sampled. Can be used to crop out the final part of a simulation trajectory. If set to -1, take all trajectory samples, i.e. no cropping. Defaults to -1
-        :type end: int, optional
+            :param end: index of last trajectory step to be sampled. Can be used to crop out the final part of a simulation trajectory. If set to -1, take all trajectory samples, i.e. no cropping.
+            :type end: int, optional, default=-1
 
-        :param reload: if set to true, the first time the __call__ routine is called, the data read/computed from trajectory will also be written in numpy format to a file (with name equal to original trajectory file name but with additional '.reload' at the end). The next time the __call__ routine is called again afterwards, the trajectory data will read directly from the .reload file. This results in a considerable speedup in the case the CV is computed from a XYZ trajectory. Defaults to False
-        :type reload: bool, optional
+            :param reload: If True, the first time the __call__ routine is called, the data that is read/computed from the trajectory will be written in numpy format to a file (with name equal to original trajectory file name appended with '.reload' at the end). The next time the __call__ routine is called again afterwards, the trajectory data will read directly from the .reload file. This results in a considerable speedup in the case the CV is computed from a XYZ trajectory. If False, the data will be read from the trajectory file with every call to the __call__ routine.
+            :type reload: bool, optional, default=False
 
-        :param verbose: Switch on the routine verbosity and print more logging, defaults to False
-        :type verbose: bool, optional
+            :param verbose: If True, switch on the routine verbosity and print more logging
+            :type verbose: bool, optional, default=False
         '''
         if len(keys)==0:
             raise ValueError('No dataset keys defined, received empty list for argument keys.')
@@ -353,7 +445,19 @@ class ASEExtendedXYZReader(TrajectoryReader):
     def ncvs(self):
         return len(self.keys)
 
-    def _read(self, fn):
+    def _read(self, fn: str):
+        '''
+            Routine to read .xyz trajectory file and for each frame extract the CV corresponding to the given keys in the XYZ frame title.
+
+            :param fn: Name of XYZ file containing the trajectory
+            :type fn: str
+
+            :raises ValueError: if no data could be extracted from trajectory, i.e. because start:end:stride were chosen to restrictive.
+            :raises AssertionError: if the various CVs computed from the trajectory do not have matching number of samples.
+            
+            :return: trajectory data representing CV samples
+            :rtype: np.ndarray
+        '''
         traj = read(fn, index=slice(self.start,self.end,self.stride))
         nsamples = len(traj)
         cvdata = np.zeros([nsamples, len(self.keys)])

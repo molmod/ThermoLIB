@@ -12,12 +12,12 @@
 
 from __future__ import annotations
 
-from thermolib.error import Propagator, GaussianDistribution, LogGaussianDistribution, SampleDistribution
+from thermolib.error import Propagator, GaussianDistribution, LogGaussianDistribution
 from thermolib.tools import integrate
 
 from molmod.units import *
 
-import numpy as np, sys
+import numpy as np
 from numpy.ma import masked_array
 import time
 
@@ -26,10 +26,24 @@ __all__ = ['Minimum', 'Maximum', 'Integrate']
 
 
 class State(object):
-    '''Abstract class for inheriting classes Microstate and Macrostate'''
+    '''
+        Abstract class serving as a parent for Microstate and Macrostate classes
+    '''
     def __init__(self, name, cv_unit='au', f_unit='kjmol', propagator=Propagator()):
+        '''
+            :param name: a name for the state to be used in printing/loging
+            :type name: str
+
+            :param cv_unit: a unit for the cv properties in the state used in printing/loging
+            :type cv_unit: str, optional, default='au'
+
+            :param f_unit: a unit for the (free) energy properties in the state used in printing/loging
+            :type f_unit: str, optional, default='kjmol'
+
+            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken)
+            :type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=Propagator()
+        '''
         self.name = name
-        self.cycles = {'cv': None, 'f': None}
         self.cv = None
         self.cv_dist = None
         self.F = None
@@ -39,6 +53,12 @@ class State(object):
         self.propagator = propagator
     
     def get_cv(self):
+        '''
+            If computation of the state value(s) is done on a FEP which doesn't have error bars, then the cv value of the current state will be stored in self.cv. If the FEP includes error bars, then the cv value and its propagated error bar will be stored as a distribution in self.cv_dist. The get_cv routine allows to extract the cv value itself (not its error bar) from the proper internal attribute indepedent on the error bar was propagated or not.
+
+            :returns: CV value of current state (without error bar)
+            :rtype: float
+        '''
         if self.cv_dist is None:
             return self.cv
         else:
@@ -49,6 +69,12 @@ class State(object):
             return r
 
     def get_F(self):
+        '''
+            If computation of the state value(s) is done on a FEP which doesn't have error bars, then the free energy value of the current state will be stored in self.F. If the FEP includes error bars, then the F value and its propagated error bar will be stored as a distribution in self.F_dist. The get_F routine allows to extract the F value itself (not its error bar) from the proper internal attribute indepedent on the error bar was propagated or not.
+
+            :returns: free energy value of current state (without error bar)
+            :rtype: float
+        '''
         if self.F_dist is None:
             return self.F
         else:
@@ -59,6 +85,23 @@ class State(object):
             return r
     
     def text(self, obs, fmt='%.3f', do_scientific=False):
+        '''
+            Routine to format the observable defined in obs (cv or f) into text for printing.
+
+            :param obs: the observable of the current state that needs to be converted to text. Is not case sensitive.
+            :type obs: str, either 'cv' or 'f'
+
+            :param fmt: python formatting string of a float to be used in the notation 
+            :type fmt: str, optional, default='%.3f'
+
+            :param do_scientific: format the float in scientific notation, e.g. 2.31 10^2
+            :type do_scientific: bool, optional, default=False
+
+            :raises ValueError: if obs is neither 'cv' nor 'f'
+
+            :return: formatted string for printing containing the specified observable in the current state
+            :rtype: str
+        '''
         if obs.lower()=='f':
             if self.F_dist is None:
                 if do_scientific:
@@ -80,16 +123,45 @@ class State(object):
 
 
 class Microstate(State):
-    '''Abstract parent class for defining microstates on a free energy profile. The routine _get_index_fep needs to be implemented in child classes.'''
+    '''
+        Abstract parent class for defining microstates on a free energy profile (fep), i.e. a single point on the fep. The routine _get_index_fep needs to be implemented in child classes.
+    '''
     def __init__(self, name, cv_unit='au', f_unit='kjmol', propagator=Propagator()):
+        '''
+            :param name: a name for the state to be used in printing/loging
+            :type name: str
+
+            :param cv_unit: a unit for the cv properties in the state used in printing/loging
+            :type cv_unit: str, optional, default='au'
+
+            :param f_unit: a unit for the (free) energy properties in the state used in printing/loging
+            :type f_unit: str, optional, default='kjmol'
+
+            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken)
+            :type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=Propagator()
+        '''
         State.__init__(self, name, cv_unit=cv_unit, f_unit=f_unit, propagator=propagator)
-        self.cycles['indexes'] = None
         self.index = None
 
     def _get_index_fep(self, cvs, fs):
+        '''
+            Routine for computing the index of the current microstate cv. This routine needs to be implemented in the child classes.
+        '''
         raise NotImplementedError
 
     def _get_state_fep(self, cvs, fs):
+        '''
+            Routine that will use the index defining the current microstate as obtained by the _get_index_fep routine and compute the corresponding cv and f value.
+
+            :param cvs: cvs argument representing the cv grid to be parsed to the _get_index_fep routine
+            :type cvs: np.ndarray
+
+            :param fs: fs argument representing the f grid to be parsed to the _get_index_fep routine
+            :type fs: np.ndarray
+
+            :return: index, cv value , f value of microstate
+            :rtype: (int, float, float)
+        '''
         index = self._get_index_fep(cvs, fs)
         cv, f = cvs[index], fs[index]
         if isinstance(cv, masked_array): cv = cv.filled(np.nan)
@@ -98,8 +170,20 @@ class Microstate(State):
     
     def compute(self, fep, dist_prop='montecarlo'):
         '''
-            :param dist_prop: method of how the distribution of the error on the free energy profile is propagated to the error on the cv value and free energy value of each micro and macrostate. Currently only 'montecarlo' and 'stationairy' is implemented. Stationairy assumes the position of the minimum/maximum is given by that of the mean profile (i.e. with no errr on the cv value) and the value of the minimum/maximum is then extracted from the corresponding free energy value of the free energy profile (with its associated error bar). Montecarlo takes random samples from the fep, computes the microstate and uses these to estimate the distribution of the microstate. Defaults to 'montecarlo'
-            :type dist_prop: str, optional
+            Routine to compute the current microstate values for the given profile (fep).
+
+            :param fep: the profile of an observable for which the current microstate will be computed
+            :type fep: :py:class:`BaseProfile <thermolib.thermodynamics.fep.BaseProfile>`
+
+            :param dist_prop: method of how the distribution of the error on the free energy profile is propagated to the error on the cv and free energy value of the microstate. Currently only 'montecarlo' and 'stationairy' is implemented. 
+            
+                - Stationairy assumes the microstate cv value (e.g. the cv of the minimum/maximum of the fep) is given by that of the mean fep (i.e. with no error on the cv value) and the microstate f value (e.g. the min/max free energy) is then extracted by evaluating the fep at the microstate cv value (with an error bar on the f value taken from the fep error at the microstate cv value).
+                - Montecarlo takes random samples from the entire fep, computes the microstate cv and f values and uses all these samples to estimate the distribution of the microstate. 
+            
+            Stationairy is used for very specific purposes (when setting the plotting reference of feps) and is not recommended in general.
+            :type dist_prop: str, optional, default='montecarlo'
+
+            :raises NotImplementedError: if the given dist_prop is not supported (see above for allowed values).
         '''
         if fep.error is not None:
             self.index, self.cv, self.F = None, None, None
@@ -124,6 +208,9 @@ class Microstate(State):
             self.cv_dist, self.F_dist = None, None
 
     def print(self):
+        '''
+            Print the current thermodynamic microstate properties
+        '''
         print('MICROSTATE %s:' %self.name)
         print('--------------')
         if self.F_dist is not None:
@@ -138,12 +225,42 @@ class Microstate(State):
 
 
 class Minimum(Microstate):
-    '''Microstate class that identifies the minimum in a certain range defined by either cv values, indexes or other microstates.'''
+    '''
+        Microstate class that identifies the minimum in a certain range defined by either cv values, indexes or other microstates.
+    '''
     def __init__(self, name, cv_range=[-np.inf, np.inf], cv_unit='au', f_unit='kjmol', propagator=Propagator()):
+        '''
+            :param name: a name for the state to be used in printing/loging
+            :type name: str
+
+            :param cv_range: the microstate cv value will be looked for only in this range 
+            :type cv_range: list, optional, default=[-np.inf, np.inf]
+            
+            :param cv_unit: a unit for the cv properties in the state used in printing/loging
+            :type cv_unit: str, optional, default='au'
+
+            :param f_unit: a unit for the (free) energy properties in the state used in printing/loging
+            :type f_unit: str, optional, default='kjmol'
+
+            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken)
+            :type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=Propagator()
+        '''
         self.cv_range = cv_range
         Microstate.__init__(self, name, cv_unit=cv_unit, f_unit=f_unit, propagator=propagator)
 
     def _get_index_fep(self, cvs, fs):
+        '''
+            Routine for computing the index of the current microstate cv for the profile defined by cvs and fs.
+        
+            :param cvs: cv grid on which to look for the microstate cv value
+            :type cvs: np.ndarray
+
+            :param fs: f values corresponding to the cv grid
+            :type fs: np.ndarray
+
+            :returns: the index of the microstate cv value
+            :rtype: int
+        '''
         index = np.nan
         fcurrent = np.nan
         for i, (cv, f) in enumerate(zip(cvs,fs)):
@@ -160,12 +277,42 @@ class Minimum(Microstate):
 
 
 class Maximum(Microstate):
-    '''Microstate class that identifies the maximum in a certain range defined by either cv values, indexes or other microstates.'''
+    '''
+        Microstate class that identifies the maximum in a certain range defined by either cv values, indexes or other microstates.
+    '''
     def __init__(self, name, cv_range=None, cv_unit='au', f_unit='kjmol', propagator=Propagator()):
+        '''
+            :param name: a name for the state to be used in printing/loging
+            :type name: str
+
+            :param cv_range: the microstate cv value will be looked for only in this range 
+            :type cv_range: list, optional, default=[-np.inf, np.inf]
+            
+            :param cv_unit: a unit for the cv properties in the state used in printing/loging
+            :type cv_unit: str, optional, default='au'
+
+            :param f_unit: a unit for the (free) energy properties in the state used in printing/loging
+            :type f_unit: str, optional, default='kjmol'
+
+            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken)
+            :type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=Propagator()
+        '''
         self.cv_range = cv_range
         Microstate.__init__(self, name, cv_unit=cv_unit, f_unit=f_unit, propagator=propagator)
     
     def _get_index_fep(self, cvs, fs):
+        '''
+            Routine for computing the index of the current microstate cv for the profile defined by cvs and fs.
+        
+            :param cvs: cv grid on which to look for the microstate cv value
+            :type cvs: np.ndarray
+
+            :param fs: f values corresponding to the cv grid
+            :type fs: np.ndarray
+
+            :returns: the index of the microstate cv value
+            :rtype: int
+        '''
         index = None
         fcurrent = None
         for i, (cv, f) in enumerate(zip(cvs,fs)):
@@ -182,8 +329,23 @@ class Maximum(Microstate):
 
 
 class Macrostate(State):
-    '''Abstract parent class for defining macrostates on a free energy profile. The routine _get_state_fep needs to be implemented in child classes.'''
+    '''
+        Abstract parent class for defining macrostates on a free energy profile. The routine _get_state_fep needs to be implemented in child classes.
+    '''
     def __init__(self, name, cv_unit='au', f_unit='kjmol', propagator=Propagator()):
+        '''
+            :param name: a name for the state to be used in printing/loging
+            :type name: str
+
+            :param cv_unit: a unit for the cv properties in the state used in printing/loging
+            :type cv_unit: str, optional, default='au'
+
+            :param f_unit: a unit for the (free) energy properties in the state used in printing/loging
+            :type f_unit: str, optional, default='kjmol'
+
+            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken)
+            :type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=Propagator()
+        '''
         State.__init__(self, name, cv_unit=cv_unit, f_unit=f_unit, propagator=propagator)
         self.cvstd = None
         self.cvstd_dist = None
@@ -191,12 +353,25 @@ class Macrostate(State):
         self.Z_dist = None
 
     def _get_state_fep(self, cvs, fs):
+        '''
+            Routine to compute the macrostate properties for the profile defined by cvs and fs. This routine needs to be implementd in the child classes.
+        '''
         raise NotImplementedError
 
-    def compute(self, fep, dist_prop='montecarlo', verbose=False):
+    def compute(self, fep, dist_prop='montecarlo'):
         '''
-            :param dist_prop: method of how the distribution of the error on the free energy profile is propagated to the error on the cv value and free energy value of each micro and macrostate. Currently only 'analytical' is implemented, which applies the pythagorian sum of error bars valid for the sum (= discrete integral).
-            :type dist_prop: str, optional
+            Routine to compute the current macrostate properties values for the given profile (fep).
+
+            :param fep: the profile of an observable for which the current macrostate will be computed
+            :type fep: :py:class:`BaseProfile <thermolib.thermodynamics.fep.BaseProfile>`
+
+            :param dist_prop: method of how the distribution of the error on the free energy profile is propagated to the error on the macrostate properties. Currently only 'montecarlo' is implemented. 
+            
+                - Montecarlo takes random samples from the entire fep, computes the microstate cv and f values and uses all these samples to estimate the distribution of the microstate. 
+            
+            :type dist_prop: str, optional, default='montecarlo'
+
+            :raises NotImplementedError: if the given dist_prop is not supported (see above for allowed values).
         '''
         if fep.error is not None:
             if dist_prop=='montecarlo':
@@ -229,6 +404,9 @@ class Macrostate(State):
             self.cv, self.cvstd, self.Z, self.F = self._get_state_fep(fep.cvs, fep.fs)
 
     def print(self):
+        '''
+            Print the current thermodynamic macrostate properties
+        '''
         print('MACROSTATE %s:' %self.name)
         print('--------------')
         if self.F_dist is not None:
@@ -242,6 +420,23 @@ class Macrostate(State):
         print('')
 
     def text(self, obs, fmt='%.3f'):
+        '''
+            Routine to format the observable defined in obs (cv, cvstd f) into text for printing.
+
+            :param obs: the observable of the current state that needs to be converted to text. This should either be 'cv' for the mean CV in the macrostate, 'cvstd' for the std on the cv in the macrostate or 'f' for the macrostate free energy. Is not case sensitive.
+            :type obs: str
+
+            :param fmt: python formatting string of a float to be used in the notation 
+            :type fmt: str, optional, default='%.3f'
+
+            :param do_scientific: format the float in scientific notation, e.g. 2.31 10^2
+            :type do_scientific: bool, optional, default=False
+
+            :raises ValueError: if obs is neither 'cv' nor 'f'
+
+            :return: formatted string for printing containing the specified observable in the current state
+            :rtype: str
+        '''
         if obs.lower()=='f':
             if self.F_dist is None:
                 return fmt %(self.F/parse_unit(self.f_unit)) + ' ' + self.f_unit
@@ -262,12 +457,52 @@ class Macrostate(State):
 
 
 class Integrate(Macrostate):
+    '''
+        Definie macrostate as the boltzmann weighted integral over a range of microstates (i.e. range of points on the fep). The macrostate properties (mean cv, cvstd and macrostate free energy) are defined as follows
+
+        .. math::
+
+            \\left\\langle cv \\right\\rangle   &= \\frac{\\int q e^{-\\beta F(q)} dq}{\\int e^{-\\beta F(q)} dq} \\\\
+            \\sigma^2                           &= \\frac{\\int \\left(q-\\left\\langle cv \\right\\rangle\\right)^2 e^{-\\beta F(q)} dq}{\\int e^{-\\beta F(q)} dq} \\\\
+            f                                   &= -k_B T \\ln\\left[\\int e^{-\\beta F(q)} dq\\right]
+
+        Herein, all integrals are done over a given cv range.
+    '''
+    
     def __init__(self, name, cv_range, beta, cv_unit='au', f_unit='kjmol', propagator=Propagator()):
+        '''
+            :param name: a name for the state to be used in printing/loging
+            :type name: str
+
+            :param cv_range: the range for the cv defining the macrostate in the integrals above
+            :type cv_range: list of either floats or :py:class:`MicroStates <thermolib.thermodynamics.state.MicrosState>`
+
+            :param beta: the beta (i.e. 1/kT) value used in the boltzmann weighting
+            :type beta: float
+
+            :param cv_unit: a unit for the cv properties in the state used in printing/loging
+            :type cv_unit: str, optional, default='au'
+
+            :param f_unit: a unit for the (free) energy properties in the state used in printing/loging
+            :type f_unit: str, optional, default='kjmol'
+
+            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken)
+            :type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=Propagator()
+        '''
         self.cv_range = cv_range
         self.beta = beta
         Macrostate.__init__(self, name, cv_unit=cv_unit, f_unit=f_unit, propagator=propagator)
     
     def _get_state_fep(self, cvs, fs):
+        '''
+            Routine to compute the macrostate properties for the profile defined by cvs and fs.
+
+            :param cvs: cv grid on which to look for the microstate cv value
+            :type cvs: np.ndarray
+
+            :param fs: f values corresponding to the cv grid
+            :type fs: np.ndarray
+        '''
         #get cv_range in case a microstate was used in the cv_range argument
         cv_range = [None, None]
         if isinstance(self.cv_range[0], Microstate):

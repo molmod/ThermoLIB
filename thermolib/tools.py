@@ -820,16 +820,16 @@ def invert_fisher_to_covariance(F: np.ndarray, ps: np.ndarray, threshold: float=
         :param F: Fisher information matrix.
         :type F: np.ndarray
 
-        :ps: Array of probabilities used to apply the threshold.
+        :param ps: Array of probabilities used to apply the threshold.
         :type ps: np.ndarray
 
-        :threshold: Threshold value for removing columns and rows corresponding with a probability lower than the thresshold from the Fisher information matrix.
+        :param threshold: Threshold value for removing columns and rows corresponding with a probability lower than the threshold from the Fisher information matrix.
         :type threshold: float, optional, default=0.0
 
-        :verbose: If `True`, print information about removed columns and rows.
+        :param verbose: If `True`, print information about removed columns and rows.
         :type verbose: bool, optional, default=False
 
-        :return: Covariance matrix obtained by inverting the Fisher information matrix.
+        :returns: Covariance matrix obtained by inverting the Fisher information matrix.
         :rtype: np.ndarray
     '''
     mask = np.ones(F.shape, dtype=bool)

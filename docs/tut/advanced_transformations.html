@@ -232,6 +232,8 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_thermo.html#module-thermolib.thermodynamics.cv">Collective variables – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.cv</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.Average"><code class="docutils literal notranslate"><span class="pre">Average</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.CenterOfMass"><code class="docutils literal notranslate"><span class="pre">CenterOfMass</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.CenterOfPosition"><code class="docutils literal notranslate"><span class="pre">CenterOfPosition</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.CoordinationNumber"><code class="docutils literal notranslate"><span class="pre">CoordinationNumber</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.Difference"><code class="docutils literal notranslate"><span class="pre">Difference</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.DistOrthProjOrig"><code class="docutils literal notranslate"><span class="pre">DistOrthProjOrig</span></code></a></li>
@@ -240,6 +242,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.DotProduct"><code class="docutils literal notranslate"><span class="pre">DotProduct</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.LinearCombination"><code class="docutils literal notranslate"><span class="pre">LinearCombination</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.Minimum"><code class="docutils literal notranslate"><span class="pre">Minimum</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.NormalToPlane"><code class="docutils literal notranslate"><span class="pre">NormalToPlane</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.NormalizedAxis"><code class="docutils literal notranslate"><span class="pre">NormalizedAxis</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.OrthogonalDistanceToPore"><code class="docutils literal notranslate"><span class="pre">OrthogonalDistanceToPore</span></code></a></li>
 </ul>
@@ -456,11 +459,11 @@ SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.065s
-  bias poten. : 00h 00m 00.016s
-  solve scf   : 00h 00m 00.321s
-  error est.  : 00h 00m 00.032s
-  TOTAL       : 00h 00m 00.434s
+  histograms  : 00h 00m 00.099s
+  bias poten. : 00h 00m 00.020s
+  solve scf   : 00h 00m 00.581s
+  error est.  : 00h 00m 00.946s
+  TOTAL       : 00h 00m 01.648s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -521,7 +524,7 @@ findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu S
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Estimating rate factor from trajectory data/formic_acid_dimer_link/colvars/u64.xyz for TS=[-0.042,0.058] au using analytical momentum integration
+Estimating rate factor from trajectory data/formic_acid_dimer_link/colvars/u64.xyz for TS=[-0.052,0.048] au using analytical momentum integration
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -541,7 +544,7 @@ Estimating rate factor from trajectory data/formic_acid_dimer_link/colvars/u64.x
 <div class="highlight"><pre>
 Rate factor with block averaging:
 ---------------------------------
-  A = 17.454 +- 0.012 1e12*au/s (9588 TS samples, int. autocorr. time = 44.777 timesteps)
+  A = 17.457 +- 0.012 1e12*au/s (9302 TS samples, int. autocorr. time = 26.727 timesteps)
 
 </pre></div></div>
 </div>
@@ -588,7 +591,7 @@ Rate factor with block averaging:
 </div>
 <p>We clearly see that the free energy profile is not the same anymore as before. We now compute the rate according to the transformed CV and see if that has changed. For this, we use the CollectiveVariable child class <code class="docutils literal notranslate"><span class="pre">FunctionCV</span></code> to define a function of another CV:</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">Q</span> <span class="o">=</span> <span class="n">FunctionCV</span><span class="p">(</span><span class="n">CV</span><span class="p">,</span> <span class="n">function</span><span class="p">,</span> <span class="n">derivative</span><span class="p">)</span>
@@ -603,7 +606,7 @@ dQ = frac{dQ}{dCV}(CV^{TS})cdot dCV</p>
 </dl>
 <p>end{align}`</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">Q_TS_Delta</span> <span class="o">=</span> <span class="n">derivative</span><span class="p">(</span><span class="n">fep</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">get_cv</span><span class="p">())</span><span class="o">*</span><span class="n">CV_TS_Delta</span>
@@ -618,11 +621,11 @@ dQ = frac{dQ}{dCV}(CV^{TS})cdot dCV</p>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[1.0985102623313332, 1.199269127226318]
+[1.1088809506084862, 1.2087370542387381]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fn</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/colvars/u64.xyz&#39;</span> <span class="o">%</span><span class="k">os</span>.path.dirname(fn_meta)
@@ -636,11 +639,11 @@ dQ = frac{dQ}{dCV}(CV^{TS})cdot dCV</p>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Estimating rate factor from trajectory data/formic_acid_dimer_link/colvars/u64.xyz for TS=[1.099,1.199] au using analytical momentum integration
+Estimating rate factor from trajectory data/formic_acid_dimer_link/colvars/u64.xyz for TS=[1.109,1.209] au using analytical momentum integration
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">A2</span><span class="p">,</span> <span class="n">A2_dist</span> <span class="o">=</span> <span class="n">rate2</span><span class="o">.</span><span class="n">result_blav</span><span class="p">()</span>
@@ -656,7 +659,7 @@ Estimating rate factor from trajectory data/formic_acid_dimer_link/colvars/u64.x
 <div class="highlight"><pre>
 Rate factor with block averaging:
 ---------------------------------
-  A = 17.750 +- 0.025 1e12*au/s (8567 TS samples, int. autocorr. time = 5.336 timesteps)
+  A = 17.812 +- 0.026 1e12*au/s (7429 TS samples, int. autocorr. time = 1.892 timesteps)
 
 </pre></div></div>
 </div>

@@ -228,6 +228,8 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../rg_thermo.html#module-thermolib.thermodynamics.cv">Collective variables – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.cv</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.Average"><code class="docutils literal notranslate"><span class="pre">Average</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.CenterOfMass"><code class="docutils literal notranslate"><span class="pre">CenterOfMass</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.CenterOfPosition"><code class="docutils literal notranslate"><span class="pre">CenterOfPosition</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.CoordinationNumber"><code class="docutils literal notranslate"><span class="pre">CoordinationNumber</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.Difference"><code class="docutils literal notranslate"><span class="pre">Difference</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.DistOrthProjOrig"><code class="docutils literal notranslate"><span class="pre">DistOrthProjOrig</span></code></a></li>
@@ -236,6 +238,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.DotProduct"><code class="docutils literal notranslate"><span class="pre">DotProduct</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.LinearCombination"><code class="docutils literal notranslate"><span class="pre">LinearCombination</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.Minimum"><code class="docutils literal notranslate"><span class="pre">Minimum</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.NormalToPlane"><code class="docutils literal notranslate"><span class="pre">NormalToPlane</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.NormalizedAxis"><code class="docutils literal notranslate"><span class="pre">NormalizedAxis</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.OrthogonalDistanceToPore"><code class="docutils literal notranslate"><span class="pre">OrthogonalDistanceToPore</span></code></a></li>
 </ul>
@@ -1043,9 +1046,9 @@
 <span class="sd">                - a macrostate representing the product (P) as an integrated sum of microstates right of the ts</span>
 
 <span class="sd">            :param lims: list of 4 values [a,b,c,d] such that the reactant state minimum (r) should be within interval [a,b], the transition state maximum (ts) should be within interval [b,c] and the the product state minimum (p) should be within interval [c,d]. If b and c are both None, the transition state maximum is looked for in the entire range defined by [a,b] (which will fail if the transition state is only a local maximum but not the global maximum in that range). a can be specified as -np.inf and/or b can be specified as np.inf indicating no limits.</span>
-<span class="sd">            :type lims: list, optional, default=[-np.inf,None, None, np.inf]</span>
+<span class="sd">            :type lims: list[float], optional, default=[-np.inf,None, None, np.inf]</span>
 
-<span class="sd">            :param verbose: If True, increase logging verbosity</span>
+<span class="sd">            :param verbose: If True, increase verbosity and print thermodynamic state properties</span>
 <span class="sd">            :type verbose: bool, optional, default=False</span>
 
 <span class="sd">            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken)</span>

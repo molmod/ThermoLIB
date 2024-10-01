@@ -232,6 +232,8 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_thermo.html#module-thermolib.thermodynamics.cv">Collective variables – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.cv</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.Average"><code class="docutils literal notranslate"><span class="pre">Average</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.CenterOfMass"><code class="docutils literal notranslate"><span class="pre">CenterOfMass</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.CenterOfPosition"><code class="docutils literal notranslate"><span class="pre">CenterOfPosition</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.CoordinationNumber"><code class="docutils literal notranslate"><span class="pre">CoordinationNumber</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.Difference"><code class="docutils literal notranslate"><span class="pre">Difference</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.DistOrthProjOrig"><code class="docutils literal notranslate"><span class="pre">DistOrthProjOrig</span></code></a></li>
@@ -240,6 +242,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.DotProduct"><code class="docutils literal notranslate"><span class="pre">DotProduct</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.LinearCombination"><code class="docutils literal notranslate"><span class="pre">LinearCombination</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.Minimum"><code class="docutils literal notranslate"><span class="pre">Minimum</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.NormalToPlane"><code class="docutils literal notranslate"><span class="pre">NormalToPlane</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.NormalizedAxis"><code class="docutils literal notranslate"><span class="pre">NormalizedAxis</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.OrthogonalDistanceToPore"><code class="docutils literal notranslate"><span class="pre">OrthogonalDistanceToPore</span></code></a></li>
 </ul>
@@ -449,11 +452,11 @@ SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.058s
-  bias poten. : 00h 00m 00.005s
-  solve scf   : 00h 00m 00.707s
-  error est.  : 00h 00m 00.020s
-  TOTAL       : 00h 00m 00.791s
+  histograms  : 00h 00m 00.091s
+  bias poten. : 00h 00m 00.009s
+  solve scf   : 00h 00m 01.088s
+  error est.  : 00h 00m 00.151s
+  TOTAL       : 00h 00m 01.341s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -483,23 +486,6 @@ WARNING: multivariate normal sampling failed using Cholesky decomposition, switc
 WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
 WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
 WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu Sans.
-findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu Sans.
-findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu Sans.
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
 WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
 </pre></div></div>
 </div>
@@ -509,13 +495,16 @@ WARNING: multivariate normal sampling failed using Cholesky decomposition, switc
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
 findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu Sans.
+findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu Sans.
+findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu Sans.
+findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu Sans.
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_deprojection_14_4.png" src="../_images/tut_advanced_deprojection_14_4.png" />
+<img alt="../_images/tut_advanced_deprojection_14_2.png" src="../_images/tut_advanced_deprojection_14_2.png" />
 </div>
 </div>
 </section>
@@ -749,11 +738,11 @@ WARNING: Histogram of trajectory 127 should have total count of 10000 (=number o
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.064s
-  bias poten. : 00h 00m 01.032s
-  solve scf   : 00h 00m 05.074s
-  error est.  : 00h 00m 02.325s
-  TOTAL       : 00h 00m 08.496s
+  histograms  : 00h 00m 00.092s
+  bias poten. : 00h 00m 01.577s
+  solve scf   : 00h 00m 05.937s
+  error est.  : 00h 00m 03.157s
+  TOTAL       : 00h 00m 10.765s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -772,7 +761,7 @@ TIMING SUMMARY
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:1600: MatplotlibDeprecationWarning: The &#39;extend&#39; parameter to Colorbar has no effect because it is overridden by the mappable; it is deprecated since 3.3 and will be removed two minor releases later.
+/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:1901: MatplotlibDeprecationWarning: The &#39;extend&#39; parameter to Colorbar has no effect because it is overridden by the mappable; it is deprecated since 3.3 and will be removed two minor releases later.
   cbar = pp.colorbar(contourf, ax=ax, extend=&#39;both&#39;)
 </pre></div></div>
 </div>
@@ -942,11 +931,11 @@ Estimating error ...
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.072s
-  bias poten. : 00h 00m 01.050s
-  solve scf   : 00h 00m 04.948s
-  error est.  : 00h 00m 02.230s
-  TOTAL       : 00h 00m 08.301s
+  histograms  : 00h 00m 00.125s
+  bias poten. : 00h 00m 01.551s
+  solve scf   : 00h 00m 07.621s
+  error est.  : 00h 00m 02.689s
+  TOTAL       : 00h 00m 11.988s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -1001,7 +990,7 @@ WARNING: multivariate normal sampling failed using Cholesky decomposition, switc
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:1552: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:1853: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
   lower, upper = lower[slicer], upper[slicer]
 </pre></div></div>
 </div>
@@ -1033,7 +1022,7 @@ WARNING: multivariate normal sampling failed using Cholesky decomposition, switc
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:1552: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:1853: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
   lower, upper = lower[slicer], upper[slicer]
 </pre></div></div>
 </div>
@@ -1065,7 +1054,7 @@ WARNING: multivariate normal sampling failed using Cholesky decomposition, switc
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:1552: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:1853: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
   lower, upper = lower[slicer], upper[slicer]
 </pre></div></div>
 </div>
@@ -1097,7 +1086,7 @@ WARNING: multivariate normal sampling failed using Cholesky decomposition, switc
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:1552: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:1853: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
   lower, upper = lower[slicer], upper[slicer]
 </pre></div></div>
 </div>
@@ -1129,7 +1118,7 @@ WARNING: multivariate normal sampling failed using Cholesky decomposition, switc
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:1552: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:1853: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
   lower, upper = lower[slicer], upper[slicer]
 </pre></div></div>
 </div>
@@ -1207,11 +1196,11 @@ F(CV,U) &amp;= -k_B T logleft(P(CV,U)right) = F(CV) -k_BT logleft(P(U|CV)right)<
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/condprob.py:400: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/condprob.py:444: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
   xs = self.error.mean()[slicer]
-/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/condprob.py:412: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/condprob.py:456: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
   lower = self.error.nsigma_conf_int(2)[0][slicer]
-/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/condprob.py:413: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/condprob.py:457: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
   upper = self.error.nsigma_conf_int(2)[1][slicer]
 </pre></div></div>
 </div>
@@ -1234,7 +1223,7 @@ F(CV,U) &amp;= -k_B T logleft(P(CV,U)right) = F(CV) -k_BT logleft(P(U|CV)right)<
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fes2</span> <span class="o">=</span> <span class="n">condprob</span><span class="o">.</span><span class="n">deproject</span><span class="p">(</span><span class="n">fep</span><span class="p">,</span> <span class="n">cv_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">q_output_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">cv_label</span><span class="o">=</span><span class="s1">&#39;CV&#39;</span><span class="p">,</span> <span class="n">q_label</span><span class="o">=</span><span class="s1">&#39;U&#39;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fes2</span> <span class="o">=</span> <span class="n">condprob</span><span class="o">.</span><span class="n">deproject</span><span class="p">(</span><span class="n">fep</span><span class="p">)</span>
 <span class="n">fes2</span><span class="o">.</span><span class="n">set_ref</span><span class="p">(</span><span class="n">ref</span><span class="o">=</span><span class="s1">&#39;min&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1293,7 +1282,7 @@ WARNING: multivariate normal sampling failed using Cholesky decomposition, switc
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:1600: MatplotlibDeprecationWarning: The &#39;extend&#39; parameter to Colorbar has no effect because it is overridden by the mappable; it is deprecated since 3.3 and will be removed two minor releases later.
+/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:1901: MatplotlibDeprecationWarning: The &#39;extend&#39; parameter to Colorbar has no effect because it is overridden by the mappable; it is deprecated since 3.3 and will be removed two minor releases later.
   cbar = pp.colorbar(contourf, ax=ax, extend=&#39;both&#39;)
 </pre></div></div>
 </div>
@@ -1369,7 +1358,7 @@ WARNING: multivariate normal sampling failed using Cholesky decomposition, switc
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/condprob.py:397: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/condprob.py:441: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
   xs = self.pconds[slicer].copy()
 </pre></div></div>
 </div>

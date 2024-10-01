@@ -228,6 +228,8 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../rg_thermo.html#module-thermolib.thermodynamics.cv">Collective variables – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.cv</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../rg_thermo.html#thermolib.thermodynamics.cv.Average"><code class="docutils literal notranslate"><span class="pre">Average</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../rg_thermo.html#thermolib.thermodynamics.cv.CenterOfMass"><code class="docutils literal notranslate"><span class="pre">CenterOfMass</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../rg_thermo.html#thermolib.thermodynamics.cv.CenterOfPosition"><code class="docutils literal notranslate"><span class="pre">CenterOfPosition</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../rg_thermo.html#thermolib.thermodynamics.cv.CoordinationNumber"><code class="docutils literal notranslate"><span class="pre">CoordinationNumber</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../rg_thermo.html#thermolib.thermodynamics.cv.Difference"><code class="docutils literal notranslate"><span class="pre">Difference</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../rg_thermo.html#thermolib.thermodynamics.cv.DistOrthProjOrig"><code class="docutils literal notranslate"><span class="pre">DistOrthProjOrig</span></code></a></li>
@@ -236,6 +238,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../rg_thermo.html#thermolib.thermodynamics.cv.DotProduct"><code class="docutils literal notranslate"><span class="pre">DotProduct</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../rg_thermo.html#thermolib.thermodynamics.cv.LinearCombination"><code class="docutils literal notranslate"><span class="pre">LinearCombination</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../rg_thermo.html#thermolib.thermodynamics.cv.Minimum"><code class="docutils literal notranslate"><span class="pre">Minimum</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../rg_thermo.html#thermolib.thermodynamics.cv.NormalToPlane"><code class="docutils literal notranslate"><span class="pre">NormalToPlane</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../rg_thermo.html#thermolib.thermodynamics.cv.NormalizedAxis"><code class="docutils literal notranslate"><span class="pre">NormalizedAxis</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../rg_thermo.html#thermolib.thermodynamics.cv.OrthogonalDistanceToPore"><code class="docutils literal notranslate"><span class="pre">OrthogonalDistanceToPore</span></code></a></li>
 </ul>
@@ -1154,16 +1157,16 @@
 <span class="sd">        :param F: Fisher information matrix.</span>
 <span class="sd">        :type F: np.ndarray</span>
 
-<span class="sd">        :ps: Array of probabilities used to apply the threshold.</span>
+<span class="sd">        :param ps: Array of probabilities used to apply the threshold.</span>
 <span class="sd">        :type ps: np.ndarray</span>
 
-<span class="sd">        :threshold: Threshold value for removing columns and rows corresponding with a probability lower than the thresshold from the Fisher information matrix.</span>
+<span class="sd">        :param threshold: Threshold value for removing columns and rows corresponding with a probability lower than the threshold from the Fisher information matrix.</span>
 <span class="sd">        :type threshold: float, optional, default=0.0</span>
 
-<span class="sd">        :verbose: If `True`, print information about removed columns and rows.</span>
+<span class="sd">        :param verbose: If `True`, print information about removed columns and rows.</span>
 <span class="sd">        :type verbose: bool, optional, default=False</span>
 
-<span class="sd">        :return: Covariance matrix obtained by inverting the Fisher information matrix.</span>
+<span class="sd">        :returns: Covariance matrix obtained by inverting the Fisher information matrix.</span>
 <span class="sd">        :rtype: np.ndarray</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>

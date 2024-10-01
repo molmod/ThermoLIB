@@ -228,6 +228,8 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../rg_thermo.html#module-thermolib.thermodynamics.cv">Collective variables – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.cv</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.Average"><code class="docutils literal notranslate"><span class="pre">Average</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.CenterOfMass"><code class="docutils literal notranslate"><span class="pre">CenterOfMass</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.CenterOfPosition"><code class="docutils literal notranslate"><span class="pre">CenterOfPosition</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.CoordinationNumber"><code class="docutils literal notranslate"><span class="pre">CoordinationNumber</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.Difference"><code class="docutils literal notranslate"><span class="pre">Difference</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.DistOrthProjOrig"><code class="docutils literal notranslate"><span class="pre">DistOrthProjOrig</span></code></a></li>
@@ -236,6 +238,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.DotProduct"><code class="docutils literal notranslate"><span class="pre">DotProduct</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.LinearCombination"><code class="docutils literal notranslate"><span class="pre">LinearCombination</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.Minimum"><code class="docutils literal notranslate"><span class="pre">Minimum</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.NormalToPlane"><code class="docutils literal notranslate"><span class="pre">NormalToPlane</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.NormalizedAxis"><code class="docutils literal notranslate"><span class="pre">NormalizedAxis</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.OrthogonalDistanceToPore"><code class="docutils literal notranslate"><span class="pre">OrthogonalDistanceToPore</span></code></a></li>
 </ul>
@@ -358,9 +361,21 @@
 
 <span class="k">class</span> <span class="nc">CollectiveVariable</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Abstract class for definition of Collective Variable child classes that allow to compute a CV value from the coordinates of the molecular system.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
     <span class="nb">type</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.</span>
+<span class="sd">            :type name: str | None, optional, default=None</span>
+
+<span class="sd">            :param unit_cell_pars: Unit cell parameters that may be required to compute the CV value</span>
+<span class="sd">            :type unit_cell_pars: np.ndarray | None, optional, default=None</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
         <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_name</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
@@ -372,8 +387,16 @@
     <span class="k">def</span> <span class="nf">_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s1">&#39;CV&#39;</span>
     
-    <span class="k">def</span> <span class="nf">_unwrap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="s1">&#39;This routine will unwrap the PBC conditions around the given ref, i.e. make sure that for each r in coords, r-ref is the shortest vec&#39;</span>
+    <span class="k">def</span> <span class="nf">_unwrap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            This routine will unwrap the periodic boundary conditions around the given ref, i.e. make sure that for each r in coords, r-ref is the image with the smallest norm.</span>
+
+<span class="sd">            :param coords: coordinates that need to be unwrapped</span>
+<span class="sd">            :type coords: np.ndarray</span>
+
+<span class="sd">            :param ref: if not None, coords-ref will be unwrapped instead of coords</span>
+<span class="sd">            :type ref: np.ndarray | None, optional, default=None</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_cell</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">coords</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
@@ -387,13 +410,33 @@
             <span class="k">return</span> <span class="n">unwrapped</span>
     
     <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            This routine needs to be implemented in each child class</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
-<span class="k">class</span> <span class="nc">CenterOfMass</span><span class="p">(</span><span class="n">CollectiveVariable</span><span class="p">):</span>
+
+<div class="viewcode-block" id="CenterOfMass"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.CenterOfMass">[docs]</a><span class="k">class</span> <span class="nc">CenterOfMass</span><span class="p">(</span><span class="n">CollectiveVariable</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Class the implement the computation of the center of mass (COM) of a set of atoms defined by their atomic indices.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
 
     <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;vector&#39;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">masses</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            :param indices: indices of the atoms of which the COM needs to be computed</span>
+<span class="sd">            :type indices: list of integers</span>
+
+<span class="sd">            :param masses: masses of all atoms in the molecular system. The relevant atomic masses will then be extracted using the indices parameter.</span>
+<span class="sd">            :type masses: np.ndarray</span>
+
+<span class="sd">            :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.</span>
+<span class="sd">            :type name: str | None, optional, default=None</span>
+
+<span class="sd">            :param unit_cell_pars: Unit cell parameters that may be required to compute the CV value</span>
+<span class="sd">            :type unit_cell_pars: np.ndarray | None, optional, default=None</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">indices</span> <span class="o">=</span> <span class="n">indices</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">masses</span> <span class="o">=</span> <span class="n">masses</span>
         <span class="n">CollectiveVariable</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="n">unit_cell_pars</span><span class="p">)</span>
@@ -401,7 +444,19 @@
     <span class="k">def</span> <span class="nf">_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s1">&#39;COM(</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">]))</span>
     
-    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="CenterOfMass.compute"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.CenterOfMass.compute">[docs]</a>    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Compute CV value (and optionally its gradient) for given coordinates of the molecular system.</span>
+
+<span class="sd">            :param coords: atomic coordinates of each atom in the molecular system</span>
+<span class="sd">            :type coords: np.ndarray([Natoms,3])</span>
+
+<span class="sd">            :param deriv: if True, also compute and return the gradient of the CV towards all atomic coordinates</span>
+<span class="sd">            :type deriv: bool, optional, default=True</span>
+
+<span class="sd">            :return: CV value and potentially the gradient</span>
+<span class="sd">            :rtype: np.ndarray(3) or float,np.ndarray([3,Natoms,3])</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="c1">#unwrap coords of given indices with periodic boundary conditions if unit_cell is specified</span>
         <span class="n">rs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unwrap</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">])</span>
         <span class="c1">#Compute center of mass</span>
@@ -419,20 +474,47 @@
             <span class="k">return</span> <span class="n">com</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">grad</span> <span class="o">/=</span> <span class="n">mass</span>
-            <span class="k">return</span> <span class="n">com</span><span class="p">,</span> <span class="n">grad</span>
+            <span class="k">return</span> <span class="n">com</span><span class="p">,</span> <span class="n">grad</span></div></div>
 
-<span class="k">class</span> <span class="nc">CenterOfPosition</span><span class="p">(</span><span class="n">CollectiveVariable</span><span class="p">):</span>
+
+<div class="viewcode-block" id="CenterOfPosition"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.CenterOfPosition">[docs]</a><span class="k">class</span> <span class="nc">CenterOfPosition</span><span class="p">(</span><span class="n">CollectiveVariable</span><span class="p">):</span>
+
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Class the implement the computation of the center of positions of a set of atoms defined by their atomic indices.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
 
     <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;vector&#39;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            :param indices: indices of the atoms of which the COP needs to be computed</span>
+<span class="sd">            :type indices: list of integers</span>
+
+<span class="sd">            :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.</span>
+<span class="sd">            :type name: str | None, optional, default=None</span>
+
+<span class="sd">            :param unit_cell_pars: Unit cell parameters that may be required to compute the CV value</span>
+<span class="sd">            :type unit_cell_pars: np.ndarray | None, optional, default=None</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">indices</span> <span class="o">=</span> <span class="n">indices</span>
         <span class="n">CollectiveVariable</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="n">unit_cell_pars</span><span class="p">)</span>
     
     <span class="k">def</span> <span class="nf">_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s1">&#39;COP(</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">]))</span>
     
-    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="CenterOfPosition.compute"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.CenterOfPosition.compute">[docs]</a>    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Compute CV value (and optionally its gradient) for given coordinates of the molecular system.</span>
+
+<span class="sd">            :param coords: atomic coordinates of each atom in the molecular system</span>
+<span class="sd">            :type coords: np.ndarray([Natoms,3])</span>
+
+<span class="sd">            :param deriv: if True, also compute and return the gradient of the CV towards all atomic coordinates</span>
+<span class="sd">            :type deriv: bool, optional, default=True</span>
+
+<span class="sd">            :return: CV value and potentially the gradient</span>
+<span class="sd">            :rtype: np.ndarray(3) or float,np.ndarray([3,Natoms,3])</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="c1">#unwrap coords of given indices with periodic boundary conditions if unit_cell is specified</span>
         <span class="n">rs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unwrap</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">,:])</span>
         <span class="n">cop</span> <span class="o">=</span> <span class="n">rs</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
@@ -443,15 +525,39 @@
             <span class="n">grad</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">)</span>
             <span class="n">grad</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">)</span>
             <span class="n">grad</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">cop</span><span class="p">,</span> <span class="n">grad</span>
+            <span class="k">return</span> <span class="n">cop</span><span class="p">,</span> <span class="n">grad</span></div></div>
+
 
 <div class="viewcode-block" id="NormalizedAxis"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.NormalizedAxis">[docs]</a><span class="k">class</span> <span class="nc">NormalizedAxis</span><span class="p">(</span><span class="n">CollectiveVariable</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;Class to implement a vectorial CV that defines a normalized axis between two points, i.e. as the normalized difference of two input vectors.</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Class the implement the computation of the normalized axis between two points, i.e. as the normalized difference of two input vectors.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
     <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;vector&#39;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vec1</span><span class="p">,</span> <span class="n">vec2</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            :param vec1: first of two vectors defining the plane for which the normal needs to be computed</span>
+<span class="sd">            :type vec1: instance of child class of CollectiveVariable with type=&#39;vector&#39;</span>
+
+<span class="sd">            :param vec2: second of two vectors defining the plane for which the normal needs to be computed</span>
+<span class="sd">            :type vec2: instance of child class of CollectiveVariable with type=&#39;vector&#39;</span>
+
+<span class="sd">            :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.</span>
+<span class="sd">            :type name: str | None, optional, default=None</span>
+
+<span class="sd">            :param unit_cell_pars: Unit cell parameters that may be required to compute the CV value</span>
+<span class="sd">            :type unit_cell_pars: np.ndarray | None, optional, default=None</span>
+
+<span class="sd">            :raises AssertionError: if vec1 is not instance of (child of) CollectiveVariable</span>
+<span class="sd">            :raises AssertionError: if vec1.type is not &#39;vector&#39;</span>
+<span class="sd">            :raises AssertionError: if vec2 is not instance of (child of) CollectiveVariable</span>
+<span class="sd">            :raises AssertionError: if vec2.type is not &#39;vector&#39;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">vec1</span><span class="p">,</span> <span class="n">CollectiveVariable</span><span class="p">),</span> <span class="s1">&#39;input argument vec1 should be an instance of CollectiveVariable&#39;</span>
+        <span class="k">assert</span> <span class="n">vec1</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;vector&#39;</span><span class="p">,</span> <span class="s1">&#39;input argument vec1 should be an instance of CollectiveVariable with type vector&#39;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">vec2</span><span class="p">,</span> <span class="n">CollectiveVariable</span><span class="p">),</span> <span class="s1">&#39;input argument vec2 should be an instance of CollectiveVariable&#39;</span>
+        <span class="k">assert</span> <span class="n">vec2</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;vector&#39;</span><span class="p">,</span> <span class="s1">&#39;input argument vec2 should be an instance of CollectiveVariable with type vector&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">vec1</span> <span class="o">=</span> <span class="n">vec1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">vec2</span> <span class="o">=</span> <span class="n">vec2</span>
         <span class="n">CollectiveVariable</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="n">unit_cell_pars</span><span class="p">)</span>
@@ -459,7 +565,19 @@
     <span class="k">def</span> <span class="nf">_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s1">&#39;NormalAxis(</span><span class="si">%s</span><span class="s1">,</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vec1</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vec2</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
     
-    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="NormalizedAxis.compute"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.NormalizedAxis.compute">[docs]</a>    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Compute CV value (and optionally its gradient) for given coordinates of the molecular system.</span>
+
+<span class="sd">            :param coords: atomic coordinates of each atom in the molecular system</span>
+<span class="sd">            :type coords: np.ndarray([Natoms,3])</span>
+
+<span class="sd">            :param deriv: if True, also compute and return the gradient of the CV towards all atomic coordinates</span>
+<span class="sd">            :type deriv: bool, optional, default=True</span>
+
+<span class="sd">            :return: CV value and potentially the gradient</span>
+<span class="sd">            :rtype: np.ndarray(3) or float,np.ndarray([3,Natoms,3])</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">deriv</span><span class="p">:</span>
             <span class="n">v1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vec1</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="n">v2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vec2</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_unwrap</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="n">v1</span><span class="p">),</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -470,22 +588,47 @@
             <span class="n">v2</span><span class="p">,</span> <span class="n">grad2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vec2</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_unwrap</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="n">v1</span><span class="p">),</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">v2</span><span class="o">-</span><span class="n">v1</span><span class="p">)</span>
             <span class="n">tmp</span> <span class="o">=</span> <span class="n">grad2</span> <span class="o">-</span> <span class="n">grad1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;a,bic,b-&gt;aic&#39;</span><span class="p">,</span><span class="n">v2</span><span class="o">-</span><span class="n">v1</span><span class="p">,</span> <span class="n">grad2</span><span class="o">-</span><span class="n">grad1</span><span class="p">,</span><span class="n">v2</span><span class="o">-</span><span class="n">v1</span><span class="p">)</span><span class="o">/</span><span class="n">norm</span><span class="o">**</span><span class="mi">2</span>
-            <span class="k">return</span> <span class="p">(</span><span class="n">v2</span><span class="o">-</span><span class="n">v1</span><span class="p">)</span><span class="o">/</span><span class="n">norm</span><span class="p">,</span> <span class="n">tmp</span><span class="o">/</span><span class="n">norm</span></div>
+            <span class="k">return</span> <span class="p">(</span><span class="n">v2</span><span class="o">-</span><span class="n">v1</span><span class="p">)</span><span class="o">/</span><span class="n">norm</span><span class="p">,</span> <span class="n">tmp</span><span class="o">/</span><span class="n">norm</span></div></div>
 
-<span class="k">class</span> <span class="nc">NormalToPlane</span><span class="p">(</span><span class="n">CollectiveVariable</span><span class="p">):</span>
-    
+
+<div class="viewcode-block" id="NormalToPlane"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.NormalToPlane">[docs]</a><span class="k">class</span> <span class="nc">NormalToPlane</span><span class="p">(</span><span class="n">CollectiveVariable</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Class the implement the computation of the normal to a plane defined by a set of atoms that are assumed to be orderd at the cornerpoints of a regular n-fold polygon</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
     <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;vector&#39;</span>
     
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            :param indices: indices of the atoms in the plane for which the normal needs to be computed</span>
+<span class="sd">            :type indices: list of integers</span>
+
+<span class="sd">            :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.</span>
+<span class="sd">            :type name: str or None, optional, default=None</span>
+
+<span class="sd">            :param unit_cell_pars: Unit cell parameters that may be required to compute the CV value</span>
+<span class="sd">            :type unit_cell_pars: np.ndarray or None, optional, default=None</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">indices</span> <span class="o">=</span> <span class="n">indices</span>
         <span class="n">CollectiveVariable</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="n">unit_cell_pars</span><span class="p">)</span>
     
     <span class="k">def</span> <span class="nf">_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s1">&#39;NormalToPlane(</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">]))</span>
 
-    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="c1">#this routine to compute the normal to the ring plane assumes that the n atoms that constitute</span>
-        <span class="c1">#the ring are ordered and at the cornerpoints of a regular n-fold polygon.</span>
+<div class="viewcode-block" id="NormalToPlane.compute"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.NormalToPlane.compute">[docs]</a>    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Compute the normal to the ring plane (and optionally the gradient) for the given atomic coordinates. Calculations assumes that the n atoms that constitute the ring are orderd at the cornerpoints of a regular n-fold polygon</span>
+
+<span class="sd">            :param coords: atomic coordinates of each atom in the molecular system</span>
+<span class="sd">            :type coords: np.ndarray([Natoms,3])</span>
+
+<span class="sd">            :param deriv: if True, also compute and return the gradient of the CV towards all atomic coordinates</span>
+<span class="sd">            :type deriv: bool, optional, default=True</span>
+
+<span class="sd">            :return: CV value and potentially the gradient</span>
+<span class="sd">            :rtype: np.ndarray(3) or float,np.ndarray([3,Natoms,3])</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">theta</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">)</span>
         <span class="c1">#unwrap ring coords with periodic boundary conditions if unit_cell is specified</span>
         <span class="n">rs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unwrap</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">,:])</span>
@@ -509,16 +652,35 @@
                     <span class="n">e_alpha</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
                     <span class="n">e_alpha</span><span class="p">[</span><span class="n">alpha</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
                     <span class="n">grad</span><span class="p">[:,</span> <span class="n">index</span><span class="p">,</span> <span class="n">alpha</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">cosi</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">e_alpha</span><span class="p">,</span><span class="n">R2</span><span class="p">)</span><span class="o">+</span><span class="n">sini</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">R1</span><span class="p">,</span><span class="n">e_alpha</span><span class="p">))</span>
-            <span class="k">return</span> <span class="n">normal</span><span class="p">,</span> <span class="n">grad</span>
+            <span class="k">return</span> <span class="n">normal</span><span class="p">,</span> <span class="n">grad</span></div></div>
+
 
 <div class="viewcode-block" id="DotProduct"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.DotProduct">[docs]</a><span class="k">class</span> <span class="nc">DotProduct</span><span class="p">(</span><span class="n">CollectiveVariable</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    Class to implement a collective variable that is the dot product of two given vectors</span>
+<span class="sd">        Class to implement a collective variable that is the dot product of two given vectors</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
     <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;scalar&#39;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vec1</span><span class="p">,</span> <span class="n">vec2</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            :param vec1: first of two vectors defining the plane for which the normal needs to be computed</span>
+<span class="sd">            :type vec1: instance of child class of CollectiveVariable with type=&#39;vector&#39;</span>
+
+<span class="sd">            :param vec2: second of two vectors defining the plane for which the normal needs to be computed</span>
+<span class="sd">            :type vec2: instance of child class of CollectiveVariable with type=&#39;vector&#39;</span>
+
+<span class="sd">            :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.</span>
+<span class="sd">            :type name: str or None, optional, default=None</span>
+
+<span class="sd">            :param unit_cell_pars: Unit cell parameters that may be required to compute the CV value</span>
+<span class="sd">            :type unit_cell_pars: np.ndarray or None, optional, default=None</span>
+
+<span class="sd">            :raises AssertionError: if vec1 is not instance of (child of) CollectiveVariable</span>
+<span class="sd">            :raises AssertionError: if vec1.type is not &#39;vector&#39;</span>
+<span class="sd">            :raises AssertionError: if vec2 is not instance of (child of) CollectiveVariable</span>
+<span class="sd">            :raises AssertionError: if vec2.type is not &#39;vector&#39;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">vec1</span><span class="p">,</span> <span class="n">CollectiveVariable</span><span class="p">)</span> <span class="ow">and</span> <span class="n">vec1</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;vector&#39;</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">vec2</span><span class="p">,</span> <span class="n">CollectiveVariable</span><span class="p">)</span> <span class="ow">and</span> <span class="n">vec2</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;vector&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">vec1</span> <span class="o">=</span> <span class="n">vec1</span>
@@ -528,7 +690,19 @@
     <span class="k">def</span> <span class="nf">_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s1">&#39;Dot(</span><span class="si">%s</span><span class="s1">,</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vec1</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vec2</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
     
-    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="DotProduct.compute"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.DotProduct.compute">[docs]</a>    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Compute the dot product (and optionally gradient) of the two vectors for the given atomic coordinates</span>
+
+<span class="sd">            :param coords: atomic coordinates of each atom in the molecular system</span>
+<span class="sd">            :type coords: np.ndarray([Natoms,3])</span>
+
+<span class="sd">            :param deriv: if True, also compute and return the gradient of the CV towards all atomic coordinates</span>
+<span class="sd">            :type deriv: bool, optional, default=True</span>
+
+<span class="sd">            :return: CV value and potentially the gradient</span>
+<span class="sd">            :rtype: np.ndarray(3) or float,np.ndarray([3,Natoms,3])</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">deriv</span><span class="p">:</span>
             <span class="n">v1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vec1</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="n">v2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vec2</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -538,17 +712,30 @@
             <span class="n">v2</span><span class="p">,</span> <span class="n">grad2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vec2</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">cv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span><span class="n">v2</span><span class="p">)</span>
             <span class="n">grad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ikl,i-&gt;kl&#39;</span><span class="p">,</span> <span class="n">grad1</span><span class="p">,</span> <span class="n">v2</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;i,ikl-&gt;kl&#39;</span><span class="p">,</span> <span class="n">v1</span><span class="p">,</span> <span class="n">grad2</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">cv</span><span class="p">,</span> <span class="n">grad</span></div>
+            <span class="k">return</span> <span class="n">cv</span><span class="p">,</span> <span class="n">grad</span></div></div>
+
 
 <div class="viewcode-block" id="Distance"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.Distance">[docs]</a><span class="k">class</span> <span class="nc">Distance</span><span class="p">(</span><span class="n">CollectiveVariable</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Class to implement a collective variable representing the distance</span>
-<span class="sd">        between two atoms given by index1 and index2.</span>
+<span class="sd">        Class to implement a collective variable representing the distance between two atoms given by index1 and index2.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     
     <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;scalar&#39;</span>
     
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index1</span><span class="p">,</span> <span class="n">index2</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            :param index1: index of the first atom</span>
+<span class="sd">            :type indices: int</span>
+
+<span class="sd">            :param index2: index of the second atom</span>
+<span class="sd">            :type indices: int</span>
+
+<span class="sd">            :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.</span>
+<span class="sd">            :type name: str or None, optional, default=None</span>
+
+<span class="sd">            :param unit_cell_pars: Unit cell parameters that may be required to compute the CV value</span>
+<span class="sd">            :type unit_cell_pars: np.ndarray or None, optional, default=None</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">i1</span> <span class="o">=</span> <span class="n">index1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">i2</span> <span class="o">=</span> <span class="n">index2</span>
         <span class="n">CollectiveVariable</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="n">unit_cell_pars</span><span class="p">)</span>
@@ -558,9 +745,16 @@
 
 <div class="viewcode-block" id="Distance.compute"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.Distance.compute">[docs]</a>    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">            Compute the value of the collective variable given the coordinates.</span>
-<span class="sd">            If deriv is set to True, also compute and return the analytical</span>
-<span class="sd">            derivative of Q towards the cartesian coordinates.</span>
+<span class="sd">            Compute the distance (and optionally gradient) between the two atoms for the given atomic coordinates</span>
+
+<span class="sd">            :param coords: atomic coordinates of each atom in the molecular system</span>
+<span class="sd">            :type coords: np.ndarray([Natoms,3])</span>
+
+<span class="sd">            :param deriv: if True, also compute and return the gradient of the CV towards all atomic coordinates</span>
+<span class="sd">            :type deriv: bool, optional, default=True</span>
+
+<span class="sd">            :return: CV value and potentially the gradient</span>
+<span class="sd">            :rtype: np.ndarray(3) or float,np.ndarray([3,Natoms,3])</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="c1">#computation of value</span>
         <span class="n">r1</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">i1</span><span class="p">,:]</span>
@@ -577,16 +771,31 @@
         <span class="n">grad</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">i2</span><span class="p">,:]</span> <span class="o">+=</span> <span class="n">r</span><span class="o">/</span><span class="n">value</span>
         <span class="k">return</span> <span class="n">value</span><span class="p">,</span> <span class="n">grad</span></div></div>
 
+
 <div class="viewcode-block" id="DistanceCOP"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.DistanceCOP">[docs]</a><span class="k">class</span> <span class="nc">DistanceCOP</span><span class="p">(</span><span class="n">CollectiveVariable</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Class to implement a collective variable representing the distance</span>
-<span class="sd">        between an atom (index1) and the center of position (i.e. the geometric</span>
-<span class="sd">        center) of two other atoms (index2a and index2b).</span>
+<span class="sd">        Class to implement a collective variable representing the distance between a first atom (index1) and the center of position (i.e. the geometric center) of two other atoms (index2a and index2b).</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     
     <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;scalar&#39;</span>
     
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index1</span><span class="p">,</span> <span class="n">index2a</span><span class="p">,</span> <span class="n">index2b</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            :param index1: index of the first atom</span>
+<span class="sd">            :type indices: int</span>
+
+<span class="sd">            :param index2a: index of the other atom a</span>
+<span class="sd">            :type indices: int</span>
+
+<span class="sd">            :param index2b: index of the other atom b</span>
+<span class="sd">            :type indices: int</span>
+
+<span class="sd">            :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.</span>
+<span class="sd">            :type name: str or None, optional, default=None</span>
+
+<span class="sd">            :param unit_cell_pars: Unit cell parameters that may be required to compute the CV value</span>
+<span class="sd">            :type unit_cell_pars: np.ndarray or None, optional, default=None</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">i1</span>  <span class="o">=</span> <span class="n">index1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">i2a</span> <span class="o">=</span> <span class="n">index2a</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">i2b</span> <span class="o">=</span> <span class="n">index2b</span>
@@ -595,7 +804,19 @@
     <span class="k">def</span> <span class="nf">_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s1">&#39;DistanceCOP(</span><span class="si">%i</span><span class="s1">,</span><span class="si">%i</span><span class="s1">,</span><span class="si">%i</span><span class="s1">)&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">i1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">i2a</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">i2b</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="DistanceCOP.compute"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.DistanceCOP.compute">[docs]</a>    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Compute the COP distance (and optionally gradient) between the atoms for the given atomic coordinates</span>
+
+<span class="sd">            :param coords: atomic coordinates of each atom in the molecular system</span>
+<span class="sd">            :type coords: np.ndarray([Natoms,3])</span>
+
+<span class="sd">            :param deriv: if True, also compute and return the gradient of the CV towards all atomic coordinates</span>
+<span class="sd">            :type deriv: bool, optional, default=True</span>
+
+<span class="sd">            :return: CV value and potentially the gradient</span>
+<span class="sd">            :rtype: np.ndarray(3) or float,np.ndarray([3,Natoms,3])</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="c1">#computation of value</span>
         <span class="n">r1</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">i1</span><span class="p">,:]</span>
         <span class="n">com</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">i2a</span><span class="p">,:]</span><span class="o">+</span><span class="n">coords</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">i2b</span><span class="p">,:])</span>
@@ -610,29 +831,46 @@
         <span class="n">grad</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">i1</span> <span class="p">,:]</span> <span class="o">+=</span> <span class="n">r</span><span class="o">/</span><span class="n">value</span>
         <span class="n">grad</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">i2a</span><span class="p">,:]</span> <span class="o">+=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="n">r</span><span class="o">/</span><span class="n">value</span>
         <span class="n">grad</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">i2b</span><span class="p">,:]</span> <span class="o">+=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="n">r</span><span class="o">/</span><span class="n">value</span>
-        <span class="k">return</span> <span class="n">value</span><span class="p">,</span> <span class="n">grad</span></div>
+        <span class="k">return</span> <span class="n">value</span><span class="p">,</span> <span class="n">grad</span></div></div>
+
 
 <div class="viewcode-block" id="CoordinationNumber"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.CoordinationNumber">[docs]</a><span class="k">class</span> <span class="nc">CoordinationNumber</span><span class="p">(</span><span class="n">CollectiveVariable</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Class to implement a collective variable representing the coordination</span>
-<span class="sd">        number of a certain atom pair or a set of atom pairs. If n atom pairs</span>
-<span class="sd">        are defined, the coordination number should be a number between 0 and n.</span>
+<span class="sd">        Class to implement a collective variable representing the coordination number of a certain atom pair or a set of atom pairs. If :math:`n` atom pairs are defined, the coordination number should be a number between :math:`0` and :math:`n`.</span>
 
-<span class="sd">            CN = sum( (1-x_ij^nn)/(1-x_ij^nd), ij in pairs)</span>
+<span class="sd">        .. math::</span>
+<span class="sd">        </span>
+<span class="sd">            CN &amp;= \\sum_{ij \\in pairs} \\frac{1-\\left(\\frac{r_{ij}}{r_0}\\right)^{nn}}{1-\\left(\\frac{r_{ij}}{r_0}\\right)^{nd}}</span>
 
-<span class="sd">        with</span>
-
-<span class="sd">            x_ij = r_ij/r0</span>
-
-<span class="sd">        in which r_ij is the distance between the atoms of pair ij, r0 is a</span>
-<span class="sd">        reference distance set to 2 angstrom by default but can ge defined by</span>
-<span class="sd">        the user and nn and nd are integers that are set to 6,12 by default but</span>
-<span class="sd">        can also be defined by the user.</span>
+<span class="sd">        in which </span>
+<span class="sd">        </span>
+<span class="sd">        - :math:`r_{ij}` is the distance between atom i an atom j as defined in pair (i,j) present in pairs</span>
+<span class="sd">        - :math:`r_0` is a reference distance for the bond between two atoms set to 2 angstrom by default but can be defined in the keyword arguments by the user</span>
+<span class="sd">        - :math:`nn` and :math:`nd` are integers that are set to 6 and 12 respectively by default but can also be defined in the keyword arguments by the user</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     
     <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;scalar&#39;</span>
     
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pairs</span><span class="p">,</span> <span class="n">r0</span><span class="o">=</span><span class="mf">2.0</span><span class="o">*</span><span class="n">angstrom</span><span class="p">,</span> <span class="n">nn</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">nd</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            :param pairs: pairs of atoms between which the coordination number needs to be computed</span>
+<span class="sd">            :type pairs: list tuples</span>
+
+<span class="sd">            :param r0: reference index for a chemical bond used in the definition of the coordination number</span>
+<span class="sd">            :type r0: float, optional, default=2*angstrom</span>
+
+<span class="sd">            :param nn: power coefficient used in the nominator in the definition of the coordination number</span>
+<span class="sd">            :type nn: int, optional, default=6</span>
+
+<span class="sd">            :param nd: power coefficient used in the denominator in the definition of the coordination number</span>
+<span class="sd">            :type nd: int, optional, default=12</span>
+
+<span class="sd">            :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.</span>
+<span class="sd">            :type name: str or None, optional, default=None</span>
+
+<span class="sd">            :param unit_cell_pars: Unit cell parameters that may be required to compute the CV value</span>
+<span class="sd">            :type unit_cell_pars: np.ndarray or None, optional, default=None</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pairs</span> <span class="o">=</span> <span class="n">pairs</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">r0</span> <span class="o">=</span> <span class="n">r0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nn</span> <span class="o">=</span> <span class="n">nn</span>
@@ -642,7 +880,19 @@
     <span class="k">def</span> <span class="nf">_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s1">&#39;CoordinationNumber([&#39;</span> <span class="o">+</span> <span class="s1">&#39; , &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;(</span><span class="si">%i</span><span class="s1">,</span><span class="si">%i</span><span class="s1">)&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pairs</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;])&#39;</span>
 
-    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="CoordinationNumber.compute"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.CoordinationNumber.compute">[docs]</a>    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Compute the coordination number (and optionally gradient) between the atom pairs for the given atomic coordinates</span>
+
+<span class="sd">            :param coords: atomic coordinates of each atom in the molecular system</span>
+<span class="sd">            :type coords: np.ndarray([Natoms,3])</span>
+
+<span class="sd">            :param deriv: if True, also compute and return the gradient of the CV towards all atomic coordinates</span>
+<span class="sd">            :type deriv: bool, optional, default=True</span>
+
+<span class="sd">            :return: CV value and potentially the gradient</span>
+<span class="sd">            :rtype: np.ndarray(3) or float,np.ndarray([3,Natoms,3])</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">value</span> <span class="o">=</span> <span class="mf">0.0</span>
         <span class="n">grad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">coords</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pairs</span><span class="p">:</span>
@@ -664,20 +914,33 @@
         <span class="k">if</span> <span class="n">deriv</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">value</span><span class="p">,</span> <span class="n">grad</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">value</span></div>
+            <span class="k">return</span> <span class="n">value</span></div></div>
+
 
 <div class="viewcode-block" id="OrthogonalDistanceToPore"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.OrthogonalDistanceToPore">[docs]</a><span class="k">class</span> <span class="nc">OrthogonalDistanceToPore</span><span class="p">(</span><span class="n">DotProduct</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Class to implement a collective variable that represents the orthogonal</span>
-<span class="sd">        distance between the center of mass of a guest molecule defined by its</span>
-<span class="sd">        atom indices (guest_indices) on the one hand, and a pore ring defined</span>
-<span class="sd">        by the atom indices of its constituting atoms (ring_indices) on the</span>
-<span class="sd">        other hand.</span>
+<span class="sd">        Class to implement a collective variable that represents the orthogonal distance between the center of mass of a guest molecule defined by its atom indices (guest_indices) on the one hand, and a pore ring defined by the atom indices of its constituting atoms (ring_indices) on the other hand.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     
     <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;scalar&#39;</span>
     
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ring_indices</span><span class="p">,</span> <span class="n">guest_indices</span><span class="p">,</span> <span class="n">masses</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            :param ring_indices: atomic indices of the ring</span>
+<span class="sd">            :type ring_indices: list of integers</span>
+
+<span class="sd">            :param guest_indices: atomic indices of the guest</span>
+<span class="sd">            :type guest_indices: list of integers</span>
+
+<span class="sd">            :param masses: masses of all atoms in the molecular system. The relevant atomic masses of the guest atoms will then be extracted using the guest_indices parameter.</span>
+<span class="sd">            :type masses: np.ndarray</span>
+
+<span class="sd">            :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.</span>
+<span class="sd">            :type name: str | None, optional, default=None</span>
+
+<span class="sd">            :param unit_cell_pars: Unit cell parameters that may be required to compute the CV value</span>
+<span class="sd">            :type unit_cell_pars: np.ndarray | None, optional, default=None</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">guest_indices</span> <span class="o">=</span> <span class="n">guest_indices</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ring_indices</span> <span class="o">=</span> <span class="n">ring_indices</span>
         <span class="n">com</span>  <span class="o">=</span> <span class="n">CenterOfMass</span><span class="p">(</span><span class="n">guest_indices</span><span class="p">,</span> <span class="n">masses</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="n">unit_cell_pars</span><span class="p">)</span>
@@ -688,13 +951,16 @@
     
     <span class="k">def</span> <span class="nf">_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s1">&#39;OrthogonalDistanceToPore(ring=[</span><span class="si">%s</span><span class="s1">],guest=[</span><span class="si">%s</span><span class="s1">])&#39;</span> <span class="o">%</span><span class="p">(</span>
-            <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ring_indices</span><span class="p">]),</span> 
+            <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ring_indices</span><span class="p">]),</span>
             <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">guest_indices</span><span class="p">])</span>
         <span class="p">)</span></div>
 
+
 <span class="k">class</span> <span class="nc">OrthogonalDistanceToPore_depricated</span><span class="p">(</span><span class="n">CollectiveVariable</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Old implementation of OrthogonalDistanceToPore, is depricated and will be removed soon</span>
+<span class="sd">        .. depricated:: 1.7</span>
+<span class="sd">        </span>
+<span class="sd">            This is an old implementation of OrthogonalDistanceToPore and will be removed soon.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     
     <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;scalar&#39;</span>
@@ -732,17 +998,30 @@
             <span class="n">grad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;bia,b-&gt;ia&#39;</span><span class="p">,</span> <span class="n">grad_com</span><span class="o">-</span><span class="n">grad_cop</span><span class="p">,</span> <span class="n">norm</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;b,bia-&gt;ia&#39;</span><span class="p">,</span> <span class="n">com</span><span class="o">-</span><span class="n">cop</span><span class="p">,</span> <span class="n">grad_norm</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">cv</span><span class="p">,</span> <span class="n">grad</span>
 
+
 <div class="viewcode-block" id="Average"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.Average">[docs]</a><span class="k">class</span> <span class="nc">Average</span><span class="p">(</span><span class="n">CollectiveVariable</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Class to implement a collective variable representing the average of two</span>
-<span class="sd">        other collective variables:</span>
+<span class="sd">        Class to implement a collective variable representing the average of two other collective variables as</span>
 
-<span class="sd">            CV = 0.5*(CV1 + CV2)</span>
+<span class="sd">        .. math:: CV &amp;= \\frac{CV_1 + CV_2}{2}</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     
     <span class="nb">type</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1">#depends on type of argument cvs</span>
     
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cv1</span><span class="p">,</span> <span class="n">cv2</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            :param cv1: first collective variable in the average</span>
+<span class="sd">            :type cv1: any child class of :py:class:`CollectiveVariable &lt;thermolib.thermodynamics.cv.CollectiveVariable&gt;`</span>
+
+<span class="sd">            :param cv2: second collective variable in the average</span>
+<span class="sd">            :type cv2: any child class of :py:class:`CollectiveVariable &lt;thermolib.thermodynamics.cv.CollectiveVariable&gt;`</span>
+
+<span class="sd">            :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.</span>
+<span class="sd">            :type name: str | None, optional, default=None</span>
+
+<span class="sd">            :param unit_cell_pars: Unit cell parameters that may be required to compute the CV value</span>
+<span class="sd">            :type unit_cell_pars: np.ndarray | None, optional, default=None</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">assert</span> <span class="n">cv1</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="n">cv2</span><span class="o">.</span><span class="n">type</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">cv1</span><span class="o">.</span><span class="n">type</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cv1</span> <span class="o">=</span> <span class="n">cv1</span>
@@ -752,8 +1031,19 @@
     <span class="k">def</span> <span class="nf">_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s1">&#39;0.5*(</span><span class="si">%s</span><span class="s1">+</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cv1</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv2</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="c1">#computation of value</span>
+<div class="viewcode-block" id="Average.compute"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.Average.compute">[docs]</a>    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Compute the average (and optionally gradient) of the two CVs for the given atomic coordinates</span>
+
+<span class="sd">            :param coords: atomic coordinates of each atom in the molecular system</span>
+<span class="sd">            :type coords: np.ndarray([Natoms,3])</span>
+
+<span class="sd">            :param deriv: if True, also compute and return the gradient of the CV towards all atomic coordinates</span>
+<span class="sd">            :type deriv: bool, optional, default=True</span>
+
+<span class="sd">            :return: CV value and potentially the gradient</span>
+<span class="sd">            :rtype: np.ndarray(3) or float,np.ndarray([3,Natoms,3])</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">deriv</span><span class="p">:</span>
             <span class="n">cv1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv1</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="n">cv2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv2</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -763,19 +1053,32 @@
             <span class="n">cv2</span><span class="p">,</span> <span class="n">grad2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv2</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">value</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">cv1</span><span class="o">+</span><span class="n">cv2</span><span class="p">)</span>
             <span class="n">grad</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">grad1</span> <span class="o">+</span> <span class="n">grad2</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">value</span><span class="p">,</span> <span class="n">grad</span></div>
+        <span class="k">return</span> <span class="n">value</span><span class="p">,</span> <span class="n">grad</span></div></div>
+
 
 <div class="viewcode-block" id="Difference"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.Difference">[docs]</a><span class="k">class</span> <span class="nc">Difference</span><span class="p">(</span><span class="n">CollectiveVariable</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Class to implement a collective variable representing the difference</span>
-<span class="sd">        between two other collective variables:</span>
+<span class="sd">        Class to implement a collective variable representing the difference between two other collective variables:</span>
 
-<span class="sd">            CV = CV2 - CV1</span>
+<span class="sd">        .. math:: CV &amp;= CV_2 - CV_1</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     
     <span class="nb">type</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1">#depends on type of argument cvs</span>
     
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cv1</span><span class="p">,</span> <span class="n">cv2</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            :param cv1: first collective variable in the difference</span>
+<span class="sd">            :type cv1: any child class of :py:class:`CollectiveVariable &lt;thermolib.thermodynamics.cv.CollectiveVariable&gt;`</span>
+
+<span class="sd">            :param cv2: second collective variable in the difference</span>
+<span class="sd">            :type cv2: any child class of :py:class:`CollectiveVariable &lt;thermolib.thermodynamics.cv.CollectiveVariable&gt;`</span>
+
+<span class="sd">            :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.</span>
+<span class="sd">            :type name: str | None, optional, default=None</span>
+
+<span class="sd">            :param unit_cell_pars: Unit cell parameters that may be required to compute the CV value</span>
+<span class="sd">            :type unit_cell_pars: np.ndarray | None, optional, default=None</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">assert</span> <span class="n">cv1</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="n">cv2</span><span class="o">.</span><span class="n">type</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">cv1</span><span class="o">.</span><span class="n">type</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cv1</span> <span class="o">=</span> <span class="n">cv1</span>
@@ -785,8 +1088,19 @@
     <span class="k">def</span> <span class="nf">_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s1">&#39;Diff(</span><span class="si">%s</span><span class="s1">,</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cv2</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv1</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="c1">#computation of value</span>
+<div class="viewcode-block" id="Difference.compute"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.Difference.compute">[docs]</a>    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Compute the difference (and optionally gradient) between the two CVs for the given atomic coordinates</span>
+
+<span class="sd">            :param coords: atomic coordinates of each atom in the molecular system</span>
+<span class="sd">            :type coords: np.ndarray([Natoms,3])</span>
+
+<span class="sd">            :param deriv: if True, also compute and return the gradient of the CV towards all atomic coordinates</span>
+<span class="sd">            :type deriv: bool, optional, default=True</span>
+
+<span class="sd">            :return: CV value and potentially the gradient</span>
+<span class="sd">            :rtype: np.ndarray(3) or float,np.ndarray([3,Natoms,3])</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">deriv</span><span class="p">:</span>
             <span class="n">cv1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv1</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="n">cv2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv2</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -796,28 +1110,52 @@
             <span class="n">cv2</span><span class="p">,</span> <span class="n">grad2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv2</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">value</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">-</span><span class="n">cv1</span>
             <span class="n">grad</span> <span class="o">=</span> <span class="n">grad2</span> <span class="o">-</span> <span class="n">grad1</span>
-        <span class="k">return</span> <span class="n">value</span><span class="p">,</span> <span class="n">grad</span></div>
+        <span class="k">return</span> <span class="n">value</span><span class="p">,</span> <span class="n">grad</span></div></div>
+
 
 <div class="viewcode-block" id="Minimum"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.Minimum">[docs]</a><span class="k">class</span> <span class="nc">Minimum</span><span class="p">(</span><span class="n">CollectiveVariable</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Class to implement a collective variable representing the minimum of two</span>
-<span class="sd">        other collective variables:</span>
+<span class="sd">        Class to implement a collective variable representing the minimum of two other collective variables:</span>
 
-<span class="sd">            CV = min(CV1,CV2)</span>
+<span class="sd">        .. math:: CV &amp;= \\min\\left(CV_1,CV_2\\right)</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     
     <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;scalar&#39;</span>
     
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cv1</span><span class="p">,</span> <span class="n">cv2</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cv1</span><span class="p">,</span> <span class="n">cv2</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            :param cv1: first collective variable in the minimum</span>
+<span class="sd">            :type cv1: any child class of :py:class:`CollectiveVariable &lt;thermolib.thermodynamics.cv.CollectiveVariable&gt;`</span>
+
+<span class="sd">            :param cv2: second collective variable in the minimum</span>
+<span class="sd">            :type cv2: any child class of :py:class:`CollectiveVariable &lt;thermolib.thermodynamics.cv.CollectiveVariable&gt;`</span>
+
+<span class="sd">            :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.</span>
+<span class="sd">            :type name: str | None, optional, default=None</span>
+
+<span class="sd">            :param unit_cell_pars: Unit cell parameters that may be required to compute the CV value</span>
+<span class="sd">            :type unit_cell_pars: np.ndarray | None, optional, default=None</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cv1</span> <span class="o">=</span> <span class="n">cv1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cv2</span> <span class="o">=</span> <span class="n">cv2</span>
-        <span class="n">CollectiveVariable</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">CollectiveVariable</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="n">unit_cell_pars</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s1">&#39;Min(</span><span class="si">%s</span><span class="s1">,</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cv1</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv2</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="c1">#computation of value</span>
+<div class="viewcode-block" id="Minimum.compute"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.Minimum.compute">[docs]</a>    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Compute the minimum (and optionally gradient) of the two CVs for the given atomic coordinates</span>
+
+<span class="sd">            :param coords: atomic coordinates of each atom in the molecular system</span>
+<span class="sd">            :type coords: np.ndarray([Natoms,3])</span>
+
+<span class="sd">            :param deriv: if True, also compute and return the gradient of the CV towards all atomic coordinates</span>
+<span class="sd">            :type deriv: bool, optional, default=True</span>
+
+<span class="sd">            :return: CV value and potentially the gradient</span>
+<span class="sd">            :rtype: np.ndarray(3) or float,np.ndarray([3,Natoms,3])</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">deriv</span><span class="p">:</span>
             <span class="n">cv1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv1</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="n">cv2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv2</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -830,13 +1168,14 @@
                 <span class="n">grad</span> <span class="o">=</span> <span class="n">grad1</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">grad</span> <span class="o">=</span> <span class="n">grad2</span>
-        <span class="k">return</span> <span class="n">value</span><span class="p">,</span> <span class="n">grad</span></div>
-    
+        <span class="k">return</span> <span class="n">value</span><span class="p">,</span> <span class="n">grad</span></div></div>
+
+
 <div class="viewcode-block" id="LinearCombination"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.LinearCombination">[docs]</a><span class="k">class</span> <span class="nc">LinearCombination</span><span class="p">(</span><span class="n">CollectiveVariable</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Class to implement a collective variable that is the linear combination of other collective variables</span>
 
-<span class="sd">            CV = sum(coeffs[i]*cvs[i], i=1..N)</span>
+<span class="sd">        .. math:: CV &amp;= \\sum_{i=1}^N c_i\\cdot CV_i</span>
 <span class="sd">        </span>
 <span class="sd">        in which cvs is the list of involved collective variables and coeffs is list of equal length with the corresponing coefficients</span>
 <span class="sd">    &#39;&#39;&#39;</span>
@@ -844,6 +1183,16 @@
     <span class="nb">type</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1">#depends on type of argument cvs</span>
     
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cvs</span><span class="p">,</span> <span class="n">coeffs</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            :param cvs: list of CVs in the linear combination</span>
+<span class="sd">            :type cvs: list of instances of child classes of :py:class:`CollectiveVariable &lt;thermolib.thermodynamics.cv.CollectiveVariable&gt;`</span>
+
+<span class="sd">            :param coeffs: coefficients corresponding to the weight of each CV in the linear combination</span>
+<span class="sd">            :type coeffs: list or array</span>
+
+<span class="sd">            :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.</span>
+<span class="sd">            :type name: str | None, optional, default=None</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">cvs</span><span class="p">)</span><span class="o">==</span><span class="nb">len</span><span class="p">(</span><span class="n">coeffs</span><span class="p">),</span> <span class="s2">&quot;List of cvs and list of coefficients should be of equal length&quot;</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">cvs</span><span class="p">)):</span>
             <span class="k">assert</span> <span class="n">cvs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="n">cvs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="s1">&#39;cvs[</span><span class="si">%i</span><span class="s1">] and cvs[0] are not both scalar CVS or vector CVS&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
@@ -855,8 +1204,19 @@
     <span class="k">def</span> <span class="nf">_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;</span><span class="si">%+.2f%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">coeff</span><span class="p">,</span><span class="n">cv</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">coeff</span><span class="p">,</span><span class="n">cv</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coeffs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cvs</span><span class="p">)])</span>
 
-    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="c1">#computation of value</span>
+<div class="viewcode-block" id="LinearCombination.compute"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.LinearCombination.compute">[docs]</a>    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Compute the linear combination (and optionally gradient) of the CVs for the given atomic coordinates</span>
+
+<span class="sd">            :param coords: atomic coordinates of each atom in the molecular system</span>
+<span class="sd">            :type coords: np.ndarray([Natoms,3])</span>
+
+<span class="sd">            :param deriv: if True, also compute and return the gradient of the CV towards all atomic coordinates</span>
+<span class="sd">            :type deriv: bool, optional, default=True</span>
+
+<span class="sd">            :return: CV value and potentially the gradient</span>
+<span class="sd">            :rtype: np.ndarray(3) or float,np.ndarray([3,Natoms,3])</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">deriv</span><span class="p">:</span>
             <span class="n">value</span> <span class="o">=</span> <span class="mf">0.0</span>
             <span class="k">for</span> <span class="n">coeff</span><span class="p">,</span> <span class="n">cv</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coeffs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cvs</span><span class="p">):</span>
@@ -869,26 +1229,67 @@
                 <span class="n">v</span><span class="p">,</span><span class="n">g</span> <span class="o">=</span> <span class="n">cv</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                 <span class="n">value</span> <span class="o">+=</span> <span class="n">coeff</span><span class="o">*</span><span class="n">v</span>
                 <span class="n">grad</span> <span class="o">+=</span> <span class="n">coeff</span><span class="o">*</span><span class="n">g</span>
-            <span class="k">return</span> <span class="n">value</span><span class="p">,</span> <span class="n">grad</span></div>
+            <span class="k">return</span> <span class="n">value</span><span class="p">,</span> <span class="n">grad</span></div></div>
+
 
 <div class="viewcode-block" id="DistOrthProjOrig"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.DistOrthProjOrig">[docs]</a><span class="k">class</span> <span class="nc">DistOrthProjOrig</span><span class="p">(</span><span class="n">DotProduct</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    Class to implement a collective variable that represents distance between (1) the orthogonal projection of a position (defined by a vector CV denoted as pos) on the axis (defined by a normalized vector CV denoted as axis) through an origin (defined by a vector CV denoted as orig) and (2) the origin.</span>
+<span class="sd">        Class to implement a collective variable that represents the distance between (1) the orthogonal projection of a position (defined by a CV denoted as pos) on an axis (defined by a CV denoted as axis) through an origin (defined by a CV denoted as orig) and (2) the origin.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
     <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;scalar&#39;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">orig</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            :param pos: the CV corresponding to the position that needs to be projected on the axis</span>
+<span class="sd">            :type pos: child instance of :py:class:`CollectiveVariable &lt;thermolib.thermodynamics.cv.CollectiveVariable&gt;` with type=&#39;vector&#39;</span>
+
+<span class="sd">            :param axis: the CV corresponding to the axis on which the position needs to be projected</span>
+<span class="sd">            :type axis: :py:class:`NormalizedAxis &lt;thermolib.thermodynamics.cv.NormalizedAxis&gt;`</span>
+
+<span class="sd">            :param orig: the CV corresponding to the origin through which the axis needs to go and with which the difference of the projected pos will be computed</span>
+<span class="sd">            :type orig: child instance of :py:class:`CollectiveVariable &lt;thermolib.thermodynamics.cv.CollectiveVariable&gt;` with type=&#39;vector&#39;</span>
+
+<span class="sd">            :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.</span>
+<span class="sd">            :type name: str | None, optional, default=None</span>
+
+<span class="sd">            :raises AssertionError: if pos is not a (child) instance of :py:class:`CollectiveVariable &lt;thermolib.thermodynamics.cv.CollectiveVariable&gt;` with pos.type=&#39;vector&#39;</span>
+<span class="sd">            :raises AssertionError: if axis is not an instance of :py:class:`NormalizedAxis &lt;thermolib.thermodynamics.cv.NormalizedAxis&gt;`</span>
+<span class="sd">            :raises AssertionError: if orig is not a (child) instance of :py:class:`CollectiveVariable &lt;thermolib.thermodynamics.cv.CollectiveVariable&gt;` with orig.type=&#39;vector&#39;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">CollectiveVariable</span><span class="p">)</span> <span class="ow">and</span> <span class="n">pos</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;vector&#39;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="n">NormalizedAxis</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">CollectiveVariable</span><span class="p">)</span> <span class="ow">and</span> <span class="n">pos</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;vector&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="n">pos</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">axis</span> <span class="o">=</span> <span class="n">axis</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">orig</span> <span class="o">=</span> <span class="n">orig</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">orig</span> <span class="o">=</span> <span class="n">orig</span> 
         <span class="n">DotProduct</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Difference</span><span class="p">(</span><span class="n">orig</span><span class="p">,</span><span class="n">pos</span><span class="p">),</span> <span class="n">axis</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s1">&#39;DistOrthProjOrig(orig=</span><span class="si">%s</span><span class="s1">,pos=</span><span class="si">%s</span><span class="s1">,axis=</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">orig</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div>
 
+
 <span class="k">class</span> <span class="nc">FunctionCV</span><span class="p">(</span><span class="n">CollectiveVariable</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Class to implement a collective variable that represents the function of a given CV</span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">CV</span><span class="p">,</span> <span class="n">function</span><span class="p">,</span> <span class="n">derivative</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit_cell_pars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            :param CV: the CV of which the function will be computed</span>
+<span class="sd">            :type CV: child instance of :py:class:`CollectiveVariable &lt;thermolib.thermodynamics.cv.CollectiveVariable&gt;`</span>
+
+<span class="sd">            :param function: function to be evaluated with the CV</span>
+<span class="sd">            :type function: callable</span>
+
+<span class="sd">            :param derivative: derivative of the function to be evaluated with the CV</span>
+<span class="sd">            :type derivative: callable</span>
+
+<span class="sd">            :param name: Name of new CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.</span>
+<span class="sd">            :type name: str | None, optional, default=None</span>
+
+<span class="sd">            :raises AssertionError: if pos is not a (child) instance of :py:class:`CollectiveVariable &lt;thermolib.thermodynamics.cv.CollectiveVariable&gt;`</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">CV</span><span class="p">,</span> <span class="n">CollectiveVariable</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">CV</span> <span class="o">=</span> <span class="n">CV</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">function</span> <span class="o">=</span> <span class="n">function</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">derivative</span> <span class="o">=</span> <span class="n">derivative</span>
@@ -898,6 +1299,18 @@
         <span class="k">return</span> <span class="s1">&#39;fun(</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CV</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
     
     <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Compute the function (and optionally gradient) of the CV for the given atomic coordinates</span>
+
+<span class="sd">            :param coords: atomic coordinates of each atom in the molecular system</span>
+<span class="sd">            :type coords: np.ndarray([Natoms,3])</span>
+
+<span class="sd">            :param deriv: if True, also compute and return the gradient of the CV towards all atomic coordinates</span>
+<span class="sd">            :type deriv: bool, optional, default=True</span>
+
+<span class="sd">            :return: CV value and potentially the gradient</span>
+<span class="sd">            :rtype: np.ndarray(3) or float,np.ndarray([3,Natoms,3])</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="n">deriv</span><span class="p">:</span>
             <span class="n">cv</span><span class="p">,</span> <span class="n">grad</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CV</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="p">(</span><span class="n">cv</span><span class="p">)</span>
@@ -907,7 +1320,25 @@
             <span class="n">cv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CV</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="p">(</span><span class="n">cv</span><span class="p">)</span>
 
+
 <span class="k">def</span> <span class="nf">test_CV_implementations</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">cvs</span><span class="p">,</span> <span class="n">dx</span><span class="o">=</span><span class="mf">0.001</span><span class="o">*</span><span class="n">angstrom</span><span class="p">,</span> <span class="n">maxframes</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Routine to test the implementation of the derivative in the compute methods of child class of :py:class:`CollectiveVariable &lt;thermolib.thermodynamics.cv.CollectiveVariable&gt;` by comparing it with a numerical derivative. This routine serves as a tool to test new CV implementations. In the future, this routine will be moved to a new dedicated test module that should be run upon installation of ThermoLIB.</span>
+
+<span class="sd">        :param fn: names of trajectory files that contain XYZ coordinates to be used in the testing</span>
+<span class="sd">        :type fn: str</span>
+
+<span class="sd">        :param cvs: list of CVs to be tested</span>
+<span class="sd">        :type cvs: list of instances of child classes of :py:class:`CollectiveVariable &lt;thermolib.thermodynamics.cv.CollectiveVariable&gt;`</span>
+
+<span class="sd">        :param dx: approximation of infinitesimal small displacement to be used in the numerical derivative</span>
+<span class="sd">        :type dx: float, optional, default=0.001*angstrom</span>
+
+<span class="sd">        :param maxframes: the first maxframes from the given XYZ trajectory will be used in the testing</span>
+<span class="sd">        :type maxframes: int, optional, default=100</span>
+
+<span class="sd">        :raises AssertionError: if a CV failes the test</span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">xyz</span> <span class="o">=</span> <span class="n">XYZReader</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">cv</span> <span class="ow">in</span> <span class="n">cvs</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Testing consistency between value and gradient of </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">cv</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>

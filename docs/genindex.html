@@ -228,6 +228,8 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="rg_thermo.html#module-thermolib.thermodynamics.cv">Collective variables – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.cv</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.Average"><code class="docutils literal notranslate"><span class="pre">Average</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.CenterOfMass"><code class="docutils literal notranslate"><span class="pre">CenterOfMass</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.CenterOfPosition"><code class="docutils literal notranslate"><span class="pre">CenterOfPosition</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.CoordinationNumber"><code class="docutils literal notranslate"><span class="pre">CoordinationNumber</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.Difference"><code class="docutils literal notranslate"><span class="pre">Difference</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.DistOrthProjOrig"><code class="docutils literal notranslate"><span class="pre">DistOrthProjOrig</span></code></a></li>
@@ -236,6 +238,7 @@
 <li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.DotProduct"><code class="docutils literal notranslate"><span class="pre">DotProduct</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.LinearCombination"><code class="docutils literal notranslate"><span class="pre">LinearCombination</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.Minimum"><code class="docutils literal notranslate"><span class="pre">Minimum</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.NormalToPlane"><code class="docutils literal notranslate"><span class="pre">NormalToPlane</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.NormalizedAxis"><code class="docutils literal notranslate"><span class="pre">NormalizedAxis</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.OrthogonalDistanceToPore"><code class="docutils literal notranslate"><span class="pre">OrthogonalDistanceToPore</span></code></a></li>
 </ul>
@@ -392,10 +395,40 @@
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="rg_thermo.html#thermolib.thermodynamics.cv.CenterOfMass">CenterOfMass (class in thermolib.thermodynamics.cv)</a>
+</li>
+      <li><a href="rg_thermo.html#thermolib.thermodynamics.cv.CenterOfPosition">CenterOfPosition (class in thermolib.thermodynamics.cv)</a>
+</li>
       <li><a href="rg_thermo.html#thermolib.thermodynamics.trajectory.ColVarReader">ColVarReader (class in thermolib.thermodynamics.trajectory)</a>
 </li>
-      <li><a href="rg_thermo.html#thermolib.thermodynamics.cv.Distance.compute">compute() (thermolib.thermodynamics.cv.Distance method)</a>
+      <li><a href="rg_thermo.html#thermolib.thermodynamics.cv.Average.compute">compute() (thermolib.thermodynamics.cv.Average method)</a>
+
+      <ul>
+        <li><a href="rg_thermo.html#thermolib.thermodynamics.cv.CenterOfMass.compute">(thermolib.thermodynamics.cv.CenterOfMass method)</a>
 </li>
+        <li><a href="rg_thermo.html#thermolib.thermodynamics.cv.CenterOfPosition.compute">(thermolib.thermodynamics.cv.CenterOfPosition method)</a>
+</li>
+        <li><a href="rg_thermo.html#thermolib.thermodynamics.cv.CoordinationNumber.compute">(thermolib.thermodynamics.cv.CoordinationNumber method)</a>
+</li>
+        <li><a href="rg_thermo.html#thermolib.thermodynamics.cv.Difference.compute">(thermolib.thermodynamics.cv.Difference method)</a>
+</li>
+        <li><a href="rg_thermo.html#thermolib.thermodynamics.cv.Distance.compute">(thermolib.thermodynamics.cv.Distance method)</a>
+</li>
+        <li><a href="rg_thermo.html#thermolib.thermodynamics.cv.DistanceCOP.compute">(thermolib.thermodynamics.cv.DistanceCOP method)</a>
+</li>
+        <li><a href="rg_thermo.html#thermolib.thermodynamics.cv.DotProduct.compute">(thermolib.thermodynamics.cv.DotProduct method)</a>
+</li>
+        <li><a href="rg_thermo.html#thermolib.thermodynamics.cv.LinearCombination.compute">(thermolib.thermodynamics.cv.LinearCombination method)</a>
+</li>
+        <li><a href="rg_thermo.html#thermolib.thermodynamics.cv.Minimum.compute">(thermolib.thermodynamics.cv.Minimum method)</a>
+</li>
+        <li><a href="rg_thermo.html#thermolib.thermodynamics.cv.NormalizedAxis.compute">(thermolib.thermodynamics.cv.NormalizedAxis method)</a>
+</li>
+        <li><a href="rg_thermo.html#thermolib.thermodynamics.cv.NormalToPlane.compute">(thermolib.thermodynamics.cv.NormalToPlane method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="rg_thermo.html#thermolib.thermodynamics.condprob.ConditionalProbability1D1D">ConditionalProbability1D1D (class in thermolib.thermodynamics.condprob)</a>
 </li>
       <li><a href="rg_thermo.html#thermolib.thermodynamics.condprob.ConditionalProbability1D2D">ConditionalProbability1D2D (class in thermolib.thermodynamics.condprob)</a>
@@ -410,8 +443,6 @@
         <li><a href="rg_thermo.html#thermolib.thermodynamics.histogram.Histogram2D.copy">(thermolib.thermodynamics.histogram.Histogram2D method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="rg_tools.html#thermolib.tools.corrtime_from_acf">corrtime_from_acf() (in module thermolib.tools)</a>
 </li>
       <li><a href="rg_thermo.html#thermolib.thermodynamics.fep.BaseProfile.crop">crop() (thermolib.thermodynamics.fep.BaseProfile method)</a>
@@ -466,6 +497,8 @@
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="rg_thermo.html#thermolib.thermodynamics.condprob.ConditionalProbability1D1D.finish_error">finish_error() (thermolib.thermodynamics.condprob.ConditionalProbability1D1D method)</a>
+</li>
       <li><a href="rg_tools.html#thermolib.tools.fisher_matrix_mle_probdens">fisher_matrix_mle_probdens() (in module thermolib.tools)</a>
 </li>
       <li><a href="rg_thermo.html#thermolib.thermodynamics.fep.BaseProfile.flower">flower() (thermolib.thermodynamics.fep.BaseProfile method)</a>
@@ -650,6 +683,10 @@
       <li><a href="rg_thermo.html#thermolib.thermodynamics.cv.NormalizedAxis">NormalizedAxis (class in thermolib.thermodynamics.cv)</a>
 </li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="rg_thermo.html#thermolib.thermodynamics.cv.NormalToPlane">NormalToPlane (class in thermolib.thermodynamics.cv)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="O">O</h2>
@@ -667,9 +704,13 @@
 </li>
       <li><a href="rg_thermo.html#thermolib.thermodynamics.bias.Parabola2D">Parabola2D (class in thermolib.thermodynamics.bias)</a>
 </li>
-      <li><a href="rg_thermo.html#thermolib.thermodynamics.fep.BaseProfile.plot">plot() (thermolib.thermodynamics.fep.BaseProfile method)</a>
+      <li><a href="rg_thermo.html#thermolib.thermodynamics.bias.BiasPotential1D.plot">plot() (thermolib.thermodynamics.bias.BiasPotential1D method)</a>
 
       <ul>
+        <li><a href="rg_thermo.html#thermolib.thermodynamics.bias.BiasPotential2D.plot">(thermolib.thermodynamics.bias.BiasPotential2D method)</a>
+</li>
+        <li><a href="rg_thermo.html#thermolib.thermodynamics.fep.BaseProfile.plot">(thermolib.thermodynamics.fep.BaseProfile method)</a>
+</li>
         <li><a href="rg_thermo.html#thermolib.thermodynamics.fep.FreeEnergySurface2D.plot">(thermolib.thermodynamics.fep.FreeEnergySurface2D method)</a>
 </li>
         <li><a href="rg_thermo.html#thermolib.thermodynamics.fep.SimpleFreeEnergyProfile.plot">(thermolib.thermodynamics.fep.SimpleFreeEnergyProfile method)</a>
@@ -695,10 +736,32 @@
 </li>
       <li><a href="rg_thermo.html#thermolib.thermodynamics.bias.Polynomial1D">Polynomial1D (class in thermolib.thermodynamics.bias)</a>
 </li>
-      <li><a href="rg_thermo.html#thermolib.thermodynamics.fep.SimpleFreeEnergyProfile.print_states">print_states() (thermolib.thermodynamics.fep.SimpleFreeEnergyProfile method)</a>
+      <li><a href="rg_thermo.html#thermolib.thermodynamics.bias.BiasPotential1D.print">print() (thermolib.thermodynamics.bias.BiasPotential1D method)</a>
+
+      <ul>
+        <li><a href="rg_thermo.html#thermolib.thermodynamics.bias.BiasPotential2D.print">(thermolib.thermodynamics.bias.BiasPotential2D method)</a>
 </li>
+      </ul></li>
+      <li><a href="rg_thermo.html#thermolib.thermodynamics.bias.BiasPotential1D.print_pars">print_pars() (thermolib.thermodynamics.bias.BiasPotential1D method)</a>
+
+      <ul>
+        <li><a href="rg_thermo.html#thermolib.thermodynamics.bias.BiasPotential2D.print_pars">(thermolib.thermodynamics.bias.BiasPotential2D method)</a>
+</li>
+        <li><a href="rg_thermo.html#thermolib.thermodynamics.bias.MultipleBiasses1D.print_pars">(thermolib.thermodynamics.bias.MultipleBiasses1D method)</a>
+</li>
+        <li><a href="rg_thermo.html#thermolib.thermodynamics.bias.Parabola1D.print_pars">(thermolib.thermodynamics.bias.Parabola1D method)</a>
+</li>
+        <li><a href="rg_thermo.html#thermolib.thermodynamics.bias.Parabola2D.print_pars">(thermolib.thermodynamics.bias.Parabola2D method)</a>
+</li>
+        <li><a href="rg_thermo.html#thermolib.thermodynamics.bias.PlumedSplinePotential1D.print_pars">(thermolib.thermodynamics.bias.PlumedSplinePotential1D method)</a>
+</li>
+        <li><a href="rg_thermo.html#thermolib.thermodynamics.bias.Polynomial1D.print_pars">(thermolib.thermodynamics.bias.Polynomial1D method)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="rg_thermo.html#thermolib.thermodynamics.fep.SimpleFreeEnergyProfile.print_states">print_states() (thermolib.thermodynamics.fep.SimpleFreeEnergyProfile method)</a>
+</li>
       <li><a href="rg_thermo.html#thermolib.thermodynamics.fep.BaseFreeEnergyProfile.process_states">process_states() (thermolib.thermodynamics.fep.BaseFreeEnergyProfile method)</a>
 
       <ul>

@@ -709,9 +709,9 @@ class SimpleFreeEnergyProfile(BaseFreeEnergyProfile):
                 - a macrostate representing the product (P) as an integrated sum of microstates right of the ts
 
             :param lims: list of 4 values [a,b,c,d] such that the reactant state minimum (r) should be within interval [a,b], the transition state maximum (ts) should be within interval [b,c] and the the product state minimum (p) should be within interval [c,d]. If b and c are both None, the transition state maximum is looked for in the entire range defined by [a,b] (which will fail if the transition state is only a local maximum but not the global maximum in that range). a can be specified as -np.inf and/or b can be specified as np.inf indicating no limits.
-            :type lims: list, optional, default=[-np.inf,None, None, np.inf]
+            :type lims: list[float], optional, default=[-np.inf,None, None, np.inf]
 
-            :param verbose: If True, increase logging verbosity
+            :param verbose: If True, increase verbosity and print thermodynamic state properties
             :type verbose: bool, optional, default=False
 
             :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken)

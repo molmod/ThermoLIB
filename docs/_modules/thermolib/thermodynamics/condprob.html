@@ -228,6 +228,8 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../rg_thermo.html#module-thermolib.thermodynamics.cv">Collective variables – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.cv</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.Average"><code class="docutils literal notranslate"><span class="pre">Average</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.CenterOfMass"><code class="docutils literal notranslate"><span class="pre">CenterOfMass</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.CenterOfPosition"><code class="docutils literal notranslate"><span class="pre">CenterOfPosition</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.CoordinationNumber"><code class="docutils literal notranslate"><span class="pre">CoordinationNumber</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.Difference"><code class="docutils literal notranslate"><span class="pre">Difference</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.DistOrthProjOrig"><code class="docutils literal notranslate"><span class="pre">DistOrthProjOrig</span></code></a></li>
@@ -236,6 +238,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.DotProduct"><code class="docutils literal notranslate"><span class="pre">DotProduct</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.LinearCombination"><code class="docutils literal notranslate"><span class="pre">LinearCombination</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.Minimum"><code class="docutils literal notranslate"><span class="pre">Minimum</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.NormalToPlane"><code class="docutils literal notranslate"><span class="pre">NormalToPlane</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.NormalizedAxis"><code class="docutils literal notranslate"><span class="pre">NormalizedAxis</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.OrthogonalDistanceToPore"><code class="docutils literal notranslate"><span class="pre">OrthogonalDistanceToPore</span></code></a></li>
 </ul>
@@ -370,7 +373,7 @@
 
 <span class="k">class</span> <span class="nc">ConditionalProbability</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Class to compute conditional probabilities of the form :math:`p([qs]|[cvs])`, i.e. probability of finding states characterized with collective variables qs, on the condition that the states are also characterized by collective variables cvs. Such conditional probabiliy allows to convert a free energy surface (or profile if only one cv is given) in terms of the collective variables :math:`cvs` to a free energy surface (or profile if only one q is given) in terms of the collective variables :math:`qs`.</span>
+<span class="sd">        Class to compute conditional probabilities of the form :math:`p([qs]|[cvs])`, i.e. probability of finding states characterized with collective variables qs, on the condition that the states are also characterized by collective variables cvs. Such conditional probabiliy allows to convert a free energy surface/profile in terms of the collective variables :math:`cvs` to a free energy surface/profile in terms of the collective variables :math:`qs`.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nq</span><span class="p">,</span> <span class="n">ncv</span><span class="p">,</span> <span class="n">q_labels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv_labels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">q_units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv_units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
@@ -380,17 +383,20 @@
 <span class="sd">            :param ncv: dimension of cv-space</span>
 <span class="sd">            :type ncv: int</span>
 
-<span class="sd">            :param q_labels: list of labels (one for each q) to be used in plots or prints, defaults to [&#39;Q1&#39;, [&#39;Q2&#39;, [...]]]</span>
-<span class="sd">            :type q_labels: list of strings, optional</span>
+<span class="sd">            :param q_labels: list of labels (one for each q) to be used in plots or prints</span>
+<span class="sd">            :type q_labels: list of strings, optional, default=[&#39;Q1&#39;, [&#39;Q2&#39;, [...]]]</span>
 
-<span class="sd">            :param cv_labels: list of labels (one for each cv) to be used in plots or prints, defaults to [&#39;CV1&#39;, [&#39;CV2&#39;, [...]]]</span>
-<span class="sd">            :type cv_labels: list of strings, optional</span>
+<span class="sd">            :param cv_labels: list of labels (one for each cv) to be used in plots or prints</span>
+<span class="sd">            :type cv_labels: list of strings, optional, default=[&#39;CV1&#39;, [&#39;CV2&#39;, [...]]]</span>
 
-<span class="sd">            :param q_units: list of units (one for each q) to be used in plots or prints, defaults to [&#39;au&#39;, [&#39;au&#39;, [...]]]</span>
-<span class="sd">            :type q_units: list of strings, optional</span>
+<span class="sd">            :param q_units: list of units (one for each q) to be used in plots or prints</span>
+<span class="sd">            :type q_units: list of strings, optional, default=[&#39;au&#39;, [&#39;au&#39;, [...]]]</span>
 
-<span class="sd">            :param cv_labels: list of units (one for each cv) to be used in plots or prints, defaults to [&#39;au&#39;, [&#39;au&#39;, [...]]]</span>
-<span class="sd">            :type cv_labels: list of strings, optional</span>
+<span class="sd">            :param cv_labels: list of units (one for each cv) to be used in plots or prints</span>
+<span class="sd">            :type cv_labels: list of strings, optional, default=[&#39;au&#39;, [&#39;au&#39;, [...]]]</span>
+
+<span class="sd">            :param verbose: make all class routines more verbose in their logging</span>
+<span class="sd">            :type verbose: bool, optional, default=False</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nq</span> <span class="o">=</span> <span class="n">nq</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ncv</span> <span class="o">=</span> <span class="n">ncv</span>
@@ -422,11 +428,13 @@
 
     <span class="k">def</span> <span class="nf">init_bins_grids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q_bins</span><span class="p">,</span> <span class="n">cv_bins</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Routine to initialize the bins used for constructing the conditional probability histograms</span>
+
 <span class="sd">            :param q_bins: list of numpy arrays, each array corresponding to the bin edges for one of the Qs. Alternatively, a single numpy array can be given which is then interpreted as the bin edges for all of the Qs.</span>
-<span class="sd">            :type q_bins: list or numpy array, optional</span>
+<span class="sd">            :type q_bins: list(np.ndarray) or np.ndarray</span>
 
 <span class="sd">            :param cv_bins: list of numpy arrays, each array corresponding to the bin edges for one of the CVs. Alternatively, a single numpy array can be given which is then interpreted as the bin edges for all of the CVs.</span>
-<span class="sd">            :type cv_bins: list or numpy array, optional</span>
+<span class="sd">            :type cv_bins: list(np.ndarray) or np.ndarray</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Initializing grids for CV and Q ...&#39;</span><span class="p">)</span>
         <span class="c1">#type checking and storing of input arguments</span>
@@ -464,19 +472,21 @@
 
     <span class="k">def</span> <span class="nf">process_simulation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_q</span><span class="p">,</span> <span class="n">input_cv</span><span class="p">,</span> <span class="n">corr_time</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">            extracting data samples of CVs and QS from given files that later will be histogrammed per value of CVs.</span>
+<span class="sd">            Routine to extract data samples for the CVs and Qs from given files. In a later stage, these samples will be used to histogram in terms of Q for each conditional CV.</span>
 
 <span class="sd">            :param input_q: list of tuples of the form (fn, reader), one for each Q to be included, with fn the file name of the trajectory from which reader will extract the q-values</span>
-<span class="sd">            :type input_q: list of tuples</span>
+<span class="sd">            :type input_q: list</span>
 
 <span class="sd">            :param input_cv: list of tuples of the form (fn, reader), one for each CV to be included, with fn the file name of the trajectory from which reader will extract the cv-values</span>
-<span class="sd">            :type input_cv: list of tuples</span>
-
-<span class="sd">            :param finish: set this to True if the given file name(s) are the only relevant trajectories and hence the conditional probability should be computed from only these trajectories. Setting it to True will therefore trigger propper normalisation of the conditional probability. Set this to False if you intend to call the routine *process_trajectory_xyz* again later on with additional trajectory files.</span>
-<span class="sd">            :type finish: bool, optional, default=True</span>
+<span class="sd">            :type input_cv: list</span>
 <span class="sd">            </span>
-<span class="sd">            :param corr_times: only relevant if error estimation is also desired, in which case corr_time represent the correlation time within the Q samples which will be used for more accurate error estimation.</span>
-<span class="sd">            :type corr_times_q: float, optional, default=1.0</span>
+<span class="sd">            :param corr_time: only relevant if error estimation is also desired, in which case corr_time represent the correlation time within the Q samples which will be used for more accurate error estimation.</span>
+<span class="sd">            :type corr_time: float, optional, default=1.0</span>
+
+<span class="sd">            :raises RuntimeError: if attempted to add additional simulations after the ``finish`` routine has been called already.</span>
+<span class="sd">            :raises AssertionError: if any 2 Q-readers detect different number of samples in any simulation</span>
+<span class="sd">            :raises AssertionError: if any 2 CV-readers detect different number of samples in any simulation</span>
+<span class="sd">            :raises AssertionError: if any combination of one Q-reader and one CV-reader detect different number of samples in any simulation</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="c1">#init</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finished</span><span class="p">:</span>
@@ -519,7 +529,20 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  detected </span><span class="si">%i</span><span class="s1"> samples, from which </span><span class="si">%i</span><span class="s1"> independent (correlation time = </span><span class="si">%i</span><span class="s1">)&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">num_samples</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">/</span><span class="n">corr_time</span><span class="p">,</span> <span class="n">corr_time</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">set_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">q_ref</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv_ref</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;Set the reference value of the Q and/or CV samples.</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Routine that allows to re-reference all samples of a given Q/CV collective variable. This is usefull, e.g. if a certain collective variable represents an energy and you want to put the zero for that energy at the minimum across all samples.</span>
+
+<span class="sd">            :param q_index: specify the index of the Q collective variable you want to re-ref with the given q_ref. If an integer is given, it should be larger than (or equal to) 0 and smaller then the number of Qs. If None, no Q re-reffing will be done. If set to &#39;all&#39;, all Qs will be re-reffed.</span>
+<span class="sd">            :type q_index: int|&#39;all&#39;|None, optional, default=None</span>
+
+<span class="sd">            :param q_ref: specify how to re-reference. If a float is given, substract the given float from all samples of all processed simulations of the corresponding Q. If the string &#39;global_minimum&#39; is given, first compute the global min of all samples of all processed simulations of the corresponding Q and then substract that value from all those samples. If the string &#39;minimum_average&#39; is given, first compute the minima of the samples of the corresponding Q for each simulation separately, then compute the average of all those simulation minima. Finally, substract that average from all the samples of all simulatios of the corresponding Q. Value None only allowed if q_index is also None, in which case no re-reffing is done for any Q.</span>
+<span class="sd">            :type q_ref: float|str|None, optional, default=None</span>
+
+<span class="sd">            :param cv_index: specify the index of the CVcollective variable you want to re-ref with the given cv_ref. If an integer is given, it should be larger than (or equal to) 0 and smaller then the number of CVs. If None, no CV re-reffing will be done. If set to &#39;all&#39;, all Qs will be re-reffed.</span>
+<span class="sd">            :type cv_index: int|&#39;all&#39;|None, optional, default=None</span>
+
+<span class="sd">            :param cv_ref: specify how to re-reference. If a float is given, substract the given float from all samples of all processed simulations of the corresponding CV. If the string &#39;global_minimum&#39; is given, first compute the global min of all samples of all processed simulations of the corresponding CV and then substract that value from all those samples. If the string &#39;minimum_average&#39; is given, first compute the minima of the samples of the corresponding CV for each simulation separately, then compute the average of all those simulation minima. Finally, substract that average from all the samples of all simulatios of the corresponding CV. Value None only allowed if cv_index is also None, in which case no re-reffing is done for any CV.</span>
+<span class="sd">            :type cv_ref: float|str|None, optional, default=None</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="c1">#set q references</span>
         <span class="k">if</span> <span class="n">q_index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -586,11 +609,19 @@
     
     <span class="k">def</span> <span class="nf">finish</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q_bins</span><span class="p">,</span> <span class="n">cv_bins</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">error_p_threshold</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Flag the process of adding simulation data as finished and process all samples to compute the conditional probability histograms.</span>
+
 <span class="sd">            :param q_bins: see init_bins_grids</span>
 <span class="sd">            :type q_bins: see init_bins_grids</span>
 
 <span class="sd">            :param cv_bins: see init_bins_grids</span>
 <span class="sd">            :type cv_bins: see init_bins_grids</span>
+
+<span class="sd">            :param error_estimate: If not None, this will turn on error estimation an call the ``finish_error`` routine at then end. See ``finish_error`` routine for more information.</span>
+
+<span class="sd">            :param error_p_threshold: Only relevant if error_estimate is not None. See ``finish_error`` routine for more information.</span>
+
+<span class="sd">            :raises AssertionError: if attempting to finish the conditional probability that is already finished.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">assert</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finished</span><span class="p">,</span> <span class="s2">&quot;Can&#39;t finish current conditional probability as it has already been finished.&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Finishing conditional probability&#39;</span><span class="p">)</span>
@@ -657,6 +688,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_finished</span> <span class="o">=</span> <span class="kc">True</span>
         
     <span class="k">def</span> <span class="nf">finish_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">error_estimate</span><span class="p">,</span> <span class="n">error_p_threshold</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            This routine is not (yet) implemented in the most general case. Instead, it is (will be) implemented in the child classes.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Error estimation not yet implemented for </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">slicer</span><span class="p">,</span> <span class="n">fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">obss</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span> <span class="n">linestyles</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">linewidths</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logscale</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">croplims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">pp</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">&#39;rainbow&#39;</span><span class="p">),</span> <span class="o">**</span><span class="n">plot_kwargs</span><span class="p">):</span>
@@ -666,23 +700,36 @@
 <span class="sd">            :param fn: name of the file to store graph in, defaults to &#39;condprob.png&#39;</span>
 <span class="sd">            :type fn: str, optional</span>
 
-<span class="sd">            :param x_unit: unit to be used for the cv/q on the x-axis, defaults to &#39;au&#39;</span>
-<span class="sd">            :type x_unit: str, optional</span>
+<span class="sd">            :param obss: Specify which statistical property/properties to plot. Multiple values are allowed, which will be plotted on the same figure. Following options are supported:</span>
 
-<span class="sd">            :param y_unit: unit to be used for the cv/q on the y-axis, only relevant when 2D contourplot is made, defaults to &#39;au&#39;</span>
-<span class="sd">            :type y_unit: str, optional</span>
+<span class="sd">                - **value** - the values stored in self.pconds</span>
+<span class="sd">                - **mean** - the mean according to the error distribution, i.e. self.error.mean()</span>
+<span class="sd">                - **lower** - the lower limit of the 2-sigma error bar (which corresponds to a 95% confidence interval in case of a normal distribution), i.e. self.error.nsigma_conf_int(2)[0]</span>
+<span class="sd">                - **upper** - the upper limit of the 2-sigma error bar (which corresponds to a 95% confidence interval in case of a normal distribution), i.e. self.error.nsigma_conf_int(2)[1]</span>
+<span class="sd">                - **error** - half the width of the 2-sigma error bar (which corresponds to a 95% confidence interval in case of a normal distribution), i.e. abs(upper-lower)/2</span>
+<span class="sd">                - **sample** - a random sample taken from the error distribution, i.e. self.error.sample()</span>
+<span class="sd">            :type obss: list, optional, default=[&#39;value&#39;]</span>
 
-<span class="sd">            :param x_label: label to be used for the cv/q on the x-axis, defaults to &#39;Q&#39;/&#39;Q1&#39; for q-data or &#39;CV&#39;/&#39;CV1&#39; for cv-data</span>
-<span class="sd">            :type x_label: str, optional</span>
+<span class="sd">            :param linestyles: Specify the line style (using matplotlib definitions) for each quantity requested in ``obss``. If None, all linestyles are set to &#39;-&#39;</span>
+<span class="sd">            :type linestyles: list or None, optional, default=None</span>
 
-<span class="sd">            :param y_label: label to be used for the cv/q on the x-axis, defaults to &#39;Q&#39;/&#39;Q2&#39; for q-data or &#39;CV&#39;/&#39;CV2&#39; for cv-data</span>
-<span class="sd">            :type y_label: str, optional</span>
+<span class="sd">            :param linewidths: Specify the line width (using matplotlib definitions) for each quantity requested in ``obss``. If None, al linewidths are set to 1</span>
+<span class="sd">            :type linewidths: list of strings or None, optional, default=None</span>
+
+<span class="sd">            :param colors: Specify the color (using matplotlib definitions) for each quantity requested in ``obss``. If None, matplotlib will choose.</span>
+<span class="sd">            :type colors: list of strings or None, optional, default=None</span>
 
 <span class="sd">            :param logscale: applying log scale to y-axis (in case of 1D plot) or color axis (in case of 2D plot), defaults to False</span>
 <span class="sd">            :type logscale: bool, optional</span>
 
-<span class="sd">            :param cmap: color map to be used, only relevant in case of 2D contourplot, defaults to pp.get_cmap(&#39;rainbow&#39;)</span>
-<span class="sd">            :type cmap: color map from matplotlib, optional</span>
+<span class="sd">            :param croplims: limits to the plotting range of the cv(s) in case of a 1D plot. If None, no cropping is done</span>
+<span class="sd">            :type croplims: list, optional, default=None</span>
+
+<span class="sd">            :param ylims: limits to the plotting range of the probability in case of a 1D plot. If None, no limits are enforced</span>
+<span class="sd">            :type ylims: list, optional, default=None</span>
+
+<span class="sd">            :param cmap: color map to be used, only relevant in case of 2D contourplot</span>
+<span class="sd">            :type cmap: color map from matplotlib, optional, default=pp.get_cmap(&#39;rainbow&#39;)</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="c1">#preprocess</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finished</span><span class="p">,</span> <span class="s2">&quot;Conditional probability needs to be finished before plotting it.&quot;</span>
@@ -860,7 +907,7 @@
 
 <div class="viewcode-block" id="ConditionalProbability1D1D"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.condprob.ConditionalProbability1D1D">[docs]</a><span class="k">class</span> <span class="nc">ConditionalProbability1D1D</span><span class="p">(</span><span class="n">ConditionalProbability</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Routine to store and compute conditional probabilities of the form :math:`p(q_1|cv)` which allow to convert a free energy profile in terms of the collective variable :math:`cv` to a free energy profile in terms of the collective variable :math:`q_1`.</span>
+<span class="sd">        Class to compute and store conditional probabilities of the form :math:`p(q|cv)` which allow to convert a free energy profile in terms of the collective variable :math:`cv` to a free energy profile in terms of the collective variable :math:`q`.</span>
 
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q_label</span><span class="o">=</span><span class="s1">&#39;Q&#39;</span><span class="p">,</span> <span class="n">cv_label</span><span class="o">=</span><span class="s1">&#39;CV&#39;</span><span class="p">,</span> <span class="n">q_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -876,12 +923,19 @@
 <span class="sd">            </span>
 <span class="sd">            :param cv_label: label for Q used for plotting/logging, defaults to &#39;CV&#39;</span>
 <span class="sd">            :type cv_label: str, optional</span>
+
+<span class="sd">            :param verbose: make all class routines more verbose in their logging</span>
+<span class="sd">            :type verbose: bool, optional, default=False</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">ConditionalProbability</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">q_labels</span><span class="o">=</span><span class="p">[</span><span class="n">q_label</span><span class="p">],</span> <span class="n">cv_labels</span><span class="o">=</span><span class="p">[</span><span class="n">cv_label</span><span class="p">],</span> <span class="n">q_units</span><span class="o">=</span><span class="p">[</span><span class="n">q_output_unit</span><span class="p">],</span> <span class="n">cv_units</span><span class="o">=</span><span class="p">[</span><span class="n">cv_output_unit</span><span class="p">],</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ConditionalProbability1D1D.process_trajectory_xyz"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.condprob.ConditionalProbability1D1D.process_trajectory_xyz">[docs]</a>    <span class="k">def</span> <span class="nf">process_trajectory_xyz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fns</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">CV</span><span class="p">,</span> <span class="n">sub</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span><span class="kc">None</span><span class="p">,</span><span class="kc">None</span><span class="p">),</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">            Included for backwards compatibility , this routine will call the more general process_trajectory routine of the parent class. WARNING: it is no longer possible to finishe automatically after processing a trajectory. Finishing must alwasy be done manually by calling the finish routine!</span>
+<span class="sd">            Included for backwards compatibility , this routine will call the more general process_trajectory routine of the parent class.</span>
+
+<span class="sd">            .. warning:: </span>
+<span class="sd">            </span>
+<span class="sd">                It is no longer possible to finish automatically after processing a trajectory. Finishing must alwasy be done manually by calling the finish routine!</span>
 
 <span class="sd">            Extract Q and CV samples from the given XYZ trajectories. These samples will later be utilized by the finish routine to construct the conditional probability. The trajectory files may also contain data from simulations that are biased in CV space (not Q space!!).</span>
 
@@ -894,11 +948,11 @@
 <span class="sd">            :param CV: collective variable used to compute the CV value from a trajectory file</span>
 <span class="sd">            :type CV: CollectiveVariable</span>
 
-<span class="sd">            :param sub: python slice instance to subsample the trajectory, defaults to slice(None, None, None)</span>
-<span class="sd">            :type sub: slice, optional</span>
+<span class="sd">            :param sub: python slice instance to subsample the trajectory</span>
+<span class="sd">            :type sub: slice, optional, default=slice(None, None, None)</span>
 
-<span class="sd">            :param verbose: set to True to increase verbosity, defaults to False</span>
-<span class="sd">            :type verbose: bool, optional</span>
+<span class="sd">            :param verbose: set to True to increase verbosity of the CVComputer to compute CV values from the trajectories</span>
+<span class="sd">            :type verbose: bool, optional, default=False</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">cv_reader</span> <span class="o">=</span> <span class="n">CVComputer</span><span class="p">([</span><span class="n">CV</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cv_labels</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">start</span><span class="o">=</span><span class="n">sub</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="n">sub</span><span class="o">.</span><span class="n">step</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">sub</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
         <span class="n">q_reader</span> <span class="o">=</span> <span class="n">CVComputer</span><span class="p">([</span><span class="n">Q</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">q_labels</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">start</span><span class="o">=</span><span class="n">sub</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="n">sub</span><span class="o">.</span><span class="n">step</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">sub</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
@@ -907,7 +961,11 @@
 
 <div class="viewcode-block" id="ConditionalProbability1D1D.process_trajectory_cvs"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.condprob.ConditionalProbability1D1D.process_trajectory_cvs">[docs]</a>    <span class="k">def</span> <span class="nf">process_trajectory_cvs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fns</span><span class="p">,</span> <span class="n">col_q</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">col_cv</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">sub</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span><span class="kc">None</span><span class="p">,</span><span class="kc">None</span><span class="p">),</span> <span class="n">unit_q</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">unit_cv</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">            Included for backwards compatibility, this routine will call the more general process_trajectory routine of the parent class. WARNING: it is no longer possible to finishe automatically after processing a trajectory. Finishing must alwasy be done manually by calling the finish routine!</span>
+<span class="sd">            Included for backwards compatibility, this routine will call the more general process_trajectory routine of the parent class. </span>
+<span class="sd">            </span>
+<span class="sd">            .. warning:: </span>
+<span class="sd">            </span>
+<span class="sd">                It is no longer possible to finish automatically after processing a trajectory. Finishing must alwasy be done manually by calling the finish routine!</span>
 
 <span class="sd">            Extract Q and CV samples from the given COLVAR trajectories. These samples will later be utilized by the finish routine to construct the conditional probability. The trajectory files may also contain data from simulations that are biased in CV space (not Q space!!). Each CV trajectory file contains rows of the form</span>
 
@@ -918,30 +976,50 @@
 <span class="sd">            :param fns: file name (or list of file names) of colvar files with the above formatting containing the trajectory data.</span>
 <span class="sd">            :type fns: str or list(str)</span>
 
-<span class="sd">            :param col_q: column index of the collective variable Q in the given input file, defaults to 1</span>
-<span class="sd">            :type col_q: int, optional</span>
+<span class="sd">            :param col_q: column index of the collective variable Q in the given input file</span>
+<span class="sd">            :type col_q: int, optional, default=1</span>
 
-<span class="sd">            :param col_cv: column index of the collective variable CV in the given input file, defaults to 2</span>
-<span class="sd">            :type col_cv: int, optional</span>
+<span class="sd">            :param col_cv: column index of the collective variable CV in the given input file</span>
+<span class="sd">            :type col_cv: int, optional, default=2</span>
 
-<span class="sd">            :param unit_q: unit in which the q values are stored in the file, defaults to &#39;au&#39;</span>
-<span class="sd">            :type unit_q: str, optional</span>
+<span class="sd">            :param unit_q: unit in which the q values are stored in the file</span>
+<span class="sd">            :type unit_q: str, optional, default=&#39;au&#39;</span>
 
-<span class="sd">            :param unit_cv: unit in which the cv values are stored in the file, defaults to &#39;au&#39;</span>
-<span class="sd">            :type unit_cv: str, optional</span>
+<span class="sd">            :param unit_cv: unit in which the cv values are stored in the file</span>
+<span class="sd">            :type unit_cv: str, optional, default=&#39;au&#39;</span>
 <span class="sd">            </span>
-<span class="sd">            :param sub: python slice instance to subsample the trajectory, defaults to slice(None, None, None)</span>
-<span class="sd">            :type sub: slice, optional</span>
+<span class="sd">            :param sub: python slice instance to subsample the trajectory</span>
+<span class="sd">            :type sub: slice, optional, default=slice(None, None, None)</span>
 
-<span class="sd">            :param verbose: set to True to increase verbosity, defaults to False</span>
-<span class="sd">            :type verbose: bool, optional</span>
+<span class="sd">            :param verbose: set to True to increase verbosity of the ColVarReader when reading samples from the trajectory files.</span>
+<span class="sd">            :type verbose: bool, optional, default=False</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">q_reader</span>  <span class="o">=</span> <span class="n">ColVarReader</span><span class="p">([</span><span class="n">col_q</span><span class="p">]</span> <span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="p">[</span><span class="n">unit_q</span><span class="p">]</span> <span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Q&#39;</span> <span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">sub</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="n">sub</span><span class="o">.</span><span class="n">step</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">sub</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
         <span class="n">cv_reader</span> <span class="o">=</span> <span class="n">ColVarReader</span><span class="p">([</span><span class="n">col_cv</span><span class="p">],</span> <span class="n">units</span><span class="o">=</span><span class="p">[</span><span class="n">unit_cv</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;CV&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">sub</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="n">sub</span><span class="o">.</span><span class="n">step</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">sub</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">fns</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">process_simulation</span><span class="p">([(</span><span class="n">fn</span><span class="p">,</span> <span class="n">q_reader</span> <span class="p">)],</span> <span class="p">[(</span><span class="n">fn</span><span class="p">,</span> <span class="n">cv_reader</span><span class="p">)])</span></div>
 
-    <span class="k">def</span> <span class="nf">finish_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">error_estimate</span><span class="p">,</span> <span class="n">error_p_threshold</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+<div class="viewcode-block" id="ConditionalProbability1D1D.finish_error"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.condprob.ConditionalProbability1D1D.finish_error">[docs]</a>    <span class="k">def</span> <span class="nf">finish_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">error_estimate</span><span class="p">,</span> <span class="n">error_p_threshold</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Estimate error bars on the conditional probability. This routine will be called by the ``finish`` routine if the error_estimate keyword parsed there is not None.</span>
+
+<span class="sd">            :param error_estimate: indicate if and how to perform error analysis. One of following options is available:</span>
+
+<span class="sd">				- **mle_p** - Estimating the error directly for the probability of each bin in the histogram. This method does not explicitly impose the positivity of the probability.</span>
+
+<span class="sd">				- **mle_p_cov** - Estimate the full covariance matrix for the probability of all bins in the histogram. In other words, appart from the error on the probability/free energy of a bin itself, we now also account for the covariance between the probabilty/free energy of the bins. This method does not explicitly impose the positivity of the probability.</span>
+
+<span class="sd">				- **mle_f** - Estimating the error for minus the logarithm of the probability, which is proportional to the free energy (hence f in mle_f). As the probability is expressed as :math:`\propto e^{-f}`, its positivity is explicitly accounted for.</span>
+
+<span class="sd">				- **mle_f_cov** - Estimate the full covariance matrix for minus the logarithm of the probability of all bins in the histogram. In other words, appart from the error on the probabilty/free energy of a bin itself (including explicit positivity constraint), we now also account for the covariance between the probability/free energy of the bins.</span>
+
+<span class="sd">			:type error_estimate: str</span>
+
+<span class="sd">            :param error_p_threshold: When ``error_p_threshold`` is set to x, bins in the histogram for which the probability resulting from the trajectory is smaller than x will be disabled for error estimation (i.e. its error will be set to np.nan).</span>
+<span class="sd">			:type error_p_threshold: float, optional, default=0.0</span>
+
+<span class="sd">            :raises ValueError: if an invalid definition for error_estimate is provided</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  computing Fisher matrices for each simulation&#39;</span><span class="p">)</span>
         <span class="n">Ngrid_q</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">q_grid</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>  <span class="c1">#extra [0] because only 1 Q and then self.q_grid=[np.ndarray(...)]</span>
         <span class="c1">#loop over each simulation</span>
@@ -975,13 +1053,19 @@
                 <span class="n">fs</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">ps</span><span class="p">)</span>
                 <span class="n">err</span> <span class="o">=</span> <span class="n">MultiLogGaussianDistribution</span><span class="p">(</span><span class="o">-</span><span class="n">fs</span><span class="p">,</span> <span class="n">cov</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Error estimation method </span><span class="si">%s</span><span class="s1"> not supported&#39;</span> <span class="o">%</span><span class="n">error_estimate</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Error estimation method </span><span class="si">%s</span><span class="s1"> not supported&#39;</span> <span class="o">%</span><span class="n">error_estimate</span><span class="p">)</span>
             <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="n">ErrorArray</span><span class="p">(</span><span class="n">errors</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="n">ErrorArray</span><span class="p">(</span><span class="n">errors</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="ConditionalProbability1D1D.average"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.condprob.ConditionalProbability1D1D.average">[docs]</a>    <span class="k">def</span> <span class="nf">average</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_distribution</span><span class="o">=</span><span class="n">MultiGaussianDistribution</span><span class="p">):</span>
+<div class="viewcode-block" id="ConditionalProbability1D1D.average"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.condprob.ConditionalProbability1D1D.average">[docs]</a>    <span class="k">def</span> <span class="nf">average</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">error_distribution</span><span class="o">=</span><span class="n">MultiGaussianDistribution</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Compute the average of Q as function of CV</span>
+
+<span class="sd">            :param error_distribution: the model for the error distribution of Q profile</span>
+<span class="sd">            :type error_distribution: class from :py:mod:`error &lt;thermolib.error&gt;` module, optional, default= :py:class:`MultiGaussianDistribution &lt;thermolib.error.MultiGaussianDistribution&gt;`</span>
+
+<span class="sd">            :returns: Q profile as function of CV</span>
+<span class="sd">            :rtype: :py:class:`BaseProfile &lt;thermolib.thermodynamics.fep.BaseProfile&gt;`</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">def</span> <span class="nf">function</span><span class="p">(</span><span class="n">pconds</span><span class="p">):</span>
             <span class="n">qs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cvs</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
@@ -999,30 +1083,34 @@
             <span class="n">error</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">propagator</span> <span class="o">=</span> <span class="n">Propagator</span><span class="p">()</span>
-            <span class="n">error</span> <span class="o">=</span> <span class="n">propagator</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">,</span> <span class="n">target_distribution</span><span class="o">=</span><span class="n">target_distribution</span><span class="p">,</span> <span class="n">samples_are_flattened</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">error</span> <span class="o">=</span> <span class="n">propagator</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">,</span> <span class="n">target_distribution</span><span class="o">=</span><span class="n">error_distribution</span><span class="p">,</span> <span class="n">samples_are_flattened</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">xs</span> <span class="o">=</span> <span class="n">error</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">BaseProfile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cvs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">xs</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="n">error</span><span class="p">,</span> <span class="n">cv_output_unit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cv_units</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">f_output_unit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">q_units</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cv_label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cv_labels</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">f_label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">q_labels</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></div>
 
-<div class="viewcode-block" id="ConditionalProbability1D1D.transform"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.condprob.ConditionalProbability1D1D.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fep</span><span class="p">,</span> <span class="n">q_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">f_output_unit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">q_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">f_output_class</span><span class="o">=</span><span class="n">BaseFreeEnergyProfile</span><span class="p">,</span> <span class="n">error_distribution</span><span class="o">=</span><span class="n">MultiGaussianDistribution</span><span class="p">):</span>
+<div class="viewcode-block" id="ConditionalProbability1D1D.transform"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.condprob.ConditionalProbability1D1D.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fep</span><span class="p">,</span> <span class="n">f_output_unit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">f_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">f_output_class</span><span class="o">=</span><span class="n">BaseFreeEnergyProfile</span><span class="p">,</span> <span class="n">error_distribution</span><span class="o">=</span><span class="n">MultiGaussianDistribution</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Transform the provided 1D FES to a different 1D FES using the current conditional probability according to the formula. </span>
 
 <span class="sd">            .. math:: F(q) &amp;= -kT \\ln\\left(\\int p(q|v)\\cdot e^{-\\beta F(v)} dv\\right)</span>
 <span class="sd">            </span>
 <span class="sd">            :param fep: the input free energy profile F(cv) which will be transformed towards F(q)</span>
-<span class="sd">            :type fep: BaseFreeEnergyProfile or child classes</span>
+<span class="sd">            :type fep: :py:class:`BaseFreeEnergyProfile &lt;thermolib.thermodynamics.fep.BaseFreeEnergyProfile&gt;`</span>
 
-<span class="sd">            :param q_output_unit: the unit of the new collective variable Q to be used in plotting and printing, defaults to &#39;au&#39;</span>
-<span class="sd">            :type q_output_unit: str, optional</span>
+<span class="sd">            :param f_output_unit: the unit of the transformed free energy profile to be used in plotting and printing of energies. If None, the f_output_unit of the original free energy profile will be used.</span>
+<span class="sd">            :type f_output_unit: str, optional, default=None</span>
 
-<span class="sd">            :param f_output_unit: the unit of the the transformed free energy profile to be used in plotting and printing of energies. By default, the f_output_unit of the given free energy profile will be used.</span>
-<span class="sd">            :type f_output_unit: str, optional</span>
+<span class="sd">            :param f_label: the label of the transformed free energy profile to be used in plotting and printing. If None, the f_label of the original free energy profile will be used.</span>
+<span class="sd">            :type f_output_unit: str, optional, default=None</span>
 
-<span class="sd">            :param f_output_class: the class of the output free energy profile, defaults to BaseFreeEnergyProfile</span>
-<span class="sd">            :type f_output_class: class, optional</span>
+<span class="sd">            :param f_output_class: the class of the output free energy profile. If you want to use specific features of the :py:class:`SimpleFreeEnergyProfile &lt;thermolib.thermodynamics.fep.SimpleFreeEnergyProfile&gt;` class (such as e.g. automatic detection of reactant, transition state and product state micro/macrostates) in the transformed fep, define this argument as :py:class:`SimpleFreeEnergyProfile &lt;thermolib.thermodynamics.fep.SimpleFreeEnergyProfile&gt;`.</span>
+<span class="sd">            :type f_output_class: class, optional, default= :py:class:`BaseFreeEnergyProfile &lt;thermolib.thermodynamics.fep.BaseFreeEnergyProfile&gt;`</span>
 
-<span class="sd">            :param q_label: the label of the new collective variable Q to be used in plot labels. This argument is deprecated, the q_labels[0] as defined upon initializing the class instance is used by default.</span>
-<span class="sd">            :type cv_label: str, optional</span>
+<span class="sd">            :param error_distribution: the model for the error distribution of Q profile</span>
+<span class="sd">            :type error_distribution: class from :py:mod:`error &lt;thermolib.error&gt;` module, optional, default= :py:class:`MultiGaussianDistribution &lt;thermolib.error.MultiGaussianDistribution&gt;`</span>
+
+<span class="sd">            :raises AssertionError: if the conditional probability has not been finished yetµ</span>
+<span class="sd">            :raises AssertionError: if the fep argument is not a :py:class:`BaseFreeEnergyProfile &lt;thermolib.thermodynamics.fep.BaseFreeEnergyProfile&gt;`</span>
+<span class="sd">            :raises AssertionError: if the cv grids in self.cvs[0] and fep.cvs are not consistent</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="c1">#consistency checks and initalization</span>
         <span class="n">qs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -1031,8 +1119,8 @@
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fep</span><span class="p">,</span> <span class="n">BaseFreeEnergyProfile</span><span class="p">),</span> <span class="s1">&#39;Input argument should be instance of (child of) BaseFreeEnergyProfile, instead received </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">fep</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">fep</span><span class="o">.</span><span class="n">cvs</span><span class="p">)</span><span class="o">==</span><span class="nb">len</span><span class="p">(</span><span class="n">cvs</span><span class="p">),</span> <span class="s1">&#39;Dimension of 1D CV in conditional probability inconsistent with 1D FEP&#39;</span>
         <span class="k">assert</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">fep</span><span class="o">.</span><span class="n">cvs</span><span class="o">-</span><span class="n">cvs</span><span class="p">)</span><span class="o">&lt;</span><span class="mf">1e-6</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span> <span class="s1">&#39;Values of 1D CV in conditional probability not identical to those of 1D FEP&#39;</span>
-        <span class="k">if</span> <span class="n">q_label</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">q_label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">q_labels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">f_output_unit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">f_output_unit</span> <span class="o">=</span> <span class="n">fep</span><span class="o">.</span><span class="n">f_output_unit</span>
+        <span class="k">if</span> <span class="n">f_label</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">f_label</span> <span class="o">=</span> <span class="n">fep</span><span class="o">.</span><span class="n">f_label</span>
         <span class="c1"># Construct 1D FEP</span>
         <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="n">fs</span><span class="p">,</span> <span class="n">pconds</span><span class="p">):</span>
             <span class="n">mask</span> <span class="o">=</span> <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">fs</span><span class="p">)</span>
@@ -1057,9 +1145,9 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">fs</span> <span class="o">=</span> <span class="n">transform</span><span class="p">(</span><span class="n">fep</span><span class="o">.</span><span class="n">fs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pconds</span><span class="p">)</span>
             <span class="n">error</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">return</span> <span class="n">f_output_class</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">fs</span><span class="p">,</span> <span class="n">fep</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="n">error</span><span class="p">,</span> <span class="n">cv_output_unit</span><span class="o">=</span><span class="n">q_output_unit</span><span class="p">,</span> <span class="n">f_output_unit</span><span class="o">=</span><span class="n">f_output_unit</span><span class="p">,</span> <span class="n">cv_label</span><span class="o">=</span><span class="n">q_label</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">f_output_class</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">fs</span><span class="p">,</span> <span class="n">fep</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="n">error</span><span class="p">,</span> <span class="n">cv_output_unit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">q_units</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">f_output_unit</span><span class="o">=</span><span class="n">f_output_unit</span><span class="p">,</span> <span class="n">cv_label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">q_labels</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">f_label</span><span class="o">=</span><span class="n">f_label</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="ConditionalProbability1D1D.deproject"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.condprob.ConditionalProbability1D1D.deproject">[docs]</a>    <span class="k">def</span> <span class="nf">deproject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fep</span><span class="p">,</span> <span class="n">cv_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">q_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">f_output_unit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">f_output_class</span><span class="o">=</span><span class="n">FreeEnergySurface2D</span><span class="p">,</span> <span class="n">cv_label</span><span class="o">=</span><span class="s1">&#39;CV&#39;</span><span class="p">,</span> <span class="n">q_label</span><span class="o">=</span><span class="s1">&#39;Q&#39;</span><span class="p">,</span> <span class="n">error_distribution</span><span class="o">=</span><span class="n">MultiGaussianDistribution</span><span class="p">):</span>
+<div class="viewcode-block" id="ConditionalProbability1D1D.deproject"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.condprob.ConditionalProbability1D1D.deproject">[docs]</a>    <span class="k">def</span> <span class="nf">deproject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fep</span><span class="p">,</span> <span class="n">f_output_unit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">f_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">f_output_class</span><span class="o">=</span><span class="n">FreeEnergySurface2D</span><span class="p">,</span> <span class="n">error_distribution</span><span class="o">=</span><span class="n">MultiGaussianDistribution</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Deproject the provided 1D FEP F(q) to a 2D FES F(q,v) using the current conditional probability according to the formula</span>
 
@@ -1068,23 +1156,21 @@
 <span class="sd">            :param fep: the free energy profile F(q_2) which will be transformed</span>
 <span class="sd">            :type fep: (child of) BaseFreeEnergyProfile</span>
 
-<span class="sd">            :param q_output_unit: the unit of the new additional collective variable Q to be used in plotting and printing, defaults to &#39;au&#39;</span>
-<span class="sd">            :type q_output_unit: str, optional</span>
+<span class="sd">            :param f_output_unit: the unit of the deprojected free energy profile to be used in plotting and printing of energies. If None, the f_output_unit of the original 1D free energy profile will be used.</span>
+<span class="sd">            :type f_output_unit: str, optional, default=None</span>
 
-<span class="sd">            :param cv_output_unit: the unit of the original collective variable CV to be used in plotting and printing, defaults to &#39;au&#39;</span>
-<span class="sd">            :type q2_output_unit: str, optional</span>
-
-<span class="sd">            :param f_output_unit: the unit of the the transformed free energy profile to be used in plotting and printing of energies. If set to None, the f_output_unit of the given free energy profile will be use. Defaults to None</span>
-<span class="sd">            :type f_output_unit: str, optional</span>
+<span class="sd">            :param f_label: the label of the deprojected free energy profile to be used in plotting and printing. If None, the f_label of the original 1D free energy profile will be used.</span>
+<span class="sd">            :type f_label: str, optional, default=None</span>
 
 <span class="sd">            :param f_output_class: the class of the output free energy profile, defaults to FreeEnergySurface2D</span>
 <span class="sd">            :type f_output_class: class, optional</span>
 
-<span class="sd">            :param q_label: the label of the new additional collective variable Q to be used in plot labels. This argument is deprecated, the q_labels[0] as defined upon initializing the class instance is used by default.</span>
-<span class="sd">            :type q_label: str, optional</span>
+<span class="sd">            :param error_distribution: the model for the error distribution of Q profile</span>
+<span class="sd">            :type error_distribution: class from :py:mod:`error &lt;thermolib.error&gt;` module, optional, default= :py:class:`MultiGaussianDistribution &lt;thermolib.error.MultiGaussianDistribution&gt;`</span>
 
-<span class="sd">            :param cv_label: the label of the oribinal collective variable CV to be used in plot labels. This argument is deprecated, the cv_labels[0] as defined upon initializing the class instance is used by default.</span>
-<span class="sd">            :type cv_label: str, optional</span>
+<span class="sd">            :raises AssertionError: if the conditional probability has not been finished yetµ</span>
+<span class="sd">            :raises AssertionError: if the fep argument is not a :py:class:`BaseFreeEnergyProfile &lt;thermolib.thermodynamics.fep.BaseFreeEnergyProfile&gt;`</span>
+<span class="sd">            :raises AssertionError: if the cv grids in self.cvs[0] and fep.cvs are not consistent</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="c1">#consistency checks and initalization</span>
         <span class="n">qs</span><span class="p">,</span> <span class="n">cvs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">cvs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -1092,8 +1178,7 @@
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fep</span><span class="p">,</span> <span class="n">BaseFreeEnergyProfile</span><span class="p">),</span> <span class="s1">&#39;Input argument should be instance of (child of) BaseFreeEnergyProfile, instead received </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">fep</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">fep</span><span class="o">.</span><span class="n">cvs</span><span class="p">)</span><span class="o">==</span><span class="nb">len</span><span class="p">(</span><span class="n">cvs</span><span class="p">),</span> <span class="s1">&#39;Dimension of collective variable v in conditional probability p(q|v) inconsistent with collective variable in 1D FEP&#39;</span>
         <span class="k">assert</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">fep</span><span class="o">.</span><span class="n">cvs</span><span class="o">-</span><span class="n">cvs</span><span class="p">)</span><span class="o">&lt;</span><span class="mf">1e-6</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span> <span class="s1">&#39;Values of collective variable v in conditional probability p(q|v) not identical to those of collective variable in 1D FEP&#39;</span>
-        <span class="k">if</span> <span class="n">q_label</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">q_label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">q_labels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">cv_label</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">cv_label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv_labels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">f_label</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">f_label</span> <span class="o">=</span> <span class="n">fep</span><span class="o">.</span><span class="n">f_label</span>
         <span class="k">if</span> <span class="n">f_output_unit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">f_output_unit</span> <span class="o">=</span> <span class="n">fep</span><span class="o">.</span><span class="n">f_output_unit</span>
         <span class="c1"># Construct 2D FES</span>
         <span class="n">kT</span> <span class="o">=</span> <span class="n">boltzmann</span><span class="o">*</span><span class="n">fep</span><span class="o">.</span><span class="n">T</span>
@@ -1122,7 +1207,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">fs</span> <span class="o">=</span> <span class="n">deproject</span><span class="p">(</span><span class="n">fep</span><span class="o">.</span><span class="n">fs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pconds</span><span class="p">)</span>
             <span class="n">error</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">return</span> <span class="n">f_output_class</span><span class="p">(</span><span class="n">cvs</span><span class="p">,</span> <span class="n">qs</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">fep</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="n">error</span><span class="p">,</span> <span class="n">cv1_output_unit</span><span class="o">=</span><span class="n">cv_output_unit</span><span class="p">,</span> <span class="n">cv2_output_unit</span><span class="o">=</span><span class="n">q_output_unit</span><span class="p">,</span> <span class="n">f_output_unit</span><span class="o">=</span><span class="n">f_output_unit</span><span class="p">,</span> <span class="n">cv1_label</span><span class="o">=</span><span class="n">cv_label</span><span class="p">,</span> <span class="n">cv2_label</span><span class="o">=</span><span class="n">q_label</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="n">f_output_class</span><span class="p">(</span><span class="n">cvs</span><span class="p">,</span> <span class="n">qs</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">fep</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="n">error</span><span class="p">,</span> <span class="n">cv1_output_unit</span><span class="o">=</span><span class="n">fep</span><span class="o">.</span><span class="n">cv_output_unit</span><span class="p">,</span> <span class="n">cv2_output_unit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">q_units</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">f_output_unit</span><span class="o">=</span><span class="n">f_output_unit</span><span class="p">,</span> <span class="n">cv1_label</span><span class="o">=</span><span class="n">fep</span><span class="o">.</span><span class="n">cv_label</span><span class="p">,</span> <span class="n">cv2_label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">q_labels</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">f_label</span><span class="o">=</span><span class="n">f_label</span><span class="p">)</span></div></div>
 
 
 
@@ -1133,23 +1218,17 @@
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q1_label</span><span class="o">=</span><span class="s1">&#39;Q1&#39;</span><span class="p">,</span> <span class="n">q2_label</span><span class="o">=</span><span class="s1">&#39;Q2&#39;</span><span class="p">,</span> <span class="n">cv_label</span><span class="o">=</span><span class="s1">&#39;CV&#39;</span><span class="p">,</span> <span class="n">q1_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">q2_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">            :param q1_bins: np.histogram argument for defining the bins of Q1 samples</span>
-<span class="sd">            :type q1_bins: see np.histogram and np.histogram2d, optional</span>
+<span class="sd">            :param q1_label: label for Q1 used for plotting/logging</span>
+<span class="sd">            :type q1_label: str, optional, default=&#39;Q1&#39;</span>
 
-<span class="sd">            :param q2_bins: np.histogram argument for defining the bins of Q2 samples</span>
-<span class="sd">            :type q2_bins: see np.histogram and np.histogram2d, optional</span>
-
-<span class="sd">            :param cv_bins: np.histogram argument for defining the bins of CV samples</span>
-<span class="sd">            :type cv_bins: see np.histogram and np.histogram2d, optional</span>
-
-<span class="sd">            :param q1_label: label for Q1 used for plotting/logging, defaults to &#39;Q1&#39;</span>
-<span class="sd">            :type q1_label: str, optional</span>
-
-<span class="sd">            :param q2_label: label for Q2 used for plotting/logging, defaults to &#39;Q2&#39;</span>
-<span class="sd">            :type q2_label: str, optional</span>
+<span class="sd">            :param q2_label: label for Q2 used for plotting/logging</span>
+<span class="sd">            :type q2_label: str, optional, default=&#39;Q2&#39;</span>
 <span class="sd">            </span>
-<span class="sd">            :param cv_label: label for Q used for plotting/logging, defaults to &#39;CV&#39;</span>
-<span class="sd">            :type cv_label: str, optional</span>
+<span class="sd">            :param cv_label: label for Q used for plotting/logging</span>
+<span class="sd">            :type cv_label: str, optional, default=&#39;CV&#39;</span>
+
+<span class="sd">            :param verbose: set to True to increase verbosity of TrajectoryReaders used to compute the various CV samples along an XYZ trajectory</span>
+<span class="sd">            :type verbose: bool, optional, default=False</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">ConditionalProbability</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">q_labels</span><span class="o">=</span><span class="p">[</span><span class="n">q1_label</span><span class="p">,</span><span class="n">q2_label</span><span class="p">],</span> <span class="n">cv_labels</span><span class="o">=</span><span class="p">[</span><span class="n">cv_label</span><span class="p">],</span> <span class="n">q_units</span><span class="o">=</span><span class="p">[</span><span class="n">q1_output_unit</span><span class="p">,</span><span class="n">q2_output_unit</span><span class="p">],</span> <span class="n">cv_units</span><span class="o">=</span><span class="p">[</span><span class="n">cv_output_unit</span><span class="p">],</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
 
@@ -1163,22 +1242,16 @@
 <span class="sd">            :type fns: str or list(str)</span>
 
 <span class="sd">            :param Q1: collective variable used to compute the Q1 value from a trajectory file</span>
-<span class="sd">            :type Q1: CollectiveVariable</span>
+<span class="sd">            :type Q1: :py:class:`CollectiveVariable &lt;thermolib.thermodynamics.cv.CollectiveVariable&gt;`</span>
 
 <span class="sd">            :param Q2: collective variable used to compute the Q2 value from a trajectory file</span>
-<span class="sd">            :type Q2: CollectiveVariable</span>
+<span class="sd">            :type Q2: :py:class:`CollectiveVariable &lt;thermolib.thermodynamics.cv.CollectiveVariable&gt;`</span>
 
 <span class="sd">            :param CV: collective variable used to compute the CV value from a trajectory file</span>
-<span class="sd">            :type CV: CollectiveVariable</span>
+<span class="sd">            :type CV: :py:class:`CollectiveVariable &lt;thermolib.thermodynamics.cv.CollectiveVariable&gt;`</span>
 
-<span class="sd">            :param sub: python slice instance to subsample the trajectory, defaults to slice(None, None, None)</span>
-<span class="sd">            :type sub: slice, optional</span>
-
-<span class="sd">            :param finish: set to True if the given file name(s) are the only relevant trajectories and hence the conditional probability should be computed from only these trajectories. Setting it to True will trigger histogram construction and normalization. Set to False if you would like to call a process_trajectory routine again afterwards. Defaults to True</span>
-<span class="sd">            :type finish: bool, optional</span>
-
-<span class="sd">            :param verbose: set to True to increase verbosity, defaults to False</span>
-<span class="sd">            :type verbose: bool, optional</span>
+<span class="sd">            :param sub: python slice instance to subsample the trajectory</span>
+<span class="sd">            :type sub: slice, optional, default=slice(None, None, None)</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">cv_reader</span> <span class="o">=</span> <span class="n">CVComputer</span><span class="p">([</span><span class="n">CV</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cv_labels</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">start</span><span class="o">=</span><span class="n">sub</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="n">sub</span><span class="o">.</span><span class="n">step</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">sub</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">)</span>
         <span class="n">q1_reader</span> <span class="o">=</span> <span class="n">CVComputer</span><span class="p">([</span><span class="n">Q1</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">q_labels</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">start</span><span class="o">=</span><span class="n">sub</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="n">sub</span><span class="o">.</span><span class="n">step</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">sub</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">)</span>
@@ -1199,32 +1272,26 @@
 <span class="sd">            :param fns: file name (or list of file names) of colvar files with the above formatting containing the trajectory data.</span>
 <span class="sd">            :type fns: str or list(str)</span>
 
-<span class="sd">            :param col_q1: column index of the collective variable Q1 in the given input file, defaults to 1</span>
-<span class="sd">            :type col_q1: int, optional</span>
+<span class="sd">            :param col_q1: column index of the collective variable Q1 in the given input file</span>
+<span class="sd">            :type col_q1: int, optional, default=1</span>
 
-<span class="sd">            :param col_q2: column index of the collective variable Q2 in the given input file, defaults to 2</span>
-<span class="sd">            :type col_q2: int, optional</span>
+<span class="sd">            :param col_q2: column index of the collective variable Q2 in the given input file</span>
+<span class="sd">            :type col_q2: int, optional, defaults=2</span>
 
-<span class="sd">            :param col_cv: column index of the collective variable CV in the given input file, defaults to 3</span>
-<span class="sd">            :type col_cv: int, optional</span>
+<span class="sd">            :param col_cv: column index of the collective variable CV in the given input file</span>
+<span class="sd">            :type col_cv: int, optional, default=3</span>
 
-<span class="sd">            :param unit_q1: unit in which the q1 values are stored in the file, defaults to &#39;au&#39;</span>
-<span class="sd">            :type unit_q1: str, optional</span>
+<span class="sd">            :param unit_q1: unit in which the q1 values are stored in the file</span>
+<span class="sd">            :type unit_q1: str, optional, default=&#39;au&#39;</span>
 
-<span class="sd">            :param unit_q2: unit in which the q2 values are stored in the file, defaults to &#39;au&#39;</span>
-<span class="sd">            :type unit_q2: str, optional</span>
+<span class="sd">            :param unit_q2: unit in which the q2 values are stored in the file</span>
+<span class="sd">            :type unit_q2: str, optional, default=&#39;au&#39;</span>
 
-<span class="sd">            :param unit_cv: unit in which the cv values are stored in the file, defaults to &#39;au&#39;</span>
-<span class="sd">            :type unit_cv: str, optional</span>
+<span class="sd">            :param unit_cv: unit in which the cv values are stored in the file</span>
+<span class="sd">            :type unit_cv: str, optional, default=&#39;au&#39;</span>
 <span class="sd">            </span>
-<span class="sd">            :param sub: python slice instance to subsample the trajectory, defaults to slice(None, None, None)</span>
-<span class="sd">            :type sub: slice, optional</span>
-
-<span class="sd">            :param finish: set to True if the given file name(s) are the only relevant trajectories and hence the conditional probability should be computed from only these trajectories. Setting it to True will trigger histogram construction and normalization. Set to False if you would like to call a process_trajectory routine again afterwards. Defaults to True</span>
-<span class="sd">            :type finish: bool, optional</span>
-
-<span class="sd">            :param verbose: set to True to increase verbosity, defaults to False</span>
-<span class="sd">            :type verbose: bool, optional</span>
+<span class="sd">            :param sub: python slice instance to subsample the trajectory</span>
+<span class="sd">            :type sub: slice, optional, default=slice(None, None, None)</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">q1_reader</span>  <span class="o">=</span> <span class="n">ColVarReader</span><span class="p">([</span><span class="n">col_q1</span><span class="p">]</span> <span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="p">[</span><span class="n">unit_q1</span><span class="p">]</span> <span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Q1&#39;</span> <span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">sub</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="n">sub</span><span class="o">.</span><span class="n">step</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">sub</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">)</span>
         <span class="n">q2_reader</span>  <span class="o">=</span> <span class="n">ColVarReader</span><span class="p">([</span><span class="n">col_q2</span><span class="p">]</span> <span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="p">[</span><span class="n">unit_q2</span><span class="p">]</span> <span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Q2&#39;</span> <span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">sub</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="n">sub</span><span class="o">.</span><span class="n">step</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">sub</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">)</span>
@@ -1232,7 +1299,7 @@
         <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">fns</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">process_simulation</span><span class="p">([(</span><span class="n">fn</span><span class="p">,</span><span class="n">q1_reader</span><span class="p">),</span> <span class="p">(</span><span class="n">fn</span><span class="p">,</span><span class="n">q2_reader</span><span class="p">)],</span> <span class="p">[(</span><span class="n">fn</span><span class="p">,</span><span class="n">cv_reader</span><span class="p">)])</span></div>
 
-<div class="viewcode-block" id="ConditionalProbability1D2D.deproject"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.condprob.ConditionalProbability1D2D.deproject">[docs]</a>    <span class="k">def</span> <span class="nf">deproject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fep</span><span class="p">,</span> <span class="n">q1_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">q2_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">q1_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">q2_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">f_output_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="ConditionalProbability1D2D.deproject"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.condprob.ConditionalProbability1D2D.deproject">[docs]</a>    <span class="k">def</span> <span class="nf">deproject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fep</span><span class="p">,</span> <span class="n">f_output_unit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">f_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">f_output_class</span><span class="o">=</span><span class="n">FreeEnergySurface2D</span><span class="p">,</span> <span class="n">error_distribution</span><span class="o">=</span><span class="n">MultiGaussianDistribution</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Transform the provided 1D FEP to a 2D FES using the current conditional probability according to the formula</span>
 
@@ -1241,31 +1308,28 @@
 <span class="sd">            :param fep: the input free energy profile F(cv) which will be transformed towards F(q)</span>
 <span class="sd">            :type fep: BaseFreeEnergyProfile or child classes</span>
 
-<span class="sd">            :param q1_output_unit: the unit of the new collective variable Q1 to be used in plotting and printing, defaults to &#39;au&#39;</span>
-<span class="sd">            :type q1_output_unit: str, optional</span>
+<span class="sd">            :param f_output_unit: the unit of the deprojected free energy profile to be used in plotting and printing of energies. If None, the f_output_unit of the original 1D free energy profile will be used.</span>
+<span class="sd">            :type f_output_unit: str, optional, default=None</span>
 
-<span class="sd">            :param q2_output_unit: the unit of the new collective variable Q2 to be used in plotting and printing, defaults to &#39;au&#39;</span>
-<span class="sd">            :type q2_output_unit: str, optional</span>
+<span class="sd">            :param f_label: the label of the deprojected free energy profile to be used in plotting and printing. If None, the f_label of the original 1D free energy profile will be used.</span>
+<span class="sd">            :type f_label: str, optional, default=None</span>
 
-<span class="sd">            :param f_output_unit: the unit of the the transformed free energy profile to be used in plotting and printing of energies. By default, the f_output_unit of the given free energy profile will be used.</span>
-<span class="sd">            :type f_output_unit: str, optional</span>
-
-<span class="sd">            :param f_output_class: the class of the output free energy profile, defaults to BaseFreeEnergyProfile</span>
+<span class="sd">            :param f_output_class: the class of the output free energy profile, defaults to FreeEnergySurface2D</span>
 <span class="sd">            :type f_output_class: class, optional</span>
 
-<span class="sd">            :param q1_label: the label of the new collective variable Q1 to be used in plot labels. This argument is deprecated, the q_labels[0] as defined upon initializing the class instance is used by default.</span>
-<span class="sd">            :type q1_label: str, optional</span>
+<span class="sd">            :param error_distribution: the model for the error distribution of Q profile</span>
+<span class="sd">            :type error_distribution: class from :py:mod:`error &lt;thermolib.error&gt;` module, optional, default= :py:class:`MultiGaussianDistribution &lt;thermolib.error.MultiGaussianDistribution&gt;`</span>
 
-<span class="sd">            :param q2_label: the label of the new collective variable Q2 to be used in plot labels. This argument is deprecated, the q_labels[1] as defined upon initializing the class instance is used by default.</span>
-<span class="sd">            :type q2_label: str, optional</span>
+<span class="sd">            :raises AssertionError: if the conditional probability has not been finished yetµ</span>
+<span class="sd">            :raises AssertionError: if the fep argument is not a :py:class:`BaseFreeEnergyProfile &lt;thermolib.thermodynamics.fep.BaseFreeEnergyProfile&gt;`</span>
+<span class="sd">            :raises AssertionError: if the cv grids in self.cvs[0] and fep.cvs are not consistent</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="c1">#consistency checks and initalization</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finished</span><span class="p">,</span> <span class="s2">&quot;Conditional probability needs to be finished before applying at in transformations.&quot;</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fep</span><span class="p">,</span> <span class="n">BaseFreeEnergyProfile</span><span class="p">),</span> <span class="s1">&#39;Input argument should be instance of (child of) BaseFreeEnergyProfile, instead received </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">fep</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">fep</span><span class="o">.</span><span class="n">cvs</span><span class="p">)</span><span class="o">==</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cvs</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="s1">&#39;Dimension of 1D CV in conditional probability inconsistent with 1D FEP&#39;</span>
         <span class="k">assert</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">fep</span><span class="o">.</span><span class="n">cvs</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">cvs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">&lt;</span><span class="mf">1e-6</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span> <span class="s1">&#39;Values of 1D CV in conditional probability not identical to those of 1D FEP&#39;</span>
-        <span class="k">if</span> <span class="n">q1_label</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">q1_label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">q_labels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">q2_label</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">q2_label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">q_labels</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">f_label</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">f_label</span> <span class="o">=</span> <span class="n">fep</span><span class="o">.</span><span class="n">f_label</span>
         <span class="k">if</span> <span class="n">f_output_unit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">f_output_unit</span> <span class="o">=</span> <span class="n">fep</span><span class="o">.</span><span class="n">f_output_unit</span>
         <span class="c1">#construct 2D FES</span>
         <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="n">fs</span><span class="p">,</span> <span class="n">pconds</span><span class="p">):</span>
@@ -1281,15 +1345,15 @@
         <span class="k">if</span> <span class="n">fep</span><span class="o">.</span><span class="n">error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">propagator</span> <span class="o">=</span> <span class="n">Propagator</span><span class="p">(</span><span class="n">ncycles</span><span class="o">=</span><span class="n">ncycles_default</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">error</span> <span class="o">=</span> <span class="n">propagator</span><span class="p">(</span><span class="n">transform</span><span class="p">,</span> <span class="n">fep</span><span class="o">.</span><span class="n">error</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">,</span> <span class="n">target_distribution</span><span class="o">=</span><span class="n">GaussianDistribution</span><span class="p">)</span>
+                <span class="n">error</span> <span class="o">=</span> <span class="n">propagator</span><span class="p">(</span><span class="n">transform</span><span class="p">,</span> <span class="n">fep</span><span class="o">.</span><span class="n">error</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">,</span> <span class="n">target_distribution</span><span class="o">=</span><span class="n">error_distribution</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">transf1</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">fs</span><span class="p">:</span> <span class="n">transform</span><span class="p">(</span><span class="n">fs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pconds</span><span class="p">)</span>
                 <span class="n">error</span> <span class="o">=</span> <span class="n">propagator</span><span class="p">(</span><span class="n">transf1</span><span class="p">,</span> <span class="n">fep</span><span class="o">.</span><span class="n">error</span><span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">propagator</span> <span class="o">=</span> <span class="n">Propagator</span><span class="p">(</span><span class="n">ncycles</span><span class="o">=</span><span class="n">ncycles_default</span><span class="p">)</span>
             <span class="n">transf2</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">pconds</span><span class="p">:</span> <span class="n">transform</span><span class="p">(</span><span class="n">fep</span><span class="o">.</span><span class="n">fs</span><span class="p">,</span> <span class="n">pconds</span><span class="p">)</span>
-            <span class="n">error</span> <span class="o">=</span> <span class="n">propagator</span><span class="p">(</span><span class="n">transf2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">,</span> <span class="n">target_distribution</span><span class="o">=</span><span class="n">LogGaussianDistribution</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">FreeEnergySurface2D</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">qs</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">fs</span><span class="p">,</span> <span class="n">fep</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="n">error</span><span class="p">,</span> <span class="n">cv1_output_unit</span><span class="o">=</span><span class="n">q1_output_unit</span><span class="p">,</span> <span class="n">cv2_output_unit</span><span class="o">=</span><span class="n">q2_output_unit</span><span class="p">,</span> <span class="n">f_output_unit</span><span class="o">=</span><span class="n">f_output_unit</span><span class="p">,</span> <span class="n">cv1_label</span><span class="o">=</span><span class="n">q1_label</span><span class="p">,</span> <span class="n">cv2_label</span><span class="o">=</span><span class="n">q2_label</span><span class="p">)</span></div></div>
+            <span class="n">error</span> <span class="o">=</span> <span class="n">propagator</span><span class="p">(</span><span class="n">transf2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">,</span> <span class="n">target_distribution</span><span class="o">=</span><span class="n">error_distribution</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">f_output_class</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">qs</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">fs</span><span class="p">,</span> <span class="n">fep</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="n">error</span><span class="p">,</span> <span class="n">cv1_output_unit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">q_units</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cv2_output_unit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">q_units</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">f_output_unit</span><span class="o">=</span><span class="n">f_output_unit</span><span class="p">,</span> <span class="n">cv1_label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">q_labels</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cv2_label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">q_labels</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">f_label</span><span class="o">=</span><span class="n">f_label</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>

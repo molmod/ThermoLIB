@@ -228,6 +228,8 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../rg_thermo.html#module-thermolib.thermodynamics.cv">Collective variables – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.cv</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.Average"><code class="docutils literal notranslate"><span class="pre">Average</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.CenterOfMass"><code class="docutils literal notranslate"><span class="pre">CenterOfMass</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.CenterOfPosition"><code class="docutils literal notranslate"><span class="pre">CenterOfPosition</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.CoordinationNumber"><code class="docutils literal notranslate"><span class="pre">CoordinationNumber</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.Difference"><code class="docutils literal notranslate"><span class="pre">Difference</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.DistOrthProjOrig"><code class="docutils literal notranslate"><span class="pre">DistOrthProjOrig</span></code></a></li>
@@ -236,6 +238,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.DotProduct"><code class="docutils literal notranslate"><span class="pre">DotProduct</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.LinearCombination"><code class="docutils literal notranslate"><span class="pre">LinearCombination</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.Minimum"><code class="docutils literal notranslate"><span class="pre">Minimum</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.NormalToPlane"><code class="docutils literal notranslate"><span class="pre">NormalToPlane</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.NormalizedAxis"><code class="docutils literal notranslate"><span class="pre">NormalizedAxis</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_thermo.html#thermolib.thermodynamics.cv.OrthogonalDistanceToPore"><code class="docutils literal notranslate"><span class="pre">OrthogonalDistanceToPore</span></code></a></li>
 </ul>
@@ -356,31 +359,32 @@
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;CVComputer&#39;</span><span class="p">,</span> <span class="s1">&#39;HDF5Reader&#39;</span><span class="p">,</span> <span class="s1">&#39;ColVarReader&#39;</span><span class="p">,</span> <span class="s1">&#39;ASEExtendedXYZReader&#39;</span><span class="p">]</span>
 
 <span class="k">class</span> <span class="nc">TrajectoryReader</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;Abstract class for reading trajectory files and extracting CV values. Child classes will implement specific readers depending of the format of the trajectory files (COLVAR, HDF5, XYZ, ...)</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Abstract class for reading trajectory files and extracting CV values. Child classes will implement specific readers depending of the format of the trajectory files (COLVAR, HDF5, XYZ, ...)</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">units</span><span class="p">:</span> <span class="nb">list</span><span class="o">=</span><span class="p">[],</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stride</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="nb">int</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">reload</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        :param units: List of units for each CV that needs to be read. Defaults to &#39;au&#39; for each CV., defaults to []</span>
-<span class="sd">        :type units: list, optional</span>
+<span class="sd">            :param units: List of units for each CV that needs to be read.</span>
+<span class="sd">            :type units: list, optional, default=[]</span>
 
-<span class="sd">        :param name: a name for printing/logging purposes, defaults to None</span>
-<span class="sd">        :type name: str, optional</span>
+<span class="sd">            :param name: a name for printing/logging purposes</span>
+<span class="sd">            :type name: str, optional, default=None</span>
 
-<span class="sd">        :param start: index of starting point in trajectory to extract CV values, can be used to crop out initial equilibration time. Defaults to 0</span>
-<span class="sd">        :type start: int, optional</span>
+<span class="sd">            :param start: index of starting point in trajectory to extract CV values, can be used to crop out initial equilibration time.</span>
+<span class="sd">            :type start: int, optional, default=0</span>
 
-<span class="sd">        :param stride: integer defining how to subsample the trajectory CV data. If set to a value larger than 1, only take sub samples every &#39;stride&#39; steps. If set to 1, sample all trajectory steps. Can be used to decrease correlations between subsequent samples. Defaults to 1</span>
-<span class="sd">        :type stride: int, optional</span>
+<span class="sd">            :param stride: integer defining how to subsample the trajectory CV data. If set to a value larger than 1, only take sub samples every &#39;stride&#39; steps. If set to 1, sample all trajectory steps. Can be used to decrease correlations between subsequent samples.</span>
+<span class="sd">            :type stride: int, optional, default=1</span>
 
-<span class="sd">        :param end: index of last trajectory step to be sampled. Can be used to crop out the final part of a simulation trajectory. If set to -1, take all trajectory samples, i.e. no cropping. Defaults to -1</span>
-<span class="sd">        :type end: int, optional</span>
+<span class="sd">            :param end: index of last trajectory step to be sampled. Can be used to crop out the final part of a simulation trajectory. If set to -1, take all trajectory samples, i.e. no cropping.</span>
+<span class="sd">            :type end: int, optional, default=-1</span>
 
-<span class="sd">        :param reload: if set to true, the first time the __call__ routine is called, the data read/computed from trajectory will also be written in numpy format to a file (with name equal to original trajectory file name but with additional &#39;.reload&#39; at the end). The next time the __call__ routine is called again afterwards, the trajectory data will read directly from the .reload file. This results in a considerable speedup in the case the CV is computed from a XYZ trajectory. Defaults to False</span>
-<span class="sd">        :type reload: bool, optional</span>
+<span class="sd">            :param reload: If True, the first time the __call__ routine is called, the data that is read/computed from the trajectory will be written in numpy format to a file (with name equal to original trajectory file name appended with &#39;.reload&#39; at the end). The next time the __call__ routine is called again afterwards, the trajectory data will read directly from the .reload file. This results in a considerable speedup in the case the CV is computed from a XYZ trajectory. If False, the data will be read from the trajectory file with every call to the __call__ routine.</span>
+<span class="sd">            :type reload: bool, optional, default=False</span>
 
-<span class="sd">        :param verbose: Switch on the routine verbosity and print more logging, defaults to False</span>
-<span class="sd">        :type verbose: bool, optional</span>
+<span class="sd">            :param verbose: If True, switch on the routine verbosity and print more logging</span>
+<span class="sd">            :type verbose: bool, optional, default=False</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="n">units</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
@@ -391,11 +395,21 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">reload</span> <span class="o">=</span> <span class="n">reload</span>
 
     <span class="k">def</span> <span class="nf">print</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Small wrapper around the python built-in print statement to allow for verbosity control.</span>
+
+<span class="sd">            :param line: Line/data to be printed</span>
+<span class="sd">            :type line: any python printable data type</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_slice</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;Slices the input data to crop between self.start and self.end and take sub sample according to self.stride</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Slices the input data to crop between self.start and self.end and take sub sample according to self.stride</span>
+
+<span class="sd">            :param data: the data to be sliced</span>
+<span class="sd">            :type data: np.ndarray</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">==</span><span class="mi">2</span> <span class="ow">and</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span>
@@ -407,9 +421,23 @@
             <span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">end</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">stride</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Routine to handle how a given file should be read, will be called by the __call__ routine. Needs to be implemented in each inheriting child class.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Read routine must be implemented in child class&#39;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Call routine to read the required data from the trajectory file fn using the _read routine §implemented in each child class) and return the corresponding CV samples along the trajectory.</span>
+
+<span class="sd">            :param fn: file name of the trajectory file</span>
+<span class="sd">            :type fn: str</span>
+
+<span class="sd">            :raises ValueError: if no data could be read from the file using the _read routine.</span>
+<span class="sd">            _</span>
+<span class="sd">            :return: trajectory samples</span>
+<span class="sd">            :rtype: np.ndarray</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">fn_reload</span> <span class="o">=</span> <span class="n">fn</span><span class="o">+</span><span class="s1">&#39;.reload&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">reload</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">fn_reload</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">fn_reload</span><span class="p">)</span>
@@ -428,33 +456,34 @@
 
 
 <div class="viewcode-block" id="CVComputer"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.trajectory.CVComputer">[docs]</a><span class="k">class</span> <span class="nc">CVComputer</span><span class="p">(</span><span class="n">TrajectoryReader</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;Compute the specified CV along a given trajectory defined as XYZ or HDF5 files.</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Child class of TrajectoryReader to compute the specified CVs along a given trajectory stored in XYZ or HDF5 files.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">CVs</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">coords_key</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stride</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="nb">int</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">reload</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        :param CVs: a list of collective variable defining how to compute the collective variable along the trajectory</span>
-<span class="sd">        :type CVs: list of instances from thermolib.thermodynamics.cv module</span>
+<span class="sd">            :param CVs: a list of collective variable defining how to compute each collective variable along the trajectory</span>
+<span class="sd">            :type CVs: list of instances from :py:mod:`cv &lt;thermolib.thermodynamics.cv&gt;` module</span>
 
-<span class="sd">        :param :coords_key string to possibly define location of the coordinates in the trajectory file (e.g. name of coords data set in HDF5 file), defaults to None</span>
-<span class="sd">        :type coords_key: str, optional</span>
+<span class="sd">            :param coords_key: This parameter is only relevant when trajectory files require data set names to find the coordinates (i.e. in HDF5 files) and will be ignored otherwise (i.e. if trajectory files are XYZ files). This parameter then defines the location of the coordinates in the trajectory file (e.g. name of coordinates data set in HDF5 file)</span>
+<span class="sd">            :type coords_key: str, optional, default=None</span>
 
-<span class="sd">        :param name: a name for printing/logging purposes, defaults to names of CVs</span>
-<span class="sd">        :type name: str, optional</span>
+<span class="sd">            :param name: a name for printing/logging purposes. If None, set to &#39;/&#39;-seperated list of the name attributes of the CVs</span>
+<span class="sd">            :type name: str, optional, default=None</span>
 
-<span class="sd">        :param start: index of starting point in trajectory to extract CV values, can be used to crop out initial equilibration time. Defaults to 0</span>
-<span class="sd">        :type start: int, optional</span>
+<span class="sd">            :param start: index of starting point in trajectory to extract CV values, can be used to crop out initial equilibration time.</span>
+<span class="sd">            :type start: int, optional, default=0</span>
 
-<span class="sd">        :param stride: integer defining how to subsample the trajectory CV data. If set to a value larger than 1, only take sub samples every &#39;stride&#39; steps. If set to 1, sample all trajectory steps. Can be used to decrease correlations between subsequent samples. Defaults to 1</span>
-<span class="sd">        :type stride: int, optional</span>
+<span class="sd">            :param stride: integer defining how to subsample the trajectory CV data. If set to a value larger than 1, only take sub samples every &#39;stride&#39; steps. If set to 1, sample all trajectory steps. Can be used to decrease correlations between subsequent samples.</span>
+<span class="sd">            :type stride: int, optional, default=1</span>
 
-<span class="sd">        :param end: index of last trajectory step to be sampled. Can be used to crop out the final part of a simulation trajectory. If set to -1, take all trajectory samples, i.e. no cropping. Defaults to -1</span>
-<span class="sd">        :type end: int, optional</span>
+<span class="sd">            :param end: index of last trajectory step to be sampled. Can be used to crop out the final part of a simulation trajectory. If set to -1, take all trajectory samples, i.e. no cropping.</span>
+<span class="sd">            :type end: int, optional, default=-1</span>
 
-<span class="sd">        :param reload: if set to true, the first time the __call__ routine is called, the data read/computed from trajectory will also be written in numpy format to a file (with name equal to original trajectory file name but with additional &#39;.reload&#39; at the end). The next time the __call__ routine is called again afterwards, the trajectory data will read directly from the .reload file. This results in a considerable speedup in the case the CV is computed from a XYZ trajectory. Defaults to False</span>
-<span class="sd">        :type reload: bool, optional</span>
+<span class="sd">            :param reload: If True, the first time the __call__ routine is called, the data that is read/computed from the trajectory will be written in numpy format to a file (with name equal to original trajectory file name appended with &#39;.reload&#39; at the end). The next time the __call__ routine is called again afterwards, the trajectory data will read directly from the .reload file. This results in a considerable speedup in the case the CV is computed from a XYZ trajectory. If False, the data will be read from the trajectory file with every call to the __call__ routine.</span>
+<span class="sd">            :type reload: bool, optional, default=False</span>
 
-<span class="sd">        :param verbose: Switch on the routine verbosity and print more logging, defaults to False</span>
-<span class="sd">        :type verbose: bool, optional</span>
+<span class="sd">            :param verbose: If True, switch on the routine verbosity and print more logging</span>
+<span class="sd">            :type verbose: bool, optional, default=False</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">CVs</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">CVs</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
             <span class="n">CVs</span> <span class="o">=</span> <span class="p">[</span><span class="n">CVs</span><span class="p">]</span>
@@ -470,7 +499,18 @@
     <span class="k">def</span> <span class="nf">ncvs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CVs</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Wrapper to decide whether to use _read_xyz (of .xyz files) or _read_h5 (for .h5 files) to read trajectory file based on the extension. </span>
+
+<span class="sd">            :param fn: file containing the trajectory coordinates</span>
+<span class="sd">            :type fn: str</span>
+
+<span class="sd">            :raises NotImplementedError: if fn has neither .xyz nor .h5 extension.</span>
+<span class="sd">            </span>
+<span class="sd">            :return: trajectory data representing CV samples</span>
+<span class="sd">            :rtype: np.ndarray</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="n">fn</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.xyz&#39;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_xyz</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">fn</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.h5&#39;</span><span class="p">):</span>
@@ -478,7 +518,19 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Extension in file </span><span class="si">%s</span><span class="s1"> not recognized or supported (yet).&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">fn</span><span class="p">))</span>
     
-    <span class="k">def</span> <span class="nf">_read_xyz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_read_xyz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Routine to read .xyz trajectory file and for each frame extract coordinates and compute CV.</span>
+
+<span class="sd">            :param fn: Name of XYZ file containing the trajectory coordinates</span>
+<span class="sd">            :type fn: str</span>
+
+<span class="sd">            :raises ValueError: if no data could be extracted from trajectory, i.e. because start:end:stride were chosen to restrictive.</span>
+<span class="sd">            :raises AssertionError: if the various CVs computed from the trajectory do not have matching number of samples.</span>
+<span class="sd">            </span>
+<span class="sd">            :return: trajectory data representing CV samples</span>
+<span class="sd">            :rtype: np.ndarray</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">cvdata</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">xyz</span> <span class="o">=</span> <span class="n">mmXYZReader</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">CV</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CVs</span><span class="p">):</span>
@@ -497,7 +549,19 @@
                 <span class="n">cvdata</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">col</span>
         <span class="k">return</span> <span class="n">cvdata</span>
 
-    <span class="k">def</span> <span class="nf">_read_h5</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_read_h5</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Routine to read .h5 trajectory file and for each frame extract coordinates and compute CV.</span>
+
+<span class="sd">            :param fn: Name of HDF5 file containing the trajectory coordinates</span>
+<span class="sd">            :type fn: str</span>
+
+<span class="sd">            :raises ValueError: if no data could be extracted from trajectory, i.e. because start:end:stride were chosen to restrictive.</span>
+<span class="sd">            :raises AssertionError: if the various CVs computed from the trajectory do not have matching number of samples.</span>
+<span class="sd">            </span>
+<span class="sd">            :return: trajectory data representing CV samples</span>
+<span class="sd">            :rtype: np.ndarray</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">cvdata</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">f</span> <span class="o">=</span> <span class="n">h5</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
         <span class="n">Nsteps</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="s1">&#39;/trajectory/time&#39;</span><span class="p">])</span>
@@ -523,32 +587,34 @@
 
 
 <div class="viewcode-block" id="HDF5Reader"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.trajectory.HDF5Reader">[docs]</a><span class="k">class</span> <span class="nc">HDF5Reader</span><span class="p">(</span><span class="n">TrajectoryReader</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;Read the precomputed CVs from datasets stored in HDF5 file(s)&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Child class of TrajectoryReader to read the precomputed CVs from data sets stored in HDF5 file(s)</span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">units</span><span class="p">:</span> <span class="nb">list</span><span class="o">=</span><span class="p">[],</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stride</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="nb">int</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">reload</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        :param keys: Represent the keys of datasets in HDF5 from which to read CV values.</span>
-<span class="sd">        :type keys: list</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;        </span>
+<span class="sd">            :param keys: Represent the keys of data sets in HDF5 from which to read CV values.</span>
+<span class="sd">            :type keys: list</span>
 
-<span class="sd">        :param units: List of units for each CV that needs to be read. Defaults to &#39;au&#39; for each CV., defaults to []</span>
-<span class="sd">        :type units: list, optional</span>
+<span class="sd">            :param units: List of units for each CV that needs to be read. If set to [], each CV will be assigned unit &#39;au&#39; (i.e. atomic unit)</span>
+<span class="sd">            :type units: list of str, optional, default=[]</span>
 
-<span class="sd">        :param name: a name for printing/logging purposes, defaults to None</span>
-<span class="sd">        :type name: str, optional</span>
+<span class="sd">            :param name: a name for printing/logging purposes</span>
+<span class="sd">            :type name: str, optional, default=None</span>
 <span class="sd">        </span>
-<span class="sd">        :param start: index of starting point in trajectory to extract CV values, can be used to crop out initial equilibration time. Defaults to 0</span>
-<span class="sd">        :type start: int, optional</span>
+<span class="sd">            :param start: index of starting point in trajectory to extract CV values, can be used to crop out initial equilibration time.</span>
+<span class="sd">            :type start: int, optional, default=0</span>
 
-<span class="sd">        :param stride: integer defining how to subsample the trajectory CV data. If set to a value larger than 1, only take sub samples every &#39;stride&#39; steps. If set to 1, sample all trajectory steps. Can be used to decrease correlations between subsequent samples. Defaults to 1</span>
-<span class="sd">        :type stride: int, optional</span>
+<span class="sd">            :param stride: integer defining how to subsample the trajectory CV data. If set to a value larger than 1, only take sub samples every &#39;stride&#39; steps. If set to 1, sample all trajectory steps. Can be used to decrease correlations between subsequent samples.</span>
+<span class="sd">            :type stride: int, optional, default=1</span>
 
-<span class="sd">        :param end: index of last trajectory step to be sampled. Can be used to crop out the final part of a simulation trajectory. If set to -1, take all trajectory samples, i.e. no cropping. Defaults to -1</span>
-<span class="sd">        :type end: int, optional</span>
+<span class="sd">            :param end: index of last trajectory step to be sampled. Can be used to crop out the final part of a simulation trajectory. If set to -1, take all trajectory samples, i.e. no cropping.</span>
+<span class="sd">            :type end: int, optional, default=-1</span>
 
-<span class="sd">        :param reload: if set to true, the first time the __call__ routine is called, the data read/computed from trajectory will also be written in numpy format to a file (with name equal to original trajectory file name but with additional &#39;.reload&#39; at the end). The next time the __call__ routine is called again afterwards, the trajectory data will read directly from the .reload file. This results in a considerable speedup in the case the CV is computed from a XYZ trajectory. Defaults to False</span>
-<span class="sd">        :type reload: bool, optional</span>
+<span class="sd">            :param reload: If True, the first time the __call__ routine is called, the data that is read/computed from the trajectory will be written in numpy format to a file (with name equal to original trajectory file name appended with &#39;.reload&#39; at the end). The next time the __call__ routine is called again afterwards, the trajectory data will read directly from the .reload file. This results in a considerable speedup in the case the CV is computed from a XYZ trajectory. If False, the data will be read from the trajectory file with every call to the __call__ routine.</span>
+<span class="sd">            :type reload: bool, optional, default=False</span>
 
-<span class="sd">        :param verbose: Switch on the routine verbosity and print more logging, defaults to False</span>
-<span class="sd">        :type verbose: bool, optional</span>
+<span class="sd">            :param verbose: If True, switch on the routine verbosity and print more logging</span>
+<span class="sd">            :type verbose: bool, optional, default=False</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;No dataset keys defined, received empty list for argument keys.&#39;</span><span class="p">)</span>
@@ -563,7 +629,19 @@
     <span class="k">def</span> <span class="nf">ncvs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">)</span>
     
-    <span class="k">def</span> <span class="nf">_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Read CV samples from the data set(s) in the HDF5 trajectory file defined by the given name</span>
+
+<span class="sd">            :param fn: name of HDF5 file containing CV trajectory samples</span>
+<span class="sd">            :type fn: str</span>
+
+<span class="sd">            :raises ValueError: if no data could be extracted from trajectory, i.e. because start:end:stride were chosen to restrictive.</span>
+<span class="sd">            :raises AssertionError: if the various CVs computed from the trajectory do not have matching number of samples.</span>
+
+<span class="sd">            :return: trajectory data representing CV samples</span>
+<span class="sd">            :rtype: np.ndarray</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">f</span> <span class="o">=</span> <span class="n">h5</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">:</span>
             <span class="k">assert</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="s1">&#39;Specified dataset key </span><span class="si">%s</span><span class="s1"> was not found in HDF5 file </span><span class="si">%s</span><span class="s1">. Possible keys are: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
@@ -583,31 +661,34 @@
 
 
 <div class="viewcode-block" id="ColVarReader"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.trajectory.ColVarReader">[docs]</a><span class="k">class</span> <span class="nc">ColVarReader</span><span class="p">(</span><span class="n">TrajectoryReader</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Child class of TrajectoryReader to read the CV samples from a COLVAR file. COLVAR files (as used by e.g. Plumed) are just numpy readable text files representing arrays in which the columns represent different CVs and the rows represent the various timesteps.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">units</span><span class="p">:</span> <span class="nb">list</span><span class="o">=</span><span class="p">[],</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stride</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="nb">int</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">reload</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        :param indices: Represents the indices of the columns in COLVAR file from which to read the CV values.</span>
-<span class="sd">        :type indices: list</span>
+<span class="sd">            :param indices: Represents the indices of the columns in COLVAR file from which to read the CV values.</span>
+<span class="sd">            :type indices: list</span>
 
-<span class="sd">        :param units: List of units for each CV that needs to be read. Defaults to &#39;au&#39; for each CV., defaults to []</span>
-<span class="sd">        :type units: list, optional</span>
+<span class="sd">            :param units: List of units for each CV that needs to be read. If set to [], each CV will be assigned unit &#39;au&#39; (i.e. atomic unit)</span>
+<span class="sd">            :type units: list of str, optional, default=[]</span>
 
-<span class="sd">        :param name: a name for printing/logging purposes, defaults to None</span>
-<span class="sd">        :type name: str, optional</span>
+<span class="sd">            :param name: a name for printing/logging purposes</span>
+<span class="sd">            :type name: str, optional, default=None</span>
 <span class="sd">        </span>
-<span class="sd">        :param start: index of starting point in trajectory to extract CV values, can be used to crop out initial equilibration time. Defaults to 0</span>
-<span class="sd">        :type start: int, optional</span>
+<span class="sd">            :param start: index of starting point in trajectory to extract CV values, can be used to crop out initial equilibration time.</span>
+<span class="sd">            :type start: int, optional, default=0</span>
 
-<span class="sd">        :param stride: integer defining how to subsample the trajectory CV data. If set to a value larger than 1, only take sub samples every &#39;stride&#39; steps. If set to 1, sample all trajectory steps. Can be used to decrease correlations between subsequent samples. Defaults to 1</span>
-<span class="sd">        :type stride: int, optional</span>
+<span class="sd">            :param stride: integer defining how to subsample the trajectory CV data. If set to a value larger than 1, only take sub samples every &#39;stride&#39; steps. If set to 1, sample all trajectory steps. Can be used to decrease correlations between subsequent samples.</span>
+<span class="sd">            :type stride: int, optional, default=1</span>
 
-<span class="sd">        :param end: index of last trajectory step to be sampled. Can be used to crop out the final part of a simulation trajectory. If set to -1, take all trajectory samples, i.e. no cropping. Defaults to -1</span>
-<span class="sd">        :type end: int, optional</span>
+<span class="sd">            :param end: index of last trajectory step to be sampled. Can be used to crop out the final part of a simulation trajectory. If set to -1, take all trajectory samples, i.e. no cropping.</span>
+<span class="sd">            :type end: int, optional, default=-1</span>
 
-<span class="sd">        :param reload: if set to true, the first time the __call__ routine is called, the data read/computed from trajectory will also be written in numpy format to a file (with name equal to original trajectory file name but with additional &#39;.reload&#39; at the end). The next time the __call__ routine is called again afterwards, the trajectory data will read directly from the .reload file. This results in a considerable speedup in the case the CV is computed from a XYZ trajectory. Defaults to False</span>
-<span class="sd">        :type reload: bool, optional</span>
+<span class="sd">            :param reload: If True, the first time the __call__ routine is called, the data that is read/computed from the trajectory will be written in numpy format to a file (with name equal to original trajectory file name appended with &#39;.reload&#39; at the end). The next time the __call__ routine is called again afterwards, the trajectory data will read directly from the .reload file. This results in a considerable speedup in the case the CV is computed from a XYZ trajectory. If False, the data will be read from the trajectory file with every call to the __call__ routine.</span>
+<span class="sd">            :type reload: bool, optional, default=False</span>
 
-<span class="sd">        :param verbose: Switch on the routine verbosity and print more logging, defaults to False</span>
-<span class="sd">        :type verbose: bool, optional</span>
+<span class="sd">            :param verbose: If True, switch on the routine verbosity and print more logging</span>
+<span class="sd">            :type verbose: bool, optional, default=False</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;No column indices defined, received empty list for argument indices.&#39;</span><span class="p">)</span>
@@ -623,6 +704,18 @@
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Read CV samples from the COLVAR file defined by the given name</span>
+
+<span class="sd">            :param fn: name of COLVAR file containing CV trajectory samples</span>
+<span class="sd">            :type fn: str</span>
+
+<span class="sd">            :raises ValueError: if no data could be extracted from trajectory, i.e. because start:end:stride were chosen to restrictive.</span>
+<span class="sd">            :raises AssertionError: if the various CVs computed from the trajectory do not have matching number of samples.</span>
+
+<span class="sd">            :return: trajectory data representing CV samples</span>
+<span class="sd">            :rtype: np.ndarray</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
         <span class="n">cvdata</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">unit</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">units</span><span class="p">)):</span>
@@ -647,32 +740,34 @@
 
 
 <div class="viewcode-block" id="ASEExtendedXYZReader"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.trajectory.ASEExtendedXYZReader">[docs]</a><span class="k">class</span> <span class="nc">ASEExtendedXYZReader</span><span class="p">(</span><span class="n">TrajectoryReader</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Child class of TrajectoryReader to read a series of CVs, defined in keys, from an extended XYZ file using ASE. </span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">units</span><span class="p">:</span> <span class="nb">list</span><span class="o">=</span><span class="p">[],</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stride</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="nb">int</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">reload</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;Read a series of CVs, defined in keys, from an extended XYZ file using ASE. For each key defined, the value of frame.info[key] will be extracted from the trajectory constructed with ase.io.read routine.</span>
-
-<span class="sd">        :param keys: list of ASE trajectory info keys to be read from the XYZ title.  </span>
-<span class="sd">        :type keys: list</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            :param keys: list of ASE trajectory info keys to be read from the title of each frame in the XYZ file. For each key defined, the value of frame.info[key] will be extracted from the trajectory constructed with ase.io.read routine.</span>
+<span class="sd">            :type keys: list</span>
 <span class="sd">        </span>
-<span class="sd">        :param units: List of units for each CV that needs to be read. Defaults to &#39;au&#39; for each CV., defaults to []</span>
-<span class="sd">        :type units: list, optional</span>
+<span class="sd">            :param units: List of units for each CV that needs to be read. If set to [], each CV will be assigned unit &#39;au&#39; (i.e. atomic unit)</span>
+<span class="sd">            :type units: list of str, optional, default=[]</span>
 
-<span class="sd">        :param name: a name for printing/logging purposes, defaults to None</span>
-<span class="sd">        :type name: str, optional</span>
+<span class="sd">            :param name: a name for printing/logging purposes</span>
+<span class="sd">            :type name: str, optional, default=None</span>
 <span class="sd">        </span>
-<span class="sd">        :param start: index of starting point in trajectory to extract CV values, can be used to crop out initial equilibration time. Defaults to 0</span>
-<span class="sd">        :type start: int, optional</span>
+<span class="sd">            :param start: index of starting point in trajectory to extract CV values, can be used to crop out initial equilibration time.</span>
+<span class="sd">            :type start: int, optional, default=0</span>
 
-<span class="sd">        :param stride: integer defining how to subsample the trajectory CV data. If set to a value larger than 1, only take sub samples every &#39;stride&#39; steps. If set to 1, sample all trajectory steps. Can be used to decrease correlations between subsequent samples. Defaults to 1</span>
-<span class="sd">        :type stride: int, optional</span>
+<span class="sd">            :param stride: integer defining how to subsample the trajectory CV data. If set to a value larger than 1, only take sub samples every &#39;stride&#39; steps. If set to 1, sample all trajectory steps. Can be used to decrease correlations between subsequent samples.</span>
+<span class="sd">            :type stride: int, optional, default=1</span>
 
-<span class="sd">        :param end: index of last trajectory step to be sampled. Can be used to crop out the final part of a simulation trajectory. If set to -1, take all trajectory samples, i.e. no cropping. Defaults to -1</span>
-<span class="sd">        :type end: int, optional</span>
+<span class="sd">            :param end: index of last trajectory step to be sampled. Can be used to crop out the final part of a simulation trajectory. If set to -1, take all trajectory samples, i.e. no cropping.</span>
+<span class="sd">            :type end: int, optional, default=-1</span>
 
-<span class="sd">        :param reload: if set to true, the first time the __call__ routine is called, the data read/computed from trajectory will also be written in numpy format to a file (with name equal to original trajectory file name but with additional &#39;.reload&#39; at the end). The next time the __call__ routine is called again afterwards, the trajectory data will read directly from the .reload file. This results in a considerable speedup in the case the CV is computed from a XYZ trajectory. Defaults to False</span>
-<span class="sd">        :type reload: bool, optional</span>
+<span class="sd">            :param reload: If True, the first time the __call__ routine is called, the data that is read/computed from the trajectory will be written in numpy format to a file (with name equal to original trajectory file name appended with &#39;.reload&#39; at the end). The next time the __call__ routine is called again afterwards, the trajectory data will read directly from the .reload file. This results in a considerable speedup in the case the CV is computed from a XYZ trajectory. If False, the data will be read from the trajectory file with every call to the __call__ routine.</span>
+<span class="sd">            :type reload: bool, optional, default=False</span>
 
-<span class="sd">        :param verbose: Switch on the routine verbosity and print more logging, defaults to False</span>
-<span class="sd">        :type verbose: bool, optional</span>
+<span class="sd">            :param verbose: If True, switch on the routine verbosity and print more logging</span>
+<span class="sd">            :type verbose: bool, optional, default=False</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;No dataset keys defined, received empty list for argument keys.&#39;</span><span class="p">)</span>
@@ -687,7 +782,19 @@
     <span class="k">def</span> <span class="nf">ncvs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Routine to read .xyz trajectory file and for each frame extract the CV corresponding to the given keys in the XYZ frame title.</span>
+
+<span class="sd">            :param fn: Name of XYZ file containing the trajectory</span>
+<span class="sd">            :type fn: str</span>
+
+<span class="sd">            :raises ValueError: if no data could be extracted from trajectory, i.e. because start:end:stride were chosen to restrictive.</span>
+<span class="sd">            :raises AssertionError: if the various CVs computed from the trajectory do not have matching number of samples.</span>
+<span class="sd">            </span>
+<span class="sd">            :return: trajectory data representing CV samples</span>
+<span class="sd">            :rtype: np.ndarray</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">traj</span> <span class="o">=</span> <span class="n">read</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">end</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">stride</span><span class="p">))</span>
         <span class="n">nsamples</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">traj</span><span class="p">)</span>
         <span class="n">cvdata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">nsamples</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">)])</span>

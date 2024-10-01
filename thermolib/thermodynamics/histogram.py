@@ -147,7 +147,7 @@ class Histogram1D(object):
 		return cls(cvs, ps,error=error, cv_output_unit=cv_output_unit, cv_label=cv_label)
 
 	@classmethod
-	def from_single_trajectory(cls, data, bins, error_estimate=None, error_p_thresshold=0.0, cv_output_unit='au', cv_label='CV'):
+	def from_single_trajectory(cls, data, bins, error_estimate=None, error_p_threshold=0.0, cv_output_unit='au', cv_label='CV'):
 		'''
 			Routine to estimate a 1D probability histogram in terms of a single collective variable from a series of samples of that collective variable.
 
@@ -169,8 +169,8 @@ class Histogram1D(object):
 
 			:type error_estimate: str or None, optional, default=None
 
-			:param error_p_thresshold: only relevant when error estimation is enabled (see parameter ``error_estimate``). When ``error_p_thresshold`` is set to x, bins in the histogram for which the probability resulting from the trajectory is smaller than x will be disabled for error estimation (i.e. its error will be set to np.nan). This is similar as the error_p_thresshold keyword for the from_wham routine, for which the use is illustrated in :doc:`one of the tutorial notebooks <tut/advanced_projection>`.
-			:type error_p_thresshold: float, optional, default=0.0
+			:param error_p_threshold: only relevant when error estimation is enabled (see parameter ``error_estimate``). When ``error_p_threshold`` is set to x, bins in the histogram for which the probability resulting from the trajectory is smaller than x will be disabled for error estimation (i.e. its error will be set to np.nan). This is similar as the error_p_threshold keyword for the from_wham routine, for which the use is illustrated in :doc:`one of the tutorial notebooks <tut/advanced_projection>`.
+			:type error_p_threshold: float, optional, default=0.0
 
 			:param cv_output_unit: the unit in which cv will be plotted/printed (not the unit of the input array, that is assumed to be atomic units). If you need help properly converting to atomic units, we refer to the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
 			:type cv_output_unit: str, optional, default='au'
@@ -200,19 +200,19 @@ class Histogram1D(object):
 			error = LogGaussianDistribution(-fs, ferr)
 		elif error_estimate=='mle_p_cov':
 			F = fisher_matrix_mle_probdens(ps, method='mle_p_cov')
-			cov = invert_fisher_to_covariance(F, ps, threshold=error_p_thresshold)
+			cov = invert_fisher_to_covariance(F, ps, threshold=error_p_threshold)
 			error = MultiGaussianDistribution(ps, cov)
 		elif error_estimate=='mle_f_cov':
 			fs = -np.log(ps)
 			F = fisher_matrix_mle_probdens(ps, method='mle_f_cov')
-			cov = invert_fisher_to_covariance(F, ps, threshold=error_p_thresshold)
+			cov = invert_fisher_to_covariance(F, ps, threshold=error_p_threshold)
 			error = MultiLogGaussianDistribution(-fs, cov)
 		elif error_estimate is not None:
 			raise ValueError('Invalid value for error_estimate argument, received %s. Check documentation for allowed values.' %error_estimate)
 		return cls(cvs, ps, error=error, cv_output_unit=cv_output_unit, cv_label=cv_label)
 
 	@classmethod
-	def from_wham(cls, bins, traj_input, biasses, temp, error_estimate=None, corrtimes=None, error_p_thresshold=0.0, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, bias_thress=1e-3, cv_output_unit='au', cv_label='CV', verbosity='low'):
+	def from_wham(cls, bins, traj_input, biasses, temp, error_estimate=None, corrtimes=None, error_p_threshold=0.0, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, bias_thress=1e-3, cv_output_unit='au', cv_label='CV', verbosity='low'):
 		'''
 			Routine that implements the Weighted Histogram Analysis Method (WHAM) for reconstructing the overall 1D probability histogram in terms of collective variable CV from a series of molecular simulations that are (possibly) biased in terms of CV.
 
@@ -243,8 +243,8 @@ class Histogram1D(object):
 			:param corrtimes: list of (integrated) correlation times of the CV, one for each simulation. Such correlation times will be taken into account during the error estimation and hence make it more reliable. If set to None, the CV trajectories will be assumed to contain fully uncorrelated samples (which is not true when using trajectories representing each subsequent step from a molecular dynamics simulation). More information can be found in :ref:`the user guide <seclab_ug_errorestimation>`. This input can be generated using the :py:meth:`decorrelate <thermolib.tools.decorrelate>` routine. This argument needs to have the same length as the ``traj_input`` and ``biasses`` arguments.
 			:type corrtimes: list or np.ndarray, optional, default=None
 			
-			:param error_p_thresshold: only relevant when error estimation is enabled (see parameter ``error_estimate``). When ``error_p_thresshold`` is set to x, bins in the histogram for which the probability resulting from the trajectory is smaller than x will be disabled for error estimation (i.e. its error will be set to np.nan). It is mainly usefull in the case of 2D histograms,as illustrated in :doc:`one of the tutorial notebooks <tut/advanced_projection>`.
-			:type error_p_thresshold: float, optional, default=0.0
+			:param error_p_threshold: only relevant when error estimation is enabled (see parameter ``error_estimate``). When ``error_p_threshold`` is set to x, bins in the histogram for which the probability resulting from the trajectory is smaller than x will be disabled for error estimation (i.e. its error will be set to np.nan). It is mainly usefull in the case of 2D histograms,as illustrated in :doc:`one of the tutorial notebooks <tut/advanced_projection>`.
+			:type error_p_threshold: float, optional, default=0.0
 
 			:param bias_subgrid_num: see documentation for this argument in the :py:meth:`wham1d_bias <thermolib.ext.wham1d_bias>` routine
 			:type bias_subgrid_num: int, optional, default=20
@@ -255,7 +255,7 @@ class Histogram1D(object):
 			:param convergence: convergence criterium for the WHAM self consistent solver. The SCF loop will stop whenever the integrated absolute difference between consecutive probability densities is less then the specified value.
 			:type convergence: float, optional, default=1e-6
 
-			:param bias_thress: see documentation for the thresshold argument in the :py:meth:`wham1d_bias <thermolib.ext.wham1d_bias>` routine
+			:param bias_thress: see documentation for the threshold argument in the :py:meth:`wham1d_bias <thermolib.ext.wham1d_bias>` routine
 			:type bias_thress:
 
 			:param verbosity: controls the level of verbosity for logging during the WHAM algorithm. 
@@ -317,7 +317,7 @@ class Histogram1D(object):
 		#compute the integrated boltzmann factors of the biases in each grid interval
 		if verbosity.lower() in ['medium', 'high']:
 			print('Computing bias on grid ...')
-		bs = wham1d_bias(Nsims, Ngrid, beta, biasses, delta, bias_subgrid_num, bin_centers, thresshold=bias_thress)
+		bs = wham1d_bias(Nsims, Ngrid, beta, biasses, delta, bias_subgrid_num, bin_centers, threshold=bias_thress)
 		timings['bias'] = time.time()
 
 		#some init printing
@@ -347,7 +347,7 @@ class Histogram1D(object):
 			if verbosity.lower() in ['medium', 'high']:
 				print('Estimating error ...')
 			if corrtimes is None: corrtimes = np.ones(len(traj_input), float)
-			error = wham1d_error(Nsims, Ngrid, Nis, ps, fs, bs, corrtimes, method=error_estimate, verbosity=verbosity, p_thresshold=error_p_thresshold)
+			error = wham1d_error(Nsims, Ngrid, Nis, ps, fs, bs, corrtimes, method=error_estimate, verbosity=verbosity, p_threshold=error_p_threshold)
 		elif error_estimate is not None and error_estimate not in ["None"]:
 			raise ValueError('Received invalid value for keyword argument error_estimate, got %s. See documentation for valid choices.' %error_estimate)
 		timings['error'] = time.time()
@@ -377,8 +377,6 @@ class Histogram1D(object):
 			.. deprecated:: v1.7
 
 				This routine sole purpose is backward compatibility and serves as an alias for from_wham. Please start using the from_wham routine as this routine will be removed in the near future.
-			
-				There used to be a distinction between the from_wham and from_wham_c routine (former was full python implementation, latter used Cython for speed up). This distinction has been removed after deliberate testing confirmed that both routines gave identical results. As a result, only the former from_wham_c routine (which is faster) remains, but it has been renamed to from_wham, while the current from_wham_c routine remains in place for backward compatibility.
 		'''
 		return cls.from_wham(bins, trajectories, biasses, temp, error_estimate=error_estimate, bias_subgrid_num=bias_subgrid_num, Nscf=Nscf, convergence=convergence, cv_output_unit=cv_output_unit, cv_label=cv_label, verbosity=verbosity)
 
@@ -742,8 +740,8 @@ class Histogram2D(object):
 
 			:type error_estimate: str or None, optional, default=None
 
-			:param error_p_thresshold: only relevant when error estimation is enabled (see parameter ``error_estimate``). When ``error_p_thresshold`` is set to x, bins in the histogram for which the probability resulting from the trajectory is smaller than x will be disabled for error estimation (i.e. its error will be set to np.nan). Its use is illustrated in :doc:`one of the tutorial notebooks <tut/advanced_projection>`.
-			:type error_p_thresshold: float, optional, default=0.0
+			:param error_p_threshold: only relevant when error estimation is enabled (see parameter ``error_estimate``). When ``error_p_threshold`` is set to x, bins in the histogram for which the probability resulting from the trajectory is smaller than x will be disabled for error estimation (i.e. its error will be set to np.nan). Its use is illustrated in :doc:`one of the tutorial notebooks <tut/advanced_projection>`.
+			:type error_p_threshold: float, optional, default=0.0
 
 			:param corrtimes: list of (integrated) correlation times of the CVs, one for each simulation. Such correlation times will be taken into account during the error estimation and hence make it more reliable. If set to None, the CV trajectories will be assumed to contain fully uncorrelated samples (which is not true when using trajectories representing each subsequent step from a molecular dynamics simulation). More information can be found in :ref:`the user guide <seclab_ug_errorestimation>`. This input can be generated using the :py:meth:`decorrelate <thermolib.tools.decorrelate>` routine. This argument needs to have the same length as the ``traj_input`` and ``biasses`` arguments.
 			:type corrtimes: list or np.ndarray, optional, default=None
@@ -838,7 +836,7 @@ class Histogram2D(object):
 		#compute the boltzmann factors of the biases in each grid interval
 		if verbosity.lower() in ['medium', 'high']:
 			print('Computing bias on grid ...')
-		bs = wham2d_bias(Nsims, Ngrid1, Ngrid2, beta, biasses, delta1, delta2, bias_subgrid_num[0], bias_subgrid_num[1], bin_centers1, bin_centers2, thresshold=bias_thress)
+		bs = wham2d_bias(Nsims, Ngrid1, Ngrid2, beta, biasses, delta1, delta2, bias_subgrid_num[0], bias_subgrid_num[1], bin_centers1, bin_centers2, threshold=bias_thress)
 		if plot_biases:
 			for i, bias in enumerate(biasses):
 				bias.plot('bias_%i.png' %i, bin_centers1, bin_centers2)
@@ -914,8 +912,6 @@ class Histogram2D(object):
 			.. deprecated:: v1.7
 
 				This routine sole purpose is backward compatibility and serves as an alias for from_wham. Please start using the from_wham routine as this routine will be removed in the near future.
-		
-				There used to be a distinction between the from_wham and from_wham_c routine (former was full python implementation, latter used Cython for speed up). This distinction has been removed after deliberate testing confirmed that both routines gave identical results. As a result, only the former from_wham_c routine (which is faster) remains, but it has been renamed to from_wham, while the current from_wham_c routine remains in place for backward compatibility.
 		'''
 		return cls.from_wham(bins, trajectories, biasses, temp, pinit=pinit, error_estimate=error_estimate, bias_subgrid_num=bias_subgrid_num, Nscf=Nscf, convergence=convergence, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, cv1_label=cv1_label, cv2_label=cv2_label, plot_biases=plot_biases, verbose=verbose, verbosity=verbosity)
 

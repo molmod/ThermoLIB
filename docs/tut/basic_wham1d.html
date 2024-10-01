@@ -232,6 +232,8 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_thermo.html#module-thermolib.thermodynamics.cv">Collective variables – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.cv</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.Average"><code class="docutils literal notranslate"><span class="pre">Average</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.CenterOfMass"><code class="docutils literal notranslate"><span class="pre">CenterOfMass</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.CenterOfPosition"><code class="docutils literal notranslate"><span class="pre">CenterOfPosition</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.CoordinationNumber"><code class="docutils literal notranslate"><span class="pre">CoordinationNumber</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.Difference"><code class="docutils literal notranslate"><span class="pre">Difference</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.DistOrthProjOrig"><code class="docutils literal notranslate"><span class="pre">DistOrthProjOrig</span></code></a></li>
@@ -240,6 +242,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.DotProduct"><code class="docutils literal notranslate"><span class="pre">DotProduct</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.LinearCombination"><code class="docutils literal notranslate"><span class="pre">LinearCombination</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.Minimum"><code class="docutils literal notranslate"><span class="pre">Minimum</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.NormalToPlane"><code class="docutils literal notranslate"><span class="pre">NormalToPlane</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.NormalizedAxis"><code class="docutils literal notranslate"><span class="pre">NormalizedAxis</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.OrthogonalDistanceToPore"><code class="docutils literal notranslate"><span class="pre">OrthogonalDistanceToPore</span></code></a></li>
 </ul>
@@ -412,12 +415,12 @@ metadata file directory. This file is then read by <code class="docutils literal
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
-  initializing: 00h 00m 00.001s
-  histograms  : 00h 00m 00.074s
-  bias poten. : 00h 00m 00.015s
-  solve scf   : 00h 00m 00.333s
+  initializing: 00h 00m 00.000s
+  histograms  : 00h 00m 00.063s
+  bias poten. : 00h 00m 00.013s
+  solve scf   : 00h 00m 00.349s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.423s
+  TOTAL       : 00h 00m 00.426s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -525,11 +528,11 @@ SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.098s
-  bias poten. : 00h 00m 00.020s
-  solve scf   : 00h 00m 00.374s
-  error est.  : 00h 00m 00.044s
-  TOTAL       : 00h 00m 00.537s
+  histograms  : 00h 00m 00.057s
+  bias poten. : 00h 00m 00.012s
+  solve scf   : 00h 00m 00.304s
+  error est.  : 00h 00m 00.030s
+  TOTAL       : 00h 00m 00.404s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -612,7 +615,7 @@ with the free energy. As the total probability is 1, if the probability of the r
 The free energy of a microstate is just simply the corresponding free energy value on the FEP, the free energy of a macrostate is computed through application of boltzmann partition functions as follows:</p>
 <p><img class="math" src="../_images/math/d8431d88c06cf3e329ae84067a96e56ab37a01b7.png" alt="F_R = -k_BT\ln\left[\int_{-\infty}^{q^{TST}} e^{-\beta F(q)}dq\right]"/></p>
 <p>where <img class="math" src="../_images/math/eb14a28b2e93276cdc55fb5f98652c64d597fecf.png" alt="q^{TST}"/> is the value of the CV in the transition state. In case of a macrostate, it might also be usefull to know the average (and variance) off the CV in the macrostate. All of these properties can be computed with ThermoLIB using the classes in the <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.state</span></code> module. To this end, we start from the free energy profile <code class="docutils literal notranslate"><span class="pre">fep</span></code> as computed in the previous section.</p>
-<div class="nbinput docutils container">
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
@@ -632,11 +635,18 @@ The free energy of a microstate is just simply the corresponding free energy val
 <span class="c1">#Compute the value of the states for the previously construced FEP:</span>
 <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="p">[</span><span class="n">ts</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">r</span><span class="p">]:</span>
     <span class="n">state</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">fep</span><span class="p">)</span>
-
-<span class="c1">#How to print the results depends on whether or not the parsed FEP has an error distribution assigned to it or not. In the above case, it did have such error distribution. Therefore, we can access the cv and F value of the states as follows:</span>
-<span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="p">[</span><span class="n">ts</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">R</span><span class="p">]:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%10s</span><span class="s1"> at: F(</span><span class="si">%s</span><span class="s1">) = </span><span class="si">%s</span><span class="s1"> kJ/mol&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">cv_dist</span><span class="o">.</span><span class="n">print</span><span class="p">(),</span> <span class="n">state</span><span class="o">.</span><span class="n">F_dist</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">)))</span>
-<span class="c1">#As you can see the error was also propagated to the values of both CV and F value of the micro/macrostate.</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#you can access the cv or f value by calling the get_cv() or get_f() routine:</span>
+<span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="p">[</span><span class="n">ts</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">r</span><span class="p">]:</span>
+    <span class="n">cv</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">get_cv</span><span class="p">()</span>
+    <span class="n">F</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">get_F</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:    cv = </span><span class="si">%.3f</span><span class="s1"> au     f  = </span><span class="si">%.3f</span><span class="s1"> kjmol&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">cv</span><span class="p">,</span> <span class="n">F</span><span class="o">/</span><span class="n">kjmol</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -645,16 +655,17 @@ The free energy of a microstate is just simply the corresponding free energy val
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-TransState at: F(0.012 +- 0.127 au) = 24.923 +- 1.249 kjmol kJ/mol
- MicroReac at: F(-1.231 +- 0.063 au) = 0.114 +- 1.347 kjmol kJ/mol
- MacroReac at: F(-1.241 +- 0.023 au) = 2.638 +- 1.368 kjmol kJ/mol
+TransState:    cv = -0.004 au     f  = 24.747 kjmol
+MacroReac:    cv = -1.238 au     f  = 2.755 kjmol
+MicroReac:    cv = -1.240 au     f  = 0.150 kjmol
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="p">[</span><span class="n">ts</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">R</span><span class="p">]:</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#you can also print the print thermodynamic state properties more easily by calling its print routine:</span>
+<span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="p">[</span><span class="n">ts</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">R</span><span class="p">]:</span>
     <span class="n">state</span><span class="o">.</span><span class="n">print</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -667,19 +678,19 @@ TransState at: F(0.012 +- 0.127 au) = 24.923 +- 1.249 kjmol kJ/mol
 MICROSTATE TransState:
 --------------
   index =  None
-  F     = 24.923 +- 1.249 kjmol
-  CV    = 0.012 +- 0.127 au
+  F     = 24.747 +- 1.343 kjmol
+  CV    = -0.004 +- 0.131 au
 
 MICROSTATE MicroReac:
 --------------
   index =  None
-  F     = 0.114 +- 1.347 kjmol
-  CV    = -1.231 +- 0.063 au
+  F     = 0.150 +- 1.297 kjmol
+  CV    = -1.240 +- 0.109 au
 
 MACROSTATE MacroReac:
 --------------
-  F       = 2.638 +- 1.368 kjmol
-  CV Mean = -1.241 +- 0.023 au
+  F       = 2.755 +- 1.524 kjmol
+  CV Mean = -1.238 +- 0.019 au
   CV StD  = 0.161 +- 0.011 au
 
 </pre></div></div>
@@ -694,7 +705,7 @@ from the SimpleFreeEnergyProfile instead of BaseFreeEnergyProfile, i.e. execute:
 </div></blockquote>
 <p>Or we simply convert the BaseFreeEnergyProfile to a SimpleFreeEnergyProfile as follows:</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fep</span> <span class="o">=</span> <span class="n">SimpleFreeEnergyProfile</span><span class="o">.</span><span class="n">from_base</span><span class="p">(</span><span class="n">fep</span><span class="p">)</span>
@@ -705,7 +716,7 @@ from the SimpleFreeEnergyProfile instead of BaseFreeEnergyProfile, i.e. execute:
 distribution. In the current example this is indeed the case, therefore, we limit the overal CV range to <code class="docutils literal notranslate"><span class="pre">cv_lims=[-1.5,1.5]</span></code>.</p>
 <p>Next, ThermoLIB will automatically defines the reactant/product microstate (as a local minimum left/right of the transition state) as well as the Reactant/Product macrostate (as the integral over all microstates left/right of the transition state):</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fep</span><span class="o">.</span><span class="n">process_states</span><span class="p">(</span><span class="n">lims</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">1.5</span><span class="p">,</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">1.5</span><span class="p">],</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -720,38 +731,38 @@ distribution. In the current example this is indeed the case, therefore, we limi
 MICROSTATE ts:
 --------------
   index =  None
-  F     = 24.998 +- 1.297 kjmol
-  CV    = 0.002 +- 0.132 au
+  F     = 24.827 +- 1.601 kjmol
+  CV    = -0.002 +- 0.148 au
 
 MICROSTATE r:
 --------------
   index =  None
-  F     = 0.100 +- 1.346 kjmol
-  CV    = -1.237 +- 0.066 au
+  F     = 0.377 +- 1.754 kjmol
+  CV    = -1.241 +- 0.066 au
 
 MICROSTATE p:
 --------------
   index =  None
-  F     = -0.001 +- 1.386 kjmol
+  F     = -0.082 +- 1.543 kjmol
   CV    = 1.310 +- 0.000 au
 
 MACROSTATE R:
 --------------
-  F       = 2.620 +- 1.289 kjmol
-  CV Mean = -1.230 +- 0.016 au
-  CV StD  = 0.147 +- 0.010 au
+  F       = 2.561 +- 1.617 kjmol
+  CV Mean = -1.231 +- 0.015 au
+  CV StD  = 0.145 +- 0.010 au
 
 MACROSTATE P:
 --------------
-  F       = 2.746 +- 1.357 kjmol
-  CV Mean = 1.234 +- 0.019 au
-  CV StD  = 0.146 +- 0.011 au
+  F       = 2.715 +- 1.372 kjmol
+  CV Mean = 1.233 +- 0.017 au
+  CV StD  = 0.146 +- 0.008 au
 
 </pre></div></div>
 </div>
 <p>If now plot the free energy profile using the <code class="docutils literal notranslate"><span class="pre">fep_f.plot(fn)</span></code> routine, we will also see the macrostates and microstates indicated:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fep</span><span class="o">.</span><span class="n">set_ref</span><span class="p">(</span><span class="n">ref</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
@@ -763,7 +774,7 @@ MACROSTATE P:
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_basic_wham1d_36_0.png" src="../_images/tut_basic_wham1d_36_0.png" />
+<img alt="../_images/tut_basic_wham1d_37_0.png" src="../_images/tut_basic_wham1d_37_0.png" />
 </div>
 </div>
 </section>
