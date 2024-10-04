@@ -23,7 +23,7 @@ from ..error import GaussianDistribution, LogGaussianDistribution, Propagator
 import numpy as np
 import matplotlib.pyplot as pp
 
-__all__ = ['RateFactorEquilibrium']
+__all__ = ['BaseRateFactor', 'RateFactorEquilibrium']
 
 class BaseRateFactor(object):
     '''
@@ -31,24 +31,18 @@ class BaseRateFactor(object):
 
         .. math::
 
-            \\begin{aligned}
                 k &= A\\cdot\\frac{ e^{-\\beta F(q_{TS})} }{ \\int_{-\\infty}^{q_{TS}}e^{-\\beta F(q)}dq } \\\\
-
                 A &= \\frac{1}{2}\\left\\langle|\\dot{Q}|\\right\\rangle_{TS}
-            \\end{aligned}
     '''
     def __init__(self, CV, CV_TS_lims, temp, CV_unit='au'):
         '''
-            :param CV: a function that computes the value (and gradient) of the collective variable
-            :type CV: callable
+            :param CV: definition of the collective variable as function of the atomic coordinates of the system
+            :type CV: insgtance of child of :py:class:`CollectiveVariable <thermolib.thermodynamics.cv.CollectiveVariable>`
 
             :param CV_TS_lims: the lower and upper boundaries for determining whether a certain frame of the trajectory corresponds with the transition state (TS). In other words, the condition CV(R)=CV_TS is replaced by CV_TS_lims[0]<=CV(R)<=CV_TS_lims[1]
-            :type CV_TS_lims: list(float)
-            
-            :param masses: the masses of the atoms (should be consistently indexed as the coords argument parsed to the compute_contribution routine).
-            :type masses: np.ndarray(float)
+            :type CV_TS_lims: list[float]
 
-            :param temp: temperature
+            :param temp: temperature of the simulation from which the rate factor will be computed
             :type temp: float
 
             :param CV_unit: the unit for printing the collective variable
@@ -66,18 +60,39 @@ class BaseRateFactor(object):
         self.A_dist = None
         self._finished = False
 
-    def read_results(self, fn, A_unit='1/second'):
+    def read_results(self, fn, A_unit='au/s'):
+        '''
+            Read the samples for the A property from the given file
+
+            :param fn: file name from which to read the A samples
+            :type fn: str
+
+            :param A_unit: unit in which the A samples were stored in the file
+            :type A_unit: str, optional, default='au/s'
+        '''
         data = np.loadtxt(fn)
         self.As = data*parse_unit(A_unit)
         self._finished = True
 
     def process_trajectory(self, *args, **kwargs):
+        '''
+            To be implemented in a child class
+        '''
         raise NotImplementedError
 
     def _compute_contribution(self, *args, **kwargs):
+        '''
+            To be implemented in a child class
+        '''
         raise NotImplementedError
 
     def finish(self, fn=None):
+        '''
+            Finish extracting/reading samples of the A property and optionally write all samples to a given file.
+
+            :param fn: If not None, name of file to which the A samples will be written for later reuse
+            :type fn: _tstrype_, optional, default=None
+        '''
         self.As = np.array(self.As)
         data = self.As*second
         if fn is not None:
@@ -85,13 +100,37 @@ class BaseRateFactor(object):
         self._finished = True
 
     def result_no_statistics(self):
+        '''
+            Store and return the mean A value from the stored samples
+
+            :return: mean A value
+            :rtype: float
+        '''
         assert self._finished, "Reading trajectory data is not finished yet"
         self.A = self.As[~np.isnan(self.As)].mean()
         self.A_dist = None
         return self.A
 
     def result_blav(self, fn=None, plot=False, blocksizes=None, fitrange=[1,np.inf], model_function=None, plot_ylims=None, verbose=True):
-        'Compute rate factor A and estimate its error with block averaging'
+        '''
+            Store and return the error distribution of the stored A samples. Error is estimated using the block averaging (blav) method. For more details on this blav procedure as well as the meaning of the arguments `blocksizes`, `fitrange`, and `model_function`, see documentation of the routine :py:meth:`_wrap <thermolib.tools._blav>`.
+
+
+            :param fn: If not None, name of file to store a plot of the block averaging procedure to
+            :type fn: str, optional, default=None
+
+            :param plot: If True, make plot of the block averaging procedure. Is ignored if fn is not None.
+            :type plot: bool, optional, default=False
+
+            :param plot_ylims: Limits for the y-axis in the error plot.
+            :type plot_ylims: list or None, optional, default=None
+
+            :param verbose: If True, turn on verbosity of logging during this routine
+            :type verbose: bool, optional, default=True
+
+            :return: Distribution of A samples
+            :rtype: :py:class:`GaussianDistribution <thermolib.error.GaussianDistribution>`
+        '''
         assert self._finished, "Reading trajectory data is not finished yet"
         As = self.As[~np.isnan(self.As)]
         if blocksizes is None:
@@ -108,7 +147,18 @@ class BaseRateFactor(object):
         return self.A, self.A_dist
         
     def result_bootstrapping(self, nboot, verbose=True):
-        'Compute rate factor A and estimate error with bootstrapping'
+        '''
+            Store and return the error distribution of the stored A samples. Error is estimated using the bootstrapping method.
+
+            :param nboot: number of bootstrapping cycles
+            :type nboot: int
+
+            :param verbose: If True, turn on verbosity of logging during this routine
+            :type verbose: bool, optional, default=True
+
+            :return: Distribution of A samples
+            :rtype: :py:class:`GaussianDistribution <thermolib.error.GaussianDistribution>`
+        '''
         assert self._finished, "Reading trajectory data is not finished yet"
         data = self.As[~np.isnan(self.As)]
         Ndata = len(data)
@@ -125,45 +175,51 @@ class BaseRateFactor(object):
             print('  A = %s (%i TS samples)' %(self.A_dist.print(unit='1e12*%s/s' %self.CV_unit), Ndata))
             print()
         return self.A, self.A_dist
-    
-    def results_overview(self, nboot=1000, verbose=True):
-        assert self._finished, "Reading trajectory data is not finished yet"
-        print('###############  RESULTS  ###############')
-        A = self.result_no_statistics()
-        if verbose:
-            print('Without error estimation:')
-            print('-------------------------')
-            print('  A =  %.3e %s/s' %(A/(parse_unit(self.CV_unit)/second), self.CV_unit))
-            print()
-        A, A_dist = self.result_blav(verbose=verbose)
-        A, A_dist = self.result_bootstrapping(nboot, verbose=verbose)
-        #as the user has not specified a single method, reset the A_dist to None
-        self.A_dist = None
 
-    def compute_rate(self, fep, ncycles=500, verbose=False):
+    def compute_rate(self, fep, propagator=Propagator(target_distribution=None), verbose=False):
+        '''
+            Combine the kinetic information of the rate factor encoded in the current instance with the thermodynamic information encoded in the free energy profile fep to obtain a rate constant according to the formula 
+
+            .. math::
+
+                k &= A\\cdot\\frac{ e^{-\\beta F(q_{TS})} }{ \\int_{-\\infty}^{q_{TS}}e^{-\\beta F(q)}dq } \\\\
+                A &= \\frac{1}{2}\\left\\langle|\\dot{Q}|\\right\\rangle_{TS}
+
+            :param fep: free energy profile to extract required thermodynamic free energy information
+            :type fep: :py:class:`SimpleFreeEnergyProfile <thermolib.thermodynamics.fep.SimpleFreeEnergyProfile>`
+
+            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken, or the desired distribution of the targeted error). See documentation on the :py:class:`Propagator <thermolig.error.Propagator>` class for more info.
+            :type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=Propagator(target_distribution=None)
+
+            :param verbose: If True, turns on verbosity
+            :type verbose: bool, optional, default=False
+
+            :return: list of forward & backward rate constants and phenomenological free energy barriers and potentially the corresponding error distributions (if both the current instance and the fep instance have associated error distributions)
+            :rtype: forward k, distribution of forward k, forward dF, distribution of forward dF, backard k, distribution of backward k, backward dF, distribution of backward dF
+        '''
         if not (self.A_dist is None or fep.ts.F_dist is None or fep.R.Z_dist is None or fep.P.Z_dist is None):
             def fun_k(A,Fts,Z):
                 return A*np.exp(-Fts/(boltzmann*fep.T))/Z
             def fun_F(A,Fts,Z):
                 return -np.log(fep.beta*planck*fun_k(A,Fts,Z))/fep.beta
             #setup propagator for forward k and dF
-            forward  = Propagator(ncycles=ncycles)
-            forward.gen_args_samples( self.A_dist, fep.ts.F_dist, fep.R.Z_dist)
+            propagator.reset()
+            propagator.gen_args_samples(self.A_dist, fep.ts.F_dist, fep.R.Z_dist)
             #calculate k_forward
-            forward.calc_fun_values(fun_k)
-            k_forward = forward.get_distribution(target_distribution=LogGaussianDistribution)
+            propagator.calc_fun_values(fun_k)
+            k_forward = propagator.get_distribution(target_distribution=LogGaussianDistribution)
             #calculate dF_forward
-            forward.calc_fun_values(fun_F)
-            dF_forward = forward.get_distribution(target_distribution=GaussianDistribution)
+            propagator.calc_fun_values(fun_F)
+            dF_forward = propagator.get_distribution(target_distribution=GaussianDistribution)
             #setup propagator for backward k and dF
-            backward = Propagator(ncycles=ncycles)
-            backward.gen_args_samples(self.A_dist, fep.ts.F_dist, fep.P.Z_dist)
+            propagator.reset()
+            propagator.gen_args_samples(self.A_dist, fep.ts.F_dist, fep.P.Z_dist)
             #calculate k_backward
-            backward.calc_fun_values(fun_k)
-            k_backward = backward.get_distribution(target_distribution=LogGaussianDistribution)
+            propagator.calc_fun_values(fun_k)
+            k_backward = propagator.get_distribution(target_distribution=LogGaussianDistribution)
             #calculate dF_backward
-            backward.calc_fun_values(fun_F)
-            dF_backward = backward.get_distribution(target_distribution=GaussianDistribution)
+            propagator.calc_fun_values(fun_F)
+            dF_backward = propagator.get_distribution(target_distribution=GaussianDistribution)
             if verbose:
                 print('k_F  = %s' %k_forward.print(unit='1e8/s'))
                 print('dF_F = %s' %dF_forward.print(unit='kjmol'))
@@ -226,7 +282,7 @@ class RateFactorEquilibrium(BaseRateFactor):
 
     def process_trajectory(self, fn_xyz, sub=slice(None,None,None), finish=True, fn_samples=None, momenta='analytical', Nmomenta=500, verbose=False):
         '''
-            Process the given XYZ trajectory and store T and N values.
+            Process the given XYZ trajectory to compute and store A samples.
 
             :param fn_xyz: filename of the trajectory from which the rate factor will be computed.
             :type fn_xyz: str
@@ -279,7 +335,7 @@ class RateFactorEquilibrium(BaseRateFactor):
 
     def process_trajectory_h5(self, fn_h5, sub=slice(None,None,None), finish=True, fn_samples=None, momenta='analytical', Nmomenta=500, verbose=False):
         '''
-            Process the given XYZ trajectory and store T and N values.
+            Process the given XYZ trajectory to compute and store A samples.
 
             :param fn_h5: filename of the trajectory from which the rate factor will be computed.
             :type fn_h5: str
@@ -329,9 +385,9 @@ class RateFactorEquilibrium(BaseRateFactor):
                 print('Finishing')
             self.finish(fn=fn_samples)
 
-    def _compute_contribution(self, coords, momenta='analytical', Nmomenta=500, verbose=False):
+    def _compute_contribution(self, coords, momenta='analytical', Nmomenta=500):
         '''
-            Compute the contributions to the rate factor of the current frame given by **coords**. These contributions are stored in self.As. Afterwards, <|DQ|>_TS is computed from these contributions as well as some statistics to estimate the error (or at least get an idea of the error).
+            Compute a sample for the A rate factor from the current frame given by **coords**. These samples are stored in self.As. Afterwards, <|DQ|>_TS is computed from these contributions as well as some statistics to estimate the error (or at least get an idea of the error).
 
             :param coords: 3N-dimensional vector containing the cartesian coordinates
             :type coords: np.ndarray
@@ -341,10 +397,10 @@ class RateFactorEquilibrium(BaseRateFactor):
                 * **analytical** -- compute the momentum integral analytically, is hence the fastest method
                 * **MB** -- compute the momentum integral numerical by taking random samples for the velocity from the Maxwell-Boltzmann distribution.
             
-            :type momenta: string, optional
+            :type momenta: string, optional, default='analytical'
 
-            :param verbose: increase verbosity by setting to True, defaults to True
-            :type verbose: bool, optional
+            :param Nmomenta: number of random samples taken from the Maxwell-Boltzmann distribution upon selection of the MB method for momenta parameter. This parameter is ignored if momenta='analytical'
+            :type momenta: int, optional, default=500
         '''
         assert (coords.shape[0]==self.Natoms and coords.shape[1]==3)
         Q, DQ = self.CV.compute(coords)
@@ -366,6 +422,9 @@ class RateFactorEquilibrium(BaseRateFactor):
     def _random_velocity(self, distribution='MB'):
         '''
             Routine to draw a random velocity vector for each atom from the distribution specified in distribution argument. Temperature and masses are defined in the attributes of self.
+
+            :param distribution: the distribution from which to take random samples for the momenta. Currently, only 'MB' (for Maxwell-Boltzmann distribution at the temperature stored in self.temp) is implemented.
+            :type distribution: str, optional, default='MB'
         '''
         if distribution=='MB':
             v = np.random.normal(loc=0.0, scale=1.0, size=3*self.Natoms)

@@ -44,13 +44,13 @@ def wham1d_hs(int Nsims, int Ngrid, np.ndarray[object] trajectories, np.ndarray[
         :type trajectories: np.ndarray
 
         :param bins: bin edges for the CV histogram. Should have length one larger than Ngrid
-        :type bins: np.ndarray[double]
+        :type bins: np.ndarray[double, shape=(Ngrid+1,)]
 
         :param Nis: Nis[j] is the number of samples in the trajectory of simulation j
-        :type Nis: np.ndarray[long]
+        :type Nis: np.ndarray[long, shape=(Nsims,)]
 
         :returns Hs: 2 dimensional array containing the CV histograms for each of the (biased) simulations. Hs[i,k] represents the histogram value of the k-th bin for the i-th simulation.
-        :rtype: np.ndarray[long, ndim=2]
+        :rtype: np.ndarray[long, shape=(Nsims, Ngrid)]
     '''
     cdef np.ndarray[long, ndim=2] Hs = np.zeros([Nsims, Ngrid], dtype=int)
     cdef np.ndarray[double] data, edges
@@ -103,7 +103,7 @@ def wham1d_bias(int Nsims, int Ngrid, double beta, list biasses, double delta, i
         :type thresholdm: float, optional, default=1e-3
 
         :returns: array containing the (integrated) bias on the CV-grid for each simulation, i.e. :math:`b_{ik}` array from equation above.
-        :rtype: np.ndarray[double, ndim=2]
+        :rtype: np.ndarray[double, shape=(Nsims, Ngrid)]
     '''
     from thermolib.tools import integrate
     cdef np.ndarray[double, ndim=2] bs = np.zeros([Nsims, Ngrid], dtype=float)
@@ -135,13 +135,13 @@ def wham1d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=2] Hs, np.ndarray[dou
         until self consistency is achieved.
 
         :param Nis: Nis[j] is the number of samples in the trajectory of simulation j
-        :type Nis: np.ndarray[long]
+        :type Nis: np.ndarray[long, shape=(Nsims,)]
 
         :param Hs: 2 dimensional array containing the CV histograms for each of the (biased) simulations
-        :type Hs: np.ndarray[long, ndim=2]
+        :type Hs: np.ndarray[long, shape=(Nsims, Ngrid)]
 
         :param bs: array containing the (integrated) bias on the CV-grid for each simulation, i.e. :math:`b_{ik}` array from equation above.
-        :type bs: np.ndarray[double, ndim=2]
+        :type bs: np.ndarray[double, shape=(Nsims, Ngrid)]
 
         :param Nscf: maximum number of SCF cycles to obtain self-consistency
         :type Nscf: int, optional, default=1000
@@ -153,7 +153,7 @@ def wham1d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=2] Hs, np.ndarray[dou
         :type overflow_threshold: double, optional, default=1e-150
 
         :returns: the unbiased probability distribution on the same grid as all the histograms in the Hs argument.
-        :rtype: np.ndarray[double]
+        :rtype: np.ndarray[double, shape=(Ngrid,)]
     '''
     cdef double integrated_diff, pmax
     cdef np.ndarray[double] as_old, as_new, inverse_fs, delta
@@ -501,7 +501,7 @@ def wham2d_bias(int Nsims, int Ngrid1, int Ngrid2, double beta, list biasses, do
         :type thresholdm: float, optional, default=1e-3
 
         :returns: array containing the (integrated) bias on the CV-grid for each simulation, i.e. :math:`b_{ik}` array from equation above. bs[i,k,l] represents the bias value of bin (k,l) in (CV1,CV2)-space for the i-th simulation.
-        :rtype: np.ndarray[double, ndim=3]
+        :rtype: np.ndarray[double, shape=(Nsims,Ngrid1,Ngrid2)]
     '''
     cdef np.ndarray[double, ndim=3] bs = np.zeros([Nsims, Ngrid1, Ngrid2], dtype=float)
     cdef np.ndarray[double, ndim=2] CV1, CV2, Ws
@@ -555,6 +555,9 @@ def wham2d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=3] Hs, np.ndarray[dou
 
         :param overflow_threshold: numerical threshold to avoid overflow errors when calculating the normalization factors and the denominator of the unbiased probability a_k. This determines which simulations and which grid points to ignore. Decreasing it results in a FES with a larger maximum free energy (lower unbiased probability). If it is too low, imaginary errors (sigma^2) arise, so increase if necessary.
         :type overflow_threshold: double, optional, default=1e-150
+
+        :returns: the unbiased probability distribution on the same grid as all the histograms in the Hs argument.
+        :rtype: np.ndarray[double, shape=(Ngrid1,Ngrid2)]
     '''
     cdef double integrated_diff, pmax
     cdef np.ndarray[double, ndim=2] as_old, as_new

@@ -261,6 +261,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="rg_kin.html">Kinetics – <code class="docutils literal notranslate"><span class="pre">thermolib.kinetics</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="rg_kin.html#module-thermolib.kinetics.rate">Rate constant – <code class="docutils literal notranslate"><span class="pre">thermolib.kinetics.rate</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_kin.html#thermolib.kinetics.rate.BaseRateFactor"><code class="docutils literal notranslate"><span class="pre">BaseRateFactor</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="rg_kin.html#thermolib.kinetics.rate.RateFactorEquilibrium"><code class="docutils literal notranslate"><span class="pre">RateFactorEquilibrium</span></code></a></li>
 </ul>
 </li>
@@ -332,6 +333,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#thermolib.error.Propagator.calc_fun_values"><code class="docutils literal notranslate"><span class="pre">Propagator.calc_fun_values()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#thermolib.error.Propagator.gen_args_samples"><code class="docutils literal notranslate"><span class="pre">Propagator.gen_args_samples()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#thermolib.error.Propagator.get_distribution"><code class="docutils literal notranslate"><span class="pre">Propagator.get_distribution()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#thermolib.error.Propagator.reset"><code class="docutils literal notranslate"><span class="pre">Propagator.reset()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#thermolib.error.SampleDistribution"><code class="docutils literal notranslate"><span class="pre">SampleDistribution</span></code></a><ul>
@@ -1134,12 +1136,15 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="thermolib.error.Propagator">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">thermolib.error.</span></span><span class="sig-name descname"><span class="pre">Propagator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ncycles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#Propagator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.Propagator" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">thermolib.error.</span></span><span class="sig-name descname"><span class="pre">Propagator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ncycles=50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_distribution=&lt;class</span> <span class="pre">'thermolib.error.GaussianDistribution'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flattener=&lt;thermolib.flatten.DummyFlattener</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples_are_flattened=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#Propagator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.Propagator" title="Permalink to this definition"></a></dt>
 <dd><p>A class to propagate the error distribution on a set of arguments towards the error distribution on a given function of those arguments. This routine uses the <code class="docutils literal notranslate"><span class="pre">sample</span></code> routine of each of its distrubution arguments, meaning that the resulting error is stochastic (will not give the same repeated result).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>ncycles</strong> (<em>int</em><em>, </em><em>optional</em><em>, </em><em>default given by value</em><em> of </em><em>global variable ncycles_default</em>) – the number of cycles for which a random sample is taken for each argument and corresponding function value is computed.</p></li>
+<li><p><strong>target_distribution</strong> (child class of <code class="xref py py-class docutils literal notranslate"><span class="pre">Distribution</span></code>, optional, default=GaussianDistribution) – the type of distribution to be used for the error of the function value. Can be overwritten in the get_distribution routine.</p></li>
+<li><p><strong>flattener</strong> (instance of child class of <code class="xref py py-class docutils literal notranslate"><span class="pre">Flattener</span></code>, optional, default=DummyFlattener()) – Flattener to be parsed to the error distribution of the function value. Can be overwritten in the get_distribution routine.</p></li>
+<li><p><strong>samples_are_flattened</strong> (<em>bool</em><em>, </em><em>optional</em><em>, </em><em>default=False</em>) – whether or not the samples generated by <code class="docutils literal notranslate"><span class="pre">gen_args_samples</span></code> (and hence the <code class="docutils literal notranslate"><span class="pre">sample</span></code> routine of the arguments) are flattened. Can be overwritten in the get_distribution routine.</p></li>
 <li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em><em>, </em><em>default=False</em>) – If True, increase verbosity of the propagator logging</p></li>
 </ul>
 </dd>
@@ -1168,23 +1173,22 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.Propagator.get_distribution">
-<span class="sig-name descname"><span class="pre">get_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_distribution=&lt;class</span> <span class="pre">'thermolib.error.GaussianDistribution'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flattener=&lt;thermolib.flatten.DummyFlattener</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples_are_flattened=False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#Propagator.get_distribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.Propagator.get_distribution" title="Permalink to this definition"></a></dt>
-<dd><p>Routine to construct the error distribution of the function value from a population generated by the routines <code class="docutils literal notranslate"><span class="pre">gen_args_samples</span></code> and <code class="docutils literal notranslate"><span class="pre">calc_fun_values</span></code>.</p>
+<span class="sig-name descname"><span class="pre">get_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_distribution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flattener</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples_are_flattened</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#Propagator.get_distribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.Propagator.get_distribution" title="Permalink to this definition"></a></dt>
+<dd><p>Routine to construct the error distribution of the function value from a population generated by the routines <code class="docutils literal notranslate"><span class="pre">gen_args_samples</span></code> and <code class="docutils literal notranslate"><span class="pre">calc_fun_values</span></code>. For more info on arguments target_distribution, flattener or samples_are_flattened, see documentation in the initializer. Only if such an argument is explicitly specified (i.e. is not None), will it be overwritten with the given value.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>target_distribution</strong> (child class of <code class="xref py py-class docutils literal notranslate"><span class="pre">Distribution</span></code>, optional, default=GaussianDistribution) – the type of distribution to be used for the error of the function value</p></li>
-<li><p><strong>flattener</strong> (instance of child class of <code class="xref py py-class docutils literal notranslate"><span class="pre">Flattener</span></code>, optional, default=DummyFlattener()) – Flattener to be parsed to the error distribution of the function value</p></li>
-<li><p><strong>samples_are_flattened</strong> (<em>bool</em><em>, </em><em>optional</em><em>, </em><em>default=False</em>) – whether or not the samples generated by <code class="docutils literal notranslate"><span class="pre">gen_args_samples</span></code> (and hence the <code class="docutils literal notranslate"><span class="pre">sample</span></code> routine of the arguments) are flattened</p></li>
-</ul>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Distribution of the function value</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Distribution of the function value</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>determined by parameter target_distribution</p>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>determined by parameter target_distribution</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="thermolib.error.Propagator.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#Propagator.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.Propagator.reset" title="Permalink to this definition"></a></dt>
+<dd><p>Reinitialize for future reuse.</p>
 </dd></dl>
 
 </dd></dl>

@@ -258,6 +258,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="rg_kin.html">Kinetics – <code class="docutils literal notranslate"><span class="pre">thermolib.kinetics</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="rg_kin.html#module-thermolib.kinetics.rate">Rate constant – <code class="docutils literal notranslate"><span class="pre">thermolib.kinetics.rate</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_kin.html#thermolib.kinetics.rate.BaseRateFactor"><code class="docutils literal notranslate"><span class="pre">BaseRateFactor</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="rg_kin.html#thermolib.kinetics.rate.RateFactorEquilibrium"><code class="docutils literal notranslate"><span class="pre">RateFactorEquilibrium</span></code></a></li>
 </ul>
 </li>
@@ -329,6 +330,7 @@
 <li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.Propagator.calc_fun_values"><code class="docutils literal notranslate"><span class="pre">Propagator.calc_fun_values()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.Propagator.gen_args_samples"><code class="docutils literal notranslate"><span class="pre">Propagator.gen_args_samples()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.Propagator.get_distribution"><code class="docutils literal notranslate"><span class="pre">Propagator.get_distribution()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.Propagator.reset"><code class="docutils literal notranslate"><span class="pre">Propagator.reset()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="rg_error.html#thermolib.error.SampleDistribution"><code class="docutils literal notranslate"><span class="pre">SampleDistribution</span></code></a><ul>
@@ -444,6 +446,8 @@
 </li>
       <li><a href="rg_thermo.html#thermolib.thermodynamics.fep.BaseProfile">BaseProfile (class in thermolib.thermodynamics.fep)</a>
 </li>
+      <li><a href="rg_kin.html#thermolib.kinetics.rate.BaseRateFactor">BaseRateFactor (class in thermolib.kinetics.rate)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="rg_thermo.html#thermolib.thermodynamics.bias.BiasPotential1D">BiasPotential1D (class in thermolib.thermodynamics.bias)</a>
@@ -492,6 +496,8 @@
         <li><a href="rg_thermo.html#thermolib.thermodynamics.cv.NormalToPlane.compute">(thermolib.thermodynamics.cv.NormalToPlane method)</a>
 </li>
       </ul></li>
+      <li><a href="rg_kin.html#thermolib.kinetics.rate.BaseRateFactor.compute_rate">compute_rate() (thermolib.kinetics.rate.BaseRateFactor method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="rg_thermo.html#thermolib.thermodynamics.condprob.ConditionalProbability1D1D">ConditionalProbability1D1D (class in thermolib.thermodynamics.condprob)</a>
@@ -586,6 +592,8 @@
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="rg_kin.html#thermolib.kinetics.rate.BaseRateFactor.finish">finish() (thermolib.kinetics.rate.BaseRateFactor method)</a>
+</li>
       <li><a href="rg_thermo.html#thermolib.thermodynamics.condprob.ConditionalProbability1D1D.finish_error">finish_error() (thermolib.thermodynamics.condprob.ConditionalProbability1D1D method)</a>
 </li>
       <li><a href="rg_tools.html#thermolib.tools.fisher_matrix_mle_probdens">fisher_matrix_mle_probdens() (in module thermolib.tools)</a>
@@ -620,6 +628,8 @@
         <li><a href="rg_thermo.html#thermolib.thermodynamics.fep.FreeEnergySurface2D.from_histogram">(thermolib.thermodynamics.fep.FreeEnergySurface2D class method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="rg_error.html#thermolib.error.GaussianDistribution.from_samples">from_samples() (thermolib.error.GaussianDistribution class method)</a>
 
       <ul>
@@ -632,8 +642,6 @@
         <li><a href="rg_error.html#thermolib.error.SampleDistribution.from_samples">(thermolib.error.SampleDistribution class method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="rg_thermo.html#thermolib.thermodynamics.histogram.Histogram1D.from_single_trajectory">from_single_trajectory() (thermolib.thermodynamics.histogram.Histogram1D class method)</a>
 
       <ul>
@@ -909,8 +917,12 @@
         <li><a href="rg_thermo.html#thermolib.thermodynamics.fep.SimpleFreeEnergyProfile.process_states">(thermolib.thermodynamics.fep.SimpleFreeEnergyProfile method)</a>
 </li>
       </ul></li>
-      <li><a href="rg_kin.html#thermolib.kinetics.rate.RateFactorEquilibrium.process_trajectory">process_trajectory() (thermolib.kinetics.rate.RateFactorEquilibrium method)</a>
+      <li><a href="rg_kin.html#thermolib.kinetics.rate.BaseRateFactor.process_trajectory">process_trajectory() (thermolib.kinetics.rate.BaseRateFactor method)</a>
+
+      <ul>
+        <li><a href="rg_kin.html#thermolib.kinetics.rate.RateFactorEquilibrium.process_trajectory">(thermolib.kinetics.rate.RateFactorEquilibrium method)</a>
 </li>
+      </ul></li>
       <li><a href="rg_thermo.html#thermolib.thermodynamics.condprob.ConditionalProbability1D1D.process_trajectory_cvs">process_trajectory_cvs() (thermolib.thermodynamics.condprob.ConditionalProbability1D1D method)</a>
 
       <ul>
@@ -951,11 +963,21 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="rg_kin.html#thermolib.kinetics.rate.RateFactorEquilibrium">RateFactorEquilibrium (class in thermolib.kinetics.rate)</a>
 </li>
+      <li><a href="rg_kin.html#thermolib.kinetics.rate.BaseRateFactor.read_results">read_results() (thermolib.kinetics.rate.BaseRateFactor method)</a>
+</li>
       <li><a href="rg_tools.html#thermolib.tools.read_wham_input">read_wham_input() (in module thermolib.tools)</a>
+</li>
+      <li><a href="rg_thermo.html#thermolib.thermodynamics.fep.BaseFreeEnergyProfile.recollect">recollect() (thermolib.thermodynamics.fep.BaseFreeEnergyProfile method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="rg_thermo.html#thermolib.thermodynamics.fep.BaseFreeEnergyProfile.recollect">recollect() (thermolib.thermodynamics.fep.BaseFreeEnergyProfile method)</a>
+      <li><a href="rg_error.html#thermolib.error.Propagator.reset">reset() (thermolib.error.Propagator method)</a>
+</li>
+      <li><a href="rg_kin.html#thermolib.kinetics.rate.BaseRateFactor.result_blav">result_blav() (thermolib.kinetics.rate.BaseRateFactor method)</a>
+</li>
+      <li><a href="rg_kin.html#thermolib.kinetics.rate.BaseRateFactor.result_bootstrapping">result_bootstrapping() (thermolib.kinetics.rate.BaseRateFactor method)</a>
+</li>
+      <li><a href="rg_kin.html#thermolib.kinetics.rate.BaseRateFactor.result_no_statistics">result_no_statistics() (thermolib.kinetics.rate.BaseRateFactor method)</a>
 </li>
       <li><a href="rg_tools.html#thermolib.tools.rolling_average">rolling_average() (in module thermolib.tools)</a>
 </li>

@@ -260,6 +260,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="rg_kin.html">Kinetics – <code class="docutils literal notranslate"><span class="pre">thermolib.kinetics</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="rg_kin.html#module-thermolib.kinetics.rate">Rate constant – <code class="docutils literal notranslate"><span class="pre">thermolib.kinetics.rate</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_kin.html#thermolib.kinetics.rate.BaseRateFactor"><code class="docutils literal notranslate"><span class="pre">BaseRateFactor</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="rg_kin.html#thermolib.kinetics.rate.RateFactorEquilibrium"><code class="docutils literal notranslate"><span class="pre">RateFactorEquilibrium</span></code></a></li>
 </ul>
 </li>
@@ -331,6 +332,7 @@
 <li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.Propagator.calc_fun_values"><code class="docutils literal notranslate"><span class="pre">Propagator.calc_fun_values()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.Propagator.gen_args_samples"><code class="docutils literal notranslate"><span class="pre">Propagator.gen_args_samples()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.Propagator.get_distribution"><code class="docutils literal notranslate"><span class="pre">Propagator.get_distribution()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.Propagator.reset"><code class="docutils literal notranslate"><span class="pre">Propagator.reset()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="rg_error.html#thermolib.error.SampleDistribution"><code class="docutils literal notranslate"><span class="pre">SampleDistribution</span></code></a><ul>
@@ -427,7 +429,7 @@
 <dd class="field-even"><p>array containing the (integrated) bias on the CV-grid for each simulation, i.e. <img class="math" src="_images/math/051b80292799eb9bcdd6cb07b64fc531dbc27afa.png" alt="b_{ik}"/> array from equation above.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>np.ndarray[double, ndim=2]</p>
+<dd class="field-odd"><p>np.ndarray[double, shape=(Nsims, Ngrid)]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -477,15 +479,15 @@
 <li><p><strong>Nsims</strong> (<em>int</em>) – number of simulations that were done and for which the histogram needs to be constructed</p></li>
 <li><p><strong>Ngrid</strong> (<em>int</em>) – number of points on the CV grid to be used for the histogram.</p></li>
 <li><p><strong>trajectories</strong> (<em>np.ndarray</em>) – array containing the simulation trajectory (i.e. CV samples) for each (biased) simulation</p></li>
-<li><p><strong>bins</strong> (<em>np.ndarray</em><em>[</em><em>double</em><em>]</em>) – bin edges for the CV histogram. Should have length one larger than Ngrid</p></li>
-<li><p><strong>Nis</strong> (<em>np.ndarray</em><em>[</em><em>long</em><em>]</em>) – Nis[j] is the number of samples in the trajectory of simulation j</p></li>
+<li><p><strong>bins</strong> (<em>np.ndarray</em><em>[</em><em>double</em><em>, </em><em>shape=</em><em>(</em><em>Ngrid+1</em><em>,</em><em>)</em><em>]</em>) – bin edges for the CV histogram. Should have length one larger than Ngrid</p></li>
+<li><p><strong>Nis</strong> (<em>np.ndarray</em><em>[</em><em>long</em><em>, </em><em>shape=</em><em>(</em><em>Nsims</em><em>,</em><em>)</em><em>]</em>) – Nis[j] is the number of samples in the trajectory of simulation j</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns Hs<span class="colon">:</span></dt>
 <dd class="field-even"><p>2 dimensional array containing the CV histograms for each of the (biased) simulations. Hs[i,k] represents the histogram value of the k-th bin for the i-th simulation.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>np.ndarray[long, ndim=2]</p>
+<dd class="field-odd"><p>np.ndarray[long, shape=(Nsims, Ngrid)]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -501,9 +503,9 @@ a_k &amp;= \sum_i \frac{H_{ik}}{\sum_i N_i f_i b_{ik}}"/></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>Nis</strong> (<em>np.ndarray</em><em>[</em><em>long</em><em>]</em>) – Nis[j] is the number of samples in the trajectory of simulation j</p></li>
-<li><p><strong>Hs</strong> (<em>np.ndarray</em><em>[</em><em>long</em><em>, </em><em>ndim=2</em><em>]</em>) – 2 dimensional array containing the CV histograms for each of the (biased) simulations</p></li>
-<li><p><strong>bs</strong> (<em>np.ndarray</em><em>[</em><em>double</em><em>, </em><em>ndim=2</em><em>]</em>) – array containing the (integrated) bias on the CV-grid for each simulation, i.e. <img class="math" src="_images/math/051b80292799eb9bcdd6cb07b64fc531dbc27afa.png" alt="b_{ik}"/> array from equation above.</p></li>
+<li><p><strong>Nis</strong> (<em>np.ndarray</em><em>[</em><em>long</em><em>, </em><em>shape=</em><em>(</em><em>Nsims</em><em>,</em><em>)</em><em>]</em>) – Nis[j] is the number of samples in the trajectory of simulation j</p></li>
+<li><p><strong>Hs</strong> (<em>np.ndarray</em><em>[</em><em>long</em><em>, </em><em>shape=</em><em>(</em><em>Nsims</em><em>, </em><em>Ngrid</em><em>)</em><em>]</em>) – 2 dimensional array containing the CV histograms for each of the (biased) simulations</p></li>
+<li><p><strong>bs</strong> (<em>np.ndarray</em><em>[</em><em>double</em><em>, </em><em>shape=</em><em>(</em><em>Nsims</em><em>, </em><em>Ngrid</em><em>)</em><em>]</em>) – array containing the (integrated) bias on the CV-grid for each simulation, i.e. <img class="math" src="_images/math/051b80292799eb9bcdd6cb07b64fc531dbc27afa.png" alt="b_{ik}"/> array from equation above.</p></li>
 <li><p><strong>Nscf</strong> (<em>int</em><em>, </em><em>optional</em><em>, </em><em>default=1000</em>) – maximum number of SCF cycles to obtain self-consistency</p></li>
 <li><p><strong>convergence</strong> (<em>double</em><em>, </em><em>optional</em><em>, </em><em>default=1e-6</em>) – sets criterium determining self-consistency, SCF cycle will stop when the integrated absolute value of the difference between the unbiased probability distribution at the current step and the previous step is smaller then the given convergence parameter.</p></li>
 <li><p><strong>overflow_threshold</strong> (<em>double</em><em>, </em><em>optional</em><em>, </em><em>default=1e-150</em>) – numerical threshold to avoid overflow errors when calculating the normalization factors and the denominator of the unbiased probability. This determines which simulations and which grid points to ignore. Decreasing it results in a FEP with a larger maximum free energy (lower unbiased probability). If it is too low, imaginary errors arise, so increase if necessary.</p></li>
@@ -513,7 +515,7 @@ a_k &amp;= \sum_i \frac{H_{ik}}{\sum_i N_i f_i b_{ik}}"/></p>
 <dd class="field-even"><p>the unbiased probability distribution on the same grid as all the histograms in the Hs argument.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>np.ndarray[double]</p>
+<dd class="field-odd"><p>np.ndarray[double, shape=(Ngrid,)]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -548,7 +550,7 @@ a_k &amp;= \sum_i \frac{H_{ik}}{\sum_i N_i f_i b_{ik}}"/></p>
 <dd class="field-even"><p>array containing the (integrated) bias on the CV-grid for each simulation, i.e. <img class="math" src="_images/math/051b80292799eb9bcdd6cb07b64fc531dbc27afa.png" alt="b_{ik}"/> array from equation above. bs[i,k,l] represents the bias value of bin (k,l) in (CV1,CV2)-space for the i-th simulation.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>np.ndarray[double, ndim=3]</p>
+<dd class="field-odd"><p>np.ndarray[double, shape=(Nsims,Ngrid1,Ngrid2)]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -631,6 +633,12 @@ Similarly, we check whether the denominator of equation 2 &gt; overflow_threshol
 <li><p><strong>convergence</strong> (<em>double</em><em>, </em><em>optional</em><em>, </em><em>default=1e-6</em>) – convergence criterion for scf cycle, if integrated difference (sum of the absolute element-wise difference between subsequent predictions of the unbiased probability a_k) is lower than this value, SCF is converged</p></li>
 <li><p><strong>overflow_threshold</strong> (<em>double</em><em>, </em><em>optional</em><em>, </em><em>default=1e-150</em>) – numerical threshold to avoid overflow errors when calculating the normalization factors and the denominator of the unbiased probability a_k. This determines which simulations and which grid points to ignore. Decreasing it results in a FES with a larger maximum free energy (lower unbiased probability). If it is too low, imaginary errors (sigma^2) arise, so increase if necessary.</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the unbiased probability distribution on the same grid as all the histograms in the Hs argument.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray[double, shape=(Ngrid1,Ngrid2)]</p>
 </dd>
 </dl>
 </dd></dl>

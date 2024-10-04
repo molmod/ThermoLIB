@@ -258,6 +258,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../../rg_kin.html">Kinetics – <code class="docutils literal notranslate"><span class="pre">thermolib.kinetics</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../rg_kin.html#module-thermolib.kinetics.rate">Rate constant – <code class="docutils literal notranslate"><span class="pre">thermolib.kinetics.rate</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_kin.html#thermolib.kinetics.rate.BaseRateFactor"><code class="docutils literal notranslate"><span class="pre">BaseRateFactor</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_kin.html#thermolib.kinetics.rate.RateFactorEquilibrium"><code class="docutils literal notranslate"><span class="pre">RateFactorEquilibrium</span></code></a></li>
 </ul>
 </li>
@@ -329,6 +330,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_error.html#thermolib.error.Propagator.calc_fun_values"><code class="docutils literal notranslate"><span class="pre">Propagator.calc_fun_values()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_error.html#thermolib.error.Propagator.gen_args_samples"><code class="docutils literal notranslate"><span class="pre">Propagator.gen_args_samples()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_error.html#thermolib.error.Propagator.get_distribution"><code class="docutils literal notranslate"><span class="pre">Propagator.get_distribution()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_error.html#thermolib.error.Propagator.reset"><code class="docutils literal notranslate"><span class="pre">Propagator.reset()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../rg_error.html#thermolib.error.SampleDistribution"><code class="docutils literal notranslate"><span class="pre">SampleDistribution</span></code></a><ul>
@@ -537,7 +539,7 @@
 <span class="sd">            :param f_unit: a unit for the (free) energy properties in the state used in printing/loging</span>
 <span class="sd">            :type f_unit: str, optional, default=&#39;kjmol&#39;</span>
 
-<span class="sd">            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken)</span>
+<span class="sd">            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken, or the desired distribution of the targeted error). See documentation on the :py:class:`Propagator &lt;thermolig.error.Propagator&gt;` class for more info.</span>
 <span class="sd">            :type propagator: instance of :py:class:`Propagator &lt;thermolib.error.Propagator&gt;`, optional, default=Propagator()</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">State</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">cv_unit</span><span class="o">=</span><span class="n">cv_unit</span><span class="p">,</span> <span class="n">f_unit</span><span class="o">=</span><span class="n">f_unit</span><span class="p">,</span> <span class="n">propagator</span><span class="o">=</span><span class="n">propagator</span><span class="p">)</span>
@@ -743,7 +745,7 @@
 <span class="sd">            :param f_unit: a unit for the (free) energy properties in the state used in printing/loging</span>
 <span class="sd">            :type f_unit: str, optional, default=&#39;kjmol&#39;</span>
 
-<span class="sd">            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken)</span>
+<span class="sd">            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken, or the desired distribution of the targeted error). See documentation on the :py:class:`Propagator &lt;thermolig.error.Propagator&gt;` class for more info.</span>
 <span class="sd">            :type propagator: instance of :py:class:`Propagator &lt;thermolib.error.Propagator&gt;`, optional, default=Propagator()</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">State</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">cv_unit</span><span class="o">=</span><span class="n">cv_unit</span><span class="p">,</span> <span class="n">f_unit</span><span class="o">=</span><span class="n">f_unit</span><span class="p">,</span> <span class="n">propagator</span><span class="o">=</span><span class="n">propagator</span><span class="p">)</span>

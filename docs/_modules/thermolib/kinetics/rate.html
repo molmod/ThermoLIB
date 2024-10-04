@@ -258,6 +258,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../../rg_kin.html">Kinetics – <code class="docutils literal notranslate"><span class="pre">thermolib.kinetics</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../rg_kin.html#module-thermolib.kinetics.rate">Rate constant – <code class="docutils literal notranslate"><span class="pre">thermolib.kinetics.rate</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_kin.html#thermolib.kinetics.rate.BaseRateFactor"><code class="docutils literal notranslate"><span class="pre">BaseRateFactor</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_kin.html#thermolib.kinetics.rate.RateFactorEquilibrium"><code class="docutils literal notranslate"><span class="pre">RateFactorEquilibrium</span></code></a></li>
 </ul>
 </li>
@@ -329,6 +330,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_error.html#thermolib.error.Propagator.calc_fun_values"><code class="docutils literal notranslate"><span class="pre">Propagator.calc_fun_values()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_error.html#thermolib.error.Propagator.gen_args_samples"><code class="docutils literal notranslate"><span class="pre">Propagator.gen_args_samples()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../rg_error.html#thermolib.error.Propagator.get_distribution"><code class="docutils literal notranslate"><span class="pre">Propagator.get_distribution()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../rg_error.html#thermolib.error.Propagator.reset"><code class="docutils literal notranslate"><span class="pre">Propagator.reset()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../rg_error.html#thermolib.error.SampleDistribution"><code class="docutils literal notranslate"><span class="pre">SampleDistribution</span></code></a><ul>
@@ -423,32 +425,26 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">pp</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;RateFactorEquilibrium&#39;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;BaseRateFactor&#39;</span><span class="p">,</span> <span class="s1">&#39;RateFactorEquilibrium&#39;</span><span class="p">]</span>
 
-<span class="k">class</span> <span class="nc">BaseRateFactor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseRateFactor"><a class="viewcode-back" href="../../../rg_kin.html#thermolib.kinetics.rate.BaseRateFactor">[docs]</a><span class="k">class</span> <span class="nc">BaseRateFactor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        An abstract class for inheriting child classes to compute the prefactor :math:`A` required for the computation of the rate constant of the process of crossing a transition state:</span>
 
 <span class="sd">        .. math::</span>
 
-<span class="sd">            \\begin{aligned}</span>
 <span class="sd">                k &amp;= A\\cdot\\frac{ e^{-\\beta F(q_{TS})} }{ \\int_{-\\infty}^{q_{TS}}e^{-\\beta F(q)}dq } \\\\</span>
-
 <span class="sd">                A &amp;= \\frac{1}{2}\\left\\langle|\\dot{Q}|\\right\\rangle_{TS}</span>
-<span class="sd">            \\end{aligned}</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">CV</span><span class="p">,</span> <span class="n">CV_TS_lims</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">CV_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">            :param CV: a function that computes the value (and gradient) of the collective variable</span>
-<span class="sd">            :type CV: callable</span>
+<span class="sd">            :param CV: definition of the collective variable as function of the atomic coordinates of the system</span>
+<span class="sd">            :type CV: insgtance of child of :py:class:`CollectiveVariable &lt;thermolib.thermodynamics.cv.CollectiveVariable&gt;`</span>
 
 <span class="sd">            :param CV_TS_lims: the lower and upper boundaries for determining whether a certain frame of the trajectory corresponds with the transition state (TS). In other words, the condition CV(R)=CV_TS is replaced by CV_TS_lims[0]&lt;=CV(R)&lt;=CV_TS_lims[1]</span>
-<span class="sd">            :type CV_TS_lims: list(float)</span>
-<span class="sd">            </span>
-<span class="sd">            :param masses: the masses of the atoms (should be consistently indexed as the coords argument parsed to the compute_contribution routine).</span>
-<span class="sd">            :type masses: np.ndarray(float)</span>
+<span class="sd">            :type CV_TS_lims: list[float]</span>
 
-<span class="sd">            :param temp: temperature</span>
+<span class="sd">            :param temp: temperature of the simulation from which the rate factor will be computed</span>
 <span class="sd">            :type temp: float</span>
 
 <span class="sd">            :param CV_unit: the unit for printing the collective variable</span>
@@ -466,32 +462,77 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">A_dist</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_finished</span> <span class="o">=</span> <span class="kc">False</span>
 
-    <span class="k">def</span> <span class="nf">read_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="n">A_unit</span><span class="o">=</span><span class="s1">&#39;1/second&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseRateFactor.read_results"><a class="viewcode-back" href="../../../rg_kin.html#thermolib.kinetics.rate.BaseRateFactor.read_results">[docs]</a>    <span class="k">def</span> <span class="nf">read_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="n">A_unit</span><span class="o">=</span><span class="s1">&#39;au/s&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Read the samples for the A property from the given file</span>
+
+<span class="sd">            :param fn: file name from which to read the A samples</span>
+<span class="sd">            :type fn: str</span>
+
+<span class="sd">            :param A_unit: unit in which the A samples were stored in the file</span>
+<span class="sd">            :type A_unit: str, optional, default=&#39;au/s&#39;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">As</span> <span class="o">=</span> <span class="n">data</span><span class="o">*</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">A_unit</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_finished</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_finished</span> <span class="o">=</span> <span class="kc">True</span></div>
 
-    <span class="k">def</span> <span class="nf">process_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+<div class="viewcode-block" id="BaseRateFactor.process_trajectory"><a class="viewcode-back" href="../../../rg_kin.html#thermolib.kinetics.rate.BaseRateFactor.process_trajectory">[docs]</a>    <span class="k">def</span> <span class="nf">process_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            To be implemented in a child class</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
     <span class="k">def</span> <span class="nf">_compute_contribution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            To be implemented in a child class</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
-    <span class="k">def</span> <span class="nf">finish</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseRateFactor.finish"><a class="viewcode-back" href="../../../rg_kin.html#thermolib.kinetics.rate.BaseRateFactor.finish">[docs]</a>    <span class="k">def</span> <span class="nf">finish</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Finish extracting/reading samples of the A property and optionally write all samples to a given file.</span>
+
+<span class="sd">            :param fn: If not None, name of file to which the A samples will be written for later reuse</span>
+<span class="sd">            :type fn: _tstrype_, optional, default=None</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">As</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">As</span><span class="p">)</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">As</span><span class="o">*</span><span class="n">second</span>
         <span class="k">if</span> <span class="n">fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="s1">&#39;A [au/s]&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_finished</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_finished</span> <span class="o">=</span> <span class="kc">True</span></div>
 
-    <span class="k">def</span> <span class="nf">result_no_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseRateFactor.result_no_statistics"><a class="viewcode-back" href="../../../rg_kin.html#thermolib.kinetics.rate.BaseRateFactor.result_no_statistics">[docs]</a>    <span class="k">def</span> <span class="nf">result_no_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Store and return the mean A value from the stored samples</span>
+
+<span class="sd">            :return: mean A value</span>
+<span class="sd">            :rtype: float</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finished</span><span class="p">,</span> <span class="s2">&quot;Reading trajectory data is not finished yet&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">A</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">As</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">As</span><span class="p">)]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">A_dist</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span></div>
 
-    <span class="k">def</span> <span class="nf">result_blav</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">blocksizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fitrange</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">],</span> <span class="n">model_function</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plot_ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="s1">&#39;Compute rate factor A and estimate its error with block averaging&#39;</span>
+<div class="viewcode-block" id="BaseRateFactor.result_blav"><a class="viewcode-back" href="../../../rg_kin.html#thermolib.kinetics.rate.BaseRateFactor.result_blav">[docs]</a>    <span class="k">def</span> <span class="nf">result_blav</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">blocksizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fitrange</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">],</span> <span class="n">model_function</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plot_ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Store and return the error distribution of the stored A samples. Error is estimated using the block averaging (blav) method. For more details on this blav procedure as well as the meaning of the arguments `blocksizes`, `fitrange`, and `model_function`, see documentation of the routine :py:meth:`_wrap &lt;thermolib.tools._blav&gt;`.</span>
+
+
+<span class="sd">            :param fn: If not None, name of file to store a plot of the block averaging procedure to</span>
+<span class="sd">            :type fn: str, optional, default=None</span>
+
+<span class="sd">            :param plot: If True, make plot of the block averaging procedure. Is ignored if fn is not None.</span>
+<span class="sd">            :type plot: bool, optional, default=False</span>
+
+<span class="sd">            :param plot_ylims: Limits for the y-axis in the error plot.</span>
+<span class="sd">            :type plot_ylims: list or None, optional, default=None</span>
+
+<span class="sd">            :param verbose: If True, turn on verbosity of logging during this routine</span>
+<span class="sd">            :type verbose: bool, optional, default=True</span>
+
+<span class="sd">            :return: Distribution of A samples</span>
+<span class="sd">            :rtype: :py:class:`GaussianDistribution &lt;thermolib.error.GaussianDistribution&gt;`</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finished</span><span class="p">,</span> <span class="s2">&quot;Reading trajectory data is not finished yet&quot;</span>
         <span class="n">As</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">As</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">As</span><span class="p">)]</span>
         <span class="k">if</span> <span class="n">blocksizes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -505,10 +546,21 @@
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;---------------------------------&#39;</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  A = </span><span class="si">%s</span><span class="s1"> (</span><span class="si">%i</span><span class="s1"> TS samples, int. autocorr. time = </span><span class="si">%.3f</span><span class="s1"> timesteps)&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A_dist</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="s1">&#39;1e12*</span><span class="si">%s</span><span class="s1">/s&#39;</span> <span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">CV_unit</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">As</span><span class="p">),</span> <span class="n">Acorrtime</span><span class="p">))</span>
             <span class="nb">print</span><span class="p">()</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">A_dist</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">A_dist</span></div>
         
-    <span class="k">def</span> <span class="nf">result_bootstrapping</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nboot</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="s1">&#39;Compute rate factor A and estimate error with bootstrapping&#39;</span>
+<div class="viewcode-block" id="BaseRateFactor.result_bootstrapping"><a class="viewcode-back" href="../../../rg_kin.html#thermolib.kinetics.rate.BaseRateFactor.result_bootstrapping">[docs]</a>    <span class="k">def</span> <span class="nf">result_bootstrapping</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nboot</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Store and return the error distribution of the stored A samples. Error is estimated using the bootstrapping method.</span>
+
+<span class="sd">            :param nboot: number of bootstrapping cycles</span>
+<span class="sd">            :type nboot: int</span>
+
+<span class="sd">            :param verbose: If True, turn on verbosity of logging during this routine</span>
+<span class="sd">            :type verbose: bool, optional, default=True</span>
+
+<span class="sd">            :return: Distribution of A samples</span>
+<span class="sd">            :rtype: :py:class:`GaussianDistribution &lt;thermolib.error.GaussianDistribution&gt;`</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finished</span><span class="p">,</span> <span class="s2">&quot;Reading trajectory data is not finished yet&quot;</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">As</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">As</span><span class="p">)]</span>
         <span class="n">Ndata</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
@@ -524,46 +576,52 @@
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;------------------------------------------&#39;</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  A = </span><span class="si">%s</span><span class="s1"> (</span><span class="si">%i</span><span class="s1"> TS samples)&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A_dist</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="s1">&#39;1e12*</span><span class="si">%s</span><span class="s1">/s&#39;</span> <span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">CV_unit</span><span class="p">),</span> <span class="n">Ndata</span><span class="p">))</span>
             <span class="nb">print</span><span class="p">()</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">A_dist</span>
-    
-    <span class="k">def</span> <span class="nf">results_overview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nboot</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finished</span><span class="p">,</span> <span class="s2">&quot;Reading trajectory data is not finished yet&quot;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;###############  RESULTS  ###############&#39;</span><span class="p">)</span>
-        <span class="n">A</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">result_no_statistics</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Without error estimation:&#39;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-------------------------&#39;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  A =  </span><span class="si">%.3e</span><span class="s1"> </span><span class="si">%s</span><span class="s1">/s&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">A</span><span class="o">/</span><span class="p">(</span><span class="n">parse_unit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CV_unit</span><span class="p">)</span><span class="o">/</span><span class="n">second</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">CV_unit</span><span class="p">))</span>
-            <span class="nb">print</span><span class="p">()</span>
-        <span class="n">A</span><span class="p">,</span> <span class="n">A_dist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">result_blav</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-        <span class="n">A</span><span class="p">,</span> <span class="n">A_dist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">result_bootstrapping</span><span class="p">(</span><span class="n">nboot</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-        <span class="c1">#as the user has not specified a single method, reset the A_dist to None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">A_dist</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">A_dist</span></div>
 
-    <span class="k">def</span> <span class="nf">compute_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fep</span><span class="p">,</span> <span class="n">ncycles</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseRateFactor.compute_rate"><a class="viewcode-back" href="../../../rg_kin.html#thermolib.kinetics.rate.BaseRateFactor.compute_rate">[docs]</a>    <span class="k">def</span> <span class="nf">compute_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fep</span><span class="p">,</span> <span class="n">propagator</span><span class="o">=</span><span class="n">Propagator</span><span class="p">(</span><span class="n">target_distribution</span><span class="o">=</span><span class="kc">None</span><span class="p">),</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Combine the kinetic information of the rate factor encoded in the current instance with the thermodynamic information encoded in the free energy profile fep to obtain a rate constant according to the formula </span>
+
+<span class="sd">            .. math::</span>
+
+<span class="sd">                k &amp;= A\\cdot\\frac{ e^{-\\beta F(q_{TS})} }{ \\int_{-\\infty}^{q_{TS}}e^{-\\beta F(q)}dq } \\\\</span>
+<span class="sd">                A &amp;= \\frac{1}{2}\\left\\langle|\\dot{Q}|\\right\\rangle_{TS}</span>
+
+<span class="sd">            :param fep: free energy profile to extract required thermodynamic free energy information</span>
+<span class="sd">            :type fep: :py:class:`SimpleFreeEnergyProfile &lt;thermolib.thermodynamics.fep.SimpleFreeEnergyProfile&gt;`</span>
+
+<span class="sd">            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken)</span>
+<span class="sd">            :type propagator: instance of :py:class:`Propagator &lt;thermolib.error.Propagator&gt;`, optional, default=Propagator()</span>
+
+<span class="sd">            :param verbose: If True, turns on verbosity</span>
+<span class="sd">            :type verbose: bool, optional, default=False</span>
+
+<span class="sd">            :return: list of forward &amp; backward rate constants and phenomenological free energy barriers and potentially the corresponding error distributions (if both the current instance and the fep instance have associated error distributions)</span>
+<span class="sd">            :rtype: forward k, distribution of forward k, forward dF, distribution of forward dF, backard k, distribution of backward k, backward dF, distribution of backward dF</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A_dist</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">fep</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">F_dist</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">fep</span><span class="o">.</span><span class="n">R</span><span class="o">.</span><span class="n">Z_dist</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">fep</span><span class="o">.</span><span class="n">P</span><span class="o">.</span><span class="n">Z_dist</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
             <span class="k">def</span> <span class="nf">fun_k</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="n">Fts</span><span class="p">,</span><span class="n">Z</span><span class="p">):</span>
                 <span class="k">return</span> <span class="n">A</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">Fts</span><span class="o">/</span><span class="p">(</span><span class="n">boltzmann</span><span class="o">*</span><span class="n">fep</span><span class="o">.</span><span class="n">T</span><span class="p">))</span><span class="o">/</span><span class="n">Z</span>
             <span class="k">def</span> <span class="nf">fun_F</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="n">Fts</span><span class="p">,</span><span class="n">Z</span><span class="p">):</span>
                 <span class="k">return</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">fep</span><span class="o">.</span><span class="n">beta</span><span class="o">*</span><span class="n">planck</span><span class="o">*</span><span class="n">fun_k</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="n">Fts</span><span class="p">,</span><span class="n">Z</span><span class="p">))</span><span class="o">/</span><span class="n">fep</span><span class="o">.</span><span class="n">beta</span>
             <span class="c1">#setup propagator for forward k and dF</span>
-            <span class="n">forward</span>  <span class="o">=</span> <span class="n">Propagator</span><span class="p">(</span><span class="n">ncycles</span><span class="o">=</span><span class="n">ncycles</span><span class="p">)</span>
-            <span class="n">forward</span><span class="o">.</span><span class="n">gen_args_samples</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">A_dist</span><span class="p">,</span> <span class="n">fep</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">F_dist</span><span class="p">,</span> <span class="n">fep</span><span class="o">.</span><span class="n">R</span><span class="o">.</span><span class="n">Z_dist</span><span class="p">)</span>
+            <span class="n">propagator</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+            <span class="n">propagator</span><span class="o">.</span><span class="n">gen_args_samples</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A_dist</span><span class="p">,</span> <span class="n">fep</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">F_dist</span><span class="p">,</span> <span class="n">fep</span><span class="o">.</span><span class="n">R</span><span class="o">.</span><span class="n">Z_dist</span><span class="p">)</span>
             <span class="c1">#calculate k_forward</span>
-            <span class="n">forward</span><span class="o">.</span><span class="n">calc_fun_values</span><span class="p">(</span><span class="n">fun_k</span><span class="p">)</span>
-            <span class="n">k_forward</span> <span class="o">=</span> <span class="n">forward</span><span class="o">.</span><span class="n">get_distribution</span><span class="p">(</span><span class="n">target_distribution</span><span class="o">=</span><span class="n">LogGaussianDistribution</span><span class="p">)</span>
+            <span class="n">propagator</span><span class="o">.</span><span class="n">calc_fun_values</span><span class="p">(</span><span class="n">fun_k</span><span class="p">)</span>
+            <span class="n">k_forward</span> <span class="o">=</span> <span class="n">propagator</span><span class="o">.</span><span class="n">get_distribution</span><span class="p">(</span><span class="n">target_distribution</span><span class="o">=</span><span class="n">LogGaussianDistribution</span><span class="p">)</span>
             <span class="c1">#calculate dF_forward</span>
-            <span class="n">forward</span><span class="o">.</span><span class="n">calc_fun_values</span><span class="p">(</span><span class="n">fun_F</span><span class="p">)</span>
-            <span class="n">dF_forward</span> <span class="o">=</span> <span class="n">forward</span><span class="o">.</span><span class="n">get_distribution</span><span class="p">(</span><span class="n">target_distribution</span><span class="o">=</span><span class="n">GaussianDistribution</span><span class="p">)</span>
+            <span class="n">propagator</span><span class="o">.</span><span class="n">calc_fun_values</span><span class="p">(</span><span class="n">fun_F</span><span class="p">)</span>
+            <span class="n">dF_forward</span> <span class="o">=</span> <span class="n">propagator</span><span class="o">.</span><span class="n">get_distribution</span><span class="p">(</span><span class="n">target_distribution</span><span class="o">=</span><span class="n">GaussianDistribution</span><span class="p">)</span>
             <span class="c1">#setup propagator for backward k and dF</span>
-            <span class="n">backward</span> <span class="o">=</span> <span class="n">Propagator</span><span class="p">(</span><span class="n">ncycles</span><span class="o">=</span><span class="n">ncycles</span><span class="p">)</span>
-            <span class="n">backward</span><span class="o">.</span><span class="n">gen_args_samples</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A_dist</span><span class="p">,</span> <span class="n">fep</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">F_dist</span><span class="p">,</span> <span class="n">fep</span><span class="o">.</span><span class="n">P</span><span class="o">.</span><span class="n">Z_dist</span><span class="p">)</span>
+            <span class="n">propagator</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+            <span class="n">propagator</span><span class="o">.</span><span class="n">gen_args_samples</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A_dist</span><span class="p">,</span> <span class="n">fep</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">F_dist</span><span class="p">,</span> <span class="n">fep</span><span class="o">.</span><span class="n">P</span><span class="o">.</span><span class="n">Z_dist</span><span class="p">)</span>
             <span class="c1">#calculate k_backward</span>
-            <span class="n">backward</span><span class="o">.</span><span class="n">calc_fun_values</span><span class="p">(</span><span class="n">fun_k</span><span class="p">)</span>
-            <span class="n">k_backward</span> <span class="o">=</span> <span class="n">backward</span><span class="o">.</span><span class="n">get_distribution</span><span class="p">(</span><span class="n">target_distribution</span><span class="o">=</span><span class="n">LogGaussianDistribution</span><span class="p">)</span>
+            <span class="n">propagator</span><span class="o">.</span><span class="n">calc_fun_values</span><span class="p">(</span><span class="n">fun_k</span><span class="p">)</span>
+            <span class="n">k_backward</span> <span class="o">=</span> <span class="n">propagator</span><span class="o">.</span><span class="n">get_distribution</span><span class="p">(</span><span class="n">target_distribution</span><span class="o">=</span><span class="n">LogGaussianDistribution</span><span class="p">)</span>
             <span class="c1">#calculate dF_backward</span>
-            <span class="n">backward</span><span class="o">.</span><span class="n">calc_fun_values</span><span class="p">(</span><span class="n">fun_F</span><span class="p">)</span>
-            <span class="n">dF_backward</span> <span class="o">=</span> <span class="n">backward</span><span class="o">.</span><span class="n">get_distribution</span><span class="p">(</span><span class="n">target_distribution</span><span class="o">=</span><span class="n">GaussianDistribution</span><span class="p">)</span>
+            <span class="n">propagator</span><span class="o">.</span><span class="n">calc_fun_values</span><span class="p">(</span><span class="n">fun_F</span><span class="p">)</span>
+            <span class="n">dF_backward</span> <span class="o">=</span> <span class="n">propagator</span><span class="o">.</span><span class="n">get_distribution</span><span class="p">(</span><span class="n">target_distribution</span><span class="o">=</span><span class="n">GaussianDistribution</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;k_F  = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">k_forward</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="s1">&#39;1e8/s&#39;</span><span class="p">))</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;dF_F = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">dF_forward</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">))</span>
@@ -580,7 +638,7 @@
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;dF_F = </span><span class="si">%.3f</span><span class="s1"> kJ/mol&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">dF_forward</span><span class="o">/</span><span class="n">kjmol</span><span class="p">))</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;k_B  = </span><span class="si">%.3e</span><span class="s1"> 1e8/s&#39;</span>    <span class="o">%</span><span class="p">(</span><span class="n">k_backward</span><span class="o">/</span><span class="mf">1e8</span><span class="o">*</span><span class="n">second</span><span class="p">))</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;dF_B = </span><span class="si">%.3f</span><span class="s1"> kJ/mol&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">dF_backward</span><span class="o">/</span><span class="n">kjmol</span><span class="p">))</span>
-            <span class="k">return</span> <span class="n">k_forward</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">dF_forward</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">k_backward</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">dF_backward</span><span class="p">,</span> <span class="kc">None</span>
+            <span class="k">return</span> <span class="n">k_forward</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">dF_forward</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">k_backward</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">dF_backward</span><span class="p">,</span> <span class="kc">None</span></div></div>
 
 
 <div class="viewcode-block" id="RateFactorEquilibrium"><a class="viewcode-back" href="../../../rg_kin.html#thermolib.kinetics.rate.RateFactorEquilibrium">[docs]</a><span class="k">class</span> <span class="nc">RateFactorEquilibrium</span><span class="p">(</span><span class="n">BaseRateFactor</span><span class="p">):</span>
@@ -626,7 +684,7 @@
 
 <div class="viewcode-block" id="RateFactorEquilibrium.process_trajectory"><a class="viewcode-back" href="../../../rg_kin.html#thermolib.kinetics.rate.RateFactorEquilibrium.process_trajectory">[docs]</a>    <span class="k">def</span> <span class="nf">process_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn_xyz</span><span class="p">,</span> <span class="n">sub</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span><span class="kc">None</span><span class="p">,</span><span class="kc">None</span><span class="p">),</span> <span class="n">finish</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fn_samples</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">momenta</span><span class="o">=</span><span class="s1">&#39;analytical&#39;</span><span class="p">,</span> <span class="n">Nmomenta</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">            Process the given XYZ trajectory and store T and N values.</span>
+<span class="sd">            Process the given XYZ trajectory to compute and store A samples.</span>
 
 <span class="sd">            :param fn_xyz: filename of the trajectory from which the rate factor will be computed.</span>
 <span class="sd">            :type fn_xyz: str</span>
@@ -679,7 +737,7 @@
 
 <div class="viewcode-block" id="RateFactorEquilibrium.process_trajectory_h5"><a class="viewcode-back" href="../../../rg_kin.html#thermolib.kinetics.rate.RateFactorEquilibrium.process_trajectory_h5">[docs]</a>    <span class="k">def</span> <span class="nf">process_trajectory_h5</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn_h5</span><span class="p">,</span> <span class="n">sub</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span><span class="kc">None</span><span class="p">,</span><span class="kc">None</span><span class="p">),</span> <span class="n">finish</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fn_samples</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">momenta</span><span class="o">=</span><span class="s1">&#39;analytical&#39;</span><span class="p">,</span> <span class="n">Nmomenta</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">            Process the given XYZ trajectory and store T and N values.</span>
+<span class="sd">            Process the given XYZ trajectory to compute and store A samples.</span>
 
 <span class="sd">            :param fn_h5: filename of the trajectory from which the rate factor will be computed.</span>
 <span class="sd">            :type fn_h5: str</span>
@@ -729,9 +787,9 @@
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Finishing&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">(</span><span class="n">fn</span><span class="o">=</span><span class="n">fn_samples</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">_compute_contribution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">momenta</span><span class="o">=</span><span class="s1">&#39;analytical&#39;</span><span class="p">,</span> <span class="n">Nmomenta</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_compute_contribution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">momenta</span><span class="o">=</span><span class="s1">&#39;analytical&#39;</span><span class="p">,</span> <span class="n">Nmomenta</span><span class="o">=</span><span class="mi">500</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">            Compute the contributions to the rate factor of the current frame given by **coords**. These contributions are stored in self.As. Afterwards, &lt;|DQ|&gt;_TS is computed from these contributions as well as some statistics to estimate the error (or at least get an idea of the error).</span>
+<span class="sd">            Compute a sample for the A rate factor from the current frame given by **coords**. These samples are stored in self.As. Afterwards, &lt;|DQ|&gt;_TS is computed from these contributions as well as some statistics to estimate the error (or at least get an idea of the error).</span>
 
 <span class="sd">            :param coords: 3N-dimensional vector containing the cartesian coordinates</span>
 <span class="sd">            :type coords: np.ndarray</span>
@@ -741,10 +799,10 @@
 <span class="sd">                * **analytical** -- compute the momentum integral analytically, is hence the fastest method</span>
 <span class="sd">                * **MB** -- compute the momentum integral numerical by taking random samples for the velocity from the Maxwell-Boltzmann distribution.</span>
 <span class="sd">            </span>
-<span class="sd">            :type momenta: string, optional</span>
+<span class="sd">            :type momenta: string, optional, default=&#39;analytical&#39;</span>
 
-<span class="sd">            :param verbose: increase verbosity by setting to True, defaults to True</span>
-<span class="sd">            :type verbose: bool, optional</span>
+<span class="sd">            :param Nmomenta: number of random samples taken from the Maxwell-Boltzmann distribution upon selection of the MB method for momenta parameter. This parameter is ignored if momenta=&#39;analytical&#39;</span>
+<span class="sd">            :type momenta: int, optional, default=500</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">assert</span> <span class="p">(</span><span class="n">coords</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="bp">self</span><span class="o">.</span><span class="n">Natoms</span> <span class="ow">and</span> <span class="n">coords</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="mi">3</span><span class="p">)</span>
         <span class="n">Q</span><span class="p">,</span> <span class="n">DQ</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CV</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
@@ -766,6 +824,9 @@
     <span class="k">def</span> <span class="nf">_random_velocity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">distribution</span><span class="o">=</span><span class="s1">&#39;MB&#39;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Routine to draw a random velocity vector for each atom from the distribution specified in distribution argument. Temperature and masses are defined in the attributes of self.</span>
+
+<span class="sd">            :param distribution: the distribution from which to take random samples for the momenta. Currently, only &#39;MB&#39; (for Maxwell-Boltzmann distribution at the temperature stored in self.temp) is implemented.</span>
+<span class="sd">            :type distribution: str, optional, default=&#39;MB&#39;</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="n">distribution</span><span class="o">==</span><span class="s1">&#39;MB&#39;</span><span class="p">:</span>
             <span class="n">v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">3</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">Natoms</span><span class="p">)</span>

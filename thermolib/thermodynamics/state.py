@@ -137,7 +137,7 @@ class Microstate(State):
             :param f_unit: a unit for the (free) energy properties in the state used in printing/loging
             :type f_unit: str, optional, default='kjmol'
 
-            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken)
+            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken, or the desired distribution of the targeted error). See documentation on the :py:class:`Propagator <thermolig.error.Propagator>` class for more info.
             :type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=Propagator()
         '''
         State.__init__(self, name, cv_unit=cv_unit, f_unit=f_unit, propagator=propagator)
@@ -343,7 +343,7 @@ class Macrostate(State):
             :param f_unit: a unit for the (free) energy properties in the state used in printing/loging
             :type f_unit: str, optional, default='kjmol'
 
-            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken)
+            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken, or the desired distribution of the targeted error). See documentation on the :py:class:`Propagator <thermolig.error.Propagator>` class for more info.
             :type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=Propagator()
         '''
         State.__init__(self, name, cv_unit=cv_unit, f_unit=f_unit, propagator=propagator)

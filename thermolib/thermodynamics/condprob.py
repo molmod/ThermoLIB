@@ -720,12 +720,12 @@ class ConditionalProbability1D1D(ConditionalProbability):
             errors.append(err)
         self.error = ErrorArray(errors, axis=-1)
 
-    def average(self, error_distribution=MultiGaussianDistribution):
+    def average(self, propagator=Propagator(target_distribution=MultiGaussianDistribution)):
         '''
             Compute the average of Q as function of CV
 
-            :param error_distribution: the model for the error distribution of Q profile
-            :type error_distribution: class from :py:mod:`error <thermolib.error>` module, optional, default= :py:class:`MultiGaussianDistribution <thermolib.error.MultiGaussianDistribution>`
+            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken, or the desired distribution of the targeted error). See documentation on the :py:class:`Propagator <thermolig.error.Propagator>` class for more info.
+            :type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=Propagator(target_distribution=MultiGaussianDistribution)
 
             :returns: Q profile as function of CV
             :rtype: :py:class:`BaseProfile <thermolib.thermodynamics.fep.BaseProfile>`
@@ -745,12 +745,11 @@ class ConditionalProbability1D1D(ConditionalProbability):
             xs = function(self.pconds)
             error = None
         else:
-            propagator = Propagator()
-            error = propagator(function, self.error, target_distribution=error_distribution, samples_are_flattened=True)
+            error = propagator(function, self.error, samples_are_flattened=True)
             xs = error.mean()
         return BaseProfile(self.cvs[0], xs, error=error, cv_output_unit=self.cv_units[0], f_output_unit=self.q_units[0], cv_label=self.cv_labels[0], f_label=self.q_labels[0])
 
-    def transform(self, fep, f_output_unit=None, f_label=None, f_output_class=BaseFreeEnergyProfile, error_distribution=MultiGaussianDistribution):
+    def transform(self, fep, f_output_unit=None, f_label=None, f_output_class=BaseFreeEnergyProfile, propagator=Propagator(target_distribution=MultiGaussianDistribution)):
         '''
             Transform the provided 1D FES to a different 1D FES using the current conditional probability according to the formula. 
 
@@ -768,8 +767,8 @@ class ConditionalProbability1D1D(ConditionalProbability):
             :param f_output_class: the class of the output free energy profile. If you want to use specific features of the :py:class:`SimpleFreeEnergyProfile <thermolib.thermodynamics.fep.SimpleFreeEnergyProfile>` class (such as e.g. automatic detection of reactant, transition state and product state micro/macrostates) in the transformed fep, define this argument as :py:class:`SimpleFreeEnergyProfile <thermolib.thermodynamics.fep.SimpleFreeEnergyProfile>`.
             :type f_output_class: class, optional, default= :py:class:`BaseFreeEnergyProfile <thermolib.thermodynamics.fep.BaseFreeEnergyProfile>`
 
-            :param error_distribution: the model for the error distribution of Q profile
-            :type error_distribution: class from :py:mod:`error <thermolib.error>` module, optional, default= :py:class:`MultiGaussianDistribution <thermolib.error.MultiGaussianDistribution>`
+            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken, or the desired distribution of the targeted error). See documentation on the :py:class:`Propagator <thermolig.error.Propagator>` class for more info.
+            :type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=Propagator(target_distribution=MultiGaussianDistribution)
 
             :raises AssertionError: if the conditional probability has not been finished yetµ
             :raises AssertionError: if the fep argument is not a :py:class:`BaseFreeEnergyProfile <thermolib.thermodynamics.fep.BaseFreeEnergyProfile>`
@@ -793,24 +792,22 @@ class ConditionalProbability1D1D(ConditionalProbability):
             fs_new[ps>0] = -np.log(ps[ps>0])/fep.beta
             return fs_new
         if fep.error is not None:
-            propagator = Propagator(ncycles=fep.error.ncycles)
             if self.error is not None:
-                error = propagator(transform, fep.error, self.error, target_distribution=error_distribution)
+                error = propagator(transform, fep.error, self.error)
             else:
                 transf1 = lambda fs: transform(fs, self.pconds)
-                error = propagator(transf1, fep.error, target_distribution=error_distribution)
+                error = propagator(transf1, fep.error)
             fs = error.mean()
         elif self.error is not None:
-            propagator = Propagator(ncycles=self.error.ncycles)
             transf2 = lambda pconds: transform(fep.fs, pconds)
-            error = propagator(transf2, self.error, target_distribution=error_distribution)
+            error = propagator(transf2, self.error)
             fs = error.mean()
         else:
             fs = transform(fep.fs, self.pconds)
             error = None
         return f_output_class(self.qs[0], fs, fep.T, error=error, cv_output_unit=self.q_units[0], f_output_unit=f_output_unit, cv_label=self.q_labels[0], f_label=f_label)
 
-    def deproject(self, fep, f_output_unit=None, f_label=None, f_output_class=FreeEnergySurface2D, error_distribution=MultiGaussianDistribution):
+    def deproject(self, fep, f_output_unit=None, f_label=None, f_output_class=FreeEnergySurface2D, propagator=Propagator(target_distribution=MultiGaussianDistribution)):
         '''
             Deproject the provided 1D FEP F(q) to a 2D FES F(q,v) using the current conditional probability according to the formula
 
@@ -828,8 +825,8 @@ class ConditionalProbability1D1D(ConditionalProbability):
             :param f_output_class: the class of the output free energy profile, defaults to FreeEnergySurface2D
             :type f_output_class: class, optional
 
-            :param error_distribution: the model for the error distribution of Q profile
-            :type error_distribution: class from :py:mod:`error <thermolib.error>` module, optional, default= :py:class:`MultiGaussianDistribution <thermolib.error.MultiGaussianDistribution>`
+            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken, or the desired distribution of the targeted error). See documentation on the :py:class:`Propagator <thermolig.error.Propagator>` class for more info.
+            :type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=Propagator(target_distribution=MultiGaussianDistribution)
 
             :raises AssertionError: if the conditional probability has not been finished yetµ
             :raises AssertionError: if the fep argument is not a :py:class:`BaseFreeEnergyProfile <thermolib.thermodynamics.fep.BaseFreeEnergyProfile>`
@@ -962,7 +959,7 @@ class ConditionalProbability1D2D(ConditionalProbability):
         for fn in fns:
             self.process_simulation([(fn,q1_reader), (fn,q2_reader)], [(fn,cv_reader)])
 
-    def deproject(self, fep, f_output_unit=None, f_label=None, f_output_class=FreeEnergySurface2D, error_distribution=MultiGaussianDistribution):
+    def deproject(self, fep, f_output_unit=None, f_label=None, f_output_class=FreeEnergySurface2D, propagator=Propagator(target_distribution=MultiGaussianDistribution)):
         '''
             Transform the provided 1D FEP to a 2D FES using the current conditional probability according to the formula
 
@@ -980,8 +977,8 @@ class ConditionalProbability1D2D(ConditionalProbability):
             :param f_output_class: the class of the output free energy profile, defaults to FreeEnergySurface2D
             :type f_output_class: class, optional
 
-            :param error_distribution: the model for the error distribution of Q profile
-            :type error_distribution: class from :py:mod:`error <thermolib.error>` module, optional, default= :py:class:`MultiGaussianDistribution <thermolib.error.MultiGaussianDistribution>`
+            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken, or the desired distribution of the targeted error). See documentation on the :py:class:`Propagator <thermolig.error.Propagator>` class for more info.
+            :type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=Propagator(target_distribution=MultiGaussianDistribution)
 
             :raises AssertionError: if the conditional probability has not been finished yetµ
             :raises AssertionError: if the fep argument is not a :py:class:`BaseFreeEnergyProfile <thermolib.thermodynamics.fep.BaseFreeEnergyProfile>`
@@ -1006,14 +1003,12 @@ class ConditionalProbability1D2D(ConditionalProbability):
         fs = transform(fep.fs, self.pconds)
         error = None
         if fep.error is not None:
-            propagator = Propagator(ncycles=ncycles_default)
             if self.error is not None:
-                error = propagator(transform, fep.error, self.error, target_distribution=error_distribution)
+                error = propagator(transform, fep.error, self.error)
             else:
                 transf1 = lambda fs: transform(fs, self.pconds)
                 error = propagator(transf1, fep.error)
         elif self.error is not None:
-            propagator = Propagator(ncycles=ncycles_default)
             transf2 = lambda pconds: transform(fep.fs, pconds)
-            error = propagator(transf2, self.error, target_distribution=error_distribution)
+            error = propagator(transf2, self.error)
         return f_output_class(self.qs[0], self.qs[1], fs, fep.T, error=error, cv1_output_unit=self.q_units[0], cv2_output_unit=self.q_units[1], f_output_unit=f_output_unit, cv1_label=self.q_labels[0], cv2_label=self.q_labels[1], f_label=f_label)
