@@ -1547,7 +1547,7 @@ class FreeEnergySurface2D(object):
             :type return_class: python class object, optional, default=BaseFreeEnergyProfile
 
             :param error_distribution: the model for the error distribution of the projected free energy profile
-            :type error_distribution: class from :py:mod:`error <thermolib.error>` module, optional, default=:py:class:`MultiGaussianDistribution <thermolib.error.MultiGaussianDistribution>`
+            :type error_distribution: class from :py:mod:`error <thermolib.error>` module, optional, default= :py:class:`MultiGaussianDistribution <thermolib.error.MultiGaussianDistribution>`
 
             :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken)
             :type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=Propagator()
@@ -1601,7 +1601,7 @@ class FreeEnergySurface2D(object):
             :type return_class: python class object, optional, default=BaseFreeEnergyProfile
 
             :param error_distribution: the model for the error distribution of the projected free energy profile
-            :type error_distribution: class from :py:mod:`error <thermolib.error>` module, optional, default=:py:class:`MultiGaussianDistribution <thermolib.error.MultiGaussianDistribution>`
+            :type error_distribution: class from :py:mod:`error <thermolib.error>` module, optional, default= :py:class:`MultiGaussianDistribution <thermolib.error.MultiGaussianDistribution>`
 
             :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken)
             :type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=Propagator()
@@ -1640,7 +1640,7 @@ class FreeEnergySurface2D(object):
             :type return_class: python class object, optional, default=BaseFreeEnergyProfile
 
             :param error_distribution: the model for the error distribution of the projected free energy profile
-            :type error_distribution: class from :py:mod:`error <thermolib.error>` module, optional, default=:py:class:`MultiGaussianDistribution <thermolib.error.MultiGaussianDistribution>`
+            :type error_distribution: class from :py:mod:`error <thermolib.error>` module, optional, default= :py:class:`MultiGaussianDistribution <thermolib.error.MultiGaussianDistribution>`
 
             :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken)
             :type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=Propagator()
@@ -1670,7 +1670,7 @@ class FreeEnergySurface2D(object):
             :type return_class: python class object, optional, default=BaseFreeEnergyProfile
 
             :param error_distribution: the model for the error distribution of the projected free energy profile
-            :type error_distribution: class from :py:mod:`error <thermolib.error>` module, optional, default=:py:class:`MultiGaussianDistribution <thermolib.error.MultiGaussianDistribution>`
+            :type error_distribution: class from :py:mod:`error <thermolib.error>` module, optional, default= :py:class:`MultiGaussianDistribution <thermolib.error.MultiGaussianDistribution>`
 
             :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken)
             :type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=Propagator()
@@ -1705,7 +1705,7 @@ class FreeEnergySurface2D(object):
             :type return_class: python class object, optional, default=BaseFreeEnergyProfile
 
             :param error_distribution: the model for the error distribution of the projected free energy profile
-            :type error_distribution: class from :py:mod:`error <thermolib.error>` module, optional, default=:py:class:`MultiGaussianDistribution <thermolib.error.MultiGaussianDistribution>`
+            :type error_distribution: class from :py:mod:`error <thermolib.error>` module, optional, default= :py:class:`MultiGaussianDistribution <thermolib.error.MultiGaussianDistribution>`
 
             :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken)
             :type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=Propagator()

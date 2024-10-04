@@ -31,6 +31,27 @@ __all__ = [
 
 ### Routines for WHAM in 1D
 def wham1d_hs(int Nsims, int Ngrid, np.ndarray[object] trajectories, np.ndarray[double] bins, np.ndarray[long] Nis):
+    '''
+        Internal WHAM routine to compute the 1D CV histogram of each (biased) simulation from the given CV trajectories.
+
+        :param Nsims: number of simulations that were done and for which the histogram needs to be constructed
+        :type Nsims: int
+
+        :param Ngrid: number of points on the CV grid to be used for the histogram.
+        :type Ngrid: int
+        
+        :param trajectories: array containing the simulation trajectory (i.e. CV samples) for each (biased) simulation
+        :type trajectories: np.ndarray
+
+        :param bins: bin edges for the CV histogram. Should have length one larger than Ngrid
+        :type bins: np.ndarray[double]
+
+        :param Nis: Nis[j] is the number of samples in the trajectory of simulation j
+        :type Nis: np.ndarray[long]
+
+        :returns Hs: 2 dimensional array containing the CV histograms for each of the (biased) simulations. Hs[i,k] represents the histogram value of the k-th bin for the i-th simulation.
+        :rtype: np.ndarray[long, ndim=2]
+    '''
     cdef np.ndarray[long, ndim=2] Hs = np.zeros([Nsims, Ngrid], dtype=int)
     cdef np.ndarray[double] data, edges
     cdef int i, N
@@ -51,17 +72,38 @@ def wham1d_hs(int Nsims, int Ngrid, np.ndarray[object] trajectories, np.ndarray[
 #
 def wham1d_bias(int Nsims, int Ngrid, double beta, list biasses, double delta, int bias_subgrid_num, np.ndarray[double] bin_centers, double threshold=1e-3):
     '''
-        Compute the integrated boltzmann factors of the bias potentials W in each grid interval:
+        Internal WHAM routine to compute the integrated boltzmann factors of the bias potentials W in each grid interval:
 
         .. math:: b_{ik} = \\frac{1}{\\delta}\\int_{Q_k-\\frac{\\delta}{2}}^{Q_k+\\frac{\\delta}{2}} e^{-\\beta W_i(q)}dq
 
-        This routine implements a conservative algorithm which takes into account that for a given simulation i, only a limited number of grid points k will give rise to a non-zero :math:`b_{ik}`. This is achieved by first using the bin-center approximation to the integral by computing the factor :math:`\\exp(-\\beta\\cdot W_i(q_k))` on the CV grid (which is faster as there is no integral involved and which is also already a good approximation for the b array) and only performing the precise integral when the approximation exceeds a threshold.
+        This routine implements a conservative algorithm which takes into account that for a given simulation i, only a limited number of grid points :math:`k` will give rise to a non-zero :math:`b_{ik}`. This is achieved by first using the bin-center approximation to the integral by computing the factor :math:`\\exp(-\\beta\\cdot W_i(Q_k))` on the CV grid (which is faster as there is no integral involved and which is also already a good approximation) and only performing the precise integral when the approximation exceeds the given threshold.
+
+        :param Nsims: the total number of simulations performed
+        :type Nsims: int
+
+        :param Ngrid: number of points on the CV grid to be used for the histogram.
+        :type Ngrid: int
+
+        :param beta: 1/kT in atomic units with T the temperature at which the simulation was performed
+        :type beta: float
+
+        :param biasses: list of bias potentials that were applied for each of the simulations.
+        :type biasses: list of instances of child classes of :py:class:`BiasPotential1D <thermolib.thermodynamics.bias.BiasPotential1D>`
+
+        :param delta: width of CV-interval (:math:`\\delta` in equation above) over which the bias is integrated when the bin-center approximation is not sufficient (see doc above) 
+        :type delta: float
 
         :param bias_subgrid_num: the number of grid points used by the :py:meth:`wham1d_bias <thermolib.ext.wham1d_bias>` routine for the sub-grid to compute the boltzmann-integrated bias factors in each CV bin.
-		:type bias_subgrid_num: int, optional, default=20
+		:type bias_subgrid_num: int
+
+        :param bin_center: array containing the center of each bin in the histogram for application in the bin-center approximation (see doc above)
+        :type bin_center: np.ndarray[double]
 
         :param threshold: see general documentation above
         :type thresholdm: float, optional, default=1e-3
+
+        :returns: array containing the (integrated) bias on the CV-grid for each simulation, i.e. :math:`b_{ik}` array from equation above.
+        :rtype: np.ndarray[double, ndim=2]
     '''
     from thermolib.tools import integrate
     cdef np.ndarray[double, ndim=2] bs = np.zeros([Nsims, Ngrid], dtype=float)
@@ -82,6 +124,37 @@ def wham1d_bias(int Nsims, int Ngrid, double beta, list biasses, double delta, i
 
 #
 def wham1d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=2] Hs, np.ndarray[double, ndim=2] bs, int Nscf=1000, double convergence=1e-6, double overflow_threshold=1e-150, verbose=False):
+    '''
+        Internal WHAM routine to solve the WHAM equations for the unbiased probability distribution
+        
+        .. math::
+
+            \\frac{1}{f_i} &= \\sum_k b_{ik} a_k \\\\
+            a_k &= \\sum_i \\frac{H_{ik}}{\\sum_i N_i f_i b_{ik}}
+        
+        until self consistency is achieved.
+
+        :param Nis: Nis[j] is the number of samples in the trajectory of simulation j
+        :type Nis: np.ndarray[long]
+
+        :param Hs: 2 dimensional array containing the CV histograms for each of the (biased) simulations
+        :type Hs: np.ndarray[long, ndim=2]
+
+        :param bs: array containing the (integrated) bias on the CV-grid for each simulation, i.e. :math:`b_{ik}` array from equation above.
+        :type bs: np.ndarray[double, ndim=2]
+
+        :param Nscf: maximum number of SCF cycles to obtain self-consistency
+        :type Nscf: int, optional, default=1000
+
+        :param convergence: sets criterium determining self-consistency, SCF cycle will stop when the integrated absolute value of the difference between the unbiased probability distribution at the current step and the previous step is smaller then the given convergence parameter.
+        :type convergence: double, optional, default=1e-6
+
+        :param overflow_threshold: numerical threshold to avoid overflow errors when calculating the normalization factors and the denominator of the unbiased probability. This determines which simulations and which grid points to ignore. Decreasing it results in a FEP with a larger maximum free energy (lower unbiased probability). If it is too low, imaginary errors arise, so increase if necessary.
+        :type overflow_threshold: double, optional, default=1e-150
+
+        :returns: the unbiased probability distribution on the same grid as all the histograms in the Hs argument.
+        :rtype: np.ndarray[double]
+    '''
     cdef double integrated_diff, pmax
     cdef np.ndarray[double] as_old, as_new, inverse_fs, delta
     cdef np.ndarray[long] nominator
@@ -99,10 +172,6 @@ def wham1d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=2] Hs, np.ndarray[dou
     for iscf in range(Nscf):
         #compute new normalization factors
         inverse_fs = np.einsum('ik,k->i', bs, as_old)
-        
-        #fs = np.zeros(Nsims)
-        #for i in range(Nsims):
-        #    fs[i] = 1.0/np.dot(bs[i,:],as_old)
 
         # Calculate mask for simulations
         if np.any(inverse_fs<overflow_threshold):
@@ -144,31 +213,56 @@ def wham1d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=2] Hs, np.ndarray[dou
     fs = np.full(Nsims, np.nan)
     fs[sims_mask] = 1.0/np.einsum('ik,k->i', bs[sims_mask], as_new)
 
-
-    """# calculate consistency error
-    delta = np.zeros(Nsims)
-    # delta_i = 1/M sum_k (P_b_ik - f_i b_ik P_k)**2
-    # with P_b the biased probability density calculated from the histograms
-    as_biased_sampled = ((Hs.T)/Hs.sum(axis=-1)).T # normalize per simulation (Nsims,Ngrid)
-
-    # Jensen-Shannon
-    for i in range(Nsims):
-        delta[i] = scipy.spatial.distance.jensenshannon(as_biased_sampled[i,:],np.round(fs[i]*bs[i,:]*as_new,15))**2
-
-    print(delta)"""
-
-    """# MSE
-    for i in range(Nsims):
-        for k in range(Ngrid):
-            delta[i] += (as_biased_sampled[i,k]-fs[i]*bs[i,k]*as_new[k])**2
-        delta[i] /= Ngrid
-    print(delta)"""
-
     return as_new, fs, converged
 
 
 #
 def wham1d_error(int Nsims, int Ngrid, np.ndarray[long] Nis, np.ndarray[double] ps, np.ndarray[double] fs, np.ndarray[double, ndim=2] bs, np.ndarray[double] corrtimes, method='mle_f_cov', p_threshold=0.0, verbosity='off'):
+    '''
+        Internal WHAM routine that allows to compute the error distribution on the unbiased probability distirbution that is estimated using the WHAM equations. The error estimation is based on the interpretation of the WHAM solutio as a Maximum Likelihood Estimater (MLE), which in term allows to estimate the error based on the Fisher information matrix.
+
+        :param Nsims: the total number of simulations performed
+        :type Nsims: int
+
+        :param Ngrid: number of points on the CV grid to be used for the histogram.
+        :type Ngrid: int
+
+        :param Nis: Nis[j] is the number of samples in the trajectory of simulation j
+        :type Nis: np.ndarray[long, shape=(Nsims,)]
+
+        :param ps: the unbiased probability distribution as returned by the :py:meth:`wham1d_scf <thermolib.ext.wham1d_scf>` routine. Can contain nan values at specific grid locations (corresponding to disabled bins)
+        :type ps: np.ndarray[double, shape=(Ngrid,)]
+
+        :param fs: renormalisation factors fs figuring in the WHAM equations. These are computed as intermediate variables in the :py:meth:`wham1d_scf <thermolib.ext.wham1d_scf>` routine. Can contain nan values at specific sim indices (at disabled simulations).
+        :type fs: np.ndarray[double, shape=(Nsims,)]
+
+        :param bs: array containing the (integrated) bias on the CV-grid for each simulation, i.e. :math:`b_{ik}` array from equation above.
+        :type bs: np.ndarray[double, shape=(Nsims,Ngrid)]
+
+        :param corrtimes: array of (integrated) correlation times of the CV, one for each simulation. Such correlation times will be taken into account during the error estimation and hence make it more reliable. If set to None, the CV trajectories will be assumed to contain fully uncorrelated samples (which is not true when using trajectories representing each subsequent step from a molecular dynamics simulation). More information can be found in :ref:`the user guide <seclab_ug_errorestimation>`. This input can be generated using the :py:meth:`decorrelate <thermolib.tools.decorrelate>` routine.
+        :type corrtimes: np.ndarray[double, shape=(Nsims,)]
+
+        :param method: specification of the method on how to perform the estimation of the error distribution. One of following options is available:
+
+				- **mle_p** - Estimating the error directly for the probability of each bin in the histogram. This method does not explicitly impose the positivity of the probability.
+
+				- **mle_p_cov** - Estimate the full covariance matrix for the probability of all bins in the histogram. In other words, appart from the error on the probability/free energy of a bin itself, we now also account for the covariance between the probabilty/free energy of the bins. This method does not explicitly impose the positivity of the probability.
+
+				- **mle_f** - Estimating the error for minus the logarithm of the probability, which is proportional to the free energy (hence f in mle_f). As the probability is expressed as :math:`\propto e^{-f}`, its positivity is explicitly accounted for.
+
+				- **mle_f_cov** - Estimate the full covariance matrix for minus the logarithm of the probability of all bins in the histogram. In other words, appart from the error on the probabilty/free energy of a bin itself (including explicit positivity constraint), we now also account for the covariance between the probability/free energy of the bins.
+        
+        :type method: str or None, optional, default='mle_f_cov'
+
+        :param p_threshold: only relevant when error estimation is enabled (see parameter ``error_estimate``). When ``error_p_threshold`` is set to x, bins in the histogram for which the probability resulting from the trajectory is smaller than x will be disabled for error estimation (i.e. its error will be set to np.nan). It is mainly usefull in the case of 2D histograms,as illustrated in :doc:`one of the tutorial notebooks <tut/advanced_projection>`.
+        :type p_threshold: float, optional, default=0.0
+
+        :param verbosity: specify the level of verbosity of the current routine
+        :type verbosity: str, optional, default='off'
+
+        :returns: the distribution of the error on the unbiased probability distribution
+        :rtype: :py:class:`GaussianDistribution <thermolib.error.GaussianDistribution>` (if method='mle_p'), :py:class:`MultiGaussianDistribution <thermolib.error.MultiGaussianDistribution>` (if method='mle_p_cov'), :py:class:`LogGaussianDistribution <thermolib.error.LogGaussianDistribution>` (if method='mle_f'), :py:class:`MultiLogGaussianDistribution <thermolib.error.MultiLogGaussianDistribution>` (if method='mle_f_cov')
+    '''
     from thermolib.error import GaussianDistribution, LogGaussianDistribution, MultiGaussianDistribution, MultiLogGaussianDistribution
     cdef np.ndarray[double, ndim=2] I, Ii, Imask, sigma
     cdef np.ndarray[double] err, logps
@@ -317,6 +411,33 @@ def wham1d_invert_fisher_to_covariance(np.ndarray[double, ndim=2] F, np.ndarray[
 # 
 ### Routines for WHAM in 2D
 def wham2d_hs(int Nsims, int Ngrid1, int Ngrid2, np.ndarray[object] trajectories, np.ndarray[double] bins1, np.ndarray[double] bins2, np.ndarray[long] Nis):
+    '''
+        Internal WHAM routine to compute the 2D CV histogram of each (biased) simulation from the given CV trajectories.
+
+        :param Nsims: number of simulations that were done and for which the histogram needs to be constructed
+        :type Nsims: int
+
+        :param Ngrid1: number of points on the CV1 grid to be used for the histogram.
+        :type Ngrid1: int
+
+        :param Ngrid2: number of points on the CV2 grid to be used for the histogram.
+        :type Ngrid2: int
+        
+        :param trajectories: array containing the simulation trajectory (i.e. [CV1,CV2] samples) for each (biased) simulation
+        :type trajectories: np.ndarray
+
+        :param bins1: bin edges for CV1 in the histogram. Should have length one larger than Ngrid1
+        :type bins1: np.ndarray[double]
+
+        :param bins2: bin edges for CV2 in the histogram. Should have length one larger than Ngrid2
+        :type bins2: np.ndarray[double]
+
+        :param Nis: Nis[j] is the number of samples in the trajectory of simulation j
+        :type Nis: np.ndarray[long]
+
+        :returns Hs: 3 dimensional array containing the (CV1,CV2) histograms for each of the (biased) simulations. Hs[i,k,l] represents the histogram value of bin (k,l) in (CV1,CV2)-space for the i-th simulation.
+        :rtype: np.ndarray[long, ndim=3]
+    '''
     cdef np.ndarray[long, ndim=3] Hs = np.zeros([Nsims, Ngrid1, Ngrid2], dtype=int)
     cdef np.ndarray[double, ndim=2] data
     cdef np.ndarray[double] edges
@@ -342,6 +463,45 @@ def wham2d_bias(int Nsims, int Ngrid1, int Ngrid2, double beta, list biasses, do
         .. math:: b_ikl = \\frac{1}{\\delta1\\cdot\\delta2}\\int_{Q_{1,k}-\\frac{\\delta1}{2}}^{Q_{1,k}+\\frac{\\delta1}{2}}\\int_{Q_{2,l}-\\frac{\\delta2}{2}}^{Q_{2,l}+\\frac{\\delta2}{2}} e^{-\\beta W_i(q_1,q_2)}dq_1dq_2
 
         This routine implements a conservative algorithm which takes into account that for a given simulation i, only a limited number of grid points (k,l) will give rise to a non-zero b_ikl. This is achieved by first using the bin-center approximation to the integral by computing the factor :math:`\\exp(-\\beta\\cdot bias(Q_{1,k},Q_{2,l}))` on the CV1 and CV2 grid (which is faster as there is no integral involved and which is also already a good approximation for the :math:`b_{ikl}` array) and only performing the precise integral when the approximation exceeds a threshold.
+
+        :param Nsims: the total number of simulations performed
+        :type Nsims: int
+
+        :param Ngrid1: number of points on the CV1 grid to be used for the histogram.
+        :type Ngrid1: int
+
+        :param Ngrid2: number of points on the CV2 grid to be used for the histogram.
+        :type Ngrid2: int
+
+        :param beta: 1/kT in atomic units with T the temperature at which the simulation was performed
+        :type beta: float
+
+        :param biasses: list of bias potentials that were applied for each of the simulations.
+        :type biasses: list of instances of child classes of :py:class:`BiasPotential1D <thermolib.thermodynamics.bias.BiasPotential1D>`
+
+        :param delta1: width of CV1-interval (:math:`\\delta_1` in equation above) over which the bias is integrated when the bin-center approximation is not sufficient (see doc above) 
+        :type delta1: float
+
+        :param delta2: width of CV2-interval (:math:`\\delta_2` in equation above) over which the bias is integrated when the bin-center approximation is not sufficient (see doc above) 
+        :type delta2: float
+
+        :param bias_subgrid_num1: the number of grid points along CV1 used by the :py:meth:`wham2d_bias <thermolib.ext.wham2d_bias>` routine for the sub-grid to compute the boltzmann-integrated bias factors in each (CV1,CV2) bin.
+		:type bias_subgrid_num: int
+
+        :param bias_subgrid_num2: the number of grid points along CV2 used by the :py:meth:`wham2d_bias <thermolib.ext.wham2d_bias>` routine for the sub-grid to compute the boltzmann-integrated bias factors in each (CV1,CV2) bin.
+		:type bias_subgrid_num2: int
+
+        :param bin_centers1: array containing the center (in CV1 direction) of each bin in the histogram for application in the bin-center approximation (see doc above)
+        :type bin_centers1: np.ndarray[double]
+
+        :param bin_centers2: array containing the center (in CV2 direction) of each bin in the histogram for application in the bin-center approximation (see doc above)
+        :type bin_centers2: np.ndarray[double]
+
+        :param threshold: see general documentation above
+        :type thresholdm: float, optional, default=1e-3
+
+        :returns: array containing the (integrated) bias on the CV-grid for each simulation, i.e. :math:`b_{ik}` array from equation above. bs[i,k,l] represents the bias value of bin (k,l) in (CV1,CV2)-space for the i-th simulation.
+        :rtype: np.ndarray[double, ndim=3]
     '''
     cdef np.ndarray[double, ndim=3] bs = np.zeros([Nsims, Ngrid1, Ngrid2], dtype=float)
     cdef np.ndarray[double, ndim=2] CV1, CV2, Ws
@@ -365,25 +525,27 @@ def wham2d_bias(int Nsims, int Ngrid1, int Ngrid2, double beta, list biasses, do
 #
 def wham2d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=3] Hs, np.ndarray[double, ndim=3] bs, np.ndarray[double, ndim=2] pinit, int Nscf=1000, double convergence=1e-6, double overflow_threshold=1e-150, verbose=False):
     '''
-        Internal routine to solve the 2D WHAM equations,
+        Internal WHAM routine to solve the 2D WHAM equations which can, after flattening the 2D unbiased probability histogram :math:`a_{kl}` to a 1D array :math:`a_{k}`, be written as
 
-        * 1/f_i = sum_k b_ik a_k
-        * a_k = sum_i H_ik / sum_i N_i f_i b_ik
+        .. math::
+
+            \\frac{1}{f_i} &= \\sum_k b_{ik} a_k \\\\
+            a_k &= \\sum_i \\frac{H_{ik}}{\\sum_i N_i f_i b_{ik}}
 
         which clearly requires an iterative solution. To avoid floating point errors in the calculation of the first equation, we check whether f_i > overflow_threshold.
-        Similarly, we check whether the denominator of eqution 2 > overflow_threshold. This corresponds to only keeping those simulations with relevant information.
+        Similarly, we check whether the denominator of equation 2 > overflow_threshold. This corresponds to only keeping those simulations with relevant information.
 
         :param Nis: the number of simulation steps in each simulation
-        :type Nis: np.ndarray(Nsims)
+        :type Nis: np.ndarray[double, shape=(Nsims,)]
 
         :param Hs: the histogram counts for each simulation, for each grid point
-        :type Nis: np.ndarray(Nsims, Ngrid1, Ngrid2)
+        :type Nis: np.ndarray[double, shape=(Nsims, Ngrid1, Ngrid2)]
 
         :param bs: the biasses (for each simulation) precomputed on the 2D CV grid
-        :type bs: np.ndarray(Nsims,Ngrid1,Ngrid2)
+        :type bs: np.ndarray[double, shape=(Nsims, Ngrid1, Ngrid2)]
 
         :param pinit: the initial unbiased probability density
-        :type pinit: np.ndarray(Ngrid1, Ngrid2)
+        :type pinit: np.ndarray[double, shape=(Ngrid1, Ngrid2)]
 
         :param Nscf: maximum number of scf cycles, convergence should be reached before Nscf steps
         :type Nscf: int, optional, default=1000
@@ -475,35 +637,41 @@ def wham2d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=3] Hs, np.ndarray[dou
 #
 def wham2d_error(np.ndarray[double, ndim=2] ps, np.ndarray[double] fs, np.ndarray[double, ndim=3] bs, np.ndarray[long] Nis, np.ndarray[double] corrtimes, method='mle_f', p_threshold=0.0, verbosity='off'):
     '''
-        Internal routine to compute the error associated with solving the 2D WHAM equations using the Fisher information coming from the Maximum Likelihood Estimator. The procedure is as follows:
+        Internal WHAM routine that allows to compute the error distribution on the unbiased probability distirbution that is estimated using the WHAM equations. The error estimation is based on the interpretation of the WHAM solutio as a Maximum Likelihood Estimater (MLE), which in term allows to estimate the error based on the Fisher information matrix.
 
-        * construct the extended Fisher information matrix by taking the weighted sum of the Fisher information matrix of each simulation. This is very similar as in the 1D case. However, we first have to flatten the CV1,CV2 2D grid to a 1D CV12 grid. This is achieved with the flatten function (which flattens a 2D index to a 1D index). Deflattening of the CV12 grid to a 2D CV1,CV2 grid is achieved with the deflatten function (which deflattens a 1D index to a 2D index). Using the flatten function, the ps array is flattened and a conventional Fisher matrix can be constructed and inverted. Afterwards the covariance matrix is deflattened using the deflatten function to arrive to a multidimensional matrix giving (co)variances on the 2D probability array.
-        * filter out the zero-rows and columns corresponding to absent histogram counts using the masking procedure
-        * invert the masked extended Fisher matrix and use the square root of its diagonal elements to compute errors
+        :param ps: the unbiased probability density as returned by the :py:meth:`wham2d_scf <thermolib.ext.wham2d_scf>` routine. Can contain nan values at specific grid locations (corresponding to disabled bins)
+        :type ps: np.ndarray[double, shape=(Ngrid1, Ngrid2)]
 
-        :param ps: the final unbiased probability density as computed by solving the WHAM equations.
-        :type ps: np.ndarray(Ngrid1, Ngrid2)
-        :note: contains nan values at specific grid locations
-
-        :param fs: the final normalization factor for the biased probability density of each simulation as computed by solving the WHAM equations
-        :type fs: np.ndarray(Nsim)
-        :note: contains nan values at sim indices
-
+        :param fs: renormalisation factors fs figuring in the WHAM equations. These are computed as intermediate variables in the :py:meth:`wham2d_scf <thermolib.ext.wham2d_scf>` routine. Can contain nan values at specific sim indices (at disabled simulations).
+        :type fs: np.ndarray[double, shape=(Nsims,)]
+         
         :param bs: the biasses (for each simulation) precomputed on the 2D CV grid
-        :type bs: np.ndarray(Nsim,Ngrid1,Ngrid2)
+        :type bs: np.ndarray[double, shape=(Nsim,Ngrid1,Ngrid2)]
 
         :param Nis: the number of simulation steps in each simulation
-        :type Nis: np.ndarray(Nsims)
+        :type Nis: np.ndarray[long, shape=(Nsim,)]
 
-        :param method: Define the method for computing the error:
+        :param corrtimes: array of (integrated) correlation times of the CV, one for each simulation. Such correlation times will be taken into account during the error estimation and hence make it more reliable. If set to None, the CV trajectories will be assumed to contain fully uncorrelated samples (which is not true when using trajectories representing each subsequent step from a molecular dynamics simulation). More information can be found in :ref:`the user guide <seclab_ug_errorestimation>`. This input can be generated using the :py:meth:`decorrelate <thermolib.tools.decorrelate>` routine.
+        :type corrtimes: np.ndarray[double, shape=(Nsims,)]
 
-            * *mle_p*: the error is computed on the probability density directly. This method corresponds to ignoring the positivity constraints of the histogram parameters.
-            * *mle_f*: the error is first computed on minus of the logarithm of the probability density (corresponding to the scaled free energy) and afterwards propagated to the probability density. This method corresponds to taking the positivity constraints of the histogram parameters explicitly into account.
+        :param method: specification of the method on how to perform the estimation of the error distribution. One of following options is available:
 
-        :type method: str, optional, default='mle_f'
+				- **mle_p** - Estimating the error directly for the probability of each bin in the histogram. This method does not explicitly impose the positivity of the probability.
 
-        :return: Error distribution estimated according to method
-        :rtype: Distribution, np.ndarray
+				- **mle_p_cov** - Estimate the full covariance matrix for the probability of all bins in the histogram. In other words, appart from the error on the probability/free energy of a bin itself, we now also account for the covariance between the probabilty/free energy of the bins. This method does not explicitly impose the positivity of the probability.
+
+				- **mle_f** - Estimating the error for minus the logarithm of the probability, which is proportional to the free energy (hence f in mle_f). As the probability is expressed as :math:`\propto e^{-f}`, its positivity is explicitly accounted for.
+
+				- **mle_f_cov** - Estimate the full covariance matrix for minus the logarithm of the probability of all bins in the histogram. In other words, appart from the error on the probabilty/free energy of a bin itself (including explicit positivity constraint), we now also account for the covariance between the probability/free energy of the bins.
+        
+        :param p_threshold: only relevant when error estimation is enabled (see parameter ``error_estimate``). When ``error_p_threshold`` is set to x, bins in the histogram for which the probability resulting from the trajectory is smaller than x will be disabled for error estimation (i.e. its error will be set to np.nan). It is mainly usefull in the case of 2D histograms,as illustrated in :doc:`one of the tutorial notebooks <tut/advanced_projection>`.
+        :type p_threshold: float, optional, default=0.0
+
+        :param verbosity: specify the level of verbosity of the current routine
+        :type verbosity: str, optional, default='off'
+
+        :returns: the distribution of the error on the unbiased probability distribution
+        :rtype: :py:class:`GaussianDistribution <thermolib.error.GaussianDistribution>` (if method='mle_p'), :py:class:`MultiGaussianDistribution <thermolib.error.MultiGaussianDistribution>` (if method='mle_p_cov'), :py:class:`LogGaussianDistribution <thermolib.error.LogGaussianDistribution>` (if method='mle_f'), :py:class:`MultiLogGaussianDistribution <thermolib.error.MultiLogGaussianDistribution>` (if method='mle_f_cov')
     '''
     from thermolib.error import GaussianDistribution, LogGaussianDistribution, MultiGaussianDistribution, MultiLogGaussianDistribution
     from thermolib.flatten import Flattener

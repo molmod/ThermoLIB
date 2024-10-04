@@ -33,4 +33,4 @@ ThermoLIB is a library developed at the `Center for Molecular Modeling <https://
 
 .. admonition:: Support
 
-   For support and help you cannot extract from the guides and tuturials below, please contact us at `louis.vanduyfhuys@ugent.be <louis.vanduyfhuys@ugent.be>`_. It might be useful to check if the routine you are having troubles with has a verbose/verbosity keyword argument that you can use to give more logging output on what ThermoLIB is doing.
+   For support and help you cannot extract from the guides and tuturials below, please contact us at `louis.vanduyfhuys@ugent.be <louis.vanduyfhuys@ugent.be>`_. It might be useful to check if the routine/class you are having troubles with has a verbose/verbosity keyword argument that you can use to give more logging output on what ThermoLIB is doing.

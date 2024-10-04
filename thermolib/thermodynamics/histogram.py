@@ -948,7 +948,7 @@ class Histogram2D(object):
 			:type index: int (1 or 2)
 			
 			:param target_distribution: model for the error distribution of the resulting profile.
-			:type target_distribution: child instance of :py:class:`Distribution <thermolib.error.Distribution>`, optional, default=:py:class:`MultiGaussianDistribution <thermolib.error.MultiGaussianDistribution>`
+			:type target_distribution: child instance of :py:class:`Distribution <thermolib.error.Distribution>`, optional, default= :py:class:`MultiGaussianDistribution <thermolib.error.MultiGaussianDistribution>`
 			
 			:param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken)
 			:type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=Propagator()
