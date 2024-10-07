@@ -579,7 +579,7 @@ def corrtime_from_acf(data: np.ndarray, nblocks=None, norm: bool=True, plot: boo
         - Compute the autocorrelation function (possibly after blocking data for noise suppression) using the routine :py:meth:`_acf <thermolib.tools._acf>`.
         - Optionally extract the upper envelope of the autocorrelation function to eliminate short time oscillations (when n_nested_envelopes>1).
         - Fit a single decaying exponential function of the form :math:`\\exp(-\\frac{t}{\\tau_exp})` to the acf (or its upper envelope) to extract the exponential correlation time.
-        - Translate the exponential correlation time to the integrated correlation time as: :math:`\\tau_\\text{int} = 2\\tau_\\text{exp} - 1`.
+        - Translate the exponential correlation time to the integrated correlation time as: :math:`\\tau_\\text{int} = 2\\tau_\\text{exp}`.
 
         :param data: 1D array representing the time series for which the correlation time needs to be computed
         :type data: np.ndarray
@@ -630,7 +630,7 @@ def corrtime_from_acf(data: np.ndarray, nblocks=None, norm: bool=True, plot: boo
     pars, pcovs = curve_fit(function, upper_envelope_indices, upper_envelope_values, **curve_fit_kwargs)
     def fitted_exp(t):
         return function(t,pars[0])
-    corrtime = 2*pars[0]-1 #pars[0] is the exp correlation time, corrtime is the integrated correlation time
+    corrtime = 2*pars[0] #pars[0] is the exp correlation time, corrtime is the integrated correlation time
     #Plot
     if plot or fn_plot is not None:
         #print('Fitted following function to ACF upper envoloppe: f(t)= shift + exp(-t/tau) with shift = %.3e and tau = %.3e' %(pars[1],pars[0]))
@@ -641,7 +641,7 @@ def corrtime_from_acf(data: np.ndarray, nblocks=None, norm: bool=True, plot: boo
         pp.plot(acf, color='k',linewidth=1, label='acf')
         if n_nested_envelopes>0:
             pp.plot(upper_envelope_indices, upper_envelope_values, color='r',linewidth=2, label='acf - envelope')
-        pp.plot(upper_envelope_indices, fitted_exp(upper_envelope_indices), color='r',linestyle='--',linewidth=2, label=r"Fit exp ($2\tau-1$=%.1f)" %corrtime)
+        pp.plot(upper_envelope_indices, fitted_exp(upper_envelope_indices), color='r',linestyle='--',linewidth=2, label=r"Fit exp ($2\tau$=%.1f)" %corrtime)
         pp.title('Autocorrelation function', fontsize=14)
         pp.xlabel(r"Time delay t")
         pp.ylabel(r"acf(t)")
