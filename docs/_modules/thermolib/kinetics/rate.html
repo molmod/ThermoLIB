@@ -590,8 +590,8 @@
 <span class="sd">            :param fep: free energy profile to extract required thermodynamic free energy information</span>
 <span class="sd">            :type fep: :py:class:`SimpleFreeEnergyProfile &lt;thermolib.thermodynamics.fep.SimpleFreeEnergyProfile&gt;`</span>
 
-<span class="sd">            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken)</span>
-<span class="sd">            :type propagator: instance of :py:class:`Propagator &lt;thermolib.error.Propagator&gt;`, optional, default=Propagator()</span>
+<span class="sd">            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken, or the desired distribution of the targeted error). See documentation on the :py:class:`Propagator &lt;thermolig.error.Propagator&gt;` class for more info.</span>
+<span class="sd">            :type propagator: instance of :py:class:`Propagator &lt;thermolib.error.Propagator&gt;`, optional, default=Propagator(target_distribution=None)</span>
 
 <span class="sd">            :param verbose: If True, turns on verbosity</span>
 <span class="sd">            :type verbose: bool, optional, default=False</span>
