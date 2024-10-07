@@ -742,29 +742,29 @@ def decorrelate(trajectories: list, method: str='acf', decorrelate_only=None, pl
             pp.savefig(fn_plot)
         else:
             pp.show()
-    #decorrelate trajectory by averaging over a number of samples equal to the correlation time
-    trajectories_decor = []
-    for i, traj in enumerate(trajectories):
-        bsize = int(np.ceil(corrtimes[i]))
-        if bsize<=1:
-            bsize = 1
-            if verbose:
-                print('  estimated correlation time was smaller than 1, set blocksize to 1')
-        nblocks = len(traj)//bsize
-        if len(traj.shape)==1:
-            new_traj = np.zeros(nblocks)
-            for iblock in range(nblocks):
-                new_traj[iblock] = traj[iblock*bsize:(iblock+1)*bsize].mean()
-            trajectories_decor.append(new_traj)
-        else:
-            new_traj = np.zeros([nblocks,traj.shape[1]])
-            for index in range(traj.shape[1]):
-                for iblock in range(nblocks):
-                    new_traj[iblock,index] = traj[iblock*bsize:(iblock+1)*bsize,index].mean()
-            trajectories_decor.append(new_traj)
-        if len(new_traj)==0:
-            print('WARNING: trajectory of simulation nr %i has less then 1 uncorrelated simulation step!' %i)
     if return_decorrelated_trajectories:
+        #decorrelate trajectory by averaging over a number of samples equal to the correlation time
+        trajectories_decor = []
+        for i, traj in enumerate(trajectories):
+            bsize = int(np.ceil(corrtimes[i]))
+            if bsize<=1:
+                bsize = 1
+                if verbose:
+                    print('  estimated correlation time was smaller than 1, set blocksize to 1')
+            nblocks = len(traj)//bsize
+            if len(traj.shape)==1:
+                new_traj = np.zeros(nblocks)
+                for iblock in range(nblocks):
+                    new_traj[iblock] = traj[iblock*bsize:(iblock+1)*bsize].mean()
+                trajectories_decor.append(new_traj)
+            else:
+                new_traj = np.zeros([nblocks,traj.shape[1]])
+                for index in range(traj.shape[1]):
+                    for iblock in range(nblocks):
+                        new_traj[iblock,index] = traj[iblock*bsize:(iblock+1)*bsize,index].mean()
+                trajectories_decor.append(new_traj)
+            if len(new_traj)==0:
+                print('WARNING: trajectory of simulation nr %i has less then 1 uncorrelated simulation step!' %i)
         return corrtimes, trajectories_decor
     else:
         return corrtimes
