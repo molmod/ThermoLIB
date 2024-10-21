@@ -191,6 +191,13 @@
 <li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_transformations.html#FEP-and-rate-in-terms-of-alternative-CV">FEP and rate in terms of alternative CV</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../../tut/advanced_transformations_2D.html">Tutorial 8 - Transformation of 2D free energy surfaces</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_transformations_2D.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_transformations_2D.html#Construction-of-original-2D-FES">Construction of original 2D FES</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_transformations_2D.html#Transformation-to-new-CVs">Transformation to new CVs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_transformations_2D.html#Projection-comparison">Projection comparison</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../rg.html">Reference Guide</a><ul>
@@ -354,6 +361,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../rg_tools.html#thermolib.tools.h5_read_dataset"><code class="docutils literal notranslate"><span class="pre">h5_read_dataset()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../rg_tools.html#thermolib.tools.integrate"><code class="docutils literal notranslate"><span class="pre">integrate()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../rg_tools.html#thermolib.tools.integrate2d"><code class="docutils literal notranslate"><span class="pre">integrate2d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../rg_tools.html#thermolib.tools.interpolate_surface_2d"><code class="docutils literal notranslate"><span class="pre">interpolate_surface_2d()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../rg_tools.html#thermolib.tools.invert_fisher_to_covariance"><code class="docutils literal notranslate"><span class="pre">invert_fisher_to_covariance()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../rg_tools.html#thermolib.tools.multivariate_normal"><code class="docutils literal notranslate"><span class="pre">multivariate_normal()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../rg_tools.html#thermolib.tools.read_wham_input"><code class="docutils literal notranslate"><span class="pre">read_wham_input()</span></code></a></li>
@@ -1036,7 +1044,7 @@
     <span class="k">def</span> <span class="nf">shift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
-    <span class="k">def</span> <span class="nf">from_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">samples</span><span class="p">,</span> <span class="n">flattener</span><span class="p">,</span> <span class="n">flattened</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">from_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">samples</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="n">DummyFlattener</span><span class="p">(),</span> <span class="n">flattened</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 
@@ -1057,7 +1065,6 @@
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">means</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> <span class="s1">&#39;means should be array, detected </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">means</span><span class="p">)))</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">covariance</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> <span class="s1">&#39;covariance matrix should be array, detected </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">covariance</span><span class="p">)))</span>
-        <span class="n">shape</span> <span class="o">=</span> <span class="n">means</span><span class="o">.</span><span class="n">shape</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">means</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;means should be 1D array, but detected array shape </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">means</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">covariance</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">==</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;covariance matrix should be 2D array, but detected array shape </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">covariance</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
         <span class="k">assert</span> <span class="n">covariance</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="n">means</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;Inconsistent shapes, means has shape </span><span class="si">%s</span><span class="s1"> while covariance has shape </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">means</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span><span class="nb">str</span><span class="p">(</span><span class="n">covariance</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
@@ -1065,7 +1072,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">means</span> <span class="o">=</span> <span class="n">means</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">covariance</span> <span class="o">=</span> <span class="n">covariance</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">covariance</span><span class="o">.</span><span class="n">diagonal</span><span class="p">())</span>
-        <span class="n">MultiDistribution</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="n">flattener</span><span class="p">)</span>
+        <span class="n">MultiDistribution</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">means</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="n">flattener</span><span class="p">)</span>
 
 <div class="viewcode-block" id="MultiGaussianDistribution.copy"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiGaussianDistribution.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
@@ -1177,7 +1184,7 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;In MultiGaussianDistribution.set_ref either index or value keyword argument should be defined&#39;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MultiGaussianDistribution.from_samples"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiGaussianDistribution.from_samples">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_samples</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">samples</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="n">DummyFlattener</span><span class="p">(),</span> <span class="n">flattened</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">from_samples</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">samples</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="n">DummyFlattener</span><span class="p">(),</span> <span class="n">flattened</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; </span>
 <span class="sd">            Defines a MultiGaussianDistribution based on a population defined by the given samples. The routine will derive the mean and std from the population and use that to define the Gaussian Distribution.</span>
 
@@ -1410,7 +1417,7 @@
             <span class="k">return</span> <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span></div>
     
 <div class="viewcode-block" id="MultiLogGaussianDistribution.from_samples"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiLogGaussianDistribution.from_samples">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_samples</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">samples</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="n">DummyFlattener</span><span class="p">(),</span> <span class="n">flattened</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">from_samples</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">samples</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="n">DummyFlattener</span><span class="p">(),</span> <span class="n">flattened</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; </span>
 <span class="sd">            Defines a MultiLogGaussianDistribution based on a population defined by the given samples. The routine will derive the lmean and lcovariance from the population and use that to define the MultiLogGaussian Distribution.</span>
 
@@ -1631,12 +1638,18 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">samples_are_flattened</span> <span class="o">=</span> <span class="n">samples_are_flattened</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
     
-<div class="viewcode-block" id="Propagator.reset"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.Propagator.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Propagator.reset"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.Propagator.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_distribution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">samples_are_flattened</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">            Reinitialize for future reuse.</span>
+<span class="sd">            Reinitialize argsamples  for future reuse. For more info on arguments target_distribution, flattener or samples_are_flattened, see documentation in the initializer. Only if such an argument is explicitly specified (i.e. is not None), will it be overwritten with the given value.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">argsamples</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">funsamples</span> <span class="o">=</span> <span class="kc">None</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">funsamples</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">target_distribution</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">target_distribution</span> <span class="o">=</span> <span class="n">target_distribution</span>
+        <span class="k">if</span> <span class="n">flattener</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">flattener</span> <span class="o">=</span> <span class="n">flattener</span>
+        <span class="k">if</span> <span class="n">samples_are_flattened</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">samples_are_flattened</span> <span class="o">=</span> <span class="n">samples_are_flattened</span></div>
 
 <div class="viewcode-block" id="Propagator.gen_args_samples"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.Propagator.gen_args_samples">[docs]</a>    <span class="k">def</span> <span class="nf">gen_args_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
@@ -1671,7 +1684,7 @@
                 <span class="k">for</span> <span class="n">iarg</span><span class="p">,</span> <span class="n">arg</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
                     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  ..... argument </span><span class="si">%i</span><span class="s1"> has shape:&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">iarg</span><span class="p">),</span> <span class="n">arg</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">funsamples</span><span class="p">[</span><span class="n">icycle</span><span class="p">]</span> <span class="o">=</span> <span class="n">fun</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
-        <span class="c1">#return target distribution based on samples and flattener if required</span>
+        <span class="c1">#Some post process book keeping and logging</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Error propagation - generating distribution from samples ...&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">funsamples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dstack</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">funsamples</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">funsamples</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
@@ -1694,24 +1707,15 @@
             <span class="n">distr</span> <span class="o">=</span> <span class="n">target_distribution</span><span class="o">.</span><span class="n">from_samples</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">funsamples</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">distr</span></div>
     
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fun</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">target_distribution</span><span class="o">=</span><span class="n">GaussianDistribution</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="n">DummyFlattener</span><span class="p">(),</span> <span class="n">samples_are_flattened</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fun</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">target_distribution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">samples_are_flattened</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">            Default calling sequence of the various Propagator routines</span>
+<span class="sd">            Default calling sequence of the various Propagator routines.  For more info on arguments target_distribution, flattener or samples_are_flattened, see documentation of :py:meth:`Propagator.__init__ &lt;thermolib.error.Propoagator.__init__&gt;`. Only if such an argument is explicitly specified (i.e. is not None), will it be overwritten with the given value.</span>
 
 <span class="sd">            :param fun: function f for which the error needs to be computed</span>
 <span class="sd">            :type fun: callable</span>
 
 <span class="sd">            :param args: list of arguments of the function for which the error needs to be computed</span>
 <span class="sd">            :type args: list of distributions</span>
-
-<span class="sd">            :param target_distribution: the type of distribution to be used for the error of the function value</span>
-<span class="sd">            :type target_distribution: child class of :py:class:`Distribution &lt;thermolib.error.Distribution&gt;`, optional, default=GaussianDistribution</span>
-
-<span class="sd">            :param flattener: Flattener to be parsed to the error distribution of the function value</span>
-<span class="sd">            :type flattener: instance of child class of :py:class:`Flattener &lt;thermolib.flattener.Flattener&gt;`, optional, default=DummyFlattener()</span>
-
-<span class="sd">            :param samples_are_flattened: whether or not the samples generated by ``gen_args_samples`` (and hence the ``sample`` routine of the arguments) are flattened</span>
-<span class="sd">            :type samples_are_flattened: bool, optional, default=False</span>
 
 <span class="sd">            :return: Distribution of the function value</span>
 <span class="sd">            :rtype: determined by parameter target_distribution</span>

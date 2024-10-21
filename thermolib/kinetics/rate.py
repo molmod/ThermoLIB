@@ -326,7 +326,7 @@ class RateFactorEquilibrium(BaseRateFactor):
             print('Estimating rate factor from trajectory %s for TS=[%.3f,%.3f] %s using %s momentum integration' %(fn_xyz, self.CV_TS_lims[0]/parse_unit(self.CV_unit), self.CV_TS_lims[1]/parse_unit(self.CV_unit), self.CV_unit, momenta))
         for i, (title, coords) in enumerate(xyzreader):
             #framenumber = int(title.split()[2].rstrip(','))
-            self._compute_contribution(coords, momenta=momenta, Nmomenta=Nmomenta, verbose=verbose)
+            self._compute_contribution(coords, momenta=momenta, Nmomenta=Nmomenta)
         
         if finish:
             if verbose:
@@ -378,7 +378,7 @@ class RateFactorEquilibrium(BaseRateFactor):
             print('Estimating rate factor from trajectory %s for TS=[%.3f,%.3f] %s using %s momentum integration' %(fn_h5, self.CV_TS_lims[0]/parse_unit(self.CV_unit), self.CV_TS_lims[1]/parse_unit(self.CV_unit), self.CV_unit, momenta))
         
         for coords in h5_read_dataset(fn_h5, '/trajectory/pos/'):
-            self._compute_contribution(coords, momenta=momenta, Nmomenta=Nmomenta, verbose=verbose)
+            self._compute_contribution(coords, momenta=momenta, Nmomenta=Nmomenta)
         
         if finish:
             if verbose:

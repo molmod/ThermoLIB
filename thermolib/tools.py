@@ -28,7 +28,7 @@ import time
 
 __all__ = [
     'format_scientific', 'h5_read_dataset',
-    'integrate', 'integrate2d', 'rolling_average',
+    'integrate', 'integrate2d', 'interpolate_surface_2d', 'recollect_surface_2d', 'rolling_average',
     'read_wham_input', 'extract_polynomial_bias_info',
     'blav', 'corrtime_from_acf', 'decorrelate', 'multivariate_normal',
     'invert_fisher_to_covariance', 'fisher_matrix_mle_probdens',
@@ -77,7 +77,7 @@ def h5_read_dataset(fn, dset):
         data = np.array(f[dset])
     return data
 
-#Routines related to integration
+#Routines related to integration, interpolation and recollection
 
 def integrate(xs, ys, yerrs=None):
     '''
@@ -178,6 +178,193 @@ def rolling_average(ys, width, yerrs=None):
         return new_ys, new_yerrs
     else:
         return new_ys
+
+def interpolate_between_points_2D(datapoints, evalpoint, method='SVDLinear'):
+    '''
+        Routine to perform a 2D interpolation to estimate the z-value at the given evalpoint :math:`(x,y)` based on the given datapoints :math:`[(x_0,y_0,z_0),(x_1,y_1,z_1),...]`. Currently only one method of interpolation is supported: ``SVDLinear``, which is described in detail below:
+
+        **SVDLinear**
+
+        Solve the set of equations 
+        
+        .. math:
+        
+            z_0 &= a_0*x_0 + a_1*y_0 + a_2 \\\\
+            z_1 &= a_0*x_1 + a_1*y_1 + a_2 \\\\
+            z_2 &= a_0*x_2 + a_1*y_2 + a_2 \\\\
+            \\ldots
+        
+        Herein, :math:`(x_i,y_i,z_i)` are the datapoints given in the input arguments. In matrix notation this becomes:
+
+        .. math:
+
+            \\boldsymbol Z = \\boldsymbol X \\cdot \\boldsymbol A
+        
+        with:
+        
+        .. math:
+
+            Z &= \\left(\\begin{array}{c}
+                z_0 \\\\
+                z_1 \\\\
+                z_2 \\\\
+                \\vdots
+            \\end{array}\\right) \\\\
+            X &= \\left(\\begin{array}{ccc}
+                x_0 & y_0 & 1 \\\\
+                x_1 & y_1 & 1 \\\\
+                x_2 & y_2 & 1 \\\\
+                \\vdots & \\vdots & \\vdtos \\\\
+            \\end{array}\\right)\\\\
+            A &= \\left(\\begin{array}{c}
+                a_0 \\\\
+                a_1 \\\\
+                a_2 \\\\
+            \\end{array}\\right)
+
+        The fitting is performed in a Least-Squares way using Singular Value Decomposition using the numpy.linalg.lstsq routine.
+
+        :param datapoints: array containing the data points in the form [(x0,y0,z0),(x1,y1,z1),...]. If method is QuasiLinear, there should be 4 points (i.e. n=4).
+        :type datapoints: np.ndarray[shape=(n,3)]
+
+        :param evalpoint: (x,y) value of the point at which we want to interpolate the z-value
+        :type evalpoint: np.ndarray[shape=(2,)]
+
+        :param method: Specify which method to use for interpolation. Should be either 'QuasiLinear' or 'SVDLinear'. See documentation above for more details.
+        :type method: str, optional, default='SVDLinear'
+    '''
+    if method.lower()=='quasilinear':
+        #construct the matrixed D, X and Z
+        #D = np.diag([1,1,1,0,0,0]) #not really required as it is easily encoded in F directly below
+        X = np.ones([4,6], dtype=float)
+        X[:,0] = datapoints[:,0]**2
+        X[:,1] = datapoints[:,0]*datapoints[:,0]
+        X[:,2] = datapoints[:,1]**2
+        X[:,3] = datapoints[:,0]
+        X[:,4] = datapoints[:,1]
+        Z = datapoints[:,2]
+        #construct block matrices E and F
+        E = np.diag([1.0,1.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0])
+        #E[:6,:6] = D #encoded directly in expression above
+        E[:6,6:] = X.T
+        E[6:,:6] = X
+        F = np.zeros(10, dtype=float)
+        F[6:] = Z
+        #solve E*P=F for P
+        assert abs(np.linalg.det(E))>1e-12, 'Could not interpolate, determinant of matrix E (=%.3e) is to small!' %(np.linalg.det(E))
+        P = np.linalg.solve(E,F)
+        #check if solution satifies the datapoints
+        dev = Z-np.dot(X, P[:6])
+        for i in range(4):
+            assert abs(dev[i])<1e-12, 'Obtained solution did not satisfy datapoint %i: zi-f(xi,yi)=%.3e' %(i,dev[i])
+        #define function to compute z value of interpolation at given evalpoint
+        def interpol(x,y):
+            return P[0]*x**2 + P[1]*x*y + P[2]*y**2 + P[3]*x + P[4]*y + P[5]
+    elif method.lower()=='svdlinear':
+        Z = datapoints[:,2]
+        X = np.ones([len(datapoints),3], dtype=float)
+        X[:,0:2] = datapoints[:,0:2]
+        A, res, rank, svals = np.linalg.lstsq(X,Z, rcond=1e-6)
+        #define function to compute z value of interpolation at given evalpoint
+        def interpol(x,y):
+            return A[0]*x+A[1]*y+A[2]
+    else:
+        raise ValueError("Interpolation method %s not supported, should be either 'QuasiLinear' or 'SVDLinear'." %method)
+    return interpol(evalpoint[0],evalpoint[1])
+
+def interpolate_surface_2d(cv1s, cv2s, fs, interpolation_depth=3, verbose=False):
+    '''
+        Routine to perform interpolation of F(CV1,CV2) defined by cv1s,cv2,fs grid. For all grid points where fs is np.nan, do interpolation using its right/left/up/down neighbors that are not np.nan. This routine will detect which grid points have fs=np.nan, search for neighbours valid for interpolation, collect there f value and parse to the :py:meth:`interpolate_between_points_2D <thermolib.tools.interpolate_between_points_2D>`` routine to do the actual interpolation.
+
+        :param interpolation_depth: when interpolating at a certain bin from the neighbouring bins, go at max a number of neighbours far equal to interpolation_depth in each direction to try and find free energy data that is not np.nan
+        :type interpolation_depth: int, optional, default=3
+    '''
+    #some init
+    fs_new = fs.copy()
+    interpolated = []
+    not_found = []
+    #find np.nans in fs and compute interpolated values
+    for (k,l), f in np.ndenumerate(fs):
+        if np.isnan(f):
+            left = k
+            while np.isnan(fs[left,l]):
+                left -= 1
+                if left<max(0,k-interpolation_depth):
+                    left = None
+                    break
+            right = k
+            while np.isnan(fs[right,l]):
+                right += 1
+                if min(fs.shape[0]-1,k+interpolation_depth)<right:
+                    right = None
+                    break
+            down = l
+            while np.isnan(fs[k,down]):
+                down -= 1
+                if down<max(0,l-interpolation_depth):
+                    down = None
+                    break
+            up = l
+            while np.isnan(fs[k,up]):
+                up += 1
+                if min(fs.shape[1]-1,l+interpolation_depth)<up:
+                    up = None
+                    break
+
+            if not (left is None or right is None or up is None or down is None):
+                datapoints = np.array([
+                    [cv1s[left ], cv2s[l   ], fs[left ,l   ]], #left point
+                    [cv1s[right], cv2s[l   ], fs[right,l   ]], #right point
+                    [cv1s[k    ], cv2s[down], fs[k    ,down]], #down point
+                    [cv1s[k    ], cv2s[  up], fs[k    ,  up]], #up point
+                ])
+                evalpoint = np.array([cv1s[k], cv2s[l]])
+                f_int = interpolate_between_points_2D(datapoints, evalpoint)
+                interpolated.append([k, l, f_int])
+            else:
+                if verbose:
+                    print('WARNING: could not interpolate for (Q1[%i],Q2[%i]) as no left/right/up/down bound was found for interpolation' %(k,l))
+                not_found.append((k,l))
+    #set interpolated values in fs_new (needs to be done afterwards to avoid interpolated values affecting the interpolation of the next bins)
+    for k, l, f_int in interpolated:
+        fs_new[k,l] = f_int
+    return fs_new
+
+def recollect_surface_2d(cv1s_old, cv2s_old, fs_old, q1s_new, q2s_new):
+    CV1s, CV2s = np.meshgrid(cv1s_old, cv2s_old, indexing='ij')
+    fs_new = np.zeros([len(q1s_new),len(q2s_new)])*np.nan
+    for k in range(len(q1s_new)-1):
+        if k==0:
+            lower1 = -np.inf
+            upper1 = 0.5*(q1s_new[0]+q1s_new[1])
+        elif k==(len(q1s_new)-1):
+            lower1 = 0.5*(q1s_new[-2]+q1s_new[-1])
+            upper1 = np.inf
+        else:
+            lower1 = 0.5*(q1s_new[k-1]+q1s_new[k  ])
+            upper1 = 0.5*(q1s_new[k  ]+q1s_new[k+1])
+        
+        for l in range(len(q2s_new)-1):
+            if l==0:
+                lower2 = -np.inf
+                upper2 = 0.5*(q2s_new[0]+q2s_new[1])
+            elif l==(len(q2s_new)-1):
+                lower2 = 0.5*(q2s_new[-2]+q2s_new[-1])
+                upper2 = np.inf
+            else:
+                lower2 = 0.5*(q2s_new[l-1]+q2s_new[l  ])
+                upper2 = 0.5*(q2s_new[l  ]+q2s_new[l+1])
+
+            Is, Js = np.where((lower1<=CV1s)*(CV1s<upper1)*(lower2<=CV2s)*(CV2s<upper2))
+            num, sum = 0, 0
+            for i,j in zip(Is, Js):
+                if not np.isnan(fs_old[i,j]):
+                    sum += fs_old[i,j]
+                    num += 1
+            if num>0:
+                fs_new[k,l] = sum/num
+    return fs_new
+
 
 #Routines for reading WHAM input
 

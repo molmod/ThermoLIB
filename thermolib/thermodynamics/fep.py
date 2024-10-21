@@ -18,7 +18,7 @@ from molmod.constants import *
 import numpy as np
 np.seterr(divide='ignore', invalid='ignore')
 
-from thermolib.tools import integrate2d, format_scientific
+from thermolib.tools import integrate2d, format_scientific, interpolate_surface_2d, recollect_surface_2d
 from thermolib.thermodynamics.state import *
 from thermolib.error import *
 from thermolib.flatten import DummyFlattener, Flattener
@@ -549,15 +549,18 @@ class BaseFreeEnergyProfile(BaseProfile):
         '''
         raise NotImplementedError('Cannot process states of a BaseFreeEnergyProfile. First convert to a SimpleFreeEnergyProfile.')
 
-    def recollect(self, new_cvs, fn_plot=None, return_new_fes=False):
+    def recollect(self, qs_new, interpolate=False, plot=False, return_new_fes=False, verbose=False):
         '''
             Redefine the CV array to the new given array. For each interval of new CV values, collect all old free energy values for which the corresponding CV value falls in this new interval and average out. As such, this routine can be used to filter out noise on a given free energy profile by means of averaging.
 
-            :param new_cvs:  Array of new CV values
-            :type new_cvs: np.ndarray
+            :param qs_new:  Array of new CV values
+            :type qs_new: np.ndarray
             
-            :param fn_plot: File name for comparison plot of old and new profile. If None, no such plot will be made
-            :type fn_plot: str, optional, default=None
+            :param interpolate: if set to True, the free energy of bins on the new grid in which not a single old grid point ends up will be interpolated from the neighboring bins
+            :type interpolate: bool, optional, default=False
+
+            :param plot: If True, make a plot illustrating the recollection. It will show (1) the original FEP on the original CV grid, i.e. (CV[i],F[i]) in black crosses, as well as (2) the (possibly interpolated) recollection of this FEP on a newly defined Q-grid, i.e. use the specified Q-grid or define one automatically and average/interpolate the free energy in the new bins based on the (CV[i],F[i]) data, in a blue line and finally (3) the new Q-grid points for which no free energy was found (because no transformed data ended up in it and it could not be interpolated from neighbors) will be indicated as gray dashed verticle lines.
+            :type plot: bool, optional, default=False
             
             :param return_new_fes: If set to False, the recollected data will be written to the current instance (overwritting the original data). If set to True, a new instance will be initialized with the recollected data and returned.
             :type return_new_fes: bool, optional, default=False
@@ -565,56 +568,85 @@ class BaseFreeEnergyProfile(BaseProfile):
             :return: Returns an instance of the current class if the keyword argument `return_new_fes` is set to True. Otherwise, None is returned.
             :rtype: None or instance of same class as self
         '''
-        assert new_cvs[0]<=self.cvs[0], 'First value of new cvs should be lower or equal to first value of original cvs, otherwise data will be lost. If you really want to delete data, use crop first.'
-        assert self.cvs[-1]<=new_cvs[-1], 'Last value of new cvs should be greater or equal to last value of original cvs, otherwise data will be lost. If you really want to delete data, use crop first.'
-        new_fs = np.zeros(len(new_cvs), float)*np.nan
-        iold = 0
-        for inew, cvnew in enumerate(new_cvs):
-            #print('Processing new_cvs[%i]=%.3f'%(inew,cvnew))
-            data = []
-            if inew==0:
-                lower = -np.inf
-                upper = 0.5*(new_cvs[inew]+new_cvs[inew+1])
-            elif inew==len(new_cvs)-1:
-                lower = 0.5*(new_cvs[inew-1]+new_cvs[inew])
-                upper = np.inf
+        #some checks
+        if qs_new[0]<=self.cvs[0] and not return_new_fes:
+            print('WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.')
+            return
+        if self.cvs[-1]<=qs_new[-1] and not return_new_fes:
+            print('WARNING: highest point on new CV grid is lower than original CV1 grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.')
+            return
+        #assign each transformed grid point to the newly defined/specified q grid
+        fs_new = np.zeros(len(qs_new))*np.nan
+        for k in range(len(qs_new)-1):
+            if k==0:
+                left = -np.inf
+                right = 0.5*(qs_new[0]+qs_new[1])
+            elif k==(len(qs_new)-1):
+                left = 0.5*(qs_new[-2]+qs_new[-1])
+                right = np.inf
             else:
-                lower = 0.5*(new_cvs[inew-1]+new_cvs[inew])
-                upper = 0.5*(new_cvs[inew]+new_cvs[inew+1])
-            while iold<len(self.cvs) and lower<=self.cvs[iold]<upper:
-                #print('  cvs_old[%i]=%.3f added to current data'%(iold,self.cvs[iold]))
-                if not np.isnan(self.fs[iold]):
-                    data.append(self.fs[iold])
-                iold += 1
-            #print('  no further old cvs found')
-            if len(data)>0:
-                new_fs[inew] = -np.log(sum(np.exp(-self.beta*np.array(data))))/self.beta #sum(data)/len(data)
-                #print('  ==> averaged previous data=',data,' to f=%.3f' %(new_fs[inew]/kjmol))
-            if iold>=len(self.cvs):
-                #print('reached end of old cvs, breaking')
-                break
-        if fn_plot is not None:
+                left = 0.5*(qs_new[k-1]+qs_new[k])
+                right = 0.5*(qs_new[k]+qs_new[k+1])
+            
+            indices = np.where((left<=self.cvs)*(self.cvs<right))[0]
+            if len(indices)>0:
+                values = self.fs[indices]
+                values = values[~np.isnan(values)]
+                fs_new[k] = values.mean()
+        
+        #identify missing data and dump warning or interpolate
+        print_hint = False
+        interpolated = []
+        not_found = []
+        for k, fnew in enumerate(fs_new):
+            if np.isnan(fnew):
+                if not interpolate:
+                    if verbose: print('WARNING: No free energy found for Q[%i] = %.3f %s.' %(k,qs_new[k]/parse_unit(self.cv_output_unit),self.cv_output_unit))
+                    print_hint = True
+                    not_found.append(k)
+                else:
+                    left = k
+                    while 0<left and np.isnan(fs_new[left]):
+                        left -= 1
+                    right = k
+                    while right<len(fs_new) and np.isnan(fs_new[right]):
+                        right += 1
+                    if 0<left and right<len(fs_new)-1:
+                        f_int = ((k-left)*fs_new[right]+(right-k)*fs_new[left])/(right-left)
+                        interpolated.append([k, f_int])
+                    else:
+                        if verbose: print('WARNING: could not interpolate for Q[%i] = %.3f %s as no lower/upper bound was found for interpolation' %(k,qs_new[k]/parse_unit(self.cv_output_unit),self.cv_output_unit))
+                        not_found.append(k)
+        if print_hint and verbose:
+            print('To avoid above warnings, either specify a coarser grid in the qs argument, or set interpolate=True to interpolate between the nearest neighbors.')
+        for k, f_int in interpolated:
+            fs_new[k] = f_int
+        
+        #make a plot illustrating the transformation
+        if plot:
             pp.clf()
-            fig, ax = pp.subplots(nrows=1, ncols=1)
-            #make free energy plot
-            ax.plot(self.cvs/parse_unit(self.cv_output_unit), self.fs/parse_unit(self.f_output_unit), linewidth=1, color='0.3', label='Original')
-            ax.plot(new_cvs/parse_unit(self.cv_output_unit), new_fs/parse_unit(self.f_output_unit), linewidth=3, color='sandybrown', label='Recollected')
-            #decorate
-            ax.set_xlabel('%s [%s]' %(self.cv_label, self.cv_output_unit))
-            ax.set_ylabel('F [%s]' %self.f_output_unit)
-            ax.set_title('Free energy profile')
-            ax.set_xlim([min(new_cvs), max(new_cvs)])
-            ax.legend(loc='best')
-            #save
-            fig.set_size_inches([8,8])
-            pp.savefig(fn_plot)
-        if return_new_fes:
-            return self.__class__(new_cvs, new_fs, self.T, cv_output_unit=self.cv_output_unit, f_output_unit=self.f_output_unit, cv_label=self.cv_label)
-        else:
-            self.cvs = new_cvs[~np.isnan(new_fs)].copy()
-            self.fs = new_fs[~np.isnan(new_fs)].copy()
+            pp.plot(self.cvs, self.fs/kjmol, linestyle='none', marker='x', markeredgewidth=2, markeredgecolor='k')
+            pp.plot(qs_new, fs_new/kjmol, linestyle='-', color='b', marker='o', markersize=2, markeredgecolor='b', markerfacecolor='b')
+            for k in not_found:
+                pp.axvline(qs_new[k], linestyle='--', color='0.8')
+            fig = pp.gcf()
+            fig.set_size_inches([16,16])
+            pp.show()
+        
+        #do error propagation
+        error = None
+        if self.error is not None:
+            raise NotImplementedError
 
-    def transform_function(self, function, derivative=None, cv_label='Q', cv_output_unit='au'):
+        #overwrite old or return new
+        if return_new_fes:
+            return self.__class__(qs_new, fs_new, self.T, error=error, cv_output_unit=self.cv_output_unit, f_output_unit=self.f_output_unit, cv_label=self.cv_label)
+        else:
+            self.cvs = qs_new.copy()
+            self.fs = fs_new.copy()
+            self.error = error
+
+    def transform_function(self, function, derivative=None, qs_new=None, interpolate=True, cv_label='f(CV)', cv_output_unit='au', plot=False, propagator=None, verbose=True):
         '''
             Routine to transform the current free energy profile in terms of the original :math:`CV` towards a free energy profile in terms of a new collective variable :math:`Q=f(CV)` according to the formula:
 
@@ -628,34 +660,59 @@ class BaseFreeEnergyProfile(BaseProfile):
             :param derivative: The analytical derivative of the transformation function :math:`f`. If set to None, the derivative will be estimated through numerical differentiation.
             :type derivative: callable, optional, default=None
 
+            :param qs_new: grid points for the new Q grid. If None, a grid will be constructed between f(CV[0]) and f(CV[-1]) with equal number of points as CV grid.
+            :type qs_new: np.ndarray, optional, default=None
+
+            :param interpolate: if set to True, the free energy of bins on the new grid in which not a single old grid point ends up will be interpolated from the neighboring bins
+            :type interpolate: bool, optional, default=True
+
             :param cv_label: The label of the new collective variable used in plotting etc
-            :type cv_label: str, optional, default='Q'
+            :type cv_label: str, optional, default='f(CV)'
 
             :param cv_output_unit: The unit of the new collective varaible used in plotting and printing. Units are defined using the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
             :type cv_output_unit: str, optional, default='au'
+
+            :param plot: If True, make a plot illustrating the transformation. It will show (1) the transformation of the original FEP on the transformed CV grid, i.e. (Q[i],F_Q[i]) with :math:`Q[i]=f(CV[i])` and :math:`F_Q[i]=F(CV[i]) + k_BT\\log\\left[\\frac{df}{dCV}(CV[i])\\right]` in black crosses, as well as (2) the (possibly interpolated) recollection of this new FEP on a newly defined Q-grid, i.e. use the specified Q-grid or define one automatically and average/interpolate the free energy in the new bins based on the (Q[i],F_Q[i]) data, in a blue line and finally (3) the new Q-grid points for which no free energy was found (because no transformed data ended up in it and it could not be interpolated from neighbors) will be indicated as gray dashed verticle lines.
+            :type plot: bool, optional, default=False
+
+            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken)
+            :type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=Propagator(target_distribution=self.error.__class__)
 
             :return: transformed free energy profile
             :rtype: the same class as the instance this routine is called upon
 
             :raise ValueError: if self.error is a distribution that is neither an instance of :py:class:`GaussianDistribution <thermolib.error.GaussianDistribution>` nor of :py:class:`MultiGaussianDistribution <thermolib.error.MultiGaussianDistribution>`
         '''
-        qs = function(self.cvs)
+        #define numerical derivative if not given
         if derivative is None:
             eps = min(self.cvs[1:]-self.cvs[:-1])*0.001
             def derivative(q):
                 return (function(q+eps/2)-function(q-eps/2))/eps
-        dfs = derivative(self.cvs)
-        fs = self.fs + np.log(abs(dfs))/self.beta
+        
+        #construct transformed cv and f valued on old cv grid and generate new FEP object
+        cvs_trans = function(self.cvs)
+        derivs = derivative(self.cvs)
+        fs_trans = self.fs + np.log(abs(derivs))/self.beta
+        fep_new = self.__class__(cvs_trans, fs_trans, self.T, cv_output_unit=cv_output_unit, f_output_unit=self.f_output_unit, cv_label=cv_label)
+        
+        #define new Q grid if not given in argument and recollect
+        if qs_new is None:
+            qs_new = np.linspace(cvs_trans[0],cvs_trans[-1], num=len(cvs_trans))
+        fep_new.recollect(qs_new, interpolate=interpolate, plot=plot, return_new_fes=False, verbose=verbose)
+        
+        #Do error propagation
         error = None
         if self.error is not None:
-            #as the transformation is (1) exactly known, (2) it transforms CV values and (3) doesn't change the error on the f
-            if isinstance(self.error, GaussianDistribution):
-                error = GaussianDistribution(fs, self.error.stds.copy())
-            elif isinstance(self.error, MultiGaussianDistribution):
-                error = MultiGaussianDistribution(fs, self.error.covariance.copy())
-            else:
-                raise ValueError('Error distribution %s is not supported in transform_function' %(type(self.error)))
-        return self.__class__(qs, fs, self.T, error=error, cv_output_unit=cv_output_unit, f_output_unit=self.f_output_unit, cv_label=cv_label)
+            def transform(fs):
+                fs_trans = fs + np.log(abs(derivs))/self.beta
+                fep = self.__class__(cvs_trans, fs_trans, self.T)
+                fep.recollect(qs_new, interpolate=True, return_new_fes=False)
+                return fep.fs.copy()
+            if propagator is None: propagator = Propagator(target_distribution=self.error.__class__, samples_are_flattened=True)
+            error = propagator(transform, self.error)
+            fep_new.error = error
+        
+        return fep_new
 
 
 
@@ -1521,10 +1578,202 @@ class FreeEnergySurface2D(object):
             self.fs = fs.copy()
             self.error = error
 
-    def transform(self, *args, **kwargs):
-        raise NotImplementedError('Transform function not yet implemented for 2D FES!')
+    def transform_function(self, functions, q1s, q2s, derivatives=None, interpolate=True, propagator=None, cv1_label='Q1', cv2_label='Q2', cv1_output_unit='au', cv2_output_unit='au'):
+        '''
+            Routine to transform the current free energy profile in terms of the original collective variables :math:`(CV_1,CV_2)` towards a free energy profile in terms of new collective variables :math:`(Q_1,Q_2)` according to the given deterministic relation :math:`Q_1=f_1(CV_1,CV_2)` and :math:`Q_2=f_2(CV_1,CV_2)`. Depending on the size of your grid, this routine might take several minutes in case an error bar was included in the original FES and hence needs to be propagated. The transformation is done according to the formula
 
-    def project_difference(self, sign=1, delta=None, cv_output_unit='au', return_class=BaseFreeEnergyProfile, error_distribution=MultiGaussianDistribution, propagator=Propagator()):
+            .. math:: 
+
+                F_Q(Q_1,Q_1) &= F_{CV}(H_1(Q_1,Q_2),H_2(Q_1,Q_2)) + k_B T \\log\\left[f'(f^{-1}(Q))\\right]
+
+            where :math:`(H_1,H_2)` represent the inverse of :math:`(f_1,f_2)`, in other words
+
+            .. math::
+
+                f_1\\left(H_1(Q_1,Q_2),H_2(Q_1,Q_2)\\right) & \\equiv Q_1 \\\\
+                f_2\\left(H_1(Q_1,Q_2),H_2(Q_1,Q_2)\\right) & \\equiv Q_2
+
+            :param functions: The transformation functions :math:`f_1` and :math:`f_2` from the equations above.
+            :type functions: callable
+
+            :param q1s: array of grid points of the new collective variable :math:`Q_1`
+            :type q1s: np.ndarray
+
+            :param q2s: array of grid points of the new collective variable :math:`Q_2`
+            :type q2s: np.ndarray
+
+            :param derivatives: The analytical derivatives of the transformation functions :math:`f_1` and :math:`f_2`. Should be given as a list :math:`[[\\frac{df_1}{dCV_1},\\frac{df_1}{dCV_2}],[\\frac{df_2}{dCV_1},\\frac{df_2}{dCV_2}]]`. If set to None, the derivative will be estimated through numerical differentiation.
+            :type derivatives: callable, optional, default=None
+
+            :param interpolate: If set to True, perform a interpolation using the :py:meth:`interpolate_surface_2d <thermolib.tools.interpolate_surface_2d>` (see documentation there for more info).
+            :type interpolate: bool, optional, default=True
+
+            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken). If set to None, propagator is initialized as Propagator(target_distribution=self.error.__class__, flattener=Flattener(len(q1s),len(q2s)), samples_are_flattened=False) where self.error.__class__ indicates the distribution of the error on the 2D FES itself, and ncycles is set to ncycles_default defined in the :py:mod:`error <thermolib.error>` module. Beware that even if a custom propagator is parsed, its attributes flattener and samples_are_flattened will be overwritten with Flattener(len(q1s),len(q2s)) and False respectively for proper functioning.
+            :type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=None
+
+            :param cv1_label: The label of the new first collective variable used in plotting etc
+            :type cv1_label: str, optional, default='Q1'
+
+            :param cv2_label: The label of the new second collective variable used in plotting etc
+            :type cv2_label: str, optional, default='Q2'
+
+            :param cv1_output_unit: The unit of the new first collective varaible used in plotting and printing. Units are defined using the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :type cv1_output_unit: str, optional, default='au'
+
+            :param cv2_output_unit: The unit of the new second collective varaible used in plotting and printing. Units are defined using the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :type cv2_output_unit: str, optional, default='au'
+
+            :return: transformed free energy profile
+            :rtype: the same class as the instance this routine is called upon
+        '''
+        CV1s, CV2s = np.meshgrid(self.cv1s,self.cv2s,indexing='ij')
+        Q1s = functions[0](CV1s,CV2s)
+        Q2s = functions[1](CV1s,CV2s)
+        #first construct 1d arrays q1s and q2s with corresponding one-on-one map between k,l index and i,j index such that q1s[k]=Q1s[i,j]=f1(cv1s[i],cv2s[j]) and q2s[l]=Q2s[i,j]=f2(cv1s[i],cv2s[j])
+        uniq1s = np.unique(Q1s)
+        uniq2s = np.unique(Q2s)
+        ks = -np.ones(CV1s.shape, dtype=int)
+        ls = -np.ones(CV1s.shape, dtype=int)
+        for (i,j), q1 in np.ndenumerate(Q1s):
+            q2 = Q2s[i,j]
+            ks[i,j] = int(np.where(uniq1s==q1)[0][0])
+            ls[i,j] = int(np.where(uniq2s==q2)[0][0])
+        #estimating numerical derivative if not defined as input argument
+        if derivatives is None:
+            eps1 = min(self.cv1s[1:]-self.cv1s[:-1])*0.001
+            eps2 = min(self.cv2s[1:]-self.cv2s[:-1])*0.001
+            def derivatives(cv1,cv2):
+                df1_cv1 = (functions[0](cv1+eps1/2,cv2       )-functions[0](cv1-eps1/2,cv2       ))/eps1
+                df1_cv2 = (functions[0](cv1       ,cv2+eps2/2)-functions[0](cv1       ,cv2-eps2/2))/eps2
+                df2_cv1 = (functions[1](cv1+eps1/2,cv2       )-functions[1](cv1-eps1/2,cv2       ))/eps1
+                df2_cv2 = (functions[1](cv1       ,cv2+eps2/2)-functions[1](cv1       ,cv2-eps2/2))/eps2
+                return ((df1_cv1,df1_cv2),(df2_cv1,df2_cv2))
+        #define routine to perform transformation to be able to reuse for error propagation
+        def transform(fs):
+            #compute jacobian and transformed free energies on original CV1,CV2 grid
+            dfs = derivatives(CV1s, CV2s)
+            jacob = np.abs(dfs[0][0]*dfs[1][1]-dfs[1][0]*dfs[0][1])
+            fs_old = fs + np.log(jacob)/self.beta
+            #tranform to new Q1,Q2 grid
+            fs_new = np.zeros([len(uniq1s),len(uniq2s)])*np.nan
+            for (i,j), f in np.ndenumerate(fs_old):
+                k = ks[i,j]
+                l = ls[i,j]
+                if not (k==-1 or l==-1):
+                    fs_new[k,l] = f
+            return fs_new
+        
+        #make composition of transform with possibly recollect and/or interpolate
+        if interpolate:
+            function = lambda fs: interpolate_surface_2d(q1s, q2s, recollect_surface_2d(uniq1s, uniq2s, transform(fs), q1s, q2s))
+        else:
+            function = lambda fs: recollect_surface_2d(uniq1s, uniq2s, transform(fs), q1s, q2s)
+        
+        #do proper error propagation using the composition function defined above
+        if self.error is None:
+            fs_new = function(self.fs)
+            error = None
+        else:
+            if propagator is None:
+                propagator = Propagator(target_distribution=self.error.__class__, flattener=Flattener(len(q1s),len(q2s)), samples_are_flattened=False)
+            else:
+                print('WARNING: in user defined propagator, overwrote propagator.flattener=Flattener(%i,%i) and propagator.samples_are_flattened=False' %(len(q1s), len(q2s)))
+                propagator.flattener = Flattener(len(q1s),len(q2s))
+                propagator.sample_are_flattened = False
+            error = propagator(function, self.error)
+            fs_new = error.mean()
+
+        # create new one depending on return_new_fes value
+        return self.__class__(q1s.copy(), q2s.copy(), fs_new.copy(), self.T, error=error, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, f_output_unit=self.f_output_unit, cv1_label=cv1_label, cv2_label=cv2_label)
+
+    def interpolate(self, interpolation_depth=3, return_new_fes=False, propagator=None):
+        '''
+            If the current FES has bins for which the free energy is np.nan, look if that bin has neighbors (up to X-nearest neighbors with X=interpolation_depth) in all four directions (left/right, up/down) that have a defined free energy (i.e. not np.nan) and interpolate between those 4 values. Only do this if all 4 neighbors have defined free energy to avoid extending the edges. The main part of this routine is implemented in :py:meth:`interpolate_surface_2d <thermolib.tools.interpolate_surface_2d>`, while the current routine serves mainly as a wrapper to do propper error propagation.
+
+            :param interpolation_depth: interpolation_depth parameter parsed to the :py:meth:`inerpolate_surface_2d <thermolib.tools.inerpolate_surface_2d>` routine. See documentation in that routine for more details.
+            :type interpolation_depth: int, optional, default=3
+
+            :param return_new_fes: If set to False, the interpolated data will be written to the current instance of FreeEnergySurface2D. If set to True, a new instance of FreeEnergySurface2D will be returned.
+            :type return_new_fes: bool, optional, default=False
+
+            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken)
+            :type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=Propagator(target_distribution=self.error.__class__, samples_are_flattened=True)
+        '''
+        #do proper error propagation
+        if self.error is None:
+            fs_new = interpolate_surface_2d(self.cv1s, self.cv2s, self.fs, interpolation_depth=interpolation_depth)
+            error = None
+        else:
+            if propagator is None:
+                propagator = Propagator(target_distribution=self.error.__class__, flattener=self.error.flattener, samples_are_flattened=False)
+            function = lambda fs: interpolate_surface_2d(self.cv1s, self.cv2s, fs, interpolation_depth=interpolation_depth)
+            error = propagator(function, self.error)
+            fs_new = error.mean()
+        #store in current fes instance or create new one depending on return_new_fes value
+        if not return_new_fes:
+            self.fs = fs_new.copy()
+            self.error = error
+            return
+        else:
+            fes = self.__class__(self.cv1s.copy(), self.cv2s.copy(), fs_new.copy(), self.T, error=error, cv1_output_unit=self.cv1_output_unit, cv2_output_unit=self.cv2_output_unit, f_output_unit=self.f_output_unit, cv1_label=self.cv1_label, cv2_label=self.cv2_label)
+            return fes
+
+    def recollect(self, q1s_new, q2s_new, interpolate=False, interpolation_depth=3, return_new_fes=False):
+        '''
+            Redefine the CV1 and CV2 grids to the given new arrays. For each new (CV1,CV2)-bin, collect all free energy values on the original grid that fall within this new bin and make the boltzmann average (disregarding possible nans as part of the average). As such, this routine can be used to (1) coarsen a grid that was originally to fine and/or (2) filter out noise on a given free energy profile by means of averaging. The main part is implemented in the routine :py:meth:`recollect_surface_2d <thermolib.tools.recollect_surface_2d>`, while the current routine serves as a wrapper for proper error propagation.
+
+            :param q1s_new: Array containing grid points for new CV1 grid
+            :type q1s_new: np.ndarray
+
+            :param q2s_new: Array containing grid points for new CV2 grid
+            :type q2s_new: np.ndarray
+
+            :param interpolate: if set to True, apply the :py:meth:`inerpolate_surface_2d <thermolib.tools.inerpolate_surface_2d>` routine for interpolating fs values that are np.nan using its neighboring values.
+            :type interpolate: bool, optional, default=False
+
+            :param interpolation_depth: interpolation_depth parameter parsed to the :py:meth:`inerpolate_surface_2d <thermolib.tools.inerpolate_surface_2d>` routine. See documentation in that routine for more details.
+            :type interpolation_depth: int, optional, default=3
+            
+            :param return_new_fes: If set to False, the recollected data will be written to the current instance (overwritting the original data). If set to True, a new instance will be initialized with the recollected data and returned.
+            :type return_new_fes: bool, optional, default=False
+            
+            :return: Returns an instance of the current class if the keyword argument `return_new_fes` is set to True. Otherwise, None is returned.
+            :rtype: None or instance of same class as self
+        '''
+        #some checks
+        if q1s_new[0]<self.cv1s[0] and not return_new_fes:
+            raise ValueError('Lowest point on new CV1 grid is larger than original CV1 grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.')
+        if self.cv1s[-1]<q1s_new[-1] and not return_new_fes:
+            raise ValueError('Highest point on new CV1 grid is lower than original CV1 grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.')
+        if q2s_new[0]<self.cv2s[0] and not return_new_fes:
+            raise ValueError('Lowest point on new CV2 grid is larger than original CV2 grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.')
+        if self.cv2s[-1]<q2s_new[-1] and not return_new_fes:
+            raise ValueError('Highest point on new CV2 grid is lower than original CV2 grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.')
+        #do proper error propagation uisng the recollect_surface_2d routine (and possibly the interpolate_surface_2d routine)
+        if self.error is None:
+            fs_new = recollect_surface_2d(self.cv1s, self.cv2s, self.fs, q1s_new, q2s_new)
+            if interpolate:
+                fs_new = interpolate_surface_2d(q1s_new, q2s_new, fs_new, interpolation_depth=interpolation_depth)
+            error = None
+        else:
+            if propagator is None:
+                propagator = Propagator(target_distribution=self.error.__class__, flattener=self.error.flattener, samples_are_flattened=False)
+            if interpolate:
+                function = lambda fs: interpolate_surface_2d(q1s_new, q2s_new, recollect_surface_2d(self.cv1s, self.cv2s, fs, q1s_new, q2s_new), interpolation_depth=interpolation_depth)
+            else:
+                function = lambda fs: recollect_surface_2d(self.cv1s, self.cv2s, fs, q1s_new, q2s_new)
+            error = propagator(function, self.error)
+            fs_new = error.mean()
+        #store in current fes instance or create new one depending on return_new_fes value
+        if not return_new_fes:
+            self.fs = fs_new.copy()
+            self.error = error
+            return
+        else:
+            fes = self.__class__(self.cv1s.copy(), self.cv2s.copy(), fs_new.copy(), self.T, error=error, cv1_output_unit=self.cv1_output_unit, cv2_output_unit=self.cv2_output_unit, f_output_unit=self.f_output_unit, cv1_label=self.cv1_label, cv2_label=self.cv2_label)
+            return fes
+
+    def project_difference(self, sign=1, delta=None, cv_output_unit='au', return_class=BaseFreeEnergyProfile, propagator=None):
         '''
             Construct a 1D free energy profile representing the projection of the 2D FES onto the difference of collective variables using the following formula:
 
@@ -1546,11 +1795,8 @@ class FreeEnergySurface2D(object):
             :param return_class: The class of which an instance will finally be returned.
             :type return_class: python class object, optional, default=BaseFreeEnergyProfile
 
-            :param error_distribution: the model for the error distribution of the projected free energy profile
-            :type error_distribution: class from :py:mod:`error <thermolib.error>` module, optional, default= :py:class:`MultiGaussianDistribution <thermolib.error.MultiGaussianDistribution>`
-
-            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken)
-            :type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=Propagator()
+            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken). If set to None, the default of the :py:meth:`project_function <thermolib.thermodynamics.fep.FreeEnergySurface2D.project_function>` is used.
+            :type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=None
 
             :returns: projected 1D free energy profile
             :rtype: see return_class argument
@@ -1579,9 +1825,9 @@ class FreeEnergySurface2D(object):
                 if (abs(np.array(cvs)-q)>1e-6).all():
                     cvs.append(q)
         cvs = np.array(sorted(cvs))
-        return self.project_function(function, cvs, cv_label=cv_label, cv_output_unit=cv_output_unit, return_class=return_class, error_distribution=error_distribution, propagator=propagator)
+        return self.project_function(function, cvs, cv_label=cv_label, cv_output_unit=cv_output_unit, return_class=return_class, propagator=propagator)
 
-    def project_average(self, delta=None, cv_output_unit='au', return_class=BaseFreeEnergyProfile, error_distribution=MultiGaussianDistribution, propagator=Propagator()):
+    def project_average(self, delta=None, cv_output_unit='au', return_class=BaseFreeEnergyProfile, propagator=None):
         '''
             Construct a 1D free energy profile representing the projection of the 2D free energy surface F2(CV1,CV2) onto the average q=(CV1+CV2)/2 of the collective variables using the following formula:
 
@@ -1600,11 +1846,8 @@ class FreeEnergySurface2D(object):
             :param return_class: The class of which an instance will finally be returned.
             :type return_class: python class object, optional, default=BaseFreeEnergyProfile
 
-            :param error_distribution: the model for the error distribution of the projected free energy profile
-            :type error_distribution: class from :py:mod:`error <thermolib.error>` module, optional, default= :py:class:`MultiGaussianDistribution <thermolib.error.MultiGaussianDistribution>`
-
-            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken)
-            :type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=Propagator()
+            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken). If set to None, the default of the :py:meth:`project_function <thermolib.thermodynamics.fep.FreeEnergySurface2D.project_function>` is used.
+            :type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=None
 
             :returns: projected 1D free energy profile
             :rtype: see return_class argument
@@ -1618,9 +1861,9 @@ class FreeEnergySurface2D(object):
         cvs = np.array(sorted(cvs))
         def function(q1,q2):
             return 0.5*(q1+q2)
-        return self.project_function(function, cvs, cv_label='0.5*(%s+%s)' %(self.cv1_label,self.cv1_label), cv_output_unit=cv_output_unit, return_class=return_class, error_distribution=error_distribution, propagator=propagator)
+        return self.project_function(function, cvs, cv_label='0.5*(%s+%s)' %(self.cv1_label,self.cv1_label), cv_output_unit=cv_output_unit, return_class=return_class, propagator=propagator)
 
-    def project_cv1(self, delta=None, cv_output_unit='au', return_class=BaseFreeEnergyProfile, error_distribution=MultiGaussianDistribution, propagator=Propagator()):
+    def project_cv1(self, delta=None, cv_output_unit='au', return_class=BaseFreeEnergyProfile, propagator=None):
         '''
             Construct a 1D free energy profile representing the projection of the 2D free energy surface F2(CV1,CV2) onto q=CV1 using the formula:
 
@@ -1639,20 +1882,17 @@ class FreeEnergySurface2D(object):
             :param return_class: The class of which an instance will finally be returned.
             :type return_class: python class object, optional, default=BaseFreeEnergyProfile
 
-            :param error_distribution: the model for the error distribution of the projected free energy profile
-            :type error_distribution: class from :py:mod:`error <thermolib.error>` module, optional, default= :py:class:`MultiGaussianDistribution <thermolib.error.MultiGaussianDistribution>`
-
-            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken)
-            :type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=Propagator()
+            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken). If set to None, the default of the :py:meth:`project_function <thermolib.thermodynamics.fep.FreeEnergySurface2D.project_function>` is used.
+            :type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=None
 
             :returns: projected 1D free energy profile
             :rtype: see return_class argument
         '''
         def function(q1,q2):
             return q1
-        return self.project_function(function, self.cv1s.copy(), delta=delta, cv_label=self.cv1_label, cv_output_unit=self.cv1_output_unit, return_class=return_class, error_distribution=error_distribution, propagator=propagator)
+        return self.project_function(function, self.cv1s.copy(), delta=delta, cv_label=self.cv1_label, cv_output_unit=self.cv1_output_unit, return_class=return_class, propagator=propagator)
 
-    def project_cv2(self, delta=None, cv_output_unit='au', return_class=BaseFreeEnergyProfile, error_distribution=MultiGaussianDistribution, propagator=Propagator()):
+    def project_cv2(self, delta=None, cv_output_unit='au', return_class=BaseFreeEnergyProfile, propagator=None):
         '''
             Construct a 1D free energy profile representing the projection of the 2D FES F2(CV1,CV2) onto q=CV2. This is implemented as follows:
 
@@ -1669,20 +1909,17 @@ class FreeEnergySurface2D(object):
             :param return_class: The class of which an instance will finally be returned.
             :type return_class: python class object, optional, default=BaseFreeEnergyProfile
 
-            :param error_distribution: the model for the error distribution of the projected free energy profile
-            :type error_distribution: class from :py:mod:`error <thermolib.error>` module, optional, default= :py:class:`MultiGaussianDistribution <thermolib.error.MultiGaussianDistribution>`
-
-            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken)
-            :type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=Propagator()
+            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken). If set to None, the default of the :py:meth:`project_function <thermolib.thermodynamics.fep.FreeEnergySurface2D.project_function>` is used.
+            :type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=None
 
             :returns: projected 1D free energy profile
             :rtype: see return_class argument
         '''
         def function(q1,q2):
             return q2
-        return self.project_function(function, self.cv2s.copy(), delta=delta, cv_label=self.cv2_label, cv_output_unit=self.cv2_output_unit, return_class=return_class, error_distribution=error_distribution, propagator=propagator)
+        return self.project_function(function, self.cv2s.copy(), delta=delta, cv_label=self.cv2_label, cv_output_unit=self.cv2_output_unit, return_class=return_class, propagator=propagator)
 
-    def project_function(self, function, qs, delta=None, cv_label='CV', cv_output_unit='au', return_class=BaseFreeEnergyProfile, error_distribution=MultiGaussianDistribution, propagator=Propagator()):
+    def project_function(self, function, qs, delta=None, cv_label='CV', cv_output_unit='au', return_class=BaseFreeEnergyProfile, propagator=None):
         '''
             Routine to implement the general projection of a 2D FES onto a collective variable defined by the given function (which takes the original two CVs as arguments).
 
@@ -1704,11 +1941,8 @@ class FreeEnergySurface2D(object):
             :param return_class: The class of which an instance will finally be returned
             :type return_class: python class object, optional, default=BaseFreeEnergyProfile
 
-            :param error_distribution: the model for the error distribution of the projected free energy profile
-            :type error_distribution: class from :py:mod:`error <thermolib.error>` module, optional, default= :py:class:`MultiGaussianDistribution <thermolib.error.MultiGaussianDistribution>`
-
-            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken)
-            :type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=Propagator()
+            :param propagator: a Propagator used for error propagation. Can be usefull if one wants to adjust the error propagation settings (such as the number of random samples taken). If set to None, propagator is initialized as Propagator(target_distribution=self.error.__class__, samples_are_flattened=True) where self.error.__class__ indicates the distribution of the error on the 2D FES itself, and ncycles is set to ncycles_default defined in the :py:mod:`error <thermolib.error>` module.
+            :type propagator: instance of :py:class:`Propagator <thermolib.error.Propagator>`, optional, default=None
 
             :returns: projected 1D free energy profile
             :rtype: see return_class argument
@@ -1737,7 +1971,12 @@ class FreeEnergySurface2D(object):
             fs = project(self.fs)
             error = None
         else:
-            error = propagator(project, self.error, target_distribution=error_distribution, samples_are_flattened=True)
+            if propagator is None:
+                propagator = Propagator(target_distribution=self.error.__class__, samples_are_flattened=True)
+            else:
+                print('WARNING: in user defined propagator, overwrote propagator.samples_are_flattened=True')
+                propagator.sample_are_flattened = True
+            error = propagator(project, self.error)
             fs = error.mean()
         return return_class(qs, fs, self.T, error=error, cv_output_unit=cv_output_unit, f_output_unit=self.f_output_unit, cv_label=cv_label)
 

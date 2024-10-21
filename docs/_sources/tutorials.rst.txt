@@ -21,4 +21,5 @@ The tutorials below are designed to illustrate more advanced workflows using The
    tut/advanced_projection
    tut/advanced_deprojection
    tut/advanced_transformations
+   tut/advanced_transformations_2D
 

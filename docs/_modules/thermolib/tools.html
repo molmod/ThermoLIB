@@ -191,6 +191,13 @@
 <li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_transformations.html#FEP-and-rate-in-terms-of-alternative-CV">FEP and rate in terms of alternative CV</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../../tut/advanced_transformations_2D.html">Tutorial 8 - Transformation of 2D free energy surfaces</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_transformations_2D.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_transformations_2D.html#Construction-of-original-2D-FES">Construction of original 2D FES</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_transformations_2D.html#Transformation-to-new-CVs">Transformation to new CVs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_transformations_2D.html#Projection-comparison">Projection comparison</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../rg.html">Reference Guide</a><ul>
@@ -354,6 +361,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../rg_tools.html#thermolib.tools.h5_read_dataset"><code class="docutils literal notranslate"><span class="pre">h5_read_dataset()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../rg_tools.html#thermolib.tools.integrate"><code class="docutils literal notranslate"><span class="pre">integrate()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../rg_tools.html#thermolib.tools.integrate2d"><code class="docutils literal notranslate"><span class="pre">integrate2d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../rg_tools.html#thermolib.tools.interpolate_surface_2d"><code class="docutils literal notranslate"><span class="pre">interpolate_surface_2d()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../rg_tools.html#thermolib.tools.invert_fisher_to_covariance"><code class="docutils literal notranslate"><span class="pre">invert_fisher_to_covariance()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../rg_tools.html#thermolib.tools.multivariate_normal"><code class="docutils literal notranslate"><span class="pre">multivariate_normal()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../rg_tools.html#thermolib.tools.read_wham_input"><code class="docutils literal notranslate"><span class="pre">read_wham_input()</span></code></a></li>
@@ -430,7 +438,7 @@
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s1">&#39;format_scientific&#39;</span><span class="p">,</span> <span class="s1">&#39;h5_read_dataset&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;integrate&#39;</span><span class="p">,</span> <span class="s1">&#39;integrate2d&#39;</span><span class="p">,</span> <span class="s1">&#39;rolling_average&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;integrate&#39;</span><span class="p">,</span> <span class="s1">&#39;integrate2d&#39;</span><span class="p">,</span> <span class="s1">&#39;interpolate_surface_2d&#39;</span><span class="p">,</span> <span class="s1">&#39;recollect_surface_2d&#39;</span><span class="p">,</span> <span class="s1">&#39;rolling_average&#39;</span><span class="p">,</span>
     <span class="s1">&#39;read_wham_input&#39;</span><span class="p">,</span> <span class="s1">&#39;extract_polynomial_bias_info&#39;</span><span class="p">,</span>
     <span class="s1">&#39;blav&#39;</span><span class="p">,</span> <span class="s1">&#39;corrtime_from_acf&#39;</span><span class="p">,</span> <span class="s1">&#39;decorrelate&#39;</span><span class="p">,</span> <span class="s1">&#39;multivariate_normal&#39;</span><span class="p">,</span>
     <span class="s1">&#39;invert_fisher_to_covariance&#39;</span><span class="p">,</span> <span class="s1">&#39;fisher_matrix_mle_probdens&#39;</span><span class="p">,</span>
@@ -479,7 +487,7 @@
         <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">dset</span><span class="p">])</span>
     <span class="k">return</span> <span class="n">data</span></div>
 
-<span class="c1">#Routines related to integration</span>
+<span class="c1">#Routines related to integration, interpolation and recollection</span>
 
 <div class="viewcode-block" id="integrate"><a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.integrate">[docs]</a><span class="k">def</span> <span class="nf">integrate</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">yerrs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
@@ -580,6 +588,193 @@
         <span class="k">return</span> <span class="n">new_ys</span><span class="p">,</span> <span class="n">new_yerrs</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">new_ys</span></div>
+
+<span class="k">def</span> <span class="nf">interpolate_between_points_2D</span><span class="p">(</span><span class="n">datapoints</span><span class="p">,</span> <span class="n">evalpoint</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;SVDLinear&#39;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Routine to perform a 2D interpolation to estimate the z-value at the given evalpoint :math:`(x,y)` based on the given datapoints :math:`[(x_0,y_0,z_0),(x_1,y_1,z_1),...]`. Currently only one method of interpolation is supported: ``SVDLinear``, which is described in detail below:</span>
+
+<span class="sd">        **SVDLinear**</span>
+
+<span class="sd">        Solve the set of equations </span>
+<span class="sd">        </span>
+<span class="sd">        .. math:</span>
+<span class="sd">        </span>
+<span class="sd">            z_0 &amp;= a_0*x_0 + a_1*y_0 + a_2 \\\\</span>
+<span class="sd">            z_1 &amp;= a_0*x_1 + a_1*y_1 + a_2 \\\\</span>
+<span class="sd">            z_2 &amp;= a_0*x_2 + a_1*y_2 + a_2 \\\\</span>
+<span class="sd">            \\ldots</span>
+<span class="sd">        </span>
+<span class="sd">        Herein, :math:`(x_i,y_i,z_i)` are the datapoints given in the input arguments. In matrix notation this becomes:</span>
+
+<span class="sd">        .. math:</span>
+
+<span class="sd">            \\boldsymbol Z = \\boldsymbol X \\cdot \\boldsymbol A</span>
+<span class="sd">        </span>
+<span class="sd">        with:</span>
+<span class="sd">        </span>
+<span class="sd">        .. math:</span>
+
+<span class="sd">            Z &amp;= \\left(\\begin{array}{c}</span>
+<span class="sd">                z_0 \\\\</span>
+<span class="sd">                z_1 \\\\</span>
+<span class="sd">                z_2 \\\\</span>
+<span class="sd">                \\vdots</span>
+<span class="sd">            \\end{array}\\right) \\\\</span>
+<span class="sd">            X &amp;= \\left(\\begin{array}{ccc}</span>
+<span class="sd">                x_0 &amp; y_0 &amp; 1 \\\\</span>
+<span class="sd">                x_1 &amp; y_1 &amp; 1 \\\\</span>
+<span class="sd">                x_2 &amp; y_2 &amp; 1 \\\\</span>
+<span class="sd">                \\vdots &amp; \\vdots &amp; \\vdtos \\\\</span>
+<span class="sd">            \\end{array}\\right)\\\\</span>
+<span class="sd">            A &amp;= \\left(\\begin{array}{c}</span>
+<span class="sd">                a_0 \\\\</span>
+<span class="sd">                a_1 \\\\</span>
+<span class="sd">                a_2 \\\\</span>
+<span class="sd">            \\end{array}\\right)</span>
+
+<span class="sd">        The fitting is performed in a Least-Squares way using Singular Value Decomposition using the numpy.linalg.lstsq routine.</span>
+
+<span class="sd">        :param datapoints: array containing the data points in the form [(x0,y0,z0),(x1,y1,z1),...]. If method is QuasiLinear, there should be 4 points (i.e. n=4).</span>
+<span class="sd">        :type datapoints: np.ndarray[shape=(n,3)]</span>
+
+<span class="sd">        :param evalpoint: (x,y) value of the point at which we want to interpolate the z-value</span>
+<span class="sd">        :type evalpoint: np.ndarray[shape=(2,)]</span>
+
+<span class="sd">        :param method: Specify which method to use for interpolation. Should be either &#39;QuasiLinear&#39; or &#39;SVDLinear&#39;. See documentation above for more details.</span>
+<span class="sd">        :type method: str, optional, default=&#39;SVDLinear&#39;</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">==</span><span class="s1">&#39;quasilinear&#39;</span><span class="p">:</span>
+        <span class="c1">#construct the matrixed D, X and Z</span>
+        <span class="c1">#D = np.diag([1,1,1,0,0,0]) #not really required as it is easily encoded in F directly below</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">X</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">datapoints</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">X</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">datapoints</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">datapoints</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">X</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">datapoints</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">X</span><span class="p">[:,</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">datapoints</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">X</span><span class="p">[:,</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="n">datapoints</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">Z</span> <span class="o">=</span> <span class="n">datapoints</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]</span>
+        <span class="c1">#construct block matrices E and F</span>
+        <span class="n">E</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">])</span>
+        <span class="c1">#E[:6,:6] = D #encoded directly in expression above</span>
+        <span class="n">E</span><span class="p">[:</span><span class="mi">6</span><span class="p">,</span><span class="mi">6</span><span class="p">:]</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">E</span><span class="p">[</span><span class="mi">6</span><span class="p">:,:</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="n">X</span>
+        <span class="n">F</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">F</span><span class="p">[</span><span class="mi">6</span><span class="p">:]</span> <span class="o">=</span> <span class="n">Z</span>
+        <span class="c1">#solve E*P=F for P</span>
+        <span class="k">assert</span> <span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">E</span><span class="p">))</span><span class="o">&gt;</span><span class="mf">1e-12</span><span class="p">,</span> <span class="s1">&#39;Could not interpolate, determinant of matrix E (=</span><span class="si">%.3e</span><span class="s1">) is to small!&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">E</span><span class="p">))</span>
+        <span class="n">P</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">E</span><span class="p">,</span><span class="n">F</span><span class="p">)</span>
+        <span class="c1">#check if solution satifies the datapoints</span>
+        <span class="n">dev</span> <span class="o">=</span> <span class="n">Z</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">P</span><span class="p">[:</span><span class="mi">6</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="nb">abs</span><span class="p">(</span><span class="n">dev</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">&lt;</span><span class="mf">1e-12</span><span class="p">,</span> <span class="s1">&#39;Obtained solution did not satisfy datapoint </span><span class="si">%i</span><span class="s1">: zi-f(xi,yi)=</span><span class="si">%.3e</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">dev</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="c1">#define function to compute z value of interpolation at given evalpoint</span>
+        <span class="k">def</span> <span class="nf">interpol</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">P</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">P</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">x</span><span class="o">*</span><span class="n">y</span> <span class="o">+</span> <span class="n">P</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">y</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">P</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">P</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">*</span><span class="n">y</span> <span class="o">+</span> <span class="n">P</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">==</span><span class="s1">&#39;svdlinear&#39;</span><span class="p">:</span>
+        <span class="n">Z</span> <span class="o">=</span> <span class="n">datapoints</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">datapoints</span><span class="p">),</span><span class="mi">3</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">X</span><span class="p">[:,</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">datapoints</span><span class="p">[:,</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">A</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">svals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">Z</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span>
+        <span class="c1">#define function to compute z value of interpolation at given evalpoint</span>
+        <span class="k">def</span> <span class="nf">interpol</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">A</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">x</span><span class="o">+</span><span class="n">A</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">y</span><span class="o">+</span><span class="n">A</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Interpolation method </span><span class="si">%s</span><span class="s2"> not supported, should be either &#39;QuasiLinear&#39; or &#39;SVDLinear&#39;.&quot;</span> <span class="o">%</span><span class="n">method</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">interpol</span><span class="p">(</span><span class="n">evalpoint</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">evalpoint</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+<div class="viewcode-block" id="interpolate_surface_2d"><a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.interpolate_surface_2d">[docs]</a><span class="k">def</span> <span class="nf">interpolate_surface_2d</span><span class="p">(</span><span class="n">cv1s</span><span class="p">,</span> <span class="n">cv2s</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">interpolation_depth</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Routine to perform interpolation of F(CV1,CV2) defined by cv1s,cv2,fs grid. For all grid points where fs is np.nan, do interpolation using its right/left/up/down neighbors that are not np.nan. This routine will detect which grid points have fs=np.nan, search for neighbours valid for interpolation, collect there f value and parse to the :py:meth:`interpolate_between_points_2D &lt;thermolib.tools.interpolate_between_points_2D&gt;`` routine to do the actual interpolation.</span>
+
+<span class="sd">        :param interpolation_depth: when interpolating at a certain bin from the neighbouring bins, go at max a number of neighbours far equal to interpolation_depth in each direction to try and find free energy data that is not np.nan</span>
+<span class="sd">        :type interpolation_depth: int, optional, default=3</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c1">#some init</span>
+    <span class="n">fs_new</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">interpolated</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">not_found</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1">#find np.nans in fs and compute interpolated values</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="n">l</span><span class="p">),</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">ndenumerate</span><span class="p">(</span><span class="n">fs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+            <span class="n">left</span> <span class="o">=</span> <span class="n">k</span>
+            <span class="k">while</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">fs</span><span class="p">[</span><span class="n">left</span><span class="p">,</span><span class="n">l</span><span class="p">]):</span>
+                <span class="n">left</span> <span class="o">-=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">left</span><span class="o">&lt;</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">k</span><span class="o">-</span><span class="n">interpolation_depth</span><span class="p">):</span>
+                    <span class="n">left</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="k">break</span>
+            <span class="n">right</span> <span class="o">=</span> <span class="n">k</span>
+            <span class="k">while</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">fs</span><span class="p">[</span><span class="n">right</span><span class="p">,</span><span class="n">l</span><span class="p">]):</span>
+                <span class="n">right</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="nb">min</span><span class="p">(</span><span class="n">fs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">k</span><span class="o">+</span><span class="n">interpolation_depth</span><span class="p">)</span><span class="o">&lt;</span><span class="n">right</span><span class="p">:</span>
+                    <span class="n">right</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="k">break</span>
+            <span class="n">down</span> <span class="o">=</span> <span class="n">l</span>
+            <span class="k">while</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">fs</span><span class="p">[</span><span class="n">k</span><span class="p">,</span><span class="n">down</span><span class="p">]):</span>
+                <span class="n">down</span> <span class="o">-=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">down</span><span class="o">&lt;</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">l</span><span class="o">-</span><span class="n">interpolation_depth</span><span class="p">):</span>
+                    <span class="n">down</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="k">break</span>
+            <span class="n">up</span> <span class="o">=</span> <span class="n">l</span>
+            <span class="k">while</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">fs</span><span class="p">[</span><span class="n">k</span><span class="p">,</span><span class="n">up</span><span class="p">]):</span>
+                <span class="n">up</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="nb">min</span><span class="p">(</span><span class="n">fs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">l</span><span class="o">+</span><span class="n">interpolation_depth</span><span class="p">)</span><span class="o">&lt;</span><span class="n">up</span><span class="p">:</span>
+                    <span class="n">up</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="k">break</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">left</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">right</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">up</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">down</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="n">datapoints</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+                    <span class="p">[</span><span class="n">cv1s</span><span class="p">[</span><span class="n">left</span> <span class="p">],</span> <span class="n">cv2s</span><span class="p">[</span><span class="n">l</span>   <span class="p">],</span> <span class="n">fs</span><span class="p">[</span><span class="n">left</span> <span class="p">,</span><span class="n">l</span>   <span class="p">]],</span> <span class="c1">#left point</span>
+                    <span class="p">[</span><span class="n">cv1s</span><span class="p">[</span><span class="n">right</span><span class="p">],</span> <span class="n">cv2s</span><span class="p">[</span><span class="n">l</span>   <span class="p">],</span> <span class="n">fs</span><span class="p">[</span><span class="n">right</span><span class="p">,</span><span class="n">l</span>   <span class="p">]],</span> <span class="c1">#right point</span>
+                    <span class="p">[</span><span class="n">cv1s</span><span class="p">[</span><span class="n">k</span>    <span class="p">],</span> <span class="n">cv2s</span><span class="p">[</span><span class="n">down</span><span class="p">],</span> <span class="n">fs</span><span class="p">[</span><span class="n">k</span>    <span class="p">,</span><span class="n">down</span><span class="p">]],</span> <span class="c1">#down point</span>
+                    <span class="p">[</span><span class="n">cv1s</span><span class="p">[</span><span class="n">k</span>    <span class="p">],</span> <span class="n">cv2s</span><span class="p">[</span>  <span class="n">up</span><span class="p">],</span> <span class="n">fs</span><span class="p">[</span><span class="n">k</span>    <span class="p">,</span>  <span class="n">up</span><span class="p">]],</span> <span class="c1">#up point</span>
+                <span class="p">])</span>
+                <span class="n">evalpoint</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">cv1s</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">cv2s</span><span class="p">[</span><span class="n">l</span><span class="p">]])</span>
+                <span class="n">f_int</span> <span class="o">=</span> <span class="n">interpolate_between_points_2D</span><span class="p">(</span><span class="n">datapoints</span><span class="p">,</span> <span class="n">evalpoint</span><span class="p">)</span>
+                <span class="n">interpolated</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">k</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">f_int</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;WARNING: could not interpolate for (Q1[</span><span class="si">%i</span><span class="s1">],Q2[</span><span class="si">%i</span><span class="s1">]) as no left/right/up/down bound was found for interpolation&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="n">l</span><span class="p">))</span>
+                <span class="n">not_found</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">k</span><span class="p">,</span><span class="n">l</span><span class="p">))</span>
+    <span class="c1">#set interpolated values in fs_new (needs to be done afterwards to avoid interpolated values affecting the interpolation of the next bins)</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">f_int</span> <span class="ow">in</span> <span class="n">interpolated</span><span class="p">:</span>
+        <span class="n">fs_new</span><span class="p">[</span><span class="n">k</span><span class="p">,</span><span class="n">l</span><span class="p">]</span> <span class="o">=</span> <span class="n">f_int</span>
+    <span class="k">return</span> <span class="n">fs_new</span></div>
+
+<span class="k">def</span> <span class="nf">recollect_surface_2d</span><span class="p">(</span><span class="n">cv1s_old</span><span class="p">,</span> <span class="n">cv2s_old</span><span class="p">,</span> <span class="n">fs_old</span><span class="p">,</span> <span class="n">q1s_new</span><span class="p">,</span> <span class="n">q2s_new</span><span class="p">):</span>
+    <span class="n">CV1s</span><span class="p">,</span> <span class="n">CV2s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">cv1s_old</span><span class="p">,</span> <span class="n">cv2s_old</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s1">&#39;ij&#39;</span><span class="p">)</span>
+    <span class="n">fs_new</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">q1s_new</span><span class="p">),</span><span class="nb">len</span><span class="p">(</span><span class="n">q2s_new</span><span class="p">)])</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">q1s_new</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">k</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">lower1</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+            <span class="n">upper1</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">q1s_new</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">q1s_new</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="n">k</span><span class="o">==</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">q1s_new</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">lower1</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">q1s_new</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span><span class="o">+</span><span class="n">q1s_new</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">upper1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lower1</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">q1s_new</span><span class="p">[</span><span class="n">k</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">q1s_new</span><span class="p">[</span><span class="n">k</span>  <span class="p">])</span>
+            <span class="n">upper1</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">q1s_new</span><span class="p">[</span><span class="n">k</span>  <span class="p">]</span><span class="o">+</span><span class="n">q1s_new</span><span class="p">[</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+        
+        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">q2s_new</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">l</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">lower2</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+                <span class="n">upper2</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">q2s_new</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">q2s_new</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">l</span><span class="o">==</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">q2s_new</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                <span class="n">lower2</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">q2s_new</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span><span class="o">+</span><span class="n">q2s_new</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">upper2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">lower2</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">q2s_new</span><span class="p">[</span><span class="n">l</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">q2s_new</span><span class="p">[</span><span class="n">l</span>  <span class="p">])</span>
+                <span class="n">upper2</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">q2s_new</span><span class="p">[</span><span class="n">l</span>  <span class="p">]</span><span class="o">+</span><span class="n">q2s_new</span><span class="p">[</span><span class="n">l</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+
+            <span class="n">Is</span><span class="p">,</span> <span class="n">Js</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">lower1</span><span class="o">&lt;=</span><span class="n">CV1s</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">CV1s</span><span class="o">&lt;</span><span class="n">upper1</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">lower2</span><span class="o">&lt;=</span><span class="n">CV2s</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">CV2s</span><span class="o">&lt;</span><span class="n">upper2</span><span class="p">))</span>
+            <span class="n">num</span><span class="p">,</span> <span class="nb">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">j</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Is</span><span class="p">,</span> <span class="n">Js</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">fs_old</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]):</span>
+                    <span class="nb">sum</span> <span class="o">+=</span> <span class="n">fs_old</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span>
+                    <span class="n">num</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">num</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">fs_new</span><span class="p">[</span><span class="n">k</span><span class="p">,</span><span class="n">l</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="o">/</span><span class="n">num</span>
+    <span class="k">return</span> <span class="n">fs_new</span>
+
 
 <span class="c1">#Routines for reading WHAM input</span>
 

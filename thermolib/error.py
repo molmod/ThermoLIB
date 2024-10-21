@@ -634,7 +634,7 @@ class MultiDistribution(object):
     def shift(self, ref):
         raise NotImplementedError
 
-    def from_samples(self, samples, flattener, flattened=True):
+    def from_samples(self, samples, flattener=DummyFlattener(), flattened=True):
         raise NotImplementedError
 
 
@@ -655,7 +655,6 @@ class MultiGaussianDistribution(MultiDistribution):
         '''
         assert isinstance(means, np.ndarray), 'means should be array, detected %s' %(str(type(means)))
         assert isinstance(covariance, np.ndarray), 'covariance matrix should be array, detected %s' %(str(type(covariance)))
-        shape = means.shape
         assert len(means.shape)==1, 'means should be 1D array, but detected array shape %s' %(str(means.shape))
         assert len(covariance.shape)==2, 'covariance matrix should be 2D array, but detected array shape %s' %(str(covariance.shape))
         assert covariance.shape[0]==means.shape[0], 'Inconsistent shapes, means has shape %s while covariance has shape %s' %(str(means.shape),str(covariance.shape))
@@ -663,7 +662,7 @@ class MultiGaussianDistribution(MultiDistribution):
         self.means = means.copy()
         self.covariance = covariance.copy()
         self.stds = np.sqrt(covariance.diagonal())
-        MultiDistribution.__init__(self, shape, flattener=flattener)
+        MultiDistribution.__init__(self, means.shape, flattener=flattener)
 
     def copy(self):
         '''
@@ -775,7 +774,7 @@ class MultiGaussianDistribution(MultiDistribution):
             raise ValueError('In MultiGaussianDistribution.set_ref either index or value keyword argument should be defined')
 
     @classmethod
-    def from_samples(cls, samples, flattener=DummyFlattener(), flattened=False):
+    def from_samples(cls, samples, flattener=DummyFlattener(), flattened=True):
         """ 
             Defines a MultiGaussianDistribution based on a population defined by the given samples. The routine will derive the mean and std from the population and use that to define the Gaussian Distribution.
 
@@ -1008,7 +1007,7 @@ class MultiLogGaussianDistribution(MultiDistribution):
             return lower, upper
     
     @classmethod
-    def from_samples(cls, samples, flattener=DummyFlattener(), flattened=False):
+    def from_samples(cls, samples, flattener=DummyFlattener(), flattened=True):
         """ 
             Defines a MultiLogGaussianDistribution based on a population defined by the given samples. The routine will derive the lmean and lcovariance from the population and use that to define the MultiLogGaussian Distribution.
 
@@ -1229,12 +1228,18 @@ class Propagator(object):
         self.samples_are_flattened = samples_are_flattened
         self.verbose = verbose
     
-    def reset(self):
+    def reset(self, target_distribution=None, flattener=None, samples_are_flattened=None):
         '''
-            Reinitialize for future reuse.
+            Reinitialize argsamples  for future reuse. For more info on arguments target_distribution, flattener or samples_are_flattened, see documentation in the initializer. Only if such an argument is explicitly specified (i.e. is not None), will it be overwritten with the given value.
         '''
         self.argsamples = None
         self.funsamples = None
+        if target_distribution is not None:
+            self.target_distribution = target_distribution
+        if flattener is not None:
+            self.flattener = flattener
+        if samples_are_flattened is not None:
+            self.samples_are_flattened = samples_are_flattened
 
     def gen_args_samples(self, *args):
         '''
@@ -1269,7 +1274,7 @@ class Propagator(object):
                 for iarg, arg in enumerate(args):
                     print('  ..... argument %i has shape:' %(iarg), arg.shape)
             self.funsamples[icycle] = fun(*args)
-        #return target distribution based on samples and flattener if required
+        #Some post process book keeping and logging
         if self.verbose: print('Error propagation - generating distribution from samples ...')
         self.funsamples = np.dstack(self.funsamples)
         if self.funsamples.shape[0]==1:
@@ -1292,24 +1297,15 @@ class Propagator(object):
             distr = target_distribution.from_samples(self.funsamples)
         return distr
     
-    def __call__(self, fun, *args, target_distribution=GaussianDistribution, flattener=DummyFlattener(), samples_are_flattened=False):
+    def __call__(self, fun, *args, target_distribution=None, flattener=None, samples_are_flattened=None):
         '''
-            Default calling sequence of the various Propagator routines
+            Default calling sequence of the various Propagator routines.  For more info on arguments target_distribution, flattener or samples_are_flattened, see documentation of :py:meth:`Propagator.__init__ <thermolib.error.Propoagator.__init__>`. Only if such an argument is explicitly specified (i.e. is not None), will it be overwritten with the given value.
 
             :param fun: function f for which the error needs to be computed
             :type fun: callable
 
             :param args: list of arguments of the function for which the error needs to be computed
             :type args: list of distributions
-
-            :param target_distribution: the type of distribution to be used for the error of the function value
-            :type target_distribution: child class of :py:class:`Distribution <thermolib.error.Distribution>`, optional, default=GaussianDistribution
-
-            :param flattener: Flattener to be parsed to the error distribution of the function value
-            :type flattener: instance of child class of :py:class:`Flattener <thermolib.flattener.Flattener>`, optional, default=DummyFlattener()
-
-            :param samples_are_flattened: whether or not the samples generated by ``gen_args_samples`` (and hence the ``sample`` routine of the arguments) are flattened
-            :type samples_are_flattened: bool, optional, default=False
 
             :return: Distribution of the function value
             :rtype: determined by parameter target_distribution
