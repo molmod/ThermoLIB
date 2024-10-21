@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutorial 8 - Transformation of 2D free energy surfaces &mdash; ThermoLIB v1.7.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=131c94de"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Reference Guide" href="../rg.html" />
+    <link rel="prev" title="Tutorial 7 - Transformations of 1D FEP and kinetics" href="advanced_transformations.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ThermoLIB
+              <img src="../_static/logo_thermolib_light.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                1.7
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../ig.html">Installation Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../ig.html#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ig.html#download-and-install-thermolib">Download and install ThermoLIB</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../ig.html#direct-install-using-pip">Direct install using pip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../ig.html#developers-download">Developers download</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../ig.html#test-installation">Test installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../ug.html">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../ug_1DFEP.html">Constructing 1D histograms &amp; free energy profiles</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../ug_1DFEP.html#construct-a-1d-histrogam">Construct a 1D histrogam …</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../ug_1DFEP.html#from-a-single-simulation">… from a single simulation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../ug_1DFEP.html#from-multiple-simulations-using-wham">… from multiple simulations using WHAM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../ug_1DFEP.html#constructing-a-1d-free-energy-profile">Constructing a 1D free energy profile …</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../ug_1DFEP.html#using-the-constructor">… using the constructor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../ug_1DFEP.html#reading-from-a-text-file">… reading from a text file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../ug_1DFEP.html#from-a-histogram">… from a histogram</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../ug_2DFES.html">Constructing 2D histograms &amp; free energy surfaces</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../ug_2DFES.html#constructing-a-2d-histogram">Constructing a 2D histogram …</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../ug_2DFES.html#from-single-simulation">… from single simulation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../ug_2DFES.html#from-multiple-simulations-using-wham">… from multiple simulations using WHAM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../ug_2DFES.html#constructing-a-2d-free-energy-surface">Constructing a 2D free energy surface …</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../ug_2DFES.html#using-the-constructor">… using the constructor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../ug_2DFES.html#reading-from-a-text-file">… reading from a text file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../ug_2DFES.html#from-a-histogram">… from a histogram</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../ug_corrtime.html">Computing the correlation time</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../ug_corrtime.html#fit-to-autocorrelation-function-for-single-trajectory">Fit to autocorrelation function for single trajectory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../ug_corrtime.html#compute-correlation-time-for-trajectory-series">Compute correlation time for trajectory series</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../ug_error.html">Error estimation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../ug_error.html#without-correlations">Without correlations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../ug_error.html#with-correlations">With correlations</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../ug_plotting.html">Plotting histograms and FEP/FES</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../ug_plotting.html#d-histograms-free-energy-profile">1D Histograms &amp; free energy profile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../ug_plotting.html#d-histograms-free-energy-surfaces">2D Histograms &amp; free energy surfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../ug_micromacro.html">Extracting micro- and macrostate free energy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ug_kinetics.html">Computing the reaction rate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ug_transformation.html">Transformations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../ug_transformation.html#deterministic-transformation">Deterministic transformation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../ug_transformation.html#probabilistic-transformation">Probabilistic transformation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../ug_projection.html">(De)projections</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../ug_projection.html#projecting-2d-fes-to-1d-fep">Projecting 2D FES to 1D FEP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../ug_projection.html#deprojecting-1d-fep-to-2d-fes">Deprojecting 1D FEP to 2D FES</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="../tutorials.html">Tutorials</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="basic_wham1d.html">Tutorial 1 - Construction of 1D free energy profile using WHAM</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="basic_wham1d.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="basic_wham1d.html#WHAM-without-error-estimation">WHAM without error estimation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="basic_wham1d.html#WHAM-with-error-estimation">WHAM with error estimation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="basic_wham1d.html#Defining-macrostates-and-microstates">Defining macrostates and microstates</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="basic_kinetics.html">Tutorial 2 - Extracting kinetic reaction rates in 1D</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="basic_kinetics.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="basic_kinetics.html#Construct-free-energy-profile">Construct free energy profile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="basic_kinetics.html#Compute-rate-prefactor">Compute rate prefactor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="basic_kinetics.html#Add-kinetic-information-to-FEP-plot">Add kinetic information to FEP plot</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="basic_wham2d.html">Tutorial 3 - Construction of 2D free energy surface using WHAM</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="basic_wham2d.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="basic_wham2d.html#2D-WHAM-without-error-estimation">2D WHAM without error estimation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="basic_wham2d.html#2D-WHAM-with-error-estimate">2D WHAM with error estimate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="basic_wham2d.html#Alternative-plotting">Alternative plotting</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="advanced_error_estimation.html">Tutorial 4 - Advanced techniques in error estimation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="advanced_error_estimation.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="advanced_error_estimation.html#Impact-correlation-between-samples-on-FEP">Impact correlation between samples on FEP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="advanced_error_estimation.html#Estimating-the-autocorrelation-time">Estimating the autocorrelation time</a></li>
+<li class="toctree-l3"><a class="reference internal" href="advanced_error_estimation.html#Constructing-the-FEP-with-correlated-error-estimate">Constructing the FEP with correlated error estimate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="advanced_error_estimation.html#Evaluating-the-correlated-error-estimate">Evaluating the correlated error estimate</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="advanced_error_estimation.html#Delayed-strided-WHAM-profiles">Delayed-strided WHAM profiles</a></li>
+<li class="toctree-l4"><a class="reference internal" href="advanced_error_estimation.html#Blocked-WHAM-profile">Blocked WHAM profile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="advanced_error_estimation.html#Bootstrapped-WHAM-profiles">Bootstrapped WHAM profiles</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="advanced_error_estimation.html#Covariance-between-different-points-on-FEP">Covariance between different points on FEP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="advanced_error_estimation.html#Error-propagation">Error propagation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="advanced_projection.html">Tutorial 5 - Projection of 2D FES to 1D FEP with error propagation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="advanced_projection.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="advanced_projection.html#Constructing-2D-FES">Constructing 2D FES</a></li>
+<li class="toctree-l3"><a class="reference internal" href="advanced_projection.html#Projection-onto-1D-profile">Projection onto 1D profile</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="advanced_projection.html#Along-predefined-direction">Along predefined direction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="advanced_projection.html#Along-any-custom-direction">Along any custom direction</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="advanced_projection.html#Error-propagation">Error propagation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="advanced_projection.html#Deal-with-the-unsufficiently-sampled-edges-of-phase-space-in-FES-projection">Deal with the unsufficiently sampled edges of phase space in FES projection</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="advanced_deprojection.html">Tutorial 6 - Deprojecting 1D FEP to 2D FES</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="advanced_deprojection.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="advanced_deprojection.html#Construct-1D-FEP">Construct 1D FEP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="advanced_deprojection.html#Deproject-to-2D-FES">Deproject to 2D FES</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="advanced_deprojection.html#Direct-route---2D-WHAM">Direct route - 2D WHAM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="advanced_deprojection.html#Indirect-route---deproject-1D-FEP">Indirect route - deproject 1D FEP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="advanced_deprojection.html#CONSISTENCY-CHECK:-project-2D-FES-to-1D-FEP">CONSISTENCY CHECK: project 2D FES to 1D FEP</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="advanced_deprojection.html#U(CV)-profile">U(CV) profile</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="advanced_deprojection.html#Method-1---from-2D-FES">Method 1 - from 2D FES</a></li>
+<li class="toctree-l4"><a class="reference internal" href="advanced_deprojection.html#Method-2---from-conditional-probability">Method 2 - from conditional probability</a></li>
+<li class="toctree-l4"><a class="reference internal" href="advanced_deprojection.html#comparison">comparison</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="advanced_transformations.html">Tutorial 7 - Transformations of 1D FEP and kinetics</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="advanced_transformations.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="advanced_transformations.html#FEP-and-rate-with-original-CV">FEP and rate with original CV</a></li>
+<li class="toctree-l3"><a class="reference internal" href="advanced_transformations.html#FEP-and-rate-in-terms-of-alternative-CV">FEP and rate in terms of alternative CV</a></li>
+</ul>
+</li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Tutorial 8 - Transformation of 2D free energy surfaces</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Construction-of-original-2D-FES">Construction of original 2D FES</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Transformation-to-new-CVs">Transformation to new CVs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Projection-comparison">Projection comparison</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../rg.html">Reference Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../rg_thermo.html">Thermodynamics – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../rg_thermo.html#module-thermolib.thermodynamics.fep">Free energy profiles – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.fep</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.fep.BaseFreeEnergyProfile"><code class="docutils literal notranslate"><span class="pre">BaseFreeEnergyProfile</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.fep.BaseProfile"><code class="docutils literal notranslate"><span class="pre">BaseProfile</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.fep.FreeEnergySurface2D"><code class="docutils literal notranslate"><span class="pre">FreeEnergySurface2D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.fep.SimpleFreeEnergyProfile"><code class="docutils literal notranslate"><span class="pre">SimpleFreeEnergyProfile</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.fep.plot_profiles"><code class="docutils literal notranslate"><span class="pre">plot_profiles()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_thermo.html#module-thermolib.thermodynamics.histogram">Histograms – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.histogram</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram1D"><code class="docutils literal notranslate"><span class="pre">Histogram1D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram2D"><code class="docutils literal notranslate"><span class="pre">Histogram2D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.histogram.plot_histograms"><code class="docutils literal notranslate"><span class="pre">plot_histograms()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_thermo.html#module-thermolib.thermodynamics.trajectory">Trajectory readers – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.trajectory</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.trajectory.ASEExtendedXYZReader"><code class="docutils literal notranslate"><span class="pre">ASEExtendedXYZReader</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.trajectory.CVComputer"><code class="docutils literal notranslate"><span class="pre">CVComputer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.trajectory.ColVarReader"><code class="docutils literal notranslate"><span class="pre">ColVarReader</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.trajectory.HDF5Reader"><code class="docutils literal notranslate"><span class="pre">HDF5Reader</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_thermo.html#module-thermolib.thermodynamics.bias">Bias potentials – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.bias</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.bias.BiasPotential1D"><code class="docutils literal notranslate"><span class="pre">BiasPotential1D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.bias.BiasPotential2D"><code class="docutils literal notranslate"><span class="pre">BiasPotential2D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.bias.MultipleBiasses1D"><code class="docutils literal notranslate"><span class="pre">MultipleBiasses1D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.bias.Parabola1D"><code class="docutils literal notranslate"><span class="pre">Parabola1D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.bias.Parabola2D"><code class="docutils literal notranslate"><span class="pre">Parabola2D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.bias.PlumedSplinePotential1D"><code class="docutils literal notranslate"><span class="pre">PlumedSplinePotential1D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.bias.Polynomial1D"><code class="docutils literal notranslate"><span class="pre">Polynomial1D</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_thermo.html#module-thermolib.thermodynamics.cv">Collective variables – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.cv</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.Average"><code class="docutils literal notranslate"><span class="pre">Average</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.CenterOfMass"><code class="docutils literal notranslate"><span class="pre">CenterOfMass</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.CenterOfPosition"><code class="docutils literal notranslate"><span class="pre">CenterOfPosition</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.CoordinationNumber"><code class="docutils literal notranslate"><span class="pre">CoordinationNumber</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.Difference"><code class="docutils literal notranslate"><span class="pre">Difference</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.DistOrthProjOrig"><code class="docutils literal notranslate"><span class="pre">DistOrthProjOrig</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.Distance"><code class="docutils literal notranslate"><span class="pre">Distance</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.DistanceCOP"><code class="docutils literal notranslate"><span class="pre">DistanceCOP</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.DotProduct"><code class="docutils literal notranslate"><span class="pre">DotProduct</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.LinearCombination"><code class="docutils literal notranslate"><span class="pre">LinearCombination</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.Minimum"><code class="docutils literal notranslate"><span class="pre">Minimum</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.NormalToPlane"><code class="docutils literal notranslate"><span class="pre">NormalToPlane</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.NormalizedAxis"><code class="docutils literal notranslate"><span class="pre">NormalizedAxis</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.OrthogonalDistanceToPore"><code class="docutils literal notranslate"><span class="pre">OrthogonalDistanceToPore</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_thermo.html#module-thermolib.thermodynamics.state">State – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.state</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.state.Integrate"><code class="docutils literal notranslate"><span class="pre">Integrate</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.state.Maximum"><code class="docutils literal notranslate"><span class="pre">Maximum</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.state.Minimum"><code class="docutils literal notranslate"><span class="pre">Minimum</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_thermo.html#module-thermolib.thermodynamics.condprob">Conditional probability – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.condprob</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.condprob.ConditionalProbability1D1D"><code class="docutils literal notranslate"><span class="pre">ConditionalProbability1D1D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.condprob.ConditionalProbability1D2D"><code class="docutils literal notranslate"><span class="pre">ConditionalProbability1D2D</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../rg_kin.html">Kinetics – <code class="docutils literal notranslate"><span class="pre">thermolib.kinetics</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../rg_kin.html#module-thermolib.kinetics.rate">Rate constant – <code class="docutils literal notranslate"><span class="pre">thermolib.kinetics.rate</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_kin.html#thermolib.kinetics.rate.BaseRateFactor"><code class="docutils literal notranslate"><span class="pre">BaseRateFactor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_kin.html#thermolib.kinetics.rate.RateFactorEquilibrium"><code class="docutils literal notranslate"><span class="pre">RateFactorEquilibrium</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../rg_error.html">Error distributions – <code class="docutils literal notranslate"><span class="pre">thermolib.error</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.ErrorArray"><code class="docutils literal notranslate"><span class="pre">ErrorArray</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.ErrorArray.mean"><code class="docutils literal notranslate"><span class="pre">ErrorArray.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.ErrorArray.nsigma_conf_int"><code class="docutils literal notranslate"><span class="pre">ErrorArray.nsigma_conf_int()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.ErrorArray.sample"><code class="docutils literal notranslate"><span class="pre">ErrorArray.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.ErrorArray.std"><code class="docutils literal notranslate"><span class="pre">ErrorArray.std()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution.copy"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution.from_samples"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.from_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution.log_from_loggaussian"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.log_from_loggaussian()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution.mean"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution.nsigma_conf_int"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.nsigma_conf_int()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution.print"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.print()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution.sample"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution.set_ref"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.set_ref()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution.shift"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.shift()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution.std"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.std()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.LogGaussianDistribution"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.LogGaussianDistribution.copy"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.LogGaussianDistribution.exp_from_gaussian"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.exp_from_gaussian()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.LogGaussianDistribution.from_samples"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.from_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.LogGaussianDistribution.mean"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.LogGaussianDistribution.nsigma_conf_int"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.nsigma_conf_int()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.LogGaussianDistribution.sample"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.LogGaussianDistribution.set_ref"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.set_ref()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.LogGaussianDistribution.shift"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.shift()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.LogGaussianDistribution.std"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.std()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiDistribution"><code class="docutils literal notranslate"><span class="pre">MultiDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiDistribution.corr"><code class="docutils literal notranslate"><span class="pre">MultiDistribution.corr()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution.copy"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution.cov"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.cov()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution.from_samples"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.from_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution.log_from_loggaussian"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.log_from_loggaussian()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution.mean"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution.nsigma_conf_int"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.nsigma_conf_int()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution.plot_corr_matrix"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.plot_corr_matrix()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution.sample"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution.set_ref"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.set_ref()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution.std"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.std()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiLogGaussianDistribution"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiLogGaussianDistribution.copy"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiLogGaussianDistribution.cov"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.cov()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiLogGaussianDistribution.exp_from_gaussian"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.exp_from_gaussian()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiLogGaussianDistribution.from_samples"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.from_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiLogGaussianDistribution.mean"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiLogGaussianDistribution.nsigma_conf_int"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.nsigma_conf_int()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiLogGaussianDistribution.plot_corr_matrix"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.plot_corr_matrix()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiLogGaussianDistribution.sample"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiLogGaussianDistribution.std"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.std()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.Propagator"><code class="docutils literal notranslate"><span class="pre">Propagator</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.Propagator.calc_fun_values"><code class="docutils literal notranslate"><span class="pre">Propagator.calc_fun_values()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.Propagator.gen_args_samples"><code class="docutils literal notranslate"><span class="pre">Propagator.gen_args_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.Propagator.get_distribution"><code class="docutils literal notranslate"><span class="pre">Propagator.get_distribution()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.Propagator.reset"><code class="docutils literal notranslate"><span class="pre">Propagator.reset()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.SampleDistribution"><code class="docutils literal notranslate"><span class="pre">SampleDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.SampleDistribution.from_samples"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.from_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.SampleDistribution.mean"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.SampleDistribution.sample"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.SampleDistribution.set_ref"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.set_ref()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.SampleDistribution.shift"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.shift()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.SampleDistribution.std"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.std()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../rg_tools.html">Tools – <code class="docutils literal notranslate"><span class="pre">thermolib.tools</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.blav"><code class="docutils literal notranslate"><span class="pre">blav()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.corrtime_from_acf"><code class="docutils literal notranslate"><span class="pre">corrtime_from_acf()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.decorrelate"><code class="docutils literal notranslate"><span class="pre">decorrelate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.extract_polynomial_bias_info"><code class="docutils literal notranslate"><span class="pre">extract_polynomial_bias_info()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.fisher_matrix_mle_probdens"><code class="docutils literal notranslate"><span class="pre">fisher_matrix_mle_probdens()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.format_scientific"><code class="docutils literal notranslate"><span class="pre">format_scientific()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.h5_read_dataset"><code class="docutils literal notranslate"><span class="pre">h5_read_dataset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.integrate"><code class="docutils literal notranslate"><span class="pre">integrate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.integrate2d"><code class="docutils literal notranslate"><span class="pre">integrate2d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.interpolate_surface_2d"><code class="docutils literal notranslate"><span class="pre">interpolate_surface_2d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.invert_fisher_to_covariance"><code class="docutils literal notranslate"><span class="pre">invert_fisher_to_covariance()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.multivariate_normal"><code class="docutils literal notranslate"><span class="pre">multivariate_normal()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.read_wham_input"><code class="docutils literal notranslate"><span class="pre">read_wham_input()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.rolling_average"><code class="docutils literal notranslate"><span class="pre">rolling_average()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../rg_ext.html">Extensions – <code class="docutils literal notranslate"><span class="pre">thermolib.ext</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../rg_ext.html#thermolib.ext.wham1d_bias"><code class="docutils literal notranslate"><span class="pre">wham1d_bias()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_ext.html#thermolib.ext.wham1d_error"><code class="docutils literal notranslate"><span class="pre">wham1d_error()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_ext.html#thermolib.ext.wham1d_hs"><code class="docutils literal notranslate"><span class="pre">wham1d_hs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_ext.html#thermolib.ext.wham1d_scf"><code class="docutils literal notranslate"><span class="pre">wham1d_scf()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_ext.html#thermolib.ext.wham2d_bias"><code class="docutils literal notranslate"><span class="pre">wham2d_bias()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_ext.html#thermolib.ext.wham2d_error"><code class="docutils literal notranslate"><span class="pre">wham2d_error()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_ext.html#thermolib.ext.wham2d_hs"><code class="docutils literal notranslate"><span class="pre">wham2d_hs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_ext.html#thermolib.ext.wham2d_scf"><code class="docutils literal notranslate"><span class="pre">wham2d_scf()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ThermoLIB</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../tutorials.html">Tutorials</a></li>
+      <li class="breadcrumb-item active">Tutorial 8 - Transformation of 2D free energy surfaces</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/tut/advanced_transformations_2D.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Tutorial-8---Transformation-of-2D-free-energy-surfaces">
+<h1>Tutorial 8 - Transformation of 2D free energy surfaces<a class="headerlink" href="#Tutorial-8---Transformation-of-2D-free-energy-surfaces" title="Permalink to this heading"></a></h1>
+<section id="Introduction">
+<h2>Introduction<a class="headerlink" href="#Introduction" title="Permalink to this heading"></a></h2>
+<p>This notebook illustrates the usage of ThermoLIB to transform a 2D free energy surface in terms of collective variables (CV1,CV2) towards a new FES in terms of new collective variables (Q1,Q2) in which the relation between (CV1,CV2) and (Q1,Q2) is given as a deterministic transformation formula. For the purpose of this illustration, we will chose a transformation that encodes a simply rotation in the (CV1,CV2) plane. Furthermore, to validate the implementation, we will also project the original
+FES on the CV1 axis and compare with the projection of the rotated FES on the rotated CV1 axis.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">load_ext</span> autoreload
+<span class="o">%</span><span class="k">autoreload</span> 2
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">thermolib.thermodynamics.fep</span> <span class="kn">import</span> <span class="n">FreeEnergySurface2D</span><span class="p">,</span> <span class="n">SimpleFreeEnergyProfile</span><span class="p">,</span> <span class="n">plot_profiles</span>
+<span class="kn">from</span> <span class="nn">thermolib.thermodynamics.histogram</span> <span class="kn">import</span> <span class="n">Histogram2D</span>
+<span class="kn">from</span> <span class="nn">thermolib.tools</span> <span class="kn">import</span> <span class="n">read_wham_input</span><span class="p">,</span> <span class="n">decorrelate</span>
+<span class="kn">from</span> <span class="nn">thermolib.thermodynamics.trajectory</span> <span class="kn">import</span> <span class="n">ColVarReader</span>
+<span class="kn">from</span> <span class="nn">thermolib.error</span> <span class="kn">import</span> <span class="n">Propagator</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span><span class="o">,</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">pp</span><span class="o">,</span> <span class="nn">time</span>
+
+<span class="kn">from</span> <span class="nn">molmod.units</span> <span class="kn">import</span> <span class="o">*</span>
+</pre></div>
+</div>
+</div>
+<p>Define some file/path variables</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fn_meta</span> <span class="o">=</span> <span class="s1">&#39;data/HZSM5_link/wham_input_2D.txt&#39;</span> <span class="c1">#location of the plumed metadata file containing all information of the umbrella sampling</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Construction-of-original-2D-FES">
+<h2>Construction of original 2D FES<a class="headerlink" href="#Construction-of-original-2D-FES" title="Permalink to this heading"></a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">colvar_reader</span> <span class="o">=</span> <span class="n">ColVarReader</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="n">units</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;au&#39;</span><span class="p">,</span><span class="s1">&#39;au&#39;</span><span class="p">])</span>
+<span class="n">temp</span><span class="p">,</span> <span class="n">biasses</span><span class="p">,</span> <span class="n">trajectories</span> <span class="o">=</span> <span class="n">read_wham_input</span><span class="p">(</span>
+    <span class="n">fn_meta</span><span class="p">,</span> <span class="n">colvar_reader</span><span class="p">,</span> <span class="s1">&#39;colvars/colvar_</span><span class="si">%s</span><span class="s1">.dat&#39;</span><span class="p">,</span>
+    <span class="n">bias_potential</span><span class="o">=</span><span class="s1">&#39;Parabola2D&#39;</span><span class="p">,</span> <span class="n">q01_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">q02_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">kappa1_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">kappa2_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">corrtimes</span> <span class="o">=</span> <span class="n">decorrelate</span><span class="p">(</span><span class="n">trajectories</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/home/louis/miniconda3/lib/python3.8/site-packages/scipy/optimize/minpack.py:828: OptimizeWarning: Covariance of the parameters could not be estimated
+  warnings.warn(&#39;Covariance of the parameters could not be estimated&#39;,
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Figure size 432x288 with 0 Axes&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tut_advanced_transformations_2D_9_2.png" src="../_images/tut_advanced_transformations_2D_9_2.png" />
+</div>
+</div>
+<p>Next, we construct the 2D probability histogram on the given 2D CV grid (defined by <code class="docutils literal notranslate"><span class="pre">bins</span></code>) using the WHAM routine.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">bins</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mf">4.025</span><span class="p">,</span><span class="mf">0.025</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mf">2.5</span><span class="p">,</span><span class="mf">0.025</span><span class="p">,</span><span class="mf">0.025</span><span class="p">)]</span>
+<span class="n">hist</span> <span class="o">=</span> <span class="n">Histogram2D</span><span class="o">.</span><span class="n">from_wham</span><span class="p">(</span><span class="n">bins</span><span class="p">,</span> <span class="n">trajectories</span><span class="p">,</span> <span class="n">biasses</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="s1">&#39;mle_f_cov&#39;</span><span class="p">,</span> <span class="n">corrtimes</span><span class="o">=</span><span class="n">corrtimes</span><span class="p">,</span> <span class="n">error_p_threshold</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">)</span>
+<span class="n">hist_noerror</span> <span class="o">=</span> <span class="n">Histogram2D</span><span class="o">.</span><span class="n">from_wham</span><span class="p">(</span><span class="n">bins</span><span class="p">,</span> <span class="n">trajectories</span><span class="p">,</span> <span class="n">biasses</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+WARNING: could not converge WHAM equations to convergence of 1.000e-06 in 1000 steps!
+  SCF did not converge!
+
+---------------------------------------------------------------------
+TIMING SUMMARY
+  initializing: 00h 00m 00.000s
+  histograms  : 00h 00m 00.030s
+  bias poten. : 00h 00m 02.065s
+  solve scf   : 00h 00m 00.632s
+  error est.  : 00h 00m 11.483s
+  TOTAL       : 00h 00m 14.211s
+---------------------------------------------------------------------
+WARNING: could not converge WHAM equations to convergence of 1.000e-06 in 1000 steps!
+  SCF did not converge!
+
+---------------------------------------------------------------------
+TIMING SUMMARY
+  initializing: 00h 00m 00.000s
+  histograms  : 00h 00m 00.022s
+  bias poten. : 00h 00m 02.099s
+  solve scf   : 00h 00m 00.648s
+  error est.  : 00h 00m 00.000s
+  TOTAL       : 00h 00m 02.771s
+---------------------------------------------------------------------
+</pre></div></div>
+</div>
+<p>From the histogram, we can construct the corresponding free energy profile. We assume the profile contains a single transition state maximum within the Q-range of <code class="docutils literal notranslate"><span class="pre">[-0.2,0.2]</span></code>, and a reactant state minimum for lower Q value and product state minimum for higher Q value. This is encoded in the class <code class="docutils literal notranslate"><span class="pre">SimpleFreeEnergyProfile</span></code>. We then also define the energy reference by setting the reactant state minimum to zero and plot the resulting profile.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fes</span> <span class="o">=</span> <span class="n">FreeEnergySurface2D</span><span class="o">.</span><span class="n">from_histogram</span><span class="p">(</span><span class="n">hist</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span>
+<span class="n">fes_noerror</span> <span class="o">=</span> <span class="n">FreeEnergySurface2D</span><span class="o">.</span><span class="n">from_histogram</span><span class="p">(</span><span class="n">hist_noerror</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span>
+<span class="n">fes</span><span class="o">.</span><span class="n">set_ref</span><span class="p">(</span><span class="n">ref</span><span class="o">=</span><span class="s1">&#39;min&#39;</span><span class="p">)</span>
+<span class="n">fes_noerror</span><span class="o">.</span><span class="n">set_ref</span><span class="p">(</span><span class="n">ref</span><span class="o">=</span><span class="s1">&#39;min&#39;</span><span class="p">)</span>
+<span class="n">fes</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">obss</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">],</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;rainbow&#39;</span><span class="p">,</span> <span class="n">flims</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">140</span><span class="p">],</span> <span class="n">ncolors</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:2138: MatplotlibDeprecationWarning: The &#39;extend&#39; parameter to Colorbar has no effect because it is overridden by the mappable; it is deprecated since 3.3 and will be removed two minor releases later.
+  cbar = pp.colorbar(contourf, ax=ax, extend=&#39;both&#39;)
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Figure size 432x288 with 0 Axes&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tut_advanced_transformations_2D_13_2.png" src="../_images/tut_advanced_transformations_2D_13_2.png" />
+</div>
+</div>
+</section>
+<section id="Transformation-to-new-CVs">
+<h2>Transformation to new CVs<a class="headerlink" href="#Transformation-to-new-CVs" title="Permalink to this heading"></a></h2>
+<p>We transform <img class="math" src="../_images/math/f937d5265632f42366ed9c6bcbfa1c77f37a97a2.png" alt="F_\text{CV}(CV_1,CV_2)"/> to <img class="math" src="../_images/math/30d8404dec3867be77df767b51759dc985687a35.png" alt="F_\text{Q}(Q_1,Q_2)"/> with:</p>
+<dl class="simple">
+<dt>:nbsphinx-math:<a href="#id1"><span class="problematic" id="id2">`</span></a>begin{align}</dt><dd><p>Q_1 &amp;= frac{sqrt{2}}{2}left(CV_1 - 2.27 + CV_2 + 1.25right) \
+Q_2 &amp;= frac{sqrt{2}}{2}left(CV_2 + 1.25 - CV_1 + 2.27right)</p>
+</dd>
+</dl>
+<p>end{align}`</p>
+<p>which simply encodes a rotation over 45 degrees around the point <img class="math" src="../_images/math/47e092401b9b5f5314baa5a7e32fac27317d5de8.png" alt="(CV_1,CV_2)=(2.27,-1.25)"/></p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">f1</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="mf">2.75</span><span class="o">+</span><span class="n">y</span><span class="o">+</span><span class="mf">1.25</span><span class="p">)</span>
+<span class="n">f2</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">y</span><span class="o">+</span><span class="mf">1.25</span><span class="o">-</span><span class="n">x</span><span class="o">+</span><span class="mf">2.75</span><span class="p">)</span>
+<span class="n">q1s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mf">1.2</span><span class="p">,</span><span class="mf">1.4</span><span class="o">+</span><span class="mf">0.025</span><span class="p">,</span><span class="mf">0.025</span><span class="p">)</span>
+<span class="n">q2s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">1.0</span><span class="o">+</span><span class="mf">0.025</span><span class="p">,</span><span class="mf">0.025</span><span class="p">)</span>
+<span class="n">fes2</span> <span class="o">=</span> <span class="n">fes</span><span class="o">.</span><span class="n">transform_function</span><span class="p">((</span><span class="n">f1</span><span class="p">,</span><span class="n">f2</span><span class="p">),</span> <span class="n">q1s</span><span class="p">,</span> <span class="n">q2s</span><span class="p">,</span> <span class="n">cv1_label</span><span class="o">=</span><span class="s1">&#39;Q1&#39;</span><span class="p">,</span> <span class="n">cv2_label</span><span class="o">=</span><span class="s1">&#39;Q2&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fes2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">obss</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">],</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;rainbow&#39;</span><span class="p">,</span> <span class="n">flims</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">140</span><span class="p">],</span> <span class="n">ncolors</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:2138: MatplotlibDeprecationWarning: The &#39;extend&#39; parameter to Colorbar has no effect because it is overridden by the mappable; it is deprecated since 3.3 and will be removed two minor releases later.
+  cbar = pp.colorbar(contourf, ax=ax, extend=&#39;both&#39;)
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Figure size 432x288 with 0 Axes&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tut_advanced_transformations_2D_17_2.png" src="../_images/tut_advanced_transformations_2D_17_2.png" />
+</div>
+</div>
+<p>Both the free energy itself as well as its error bar indeed seem to represent a rotated version of the original.</p>
+</section>
+<section id="Projection-comparison">
+<h2>Projection comparison<a class="headerlink" href="#Projection-comparison" title="Permalink to this heading"></a></h2>
+<p>As a further comparison, we project the original FES on CV1 as well as the new FES on <img class="math" src="../_images/math/d1b2c0bd4b39e438bb31d31c47af97c5aeabdec2.png" alt="f(Q_1,Q_2)=\frac{\sqrt{2}}{2}\left(Q_1-Q_2\right)+2.75=CV_1"/> and compare on a 1D plot (with error bar).</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fep</span> <span class="o">=</span> <span class="n">fes</span><span class="o">.</span><span class="n">project_cv1</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fun</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="n">y</span><span class="p">)</span><span class="o">+</span><span class="mf">2.75</span>
+<span class="n">cv1s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mf">4.025</span><span class="p">,</span><span class="mf">0.025</span><span class="p">)</span>
+<span class="n">fep2</span> <span class="o">=</span> <span class="n">fes2</span><span class="o">.</span><span class="n">project_function</span><span class="p">(</span><span class="n">fun</span><span class="p">,</span> <span class="n">cv1s</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plot_profiles</span><span class="p">([</span><span class="n">fep</span><span class="p">,</span><span class="n">fep2</span><span class="p">],</span> <span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;before trans&#39;</span><span class="p">,</span><span class="s1">&#39;after trans&#39;</span><span class="p">],</span> <span class="n">linestyles</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;-&#39;</span><span class="p">,</span><span class="s1">&#39;--&#39;</span><span class="p">],</span> <span class="n">colors</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">,</span><span class="s1">&#39;k&#39;</span><span class="p">],</span> <span class="n">flims</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">40</span><span class="p">,</span><span class="mi">140</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Figure size 432x288 with 0 Axes&gt;
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu Sans.
+findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu Sans.
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tut_advanced_transformations_2D_23_2.png" src="../_images/tut_advanced_transformations_2D_23_2.png" />
+</div>
+</div>
+<p>This plot clearly illustrates that both projections are the same, further validating the implementation.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="advanced_transformations.html" class="btn btn-neutral float-left" title="Tutorial 7 - Transformations of 1D FEP and kinetics" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../rg.html" class="btn btn-neutral float-right" title="Reference Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Louis Vanduyfhuys.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>
