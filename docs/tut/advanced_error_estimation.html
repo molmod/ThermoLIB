@@ -60,6 +60,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../ig.html#developers-download">Developers download</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../ig.html#update-thermolib">Update ThermoLIB</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../ig.html#test-installation">Test installation</a></li>
 </ul>
 </li>
@@ -491,11 +492,11 @@ SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 01.487s
-  bias poten. : 00h 00m 00.018s
-  solve scf   : 00h 00m 00.398s
-  error est.  : 00h 00m 00.053s
-  TOTAL       : 00h 00m 01.958s
+  histograms  : 00h 00m 01.522s
+  bias poten. : 00h 00m 00.022s
+  solve scf   : 00h 00m 00.376s
+  error est.  : 00h 00m 01.015s
+  TOTAL       : 00h 00m 02.936s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -523,11 +524,11 @@ SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.185s
-  bias poten. : 00h 00m 00.045s
-  solve scf   : 00h 00m 00.485s
-  error est.  : 00h 00m 00.104s
-  TOTAL       : 00h 00m 00.820s
+  histograms  : 00h 00m 00.119s
+  bias poten. : 00h 00m 00.014s
+  solve scf   : 00h 00m 00.304s
+  error est.  : 00h 00m 01.173s
+  TOTAL       : 00h 00m 01.610s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -555,10 +556,10 @@ SCF Converged!
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
   histograms  : 00h 00m 00.013s
-  bias poten. : 00h 00m 00.013s
-  solve scf   : 00h 00m 00.741s
-  error est.  : 00h 00m 00.030s
-  TOTAL       : 00h 00m 00.799s
+  bias poten. : 00h 00m 00.012s
+  solve scf   : 00h 00m 00.759s
+  error est.  : 00h 00m 01.014s
+  TOTAL       : 00h 00m 01.799s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -585,11 +586,11 @@ SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.004s
-  bias poten. : 00h 00m 00.013s
-  solve scf   : 00h 00m 00.913s
-  error est.  : 00h 00m 00.246s
-  TOTAL       : 00h 00m 01.179s
+  histograms  : 00h 00m 00.005s
+  bias poten. : 00h 00m 00.015s
+  solve scf   : 00h 00m 00.927s
+  error est.  : 00h 00m 00.720s
+  TOTAL       : 00h 00m 01.669s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -631,7 +632,7 @@ findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu S
 <h2>Estimating the autocorrelation time<a class="headerlink" href="#Estimating-the-autocorrelation-time" title="Permalink to this heading"></a></h2>
 <p>The question now is which is the most reliable representation of the error. To that end, we estimate the correlation time from the autocorrelation function of the collective variable itself during the trajectories. We first illustrate this for a few individual trajectories:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[35]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">corrtime</span> <span class="o">=</span> <span class="n">corrtime_from_acf</span><span class="p">(</span><span class="n">trajectories_1</span><span class="p">[</span><span class="mi">8</span><span class="p">],</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">5000</span><span class="p">],</span> <span class="n">ylims</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">1.05</span><span class="p">,</span><span class="mf">1.05</span><span class="p">])</span>
@@ -651,7 +652,7 @@ below zero and hence any fit will give flat curve. Instead, we first filter out 
 <p>In some cases, it is usefull to indeed switch this off. For example when you did a simulation in which you did not print out every time step, but only every so many time steps resulting in a time series that do not contain these high frequency oscillations any more. In other situations it might be the case the enveloppe still contains such oscillations that make fitting difficult, then you can compute the enveloppe of the enveloppe by setting <code class="docutils literal notranslate"><span class="pre">n_nested_envelopes=2</span></code>. Below, we show what happens
 if we put <code class="docutils literal notranslate"><span class="pre">n_nested_envelopes=2</span></code> for the current case.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[36]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ct</span> <span class="o">=</span> <span class="n">corrtime_from_acf</span><span class="p">(</span><span class="n">trajectories_1</span><span class="p">[</span><span class="mi">8</span><span class="p">],</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">5000</span><span class="p">],</span> <span class="n">ylims</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">1.05</span><span class="p">,</span><span class="mf">1.05</span><span class="p">],</span> <span class="n">n_nested_envelopes</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
@@ -686,7 +687,7 @@ Fitted (integrated) correlation time: 2*tau =  2.000 timesteps
 <p>You indeed see that the enveloppe contains even less oscillations. However, a new problem arises, a problem that also might have arissen from the start (e.g. again when the simulation only printed out every so many steps). This new issue is that the fit (dashed red line) is very bad. In fact, a closer look to the resulting correlation time reveals that no fit was done at all. Indeed we see that the integrated correlation time equals <img class="math" src="../_images/math/9b5f08ad8d6cb436c7d39ab5418c3a7dc68fa3df.png" alt="2\cdot\tau=2"/> or hence <img class="math" src="../_images/math/02d0897a6b00abcf1e0b969fad3ff0cab665995f.png" alt="\tau=1"/>. This is just the
 initial guess of <img class="math" src="../_images/math/914b2d4b6659b86d3153d5510839dfb254dfc8a3.png" alt="\tau"/> (which is by default set to 1) is returned. Therefore, we need to adjust the initial gues of the correlation time <img class="math" src="../_images/math/914b2d4b6659b86d3153d5510839dfb254dfc8a3.png" alt="\tau"/> to a better value, which we can do with the keyword <code class="docutils literal notranslate"><span class="pre">p0</span></code>. If we would make another bad guess, i.e. set the initial gues to 2, we will still be confronted with the same issue. Let us first illustrate that by indeed setting the initial guess to 2:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[37]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ct</span> <span class="o">=</span> <span class="n">corrtime_from_acf</span><span class="p">(</span><span class="n">trajectories_1</span><span class="p">[</span><span class="mi">8</span><span class="p">],</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">5000</span><span class="p">],</span> <span class="n">ylims</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">1.05</span><span class="p">,</span><span class="mf">1.05</span><span class="p">],</span> <span class="n">n_nested_envelopes</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">p0</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
@@ -720,7 +721,7 @@ Fitted (integrated) correlation time: 2*tau =  4.000 timesteps
 </div>
 <p>We now again clearly see a bad fit, which is also again reflected by the fact that the result <img class="math" src="../_images/math/5d9bfef29b87c3cec5e87338eae90e333c529c47.png" alt="2\cdot\tau=4"/> (hence <img class="math" src="../_images/math/0762ab7b314be72ac94bf6e05488a047affa0770.png" alt="\tau=2)"/> just returns the initial guess. In order to make a better initial gues, we can just look at the plot of the red solid line. We clearly see that the initial decay happens on a time scale of 1000 timesteps, so we could just use that as initial guess:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[38]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ct</span> <span class="o">=</span> <span class="n">corrtime_from_acf</span><span class="p">(</span><span class="n">trajectories_1</span><span class="p">[</span><span class="mi">8</span><span class="p">],</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">5000</span><span class="p">],</span> <span class="n">ylims</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">1.05</span><span class="p">,</span><span class="mf">1.05</span><span class="p">],</span> <span class="n">n_nested_envelopes</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">p0</span><span class="o">=</span><span class="p">[</span><span class="mi">1000</span><span class="p">])</span>
@@ -749,12 +750,20 @@ Fitted (integrated) correlation time: 2*tau =  1191.743 timesteps
 <h2>Constructing the FEP with correlated error estimate<a class="headerlink" href="#Constructing-the-FEP-with-correlated-error-estimate" title="Permalink to this heading"></a></h2>
 <p>Let us now compute the correlation time for each trajectory. This can be done using the <code class="docutils literal notranslate"><span class="pre">decorrelate</span></code> routine. In this routine, we can also adjust the parameters for the enveloppe and the initial conditions by specifying respectively the <code class="docutils literal notranslate"><span class="pre">n_nested_envelopes</span></code> and <code class="docutils literal notranslate"><span class="pre">p0</span></code> arguments. However, in the following we can use the default values.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[39]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">corrtimes</span> <span class="o">=</span> <span class="n">decorrelate</span><span class="p">(</span><span class="n">trajectories_1</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu Sans.
+</pre></div></div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
@@ -768,7 +777,7 @@ Fitted (integrated) correlation time: 2*tau =  1191.743 timesteps
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_error_estimation_27_1.png" src="../_images/tut_advanced_error_estimation_27_1.png" />
+<img alt="../_images/tut_advanced_error_estimation_27_2.png" src="../_images/tut_advanced_error_estimation_27_2.png" />
 </div>
 </div>
 <p>The above routine returns the correlation times for each simulation (i.e. each umbrella). As the error estimation is based on the Fisher information matrix of the maximum likelihood estimator, we can reconstruct the free energy profile using all original samples, but now we also parse the correlation times to the <code class="docutils literal notranslate"><span class="pre">from_wham</span></code> routine to obtain a more reliable error estimation by accounting for the reduced information due to correlation (i.e. only <img class="math" src="../_images/math/29008284107fe3cab6e7cee4be7a7e33a6364755.png" alt="\frac{N}{2\cdot\tau-1}"/> independent
@@ -793,11 +802,11 @@ SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 01.514s
+  histograms  : 00h 00m 01.391s
   bias poten. : 00h 00m 00.017s
-  solve scf   : 00h 00m 00.431s
-  error est.  : 00h 00m 00.257s
-  TOTAL       : 00h 00m 02.221s
+  solve scf   : 00h 00m 00.387s
+  error est.  : 00h 00m 01.210s
+  TOTAL       : 00h 00m 03.008s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -867,33 +876,33 @@ SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.008s
-  bias poten. : 00h 00m 00.022s
-  solve scf   : 00h 00m 00.965s
+  histograms  : 00h 00m 00.007s
+  bias poten. : 00h 00m 00.014s
+  solve scf   : 00h 00m 00.993s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.996s
+  TOTAL       : 00h 00m 01.014s
 ---------------------------------------------------------------------
 Constructing WHAM FEP for start=100
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.004s
-  bias poten. : 00h 00m 00.013s
-  solve scf   : 00h 00m 00.815s
+  histograms  : 00h 00m 00.005s
+  bias poten. : 00h 00m 00.015s
+  solve scf   : 00h 00m 00.872s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.834s
+  TOTAL       : 00h 00m 00.893s
 ---------------------------------------------------------------------
 Constructing WHAM FEP for start=200
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.006s
+  histograms  : 00h 00m 00.004s
   bias poten. : 00h 00m 00.014s
-  solve scf   : 00h 00m 00.771s
+  solve scf   : 00h 00m 00.819s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.792s
+  TOTAL       : 00h 00m 00.838s
 ---------------------------------------------------------------------
 Constructing WHAM FEP for start=300
 SCF Converged!
@@ -902,42 +911,42 @@ TIMING SUMMARY
   initializing: 00h 00m 00.000s
   histograms  : 00h 00m 00.005s
   bias poten. : 00h 00m 00.015s
-  solve scf   : 00h 00m 00.965s
+  solve scf   : 00h 00m 01.029s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.985s
+  TOTAL       : 00h 00m 01.049s
 ---------------------------------------------------------------------
 Constructing WHAM FEP for start=400
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.004s
-  bias poten. : 00h 00m 00.013s
-  solve scf   : 00h 00m 00.297s
+  histograms  : 00h 00m 00.008s
+  bias poten. : 00h 00m 00.019s
+  solve scf   : 00h 00m 00.299s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.315s
+  TOTAL       : 00h 00m 00.327s
 ---------------------------------------------------------------------
 Constructing WHAM FEP for start=500
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.005s
+  histograms  : 00h 00m 00.004s
   bias poten. : 00h 00m 00.013s
-  solve scf   : 00h 00m 00.713s
+  solve scf   : 00h 00m 00.669s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.733s
+  TOTAL       : 00h 00m 00.687s
 ---------------------------------------------------------------------
 Constructing WHAM FEP for start=600
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.005s
+  histograms  : 00h 00m 00.006s
   bias poten. : 00h 00m 00.013s
-  solve scf   : 00h 00m 00.875s
+  solve scf   : 00h 00m 00.980s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.894s
+  TOTAL       : 00h 00m 01.000s
 ---------------------------------------------------------------------
 Constructing WHAM FEP for start=700
 SCF Converged!
@@ -945,21 +954,21 @@ SCF Converged!
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
   histograms  : 00h 00m 00.004s
-  bias poten. : 00h 00m 00.013s
-  solve scf   : 00h 00m 00.797s
+  bias poten. : 00h 00m 00.014s
+  solve scf   : 00h 00m 00.844s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.816s
+  TOTAL       : 00h 00m 00.863s
 ---------------------------------------------------------------------
 Constructing WHAM FEP for start=800
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.006s
-  bias poten. : 00h 00m 00.016s
-  solve scf   : 00h 00m 00.631s
+  histograms  : 00h 00m 00.004s
+  bias poten. : 00h 00m 00.012s
+  solve scf   : 00h 00m 00.572s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.654s
+  TOTAL       : 00h 00m 00.589s
 ---------------------------------------------------------------------
 Constructing WHAM FEP for start=900
 SCF Converged!
@@ -967,10 +976,10 @@ SCF Converged!
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
   histograms  : 00h 00m 00.005s
-  bias poten. : 00h 00m 00.013s
-  solve scf   : 00h 00m 00.715s
+  bias poten. : 00h 00m 00.014s
+  solve scf   : 00h 00m 00.751s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.733s
+  TOTAL       : 00h 00m 00.770s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -1032,11 +1041,11 @@ SCF did not converge!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.006s
-  bias poten. : 00h 00m 00.016s
-  solve scf   : 00h 00m 00.155s
+  histograms  : 00h 00m 00.005s
+  bias poten. : 00h 00m 00.013s
+  solve scf   : 00h 00m 00.112s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.178s
+  TOTAL       : 00h 00m 00.131s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -1158,11 +1167,32 @@ SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.005s
-  bias poten. : 00h 00m 00.018s
-  solve scf   : 00h 00m 00.924s
+  histograms  : 00h 00m 00.007s
+  bias poten. : 00h 00m 00.046s
+  solve scf   : 00h 00m 00.848s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.949s
+  TOTAL       : 00h 00m 00.901s
+---------------------------------------------------------------------
+SCF Converged!
+---------------------------------------------------------------------
+TIMING SUMMARY
+  initializing: 00h 00m 00.000s
+  histograms  : 00h 00m 00.005s
+  bias poten. : 00h 00m 00.013s
+  solve scf   : 00h 00m 00.885s
+  error est.  : 00h 00m 00.000s
+  TOTAL       : 00h 00m 00.904s
+---------------------------------------------------------------------
+WARNING: the CV range you specified for the histogram does not cover the entire simulation range in trajectory 127. Simulation samples outside the given CV range were cropped out.
+SCF Converged!
+---------------------------------------------------------------------
+TIMING SUMMARY
+  initializing: 00h 00m 00.000s
+  histograms  : 00h 00m 00.004s
+  bias poten. : 00h 00m 00.014s
+  solve scf   : 00h 00m 00.724s
+  error est.  : 00h 00m 00.000s
+  TOTAL       : 00h 00m 00.743s
 ---------------------------------------------------------------------
 SCF Converged!
 ---------------------------------------------------------------------
@@ -1170,9 +1200,19 @@ TIMING SUMMARY
   initializing: 00h 00m 00.000s
   histograms  : 00h 00m 00.004s
   bias poten. : 00h 00m 00.013s
-  solve scf   : 00h 00m 00.872s
+  solve scf   : 00h 00m 00.827s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.890s
+  TOTAL       : 00h 00m 00.845s
+---------------------------------------------------------------------
+SCF Converged!
+---------------------------------------------------------------------
+TIMING SUMMARY
+  initializing: 00h 00m 00.000s
+  histograms  : 00h 00m 00.005s
+  bias poten. : 00h 00m 00.013s
+  solve scf   : 00h 00m 00.926s
+  error est.  : 00h 00m 00.000s
+  TOTAL       : 00h 00m 00.946s
 ---------------------------------------------------------------------
 SCF Converged!
 ---------------------------------------------------------------------
@@ -1180,49 +1220,19 @@ TIMING SUMMARY
   initializing: 00h 00m 00.000s
   histograms  : 00h 00m 00.005s
   bias poten. : 00h 00m 00.014s
-  solve scf   : 00h 00m 00.803s
+  solve scf   : 00h 00m 00.907s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.822s
+  TOTAL       : 00h 00m 00.927s
 ---------------------------------------------------------------------
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.004s
-  bias poten. : 00h 00m 00.016s
-  solve scf   : 00h 00m 00.883s
+  histograms  : 00h 00m 00.005s
+  bias poten. : 00h 00m 00.014s
+  solve scf   : 00h 00m 00.809s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.904s
----------------------------------------------------------------------
-SCF Converged!
----------------------------------------------------------------------
-TIMING SUMMARY
-  initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.007s
-  bias poten. : 00h 00m 00.016s
-  solve scf   : 00h 00m 00.908s
-  error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.932s
----------------------------------------------------------------------
-SCF Converged!
----------------------------------------------------------------------
-TIMING SUMMARY
-  initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.007s
-  bias poten. : 00h 00m 00.012s
-  solve scf   : 00h 00m 00.446s
-  error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.467s
----------------------------------------------------------------------
-SCF Converged!
----------------------------------------------------------------------
-TIMING SUMMARY
-  initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.004s
-  bias poten. : 00h 00m 00.015s
-  solve scf   : 00h 00m 00.788s
-  error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.808s
+  TOTAL       : 00h 00m 00.829s
 ---------------------------------------------------------------------
 SCF Converged!
 ---------------------------------------------------------------------
@@ -1230,9 +1240,9 @@ TIMING SUMMARY
   initializing: 00h 00m 00.000s
   histograms  : 00h 00m 00.005s
   bias poten. : 00h 00m 00.013s
-  solve scf   : 00h 00m 00.682s
+  solve scf   : 00h 00m 00.932s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.700s
+  TOTAL       : 00h 00m 00.951s
 ---------------------------------------------------------------------
 SCF Converged!
 ---------------------------------------------------------------------
@@ -1240,19 +1250,19 @@ TIMING SUMMARY
   initializing: 00h 00m 00.000s
   histograms  : 00h 00m 00.004s
   bias poten. : 00h 00m 00.015s
-  solve scf   : 00h 00m 00.815s
+  solve scf   : 00h 00m 00.545s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.835s
+  TOTAL       : 00h 00m 00.565s
 ---------------------------------------------------------------------
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.006s
-  bias poten. : 00h 00m 00.013s
-  solve scf   : 00h 00m 00.857s
+  histograms  : 00h 00m 00.009s
+  bias poten. : 00h 00m 00.018s
+  solve scf   : 00h 00m 00.906s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.876s
+  TOTAL       : 00h 00m 00.934s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -1343,11 +1353,11 @@ SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 01.344s
-  bias poten. : 00h 00m 00.013s
-  solve scf   : 00h 00m 00.369s
-  error est.  : 00h 00m 00.027s
-  TOTAL       : 00h 00m 01.754s
+  histograms  : 00h 00m 01.357s
+  bias poten. : 00h 00m 00.037s
+  solve scf   : 00h 00m 00.396s
+  error est.  : 00h 00m 00.032s
+  TOTAL       : 00h 00m 01.824s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -1442,32 +1452,32 @@ TIMING SUMMARY
 MICROSTATE ts:
 --------------
   index =  None
-  F     = 33.840 +- 0.995 kjmol
-  CV    = 0.000 +- 0.155 au
+  F     = 33.659 +- 0.776 kjmol
+  CV    = -0.001 +- 0.141 au
 
 MICROSTATE r:
 --------------
   index =  None
-  F     = 7.171 +- 0.768 kjmol
-  CV    = -1.275 +- 0.104 au
+  F     = 7.235 +- 0.717 kjmol
+  CV    = -1.283 +- 0.113 au
 
 MICROSTATE p:
 --------------
   index =  None
-  F     = 7.113 +- 0.855 kjmol
-  CV    = 1.295 +- 0.125 au
+  F     = 7.193 +- 0.891 kjmol
+  CV    = 1.276 +- 0.127 au
 
 MACROSTATE R:
 --------------
-  F       = 10.381 +- 0.319 kjmol
-  CV Mean = -1.236 +- 0.018 au
-  CV StD  = 0.146 +- 0.008 au
+  F       = 10.370 +- 0.289 kjmol
+  CV Mean = -1.235 +- 0.019 au
+  CV StD  = 0.146 +- 0.011 au
 
 MACROSTATE P:
 --------------
-  F       = 10.463 +- 0.341 kjmol
-  CV Mean = 1.233 +- 0.018 au
-  CV StD  = 0.146 +- 0.010 au
+  F       = 10.450 +- 0.343 kjmol
+  CV Mean = 1.233 +- 0.015 au
+  CV StD  = 0.146 +- 0.009 au
 
 </pre></div></div>
 </div>
@@ -1505,32 +1515,32 @@ see a much lower error on the blue macrostates representing the integral over re
 MICROSTATE ts:
 --------------
   index =  None
-  F     = 32.831 +- 1.422 kjmol
-  CV    = 0.007 +- 0.084 au
+  F     = 32.859 +- 1.420 kjmol
+  CV    = -0.003 +- 0.103 au
 
 MICROSTATE r:
 --------------
   index =  None
-  F     = 8.122 +- 1.617 kjmol
-  CV    = -1.284 +- 0.096 au
+  F     = 8.024 +- 1.389 kjmol
+  CV    = -1.290 +- 0.083 au
 
 MICROSTATE p:
 --------------
   index =  None
-  F     = 8.224 +- 1.526 kjmol
-  CV    = 1.281 +- 0.079 au
+  F     = 8.081 +- 1.677 kjmol
+  CV    = 1.300 +- 0.063 au
 
 MACROSTATE R:
 --------------
-  F       = 10.462 +- 1.616 kjmol
-  CV Mean = -1.238 +- 0.026 au
-  CV StD  = 0.145 +- 0.012 au
+  F       = 10.458 +- 1.245 kjmol
+  CV Mean = -1.233 +- 0.026 au
+  CV StD  = 0.147 +- 0.012 au
 
 MACROSTATE P:
 --------------
-  F       = 10.548 +- 1.517 kjmol
-  CV Mean = 1.232 +- 0.028 au
-  CV StD  = 0.145 +- 0.012 au
+  F       = 10.710 +- 1.460 kjmol
+  CV Mean = 1.232 +- 0.024 au
+  CV StD  = 0.145 +- 0.009 au
 
 </pre></div></div>
 </div>

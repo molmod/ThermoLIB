@@ -60,6 +60,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../ig.html#developers-download">Developers download</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../ig.html#update-thermolib">Update ThermoLIB</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../ig.html#test-installation">Test installation</a></li>
 </ul>
 </li>
@@ -525,11 +526,11 @@ WARNING: could not converge WHAM equations to convergence of 1.000e-06 in 1000 s
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.030s
-  bias poten. : 00h 00m 02.203s
-  solve scf   : 00h 00m 00.691s
-  error est.  : 00h 00m 13.908s
-  TOTAL       : 00h 00m 16.833s
+  histograms  : 00h 00m 00.061s
+  bias poten. : 00h 00m 05.168s
+  solve scf   : 00h 00m 01.368s
+  error est.  : 00h 00m 27.628s
+  TOTAL       : 00h 00m 34.226s
 ---------------------------------------------------------------------
 WARNING: could not converge WHAM equations to convergence of 1.000e-06 in 1000 steps!
   SCF did not converge!
@@ -537,11 +538,11 @@ WARNING: could not converge WHAM equations to convergence of 1.000e-06 in 1000 s
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.029s
-  bias poten. : 00h 00m 02.263s
-  solve scf   : 00h 00m 00.790s
+  histograms  : 00h 00m 00.096s
+  bias poten. : 00h 00m 06.475s
+  solve scf   : 00h 00m 02.240s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 03.083s
+  TOTAL       : 00h 00m 08.812s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -562,7 +563,7 @@ TIMING SUMMARY
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:2158: MatplotlibDeprecationWarning: The &#39;extend&#39; parameter to Colorbar has no effect because it is overridden by the mappable; it is deprecated since 3.3 and will be removed two minor releases later.
+/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:2157: MatplotlibDeprecationWarning: The &#39;extend&#39; parameter to Colorbar has no effect because it is overridden by the mappable; it is deprecated since 3.3 and will be removed two minor releases later.
   cbar = pp.colorbar(contourf, ax=ax, extend=&#39;both&#39;)
 </pre></div></div>
 </div>
@@ -581,6 +582,29 @@ TIMING SUMMARY
 <img alt="../_images/tut_advanced_transformations_2D_12_2.png" src="../_images/tut_advanced_transformations_2D_12_2.png" />
 </div>
 </div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fes</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">slicer</span><span class="o">=</span><span class="p">[</span><span class="mi">55</span><span class="p">,</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)],</span> <span class="n">obss</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="s1">&#39;sample&#39;</span><span class="p">],</span> <span class="n">linewidths</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">linestyles</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;--&#39;</span><span class="p">],</span> <span class="n">colors</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu Sans.
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tut_advanced_transformations_2D_13_1.png" src="../_images/tut_advanced_transformations_2D_13_1.png" />
+</div>
+</div>
 </section>
 <section id="Transformation-to-new-CVs">
 <h2>Transformation to new CVs<a class="headerlink" href="#Transformation-to-new-CVs" title="Permalink to this heading"></a></h2>
@@ -593,7 +617,7 @@ Q_2 &amp;= frac{sqrt{2}}{2}left(CV_2 + 1.25 - CV_1 + 2.27right)</p>
 <p>end{align}`</p>
 <p>which simply encodes a rotation over 45 degrees around the point <img class="math" src="../_images/math/47e092401b9b5f5314baa5a7e32fac27317d5de8.png" alt="(CV_1,CV_2)=(2.27,-1.25)"/></p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">f1</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="mf">2.75</span><span class="o">+</span><span class="n">y</span><span class="o">+</span><span class="mf">1.25</span><span class="p">)</span>
@@ -605,12 +629,36 @@ Q_2 &amp;= frac{sqrt{2}}{2}left(CV_2 + 1.25 - CV_1 + 2.27right)</p>
 </pre></div>
 </div>
 </div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fes2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">obss</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">],</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;rainbow&#39;</span><span class="p">,</span> <span class="n">flims</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">140</span><span class="p">],</span> <span class="n">ncolors</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
 </pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:2157: MatplotlibDeprecationWarning: The &#39;extend&#39; parameter to Colorbar has no effect because it is overridden by the mappable; it is deprecated since 3.3 and will be removed two minor releases later.
+  cbar = pp.colorbar(contourf, ax=ax, extend=&#39;both&#39;)
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Figure size 432x288 with 0 Axes&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tut_advanced_transformations_2D_17_2.png" src="../_images/tut_advanced_transformations_2D_17_2.png" />
 </div>
 </div>
 <p>Both the free energy itself as well as its error bar indeed seem to represent a rotated version of the original.</p>
@@ -619,15 +667,15 @@ Q_2 &amp;= frac{sqrt{2}}{2}left(CV_2 + 1.25 - CV_1 + 2.27right)</p>
 <h2>Projection comparison<a class="headerlink" href="#Projection-comparison" title="Permalink to this heading"></a></h2>
 <p>As a further comparison, we project the original FES on CV1 as well as the new FES on <img class="math" src="../_images/math/d1b2c0bd4b39e438bb31d31c47af97c5aeabdec2.png" alt="f(Q_1,Q_2)=\frac{\sqrt{2}}{2}\left(Q_1-Q_2\right)+2.75=CV_1"/> and compare on a 1D plot (with error bar).</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fep</span> <span class="o">=</span> <span class="n">fes</span><span class="o">.</span><span class="n">project_cv1</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fun</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="n">y</span><span class="p">)</span><span class="o">+</span><span class="mf">2.75</span>
@@ -636,12 +684,43 @@ Q_2 &amp;= frac{sqrt{2}}{2}left(CV_2 + 1.25 - CV_1 + 2.27right)</p>
 </pre></div>
 </div>
 </div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plot_profiles</span><span class="p">([</span><span class="n">fep</span><span class="p">,</span><span class="n">fep2</span><span class="p">],</span> <span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;before trans&#39;</span><span class="p">,</span><span class="s1">&#39;after trans&#39;</span><span class="p">],</span> <span class="n">linestyles</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;-&#39;</span><span class="p">,</span><span class="s1">&#39;--&#39;</span><span class="p">],</span> <span class="n">colors</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">,</span><span class="s1">&#39;k&#39;</span><span class="p">],</span> <span class="n">flims</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">40</span><span class="p">,</span><span class="mi">140</span><span class="p">])</span>
 </pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Figure size 432x288 with 0 Axes&gt;
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu Sans.
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tut_advanced_transformations_2D_23_2.png" src="../_images/tut_advanced_transformations_2D_23_2.png" />
 </div>
 </div>
 <p>This plot clearly illustrates that both projections are the same, further validating the implementation.</p>

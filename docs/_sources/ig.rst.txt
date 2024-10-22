@@ -65,6 +65,10 @@ You can directly install ThermoLIB (e.g. in the conda environment detailed above
 
 **Researchers outside Ghent University** can access it through github.com as follows (TODO):
 
+.. code-block:: bash
+
+    pip install git+https://github.com/XXX/XXX.git
+
 Developers download
 ===================
 
@@ -102,6 +106,24 @@ If you want to install ThermoLIB only in the current conda environment, you can 
 
     pip install .
 
+Update ThermoLIB
+****************
+
+To update ThermoLIB to the latest version, either go to your conda environment and run the pip install command again:
+
+.. code-block:: bash
+
+    pip install git+https://github.ugent.be/lvduyfhu/ThermoLIB.git #for Ugent users only
+    pip install git+https://github.com/XXX/XXX.git #for all users
+
+or pull the git repository and install again
+
+.. code-block:: bash
+
+    cd thermolib
+    git pull
+    pip install .
+
 Test installation
 *****************
 
@@ -112,4 +134,4 @@ To test if you successfully installed ThermoLIB, fire up a python terminal and t
     python
     >>> import thermolib
 
-If you do not get an error, you have (probably) successfully installed ThermoLIB!
+A more elaborate test is to run one or more of the tutorials. If you do not get an error, you have (probably) successfully installed ThermoLIB!

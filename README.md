@@ -52,7 +52,9 @@ As [molmod](https://molmod.github.io/molmod/) is currently no longer maintained,
     pip install git+https://github.com/molmod/molmod.git
     pip install git+https://github.ugent.be/lvduyfhu/ThermoLIB.git
     
-If a certain version is no longer available in the future, the user will have to manually test which later version is still compatible. In the near future, the required functions from molmod will be merged into thermolib so that molmod no longer becomes a dependency.
+If a certain version is no longer available in the future, the user will have to manually test which later version is still compatible. In the near future, the required functions from molmod will be merged into thermolib so that molmod no longer becomes a dependency. To **update ThermoLIB** to the most recent version, just run the last command againg:
+
+    pip install git+https://github.ugent.be/lvduyfhu/ThermoLIB.git
 
 # Terms of use
 
