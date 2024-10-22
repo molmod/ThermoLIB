@@ -1,8 +1,8 @@
 .. _seclab_ug_transformations:
 
-***************
-Transformations
-***************
+******************************
+Transformations of the FEP/FES
+******************************
 
 Once a free energy profile/surfaces has been constructed in terms of a collective variable CV, we can transform it *a posteriori* to another free energy profiles in terms of another CV. This can be done in two different ways, depending on the nature of the relation between old and new CV:
 

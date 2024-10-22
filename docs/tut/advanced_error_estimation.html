@@ -109,12 +109,16 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../ug_micromacro.html">Extracting micro- and macrostate free energy</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../ug_kinetics.html">Computing the reaction rate</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../ug_transformation.html">Transformations</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../ug_transformation.html#deterministic-transformation">Deterministic transformation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ug_transformation.html">Transformations of the FEP/FES</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../ug_transformation.html#deterministic-transformation">Deterministic transformation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../ug_transformation.html#dimensional">1 dimensional</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../ug_transformation.html#id1">2 dimensional</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="../ug_transformation.html#probabilistic-transformation">Probabilistic transformation</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../ug_projection.html">(De)projections</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../ug_projection.html">(De)projections of the FEP/FES</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../ug_projection.html#projecting-2d-fes-to-1d-fep">Projecting 2D FES to 1D FEP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../ug_projection.html#deprojecting-1d-fep-to-2d-fes">Deprojecting 1D FEP to 2D FES</a></li>
 </ul>
@@ -195,6 +199,13 @@
 <li class="toctree-l3"><a class="reference internal" href="advanced_transformations.html#FEP-and-rate-in-terms-of-alternative-CV">FEP and rate in terms of alternative CV</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="advanced_transformations_2D.html">Tutorial 8 - Transformation of 2D free energy surfaces</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="advanced_transformations_2D.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="advanced_transformations_2D.html#Construction-of-original-2D-FES">Construction of original 2D FES</a></li>
+<li class="toctree-l3"><a class="reference internal" href="advanced_transformations_2D.html#Transformation-to-new-CVs">Transformation to new CVs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="advanced_transformations_2D.html#Projection-comparison">Projection comparison</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../rg.html">Reference Guide</a><ul>
@@ -232,6 +243,8 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_thermo.html#module-thermolib.thermodynamics.cv">Collective variables – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.cv</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.Average"><code class="docutils literal notranslate"><span class="pre">Average</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.CenterOfMass"><code class="docutils literal notranslate"><span class="pre">CenterOfMass</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.CenterOfPosition"><code class="docutils literal notranslate"><span class="pre">CenterOfPosition</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.CoordinationNumber"><code class="docutils literal notranslate"><span class="pre">CoordinationNumber</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.Difference"><code class="docutils literal notranslate"><span class="pre">Difference</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.DistOrthProjOrig"><code class="docutils literal notranslate"><span class="pre">DistOrthProjOrig</span></code></a></li>
@@ -240,6 +253,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.DotProduct"><code class="docutils literal notranslate"><span class="pre">DotProduct</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.LinearCombination"><code class="docutils literal notranslate"><span class="pre">LinearCombination</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.Minimum"><code class="docutils literal notranslate"><span class="pre">Minimum</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.NormalToPlane"><code class="docutils literal notranslate"><span class="pre">NormalToPlane</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.NormalizedAxis"><code class="docutils literal notranslate"><span class="pre">NormalizedAxis</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_thermo.html#thermolib.thermodynamics.cv.OrthogonalDistanceToPore"><code class="docutils literal notranslate"><span class="pre">OrthogonalDistanceToPore</span></code></a></li>
 </ul>
@@ -259,25 +273,90 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../rg_kin.html">Kinetics – <code class="docutils literal notranslate"><span class="pre">thermolib.kinetics</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../rg_kin.html#module-thermolib.kinetics.rate">Rate constant – <code class="docutils literal notranslate"><span class="pre">thermolib.kinetics.rate</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_kin.html#thermolib.kinetics.rate.BaseRateFactor"><code class="docutils literal notranslate"><span class="pre">BaseRateFactor</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_kin.html#thermolib.kinetics.rate.RateFactorEquilibrium"><code class="docutils literal notranslate"><span class="pre">RateFactorEquilibrium</span></code></a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../rg_error.html">Error distributions – <code class="docutils literal notranslate"><span class="pre">thermolib.error</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.Distribution"><code class="docutils literal notranslate"><span class="pre">Distribution</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.LogGaussianDistribution"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.ErrorArray"><code class="docutils literal notranslate"><span class="pre">ErrorArray</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.ErrorArray.mean"><code class="docutils literal notranslate"><span class="pre">ErrorArray.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.ErrorArray.nsigma_conf_int"><code class="docutils literal notranslate"><span class="pre">ErrorArray.nsigma_conf_int()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.ErrorArray.sample"><code class="docutils literal notranslate"><span class="pre">ErrorArray.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.ErrorArray.std"><code class="docutils literal notranslate"><span class="pre">ErrorArray.std()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution.copy"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution.from_samples"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.from_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution.log_from_loggaussian"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.log_from_loggaussian()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution.mean"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution.nsigma_conf_int"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.nsigma_conf_int()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution.print"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.print()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution.sample"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution.set_ref"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.set_ref()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution.shift"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.shift()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution.std"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.std()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.LogGaussianDistribution"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.LogGaussianDistribution.copy"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.LogGaussianDistribution.exp_from_gaussian"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.exp_from_gaussian()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.LogGaussianDistribution.from_samples"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.from_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.LogGaussianDistribution.mean"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.LogGaussianDistribution.nsigma_conf_int"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.nsigma_conf_int()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.LogGaussianDistribution.sample"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.LogGaussianDistribution.set_ref"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.set_ref()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.LogGaussianDistribution.shift"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.shift()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.LogGaussianDistribution.std"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.std()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiDistribution"><code class="docutils literal notranslate"><span class="pre">MultiDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiDistribution.corr"><code class="docutils literal notranslate"><span class="pre">MultiDistribution.corr()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution.copy"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution.cov"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.cov()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution.from_samples"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.from_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution.log_from_loggaussian"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.log_from_loggaussian()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution.mean"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution.nsigma_conf_int"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.nsigma_conf_int()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution.plot_corr_matrix"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.plot_corr_matrix()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution.sample"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution.set_ref"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.set_ref()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution.std"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.std()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiLogGaussianDistribution"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiLogGaussianDistribution.copy"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiLogGaussianDistribution.cov"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.cov()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiLogGaussianDistribution.exp_from_gaussian"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.exp_from_gaussian()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiLogGaussianDistribution.from_samples"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.from_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiLogGaussianDistribution.mean"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiLogGaussianDistribution.nsigma_conf_int"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.nsigma_conf_int()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiLogGaussianDistribution.plot_corr_matrix"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.plot_corr_matrix()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiLogGaussianDistribution.sample"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiLogGaussianDistribution.std"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.std()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.Propagator"><code class="docutils literal notranslate"><span class="pre">Propagator</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.SampleDistribution"><code class="docutils literal notranslate"><span class="pre">SampleDistribution</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.Propagator"><code class="docutils literal notranslate"><span class="pre">Propagator</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.Propagator.calc_fun_values"><code class="docutils literal notranslate"><span class="pre">Propagator.calc_fun_values()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.Propagator.gen_args_samples"><code class="docutils literal notranslate"><span class="pre">Propagator.gen_args_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.Propagator.get_distribution"><code class="docutils literal notranslate"><span class="pre">Propagator.get_distribution()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.Propagator.reset"><code class="docutils literal notranslate"><span class="pre">Propagator.reset()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.SampleDistribution"><code class="docutils literal notranslate"><span class="pre">SampleDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.SampleDistribution.from_samples"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.from_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.SampleDistribution.mean"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.SampleDistribution.sample"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.SampleDistribution.set_ref"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.set_ref()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.SampleDistribution.shift"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.shift()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.SampleDistribution.std"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.std()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../rg_tools.html">Tools – <code class="docutils literal notranslate"><span class="pre">thermolib.tools</span></code></a><ul>
@@ -290,6 +369,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.h5_read_dataset"><code class="docutils literal notranslate"><span class="pre">h5_read_dataset()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.integrate"><code class="docutils literal notranslate"><span class="pre">integrate()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.integrate2d"><code class="docutils literal notranslate"><span class="pre">integrate2d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.interpolate_surface_2d"><code class="docutils literal notranslate"><span class="pre">interpolate_surface_2d()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.invert_fisher_to_covariance"><code class="docutils literal notranslate"><span class="pre">invert_fisher_to_covariance()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.multivariate_normal"><code class="docutils literal notranslate"><span class="pre">multivariate_normal()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.read_wham_input"><code class="docutils literal notranslate"><span class="pre">read_wham_input()</span></code></a></li>
@@ -411,11 +491,11 @@ SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 01.473s
-  bias poten. : 00h 00m 00.015s
-  solve scf   : 00h 00m 00.412s
-  error est.  : 00h 00m 00.045s
-  TOTAL       : 00h 00m 01.947s
+  histograms  : 00h 00m 01.487s
+  bias poten. : 00h 00m 00.018s
+  solve scf   : 00h 00m 00.398s
+  error est.  : 00h 00m 00.053s
+  TOTAL       : 00h 00m 01.958s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -443,11 +523,11 @@ SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.129s
-  bias poten. : 00h 00m 00.032s
-  solve scf   : 00h 00m 00.311s
-  error est.  : 00h 00m 00.063s
-  TOTAL       : 00h 00m 00.537s
+  histograms  : 00h 00m 00.185s
+  bias poten. : 00h 00m 00.045s
+  solve scf   : 00h 00m 00.485s
+  error est.  : 00h 00m 00.104s
+  TOTAL       : 00h 00m 00.820s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -474,11 +554,11 @@ SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.014s
-  bias poten. : 00h 00m 00.015s
-  solve scf   : 00h 00m 00.808s
-  error est.  : 00h 00m 00.032s
-  TOTAL       : 00h 00m 00.872s
+  histograms  : 00h 00m 00.013s
+  bias poten. : 00h 00m 00.013s
+  solve scf   : 00h 00m 00.741s
+  error est.  : 00h 00m 00.030s
+  TOTAL       : 00h 00m 00.799s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -506,10 +586,10 @@ SCF Converged!
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
   histograms  : 00h 00m 00.004s
-  bias poten. : 00h 00m 00.014s
-  solve scf   : 00h 00m 00.920s
-  error est.  : 00h 00m 00.204s
-  TOTAL       : 00h 00m 01.144s
+  bias poten. : 00h 00m 00.013s
+  solve scf   : 00h 00m 00.913s
+  error est.  : 00h 00m 00.246s
+  TOTAL       : 00h 00m 01.179s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -551,10 +631,10 @@ findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu S
 <h2>Estimating the autocorrelation time<a class="headerlink" href="#Estimating-the-autocorrelation-time" title="Permalink to this heading"></a></h2>
 <p>The question now is which is the most reliable representation of the error. To that end, we estimate the correlation time from the autocorrelation function of the collective variable itself during the trajectories. We first illustrate this for a few individual trajectories:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[35]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">corrtime</span> <span class="o">=</span> <span class="n">corrtime_from_acf</span><span class="p">(</span><span class="n">trajectories_1</span><span class="p">[</span><span class="mi">8</span><span class="p">],</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">5000</span><span class="p">],</span> <span class="n">ylims</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">1.05</span><span class="p">,</span><span class="mf">1.05</span><span class="p">],</span> <span class="n">n_nested_envelopes</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">p0</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">corrtime</span> <span class="o">=</span> <span class="n">corrtime_from_acf</span><span class="p">(</span><span class="n">trajectories_1</span><span class="p">[</span><span class="mi">8</span><span class="p">],</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">5000</span><span class="p">],</span> <span class="n">ylims</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">1.05</span><span class="p">,</span><span class="mf">1.05</span><span class="p">])</span>
 </pre></div>
 </div>
 </div>
@@ -565,17 +645,17 @@ findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu S
 <img alt="../_images/tut_advanced_error_estimation_17_0.png" src="../_images/tut_advanced_error_estimation_17_0.png" />
 </div>
 </div>
-<p>In this plot the black solid line (which became a solid black region because it is a very fast oscilling curve, see further) represents the autocorrelation function, the red solid line represents the envoloppe of the black curve/region and the red dashed curve presents a fit of exp(-t/tau) to the red solid curve.</p>
+<p>In this plot the black solid line (which became a solid black region because it is a very fast oscilling curve, see further) represents the autocorrelation function, the red solid line represents the envoloppe of the black curve/region and the red dashed curve presents a fit of <img class="math" src="../_images/math/f87a0d638c67298a341d9b93ead88bf2f24a4eb2.png" alt="\exp(-\frac{t}{\tau})"/> to the red solid curve.</p>
 <p>The above plot is an example of a typical situation in which the trajectory contains atomistic vibrations that happen on a very small time scale. These vibrations are responsible for the very high frequency oscillations you see in the plot above (resulting in the seemingly solid black region). If we want to fit a simple exponential function (to estimate the time decay constant which is the correlation time), we cannot fit directly to the curve itself as it fluctuates equally between above and
 below zero and hence any fit will give flat curve. Instead, we first filter out the very high frequency oscillations by computing the enveloppe of the curve. This is done by default in the <code class="docutils literal notranslate"><span class="pre">corrtime_from_acf</span></code> routine given the default value <code class="docutils literal notranslate"><span class="pre">n_nested_envelopes=1</span></code>, but can be switched off by means of setting <code class="docutils literal notranslate"><span class="pre">n_nested_envelopes=0</span></code>.</p>
 <p>In some cases, it is usefull to indeed switch this off. For example when you did a simulation in which you did not print out every time step, but only every so many time steps resulting in a time series that do not contain these high frequency oscillations any more. In other situations it might be the case the enveloppe still contains such oscillations that make fitting difficult, then you can compute the enveloppe of the enveloppe by setting <code class="docutils literal notranslate"><span class="pre">n_nested_envelopes=2</span></code>. Below, we show what happens
-if we put <code class="docutils literal notranslate"><span class="pre">n_nested_envelopes=2</span></code>.</p>
+if we put <code class="docutils literal notranslate"><span class="pre">n_nested_envelopes=2</span></code> for the current case.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[36]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ct</span> <span class="o">=</span> <span class="n">corrtime_from_acf</span><span class="p">(</span><span class="n">trajectories_1</span><span class="p">[</span><span class="mi">8</span><span class="p">],</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">5000</span><span class="p">],</span> <span class="n">ylims</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">1.05</span><span class="p">,</span><span class="mf">1.05</span><span class="p">],</span> <span class="n">n_nested_envelopes</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Fitted (integrated) correlation time: 2*tau-1 =  </span><span class="si">%.3f</span><span class="s1"> timesteps&#39;</span> <span class="o">%</span><span class="k">ct</span>)
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Fitted (integrated) correlation time: 2*tau =  </span><span class="si">%.3f</span><span class="s1"> timesteps&#39;</span> <span class="o">%</span><span class="k">ct</span>)
 </pre></div>
 </div>
 </div>
@@ -600,17 +680,17 @@ if we put <code class="docutils literal notranslate"><span class="pre">n_nested_
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Fitted (integrated) correlation time: 2*tau-1 =  1.000 timesteps
+Fitted (integrated) correlation time: 2*tau =  2.000 timesteps
 </pre></div></div>
 </div>
-<p>You indeed see that the enveloppe contains even less oscillations. However, a new problem arises, a problem that also might have arissen from the start (e.g. again when the simulation only printed out every so many steps). This new issue is that the fit (dashed red line) is very bad. In fact, a closer look to the resulting correlation time reveals that no fit was done at all. Indeed we see that the integrated correlation time equals <img class="math" src="../_images/math/e32750237ef4d3655e0d0005a2cfaf548d91ad3c.png" alt="2\cdot\tau-1=1"/> or hence <img class="math" src="../_images/math/02d0897a6b00abcf1e0b969fad3ff0cab665995f.png" alt="\tau=1"/>. This is just
-the initial guess of <img class="math" src="../_images/math/914b2d4b6659b86d3153d5510839dfb254dfc8a3.png" alt="\tau"/> (which is by default set to 1) is returned. Therefore, we need to adjust the initial gues of the correlation time <img class="math" src="../_images/math/914b2d4b6659b86d3153d5510839dfb254dfc8a3.png" alt="\tau"/> to a better value, which we can do with the keyword <code class="docutils literal notranslate"><span class="pre">p0</span></code>. If we would make another bad guess, i.e. set the initial gues to 2, we will still be confronted with the same issue. Let us first illustrate that by indeed setting the initial guess to 2:</p>
+<p>You indeed see that the enveloppe contains even less oscillations. However, a new problem arises, a problem that also might have arissen from the start (e.g. again when the simulation only printed out every so many steps). This new issue is that the fit (dashed red line) is very bad. In fact, a closer look to the resulting correlation time reveals that no fit was done at all. Indeed we see that the integrated correlation time equals <img class="math" src="../_images/math/9b5f08ad8d6cb436c7d39ab5418c3a7dc68fa3df.png" alt="2\cdot\tau=2"/> or hence <img class="math" src="../_images/math/02d0897a6b00abcf1e0b969fad3ff0cab665995f.png" alt="\tau=1"/>. This is just the
+initial guess of <img class="math" src="../_images/math/914b2d4b6659b86d3153d5510839dfb254dfc8a3.png" alt="\tau"/> (which is by default set to 1) is returned. Therefore, we need to adjust the initial gues of the correlation time <img class="math" src="../_images/math/914b2d4b6659b86d3153d5510839dfb254dfc8a3.png" alt="\tau"/> to a better value, which we can do with the keyword <code class="docutils literal notranslate"><span class="pre">p0</span></code>. If we would make another bad guess, i.e. set the initial gues to 2, we will still be confronted with the same issue. Let us first illustrate that by indeed setting the initial guess to 2:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[37]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ct</span> <span class="o">=</span> <span class="n">corrtime_from_acf</span><span class="p">(</span><span class="n">trajectories_1</span><span class="p">[</span><span class="mi">8</span><span class="p">],</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">5000</span><span class="p">],</span> <span class="n">ylims</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">1.05</span><span class="p">,</span><span class="mf">1.05</span><span class="p">],</span> <span class="n">n_nested_envelopes</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">p0</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Fitted (integrated) correlation time: 2*tau-1 =  </span><span class="si">%.3f</span><span class="s1"> timesteps&#39;</span> <span class="o">%</span><span class="k">ct</span>)
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Fitted (integrated) correlation time: 2*tau =  </span><span class="si">%.3f</span><span class="s1"> timesteps&#39;</span> <span class="o">%</span><span class="k">ct</span>)
 </pre></div>
 </div>
 </div>
@@ -635,16 +715,16 @@ the initial guess of <img class="math" src="../_images/math/914b2d4b6659b86d3153
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Fitted (integrated) correlation time: 2*tau-1 =  3.000 timesteps
+Fitted (integrated) correlation time: 2*tau =  4.000 timesteps
 </pre></div></div>
 </div>
-<p>We now again clearly see a bad fit, which is also again reflected by the fact that the result <img class="math" src="../_images/math/a14ab8ae870bc343d8ae23cea2b2e93b754e183c.png" alt="2\cdot\tau-1=3"/> (hence <img class="math" src="../_images/math/0762ab7b314be72ac94bf6e05488a047affa0770.png" alt="\tau=2)"/> just returns the initial guess. In order to make a better initial gues, we can just look at the plot of the red solid line. We clearly see that the initial decay happens on a time scale of 1000 timesteps, so we could just use that as initial guess:</p>
+<p>We now again clearly see a bad fit, which is also again reflected by the fact that the result <img class="math" src="../_images/math/5d9bfef29b87c3cec5e87338eae90e333c529c47.png" alt="2\cdot\tau=4"/> (hence <img class="math" src="../_images/math/0762ab7b314be72ac94bf6e05488a047affa0770.png" alt="\tau=2)"/> just returns the initial guess. In order to make a better initial gues, we can just look at the plot of the red solid line. We clearly see that the initial decay happens on a time scale of 1000 timesteps, so we could just use that as initial guess:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[38]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ct</span> <span class="o">=</span> <span class="n">corrtime_from_acf</span><span class="p">(</span><span class="n">trajectories_1</span><span class="p">[</span><span class="mi">8</span><span class="p">],</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">5000</span><span class="p">],</span> <span class="n">ylims</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">1.05</span><span class="p">,</span><span class="mf">1.05</span><span class="p">],</span> <span class="n">n_nested_envelopes</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">p0</span><span class="o">=</span><span class="p">[</span><span class="mi">1000</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Fitted (integrated) correlation time: 2*tau-1 =  </span><span class="si">%.3f</span><span class="s1"> timesteps&#39;</span> <span class="o">%</span><span class="k">ct</span>)
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Fitted (integrated) correlation time: 2*tau =  </span><span class="si">%.3f</span><span class="s1"> timesteps&#39;</span> <span class="o">%</span><span class="k">ct</span>)
 </pre></div>
 </div>
 </div>
@@ -660,7 +740,7 @@ Fitted (integrated) correlation time: 2*tau-1 =  3.000 timesteps
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Fitted (integrated) correlation time: 2*tau-1 =  1190.743 timesteps
+Fitted (integrated) correlation time: 2*tau =  1191.743 timesteps
 </pre></div></div>
 </div>
 <p>Which now indeed represents a much better fit. The above discussion is included here to highlight what might happen when computing correlation times and how to try and adress those issues. In the present case, however, the default settings of n_nested_enveloppe=1 and p0=[1] is just fine and we therefore proceed with those default settings.</p>
@@ -669,20 +749,12 @@ Fitted (integrated) correlation time: 2*tau-1 =  1190.743 timesteps
 <h2>Constructing the FEP with correlated error estimate<a class="headerlink" href="#Constructing-the-FEP-with-correlated-error-estimate" title="Permalink to this heading"></a></h2>
 <p>Let us now compute the correlation time for each trajectory. This can be done using the <code class="docutils literal notranslate"><span class="pre">decorrelate</span></code> routine. In this routine, we can also adjust the parameters for the enveloppe and the initial conditions by specifying respectively the <code class="docutils literal notranslate"><span class="pre">n_nested_envelopes</span></code> and <code class="docutils literal notranslate"><span class="pre">p0</span></code> arguments. However, in the following we can use the default values.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[39]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">corrtimes</span> <span class="o">=</span> <span class="n">decorrelate</span><span class="p">(</span><span class="n">trajectories_1</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu Sans.
-</pre></div></div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
@@ -696,7 +768,7 @@ findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu S
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_error_estimation_27_2.png" src="../_images/tut_advanced_error_estimation_27_2.png" />
+<img alt="../_images/tut_advanced_error_estimation_27_1.png" src="../_images/tut_advanced_error_estimation_27_1.png" />
 </div>
 </div>
 <p>The above routine returns the correlation times for each simulation (i.e. each umbrella). As the error estimation is based on the Fisher information matrix of the maximum likelihood estimator, we can reconstruct the free energy profile using all original samples, but now we also parse the correlation times to the <code class="docutils literal notranslate"><span class="pre">from_wham</span></code> routine to obtain a more reliable error estimation by accounting for the reduced information due to correlation (i.e. only <img class="math" src="../_images/math/29008284107fe3cab6e7cee4be7a7e33a6364755.png" alt="\frac{N}{2\cdot\tau-1}"/> independent
@@ -721,11 +793,11 @@ SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 01.395s
+  histograms  : 00h 00m 01.514s
   bias poten. : 00h 00m 00.017s
-  solve scf   : 00h 00m 00.426s
-  error est.  : 00h 00m 00.419s
-  TOTAL       : 00h 00m 02.258s
+  solve scf   : 00h 00m 00.431s
+  error est.  : 00h 00m 00.257s
+  TOTAL       : 00h 00m 02.221s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -795,33 +867,33 @@ SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.004s
-  bias poten. : 00h 00m 00.017s
-  solve scf   : 00h 00m 01.039s
+  histograms  : 00h 00m 00.008s
+  bias poten. : 00h 00m 00.022s
+  solve scf   : 00h 00m 00.965s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 01.061s
+  TOTAL       : 00h 00m 00.996s
 ---------------------------------------------------------------------
 Constructing WHAM FEP for start=100
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.005s
-  bias poten. : 00h 00m 00.014s
-  solve scf   : 00h 00m 00.854s
+  histograms  : 00h 00m 00.004s
+  bias poten. : 00h 00m 00.013s
+  solve scf   : 00h 00m 00.815s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.874s
+  TOTAL       : 00h 00m 00.834s
 ---------------------------------------------------------------------
 Constructing WHAM FEP for start=200
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.004s
-  bias poten. : 00h 00m 00.012s
-  solve scf   : 00h 00m 00.707s
+  histograms  : 00h 00m 00.006s
+  bias poten. : 00h 00m 00.014s
+  solve scf   : 00h 00m 00.771s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.724s
+  TOTAL       : 00h 00m 00.792s
 ---------------------------------------------------------------------
 Constructing WHAM FEP for start=300
 SCF Converged!
@@ -830,31 +902,31 @@ TIMING SUMMARY
   initializing: 00h 00m 00.000s
   histograms  : 00h 00m 00.005s
   bias poten. : 00h 00m 00.015s
-  solve scf   : 00h 00m 00.905s
+  solve scf   : 00h 00m 00.965s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.926s
+  TOTAL       : 00h 00m 00.985s
 ---------------------------------------------------------------------
 Constructing WHAM FEP for start=400
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.007s
-  bias poten. : 00h 00m 00.020s
-  solve scf   : 00h 00m 00.410s
+  histograms  : 00h 00m 00.004s
+  bias poten. : 00h 00m 00.013s
+  solve scf   : 00h 00m 00.297s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.438s
+  TOTAL       : 00h 00m 00.315s
 ---------------------------------------------------------------------
 Constructing WHAM FEP for start=500
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.006s
-  bias poten. : 00h 00m 00.026s
-  solve scf   : 00h 00m 00.683s
+  histograms  : 00h 00m 00.005s
+  bias poten. : 00h 00m 00.013s
+  solve scf   : 00h 00m 00.713s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.716s
+  TOTAL       : 00h 00m 00.733s
 ---------------------------------------------------------------------
 Constructing WHAM FEP for start=600
 SCF Converged!
@@ -862,43 +934,43 @@ SCF Converged!
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
   histograms  : 00h 00m 00.005s
-  bias poten. : 00h 00m 00.014s
-  solve scf   : 00h 00m 00.902s
+  bias poten. : 00h 00m 00.013s
+  solve scf   : 00h 00m 00.875s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.921s
+  TOTAL       : 00h 00m 00.894s
 ---------------------------------------------------------------------
 Constructing WHAM FEP for start=700
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.005s
-  bias poten. : 00h 00m 00.014s
-  solve scf   : 00h 00m 00.819s
+  histograms  : 00h 00m 00.004s
+  bias poten. : 00h 00m 00.013s
+  solve scf   : 00h 00m 00.797s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.839s
+  TOTAL       : 00h 00m 00.816s
 ---------------------------------------------------------------------
 Constructing WHAM FEP for start=800
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.005s
-  bias poten. : 00h 00m 00.015s
-  solve scf   : 00h 00m 00.593s
+  histograms  : 00h 00m 00.006s
+  bias poten. : 00h 00m 00.016s
+  solve scf   : 00h 00m 00.631s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.615s
+  TOTAL       : 00h 00m 00.654s
 ---------------------------------------------------------------------
 Constructing WHAM FEP for start=900
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.004s
-  bias poten. : 00h 00m 00.014s
-  solve scf   : 00h 00m 00.768s
+  histograms  : 00h 00m 00.005s
+  bias poten. : 00h 00m 00.013s
+  solve scf   : 00h 00m 00.715s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.787s
+  TOTAL       : 00h 00m 00.733s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -960,11 +1032,11 @@ SCF did not converge!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.005s
-  bias poten. : 00h 00m 00.014s
-  solve scf   : 00h 00m 00.139s
+  histograms  : 00h 00m 00.006s
+  bias poten. : 00h 00m 00.016s
+  solve scf   : 00h 00m 00.155s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.159s
+  TOTAL       : 00h 00m 00.178s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -1086,31 +1158,11 @@ SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.010s
-  bias poten. : 00h 00m 00.023s
-  solve scf   : 00h 00m 00.739s
+  histograms  : 00h 00m 00.005s
+  bias poten. : 00h 00m 00.018s
+  solve scf   : 00h 00m 00.924s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.773s
----------------------------------------------------------------------
-SCF Converged!
----------------------------------------------------------------------
-TIMING SUMMARY
-  initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.004s
-  bias poten. : 00h 00m 00.014s
-  solve scf   : 00h 00m 00.801s
-  error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.820s
----------------------------------------------------------------------
-SCF Converged!
----------------------------------------------------------------------
-TIMING SUMMARY
-  initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.006s
-  bias poten. : 00h 00m 00.012s
-  solve scf   : 00h 00m 00.888s
-  error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.907s
+  TOTAL       : 00h 00m 00.949s
 ---------------------------------------------------------------------
 SCF Converged!
 ---------------------------------------------------------------------
@@ -1118,69 +1170,89 @@ TIMING SUMMARY
   initializing: 00h 00m 00.000s
   histograms  : 00h 00m 00.004s
   bias poten. : 00h 00m 00.013s
-  solve scf   : 00h 00m 00.556s
+  solve scf   : 00h 00m 00.872s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.574s
----------------------------------------------------------------------
-SCF Converged!
----------------------------------------------------------------------
-TIMING SUMMARY
-  initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.004s
-  bias poten. : 00h 00m 00.014s
-  solve scf   : 00h 00m 00.817s
-  error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.836s
+  TOTAL       : 00h 00m 00.890s
 ---------------------------------------------------------------------
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
   histograms  : 00h 00m 00.005s
+  bias poten. : 00h 00m 00.014s
+  solve scf   : 00h 00m 00.803s
+  error est.  : 00h 00m 00.000s
+  TOTAL       : 00h 00m 00.822s
+---------------------------------------------------------------------
+SCF Converged!
+---------------------------------------------------------------------
+TIMING SUMMARY
+  initializing: 00h 00m 00.000s
+  histograms  : 00h 00m 00.004s
+  bias poten. : 00h 00m 00.016s
+  solve scf   : 00h 00m 00.883s
+  error est.  : 00h 00m 00.000s
+  TOTAL       : 00h 00m 00.904s
+---------------------------------------------------------------------
+SCF Converged!
+---------------------------------------------------------------------
+TIMING SUMMARY
+  initializing: 00h 00m 00.000s
+  histograms  : 00h 00m 00.007s
+  bias poten. : 00h 00m 00.016s
+  solve scf   : 00h 00m 00.908s
+  error est.  : 00h 00m 00.000s
+  TOTAL       : 00h 00m 00.932s
+---------------------------------------------------------------------
+SCF Converged!
+---------------------------------------------------------------------
+TIMING SUMMARY
+  initializing: 00h 00m 00.000s
+  histograms  : 00h 00m 00.007s
   bias poten. : 00h 00m 00.012s
-  solve scf   : 00h 00m 00.542s
+  solve scf   : 00h 00m 00.446s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.561s
+  TOTAL       : 00h 00m 00.467s
 ---------------------------------------------------------------------
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
   histograms  : 00h 00m 00.004s
-  bias poten. : 00h 00m 00.014s
-  solve scf   : 00h 00m 00.753s
+  bias poten. : 00h 00m 00.015s
+  solve scf   : 00h 00m 00.788s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.773s
----------------------------------------------------------------------
-SCF Converged!
----------------------------------------------------------------------
-TIMING SUMMARY
-  initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.004s
-  bias poten. : 00h 00m 00.014s
-  solve scf   : 00h 00m 00.541s
-  error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.560s
+  TOTAL       : 00h 00m 00.808s
 ---------------------------------------------------------------------
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
   histograms  : 00h 00m 00.005s
-  bias poten. : 00h 00m 00.014s
-  solve scf   : 00h 00m 00.879s
+  bias poten. : 00h 00m 00.013s
+  solve scf   : 00h 00m 00.682s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.899s
+  TOTAL       : 00h 00m 00.700s
 ---------------------------------------------------------------------
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
   histograms  : 00h 00m 00.004s
-  bias poten. : 00h 00m 00.014s
-  solve scf   : 00h 00m 00.807s
+  bias poten. : 00h 00m 00.015s
+  solve scf   : 00h 00m 00.815s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.826s
+  TOTAL       : 00h 00m 00.835s
+---------------------------------------------------------------------
+SCF Converged!
+---------------------------------------------------------------------
+TIMING SUMMARY
+  initializing: 00h 00m 00.000s
+  histograms  : 00h 00m 00.006s
+  bias poten. : 00h 00m 00.013s
+  solve scf   : 00h 00m 00.857s
+  error est.  : 00h 00m 00.000s
+  TOTAL       : 00h 00m 00.876s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -1272,10 +1344,10 @@ SCF Converged!
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
   histograms  : 00h 00m 01.344s
-  bias poten. : 00h 00m 00.016s
-  solve scf   : 00h 00m 00.374s
-  error est.  : 00h 00m 00.038s
-  TOTAL       : 00h 00m 01.774s
+  bias poten. : 00h 00m 00.013s
+  solve scf   : 00h 00m 00.369s
+  error est.  : 00h 00m 00.027s
+  TOTAL       : 00h 00m 01.754s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -1370,32 +1442,32 @@ TIMING SUMMARY
 MICROSTATE ts:
 --------------
   index =  None
-  F     = 33.635 +- 0.742 kjmol
-  CV    = -0.004 +- 0.136 au
+  F     = 33.840 +- 0.995 kjmol
+  CV    = 0.000 +- 0.155 au
 
 MICROSTATE r:
 --------------
   index =  None
-  F     = 7.089 +- 0.745 kjmol
-  CV    = -1.286 +- 0.125 au
+  F     = 7.171 +- 0.768 kjmol
+  CV    = -1.275 +- 0.104 au
 
 MICROSTATE p:
 --------------
   index =  None
-  F     = 7.255 +- 0.885 kjmol
-  CV    = 1.280 +- 0.140 au
+  F     = 7.113 +- 0.855 kjmol
+  CV    = 1.295 +- 0.125 au
 
 MACROSTATE R:
 --------------
-  F       = 10.423 +- 0.385 kjmol
-  CV Mean = -1.237 +- 0.017 au
-  CV StD  = 0.146 +- 0.009 au
+  F       = 10.381 +- 0.319 kjmol
+  CV Mean = -1.236 +- 0.018 au
+  CV StD  = 0.146 +- 0.008 au
 
 MACROSTATE P:
 --------------
-  F       = 10.463 +- 0.368 kjmol
-  CV Mean = 1.233 +- 0.017 au
-  CV StD  = 0.146 +- 0.009 au
+  F       = 10.463 +- 0.341 kjmol
+  CV Mean = 1.233 +- 0.018 au
+  CV StD  = 0.146 +- 0.010 au
 
 </pre></div></div>
 </div>
@@ -1433,32 +1505,32 @@ see a much lower error on the blue macrostates representing the integral over re
 MICROSTATE ts:
 --------------
   index =  None
-  F     = 32.769 +- 1.687 kjmol
-  CV    = -0.004 +- 0.094 au
+  F     = 32.831 +- 1.422 kjmol
+  CV    = 0.007 +- 0.084 au
 
 MICROSTATE r:
 --------------
   index =  None
-  F     = 8.115 +- 1.101 kjmol
-  CV    = -1.279 +- 0.083 au
+  F     = 8.122 +- 1.617 kjmol
+  CV    = -1.284 +- 0.096 au
 
 MICROSTATE p:
 --------------
   index =  None
-  F     = 7.878 +- 1.461 kjmol
-  CV    = 1.278 +- 0.077 au
+  F     = 8.224 +- 1.526 kjmol
+  CV    = 1.281 +- 0.079 au
 
 MACROSTATE R:
 --------------
-  F       = 10.557 +- 1.552 kjmol
-  CV Mean = -1.228 +- 0.023 au
-  CV StD  = 0.148 +- 0.011 au
+  F       = 10.462 +- 1.616 kjmol
+  CV Mean = -1.238 +- 0.026 au
+  CV StD  = 0.145 +- 0.012 au
 
 MACROSTATE P:
 --------------
-  F       = 10.629 +- 1.411 kjmol
-  CV Mean = 1.233 +- 0.029 au
-  CV StD  = 0.145 +- 0.010 au
+  F       = 10.548 +- 1.517 kjmol
+  CV Mean = 1.232 +- 0.028 au
+  CV StD  = 0.145 +- 0.012 au
 
 </pre></div></div>
 </div>

@@ -66,9 +66,9 @@ Setting `plot=True` will automatically generate a plot of the correlation time f
     This plot could look as follows:
 
     .. image:: acf.png
-        :width: 400
+        :width: 600
 
-    The shaded black area is resulting from very high frequency atomic oscillations (which may be absent in your plot if the trajectory comes from an MD simulation with a much larger time step, or when you only dumped the trajectory every so many time steps). Important in this plot is that the solid red line represents the enveloppe of the black area and hence has the purpose to eliminate these rapid oscillations. The dashed red line is the result of a fit of a simple exponential decay (i.e. :math:`\exp\left(-\frac{t}{\tau}\right)`) to the solid red line. The computation of the correlation time (which is actually the integrated correlation time or :math:`2\tau-1`) was done well if the dashed line adequately follows the general trent of the solid line in the initial decay. 
+    The shaded black area is resulting from very high frequency atomic oscillations (which may be absent in your plot if the trajectory comes from an MD simulation with a much larger time step, or when you only dumped the trajectory every so many time steps). Important in this plot is that the solid red line represents the enveloppe of the black area and hence has the purpose to eliminate these rapid oscillations. The dashed red line is the result of a fit of a simple exponential decay (i.e. :math:`\exp\left(-\frac{t}{\tau}\right)`) to the solid red line. The computation of the correlation time (which is actually the integrated correlation time or :math:`2\tau`) was done well if the dashed line adequately follows the general trent of the solid line in the initial decay. 
 
 .. important::
 

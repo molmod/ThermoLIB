@@ -1,8 +1,8 @@
 .. _seclab_ug_projection:
 
-***************
-(De)projections
-***************
+******************************
+(De)projections of the FEP/FES
+******************************
 
 Projecting 2D FES to 1D FEP
 ===========================
