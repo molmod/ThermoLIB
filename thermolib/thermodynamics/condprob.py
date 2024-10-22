@@ -438,23 +438,23 @@ class ConditionalProbability(object):
         for obs in obss:
             xs = None
             if obs.lower() in ['value']:
-                xs = self.pconds[slicer].copy()
+                xs = self.pconds[tuple(slicer)].copy()
             elif obs.lower() in ['mean']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
-                xs = self.error.mean()[slicer]
+                xs = self.error.mean()[tuple(slicer)]
             elif obs.lower() in ['lower']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
-                xs = self.error.nsigma_conf_int(2)[0][slicer]
+                xs = self.error.nsigma_conf_int(2)[0][tuple(slicer)]
             elif obs.lower() in ['upper']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
-                xs = self.error.nsigma_conf_int(2)[1][slicer]
+                xs = self.error.nsigma_conf_int(2)[1][tuple(slicer)]
             elif obs.lower() in ['sample']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
-                xs = self.error.sample()[slicer]
+                xs = self.error.sample()[tuple(slicer)]
             elif obs.lower() in ['error']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
-                lower = self.error.nsigma_conf_int(2)[0][slicer]
-                upper = self.error.nsigma_conf_int(2)[1][slicer]
+                lower = self.error.nsigma_conf_int(2)[0][tuple(slicer)]
+                upper = self.error.nsigma_conf_int(2)[1][tuple(slicer)]
                 xs = 0.5*np.abs(upper - lower)
             if xs is None: raise ValueError('Could not interpret observable %s' %obs)
             if ndim is None:
@@ -476,7 +476,7 @@ class ConditionalProbability(object):
         
         if ndim==1 and self.error is not None:
             lower, upper = self.error.nsigma_conf_int(2)
-            lower, upper = lower[slicer], upper[slicer]
+            lower, upper = lower[tuple(slicer)], upper[tuple(slicer)]
             if croplims is not None:
                 lower[lower<croplims[0]] = np.nan
                 lower[lower>croplims[1]] = np.nan

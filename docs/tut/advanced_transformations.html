@@ -109,12 +109,16 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../ug_micromacro.html">Extracting micro- and macrostate free energy</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../ug_kinetics.html">Computing the reaction rate</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../ug_transformation.html">Transformations</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../ug_transformation.html#deterministic-transformation">Deterministic transformation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ug_transformation.html">Transformations of the FEP/FES</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../ug_transformation.html#deterministic-transformation">Deterministic transformation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../ug_transformation.html#dimensional">1 dimensional</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../ug_transformation.html#id1">2 dimensional</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="../ug_transformation.html#probabilistic-transformation">Probabilistic transformation</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../ug_projection.html">(De)projections</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../ug_projection.html">(De)projections of the FEP/FES</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../ug_projection.html#projecting-2d-fes-to-1d-fep">Projecting 2D FES to 1D FEP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../ug_projection.html#deprojecting-1d-fep-to-2d-fes">Deprojecting 1D FEP to 2D FES</a></li>
 </ul>
@@ -532,11 +536,11 @@ SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.061s
-  bias poten. : 00h 00m 00.014s
-  solve scf   : 00h 00m 00.287s
-  error est.  : 00h 00m 00.035s
-  TOTAL       : 00h 00m 00.398s
+  histograms  : 00h 00m 00.067s
+  bias poten. : 00h 00m 00.013s
+  solve scf   : 00h 00m 00.324s
+  error est.  : 00h 00m 00.034s
+  TOTAL       : 00h 00m 00.439s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -609,7 +613,7 @@ findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu S
 <div class="highlight"><pre>
 Rate factor with block averaging:
 ---------------------------------
-  A = 17.459 +- 0.010 1e12*au/s (8285 TS samples, int. autocorr. time = 4.067 timesteps)
+  A = 17.457 +- 0.011 1e12*au/s (8734 TS samples, int. autocorr. time = 17.289 timesteps)
 
 </pre></div></div>
 </div>
@@ -756,7 +760,7 @@ dQ &amp;= f’(CV^{TS})cdot dCV</p>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[0.9800238496120881, 1.0687371361831082]
+[0.987678610366878, 1.0768080481533355]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -774,7 +778,7 @@ dQ &amp;= f’(CV^{TS})cdot dCV</p>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Estimating rate factor from trajectory data/formic_acid_dimer_link/colvars/u64.xyz for TS=[0.980,1.069] au using analytical momentum integration
+Estimating rate factor from trajectory data/formic_acid_dimer_link/colvars/u64.xyz for TS=[0.988,1.077] au using analytical momentum integration
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -794,7 +798,7 @@ Estimating rate factor from trajectory data/formic_acid_dimer_link/colvars/u64.x
 <div class="highlight"><pre>
 Rate factor with block averaging:
 ---------------------------------
-  A = 15.934 +- 0.020 1e12*au/s (9211 TS samples, int. autocorr. time = 28.525 timesteps)
+  A = 15.969 +- 0.022 1e12*au/s (8670 TS samples, int. autocorr. time = 6.718 timesteps)
 
 </pre></div></div>
 </div>

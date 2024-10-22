@@ -2080,24 +2080,24 @@ class FreeEnergySurface2D(object):
         for obs in obss:
             values = None
             if obs.lower() in ['value']:
-                values = self.fs.copy()[slicer[0],slicer[1]]
+                values = self.fs.copy()[tuple(slicer)]
             elif obs.lower() in ['mean']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
-                values = self.error.mean()[slicer[0],slicer[1]]
+                values = self.error.mean()[tuple(slicer)]
             elif obs.lower() in ['lower']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
-                values = self.error.nsigma_conf_int(2)[0][slicer[0],slicer[1]]
+                values = self.error.nsigma_conf_int(2)[0][tuple(slicer)]
             elif obs.lower() in ['upper']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
-                values = self.error.nsigma_conf_int(2)[1][slicer[0],slicer[1]]
+                values = self.error.nsigma_conf_int(2)[1][tuple(slicer)]
             elif obs.lower() in ['error']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
-                lower = self.error.nsigma_conf_int(2)[0][slicer[0],slicer[1]]
-                upper = self.error.nsigma_conf_int(2)[1][slicer[0],slicer[1]]
+                lower = self.error.nsigma_conf_int(2)[0][tuple(slicer)]
+                upper = self.error.nsigma_conf_int(2)[1][tuple(slicer)]
                 values = 0.5*np.abs(upper - lower)
             elif obs.lower() in ['sample']:
                 assert self.error is not None, 'Observable %s can only be plotted if error is defined!' %obs
-                values = self.error.sample()[slicer[0],slicer[1]]
+                values = self.error.sample()[tuple(slicer)]
             if values is None: raise ValueError('Could not interpret observable %s' %obs)
             assert ndim==len(values.shape), 'Observable data has inconsistent dimensions!'
 
@@ -2106,7 +2106,7 @@ class FreeEnergySurface2D(object):
         
         if ndim==1 and self.error is not None:
             lower, upper = self.error.nsigma_conf_int(2)
-            lower, upper = lower[slicer[0],slicer[1]], upper[slicer[0],slicer[1]]
+            lower, upper = lower[tuple(slicer)], upper[tuple(slicer)]
         if linestyles is None:
             linestyles = [None,]*len(data)
         if linewidths is None:
