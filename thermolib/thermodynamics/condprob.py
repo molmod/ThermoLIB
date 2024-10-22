@@ -852,17 +852,16 @@ class ConditionalProbability1D1D(ConditionalProbability):
                         fs_new[icv,iq] = fs[icv] - kT*np.log(pconds[iq,icv])
             return fs_new
         if fep.error is not None or self.error is not None:
-            propagator = Propagator(ncycles=ncycles_default)
-            flattener = Flattener(len(cvs), len(qs))
+            propagator.flattener = Flattener(len(cvs), len(qs))
             if fep.error is not None:
                 if self.error is not None:
-                    error = propagator(deproject, fep.error, self.error, target_distribution=error_distribution, flattener=flattener)
+                    error = propagator(deproject, fep.error, self.error)
                 else:
                     deproj1 = lambda fs: deproject(fs, self.pconds)
-                    error = propagator(deproj1, fep.error, target_distribution=error_distribution, flattener=flattener)
+                    error = propagator(deproj1, fep.error)
             elif self.error is not None:
                 deproj2 = lambda pconds: deproject(fep.fs, pconds)
-                error = propagator(deproj2, self.error, target_distribution=error_distribution, flattener=flattener)
+                error = propagator(deproj2, self.error)
             fs = error.mean()
         else:
             fs = deproject(fep.fs, self.pconds)

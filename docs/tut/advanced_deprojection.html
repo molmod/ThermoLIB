@@ -109,12 +109,16 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../ug_micromacro.html">Extracting micro- and macrostate free energy</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../ug_kinetics.html">Computing the reaction rate</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../ug_transformation.html">Transformations</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../ug_transformation.html#deterministic-transformation">Deterministic transformation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ug_transformation.html">Transformations of the FEP/FES</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../ug_transformation.html#deterministic-transformation">Deterministic transformation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../ug_transformation.html#dimensional">1 dimensional</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../ug_transformation.html#id1">2 dimensional</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="../ug_transformation.html#probabilistic-transformation">Probabilistic transformation</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../ug_projection.html">(De)projections</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../ug_projection.html">(De)projections of the FEP/FES</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../ug_projection.html#projecting-2d-fes-to-1d-fep">Projecting 2D FES to 1D FEP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../ug_projection.html#deprojecting-1d-fep-to-2d-fes">Deprojecting 1D FEP to 2D FES</a></li>
 </ul>
@@ -195,6 +199,13 @@
 <li class="toctree-l3"><a class="reference internal" href="advanced_transformations.html#FEP-and-rate-in-terms-of-alternative-CV">FEP and rate in terms of alternative CV</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="advanced_transformations_2D.html">Tutorial 8 - Transformation of 2D free energy surfaces</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="advanced_transformations_2D.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="advanced_transformations_2D.html#Construction-of-original-2D-FES">Construction of original 2D FES</a></li>
+<li class="toctree-l3"><a class="reference internal" href="advanced_transformations_2D.html#Transformation-to-new-CVs">Transformation to new CVs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="advanced_transformations_2D.html#Projection-comparison">Projection comparison</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../rg.html">Reference Guide</a><ul>
@@ -262,25 +273,90 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../rg_kin.html">Kinetics – <code class="docutils literal notranslate"><span class="pre">thermolib.kinetics</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../rg_kin.html#module-thermolib.kinetics.rate">Rate constant – <code class="docutils literal notranslate"><span class="pre">thermolib.kinetics.rate</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_kin.html#thermolib.kinetics.rate.BaseRateFactor"><code class="docutils literal notranslate"><span class="pre">BaseRateFactor</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_kin.html#thermolib.kinetics.rate.RateFactorEquilibrium"><code class="docutils literal notranslate"><span class="pre">RateFactorEquilibrium</span></code></a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../rg_error.html">Error distributions – <code class="docutils literal notranslate"><span class="pre">thermolib.error</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.Distribution"><code class="docutils literal notranslate"><span class="pre">Distribution</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.LogGaussianDistribution"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.ErrorArray"><code class="docutils literal notranslate"><span class="pre">ErrorArray</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.ErrorArray.mean"><code class="docutils literal notranslate"><span class="pre">ErrorArray.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.ErrorArray.nsigma_conf_int"><code class="docutils literal notranslate"><span class="pre">ErrorArray.nsigma_conf_int()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.ErrorArray.sample"><code class="docutils literal notranslate"><span class="pre">ErrorArray.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.ErrorArray.std"><code class="docutils literal notranslate"><span class="pre">ErrorArray.std()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution.copy"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution.from_samples"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.from_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution.log_from_loggaussian"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.log_from_loggaussian()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution.mean"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution.nsigma_conf_int"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.nsigma_conf_int()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution.print"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.print()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution.sample"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution.set_ref"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.set_ref()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution.shift"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.shift()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.GaussianDistribution.std"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.std()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.LogGaussianDistribution"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.LogGaussianDistribution.copy"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.LogGaussianDistribution.exp_from_gaussian"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.exp_from_gaussian()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.LogGaussianDistribution.from_samples"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.from_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.LogGaussianDistribution.mean"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.LogGaussianDistribution.nsigma_conf_int"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.nsigma_conf_int()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.LogGaussianDistribution.sample"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.LogGaussianDistribution.set_ref"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.set_ref()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.LogGaussianDistribution.shift"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.shift()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.LogGaussianDistribution.std"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.std()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiDistribution"><code class="docutils literal notranslate"><span class="pre">MultiDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiDistribution.corr"><code class="docutils literal notranslate"><span class="pre">MultiDistribution.corr()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution.copy"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution.cov"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.cov()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution.from_samples"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.from_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution.log_from_loggaussian"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.log_from_loggaussian()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution.mean"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution.nsigma_conf_int"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.nsigma_conf_int()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution.plot_corr_matrix"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.plot_corr_matrix()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution.sample"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution.set_ref"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.set_ref()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiGaussianDistribution.std"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.std()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiLogGaussianDistribution"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiLogGaussianDistribution.copy"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiLogGaussianDistribution.cov"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.cov()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiLogGaussianDistribution.exp_from_gaussian"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.exp_from_gaussian()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiLogGaussianDistribution.from_samples"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.from_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiLogGaussianDistribution.mean"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiLogGaussianDistribution.nsigma_conf_int"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.nsigma_conf_int()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiLogGaussianDistribution.plot_corr_matrix"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.plot_corr_matrix()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiLogGaussianDistribution.sample"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.MultiLogGaussianDistribution.std"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.std()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.Propagator"><code class="docutils literal notranslate"><span class="pre">Propagator</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.SampleDistribution"><code class="docutils literal notranslate"><span class="pre">SampleDistribution</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.Propagator"><code class="docutils literal notranslate"><span class="pre">Propagator</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.Propagator.calc_fun_values"><code class="docutils literal notranslate"><span class="pre">Propagator.calc_fun_values()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.Propagator.gen_args_samples"><code class="docutils literal notranslate"><span class="pre">Propagator.gen_args_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.Propagator.get_distribution"><code class="docutils literal notranslate"><span class="pre">Propagator.get_distribution()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.Propagator.reset"><code class="docutils literal notranslate"><span class="pre">Propagator.reset()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_error.html#thermolib.error.SampleDistribution"><code class="docutils literal notranslate"><span class="pre">SampleDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.SampleDistribution.from_samples"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.from_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.SampleDistribution.mean"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.SampleDistribution.sample"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.SampleDistribution.set_ref"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.set_ref()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.SampleDistribution.shift"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.shift()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../rg_error.html#thermolib.error.SampleDistribution.std"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.std()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../rg_tools.html">Tools – <code class="docutils literal notranslate"><span class="pre">thermolib.tools</span></code></a><ul>
@@ -293,6 +369,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.h5_read_dataset"><code class="docutils literal notranslate"><span class="pre">h5_read_dataset()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.integrate"><code class="docutils literal notranslate"><span class="pre">integrate()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.integrate2d"><code class="docutils literal notranslate"><span class="pre">integrate2d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.interpolate_surface_2d"><code class="docutils literal notranslate"><span class="pre">interpolate_surface_2d()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.invert_fisher_to_covariance"><code class="docutils literal notranslate"><span class="pre">invert_fisher_to_covariance()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.multivariate_normal"><code class="docutils literal notranslate"><span class="pre">multivariate_normal()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.read_wham_input"><code class="docutils literal notranslate"><span class="pre">read_wham_input()</span></code></a></li>
@@ -452,11 +529,11 @@ SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.091s
-  bias poten. : 00h 00m 00.009s
-  solve scf   : 00h 00m 01.088s
-  error est.  : 00h 00m 00.151s
-  TOTAL       : 00h 00m 01.341s
+  histograms  : 00h 00m 00.063s
+  bias poten. : 00h 00m 00.006s
+  solve scf   : 00h 00m 00.767s
+  error est.  : 00h 00m 00.022s
+  TOTAL       : 00h 00m 00.860s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -475,23 +552,6 @@ TIMING SUMMARY
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
-WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
-WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
-WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
-WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
-WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
-WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
-WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
-WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
-WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
 findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu Sans.
@@ -504,7 +564,7 @@ findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu S
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_deprojection_14_2.png" src="../_images/tut_advanced_deprojection_14_2.png" />
+<img alt="../_images/tut_advanced_deprojection_14_1.png" src="../_images/tut_advanced_deprojection_14_1.png" />
 </div>
 </div>
 </section>
@@ -738,11 +798,11 @@ WARNING: Histogram of trajectory 127 should have total count of 10000 (=number o
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.092s
-  bias poten. : 00h 00m 01.577s
-  solve scf   : 00h 00m 05.937s
-  error est.  : 00h 00m 03.157s
-  TOTAL       : 00h 00m 10.765s
+  histograms  : 00h 00m 00.066s
+  bias poten. : 00h 00m 01.174s
+  solve scf   : 00h 00m 05.228s
+  error est.  : 00h 00m 02.422s
+  TOTAL       : 00h 00m 08.892s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -761,7 +821,7 @@ TIMING SUMMARY
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:1901: MatplotlibDeprecationWarning: The &#39;extend&#39; parameter to Colorbar has no effect because it is overridden by the mappable; it is deprecated since 3.3 and will be removed two minor releases later.
+/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:2157: MatplotlibDeprecationWarning: The &#39;extend&#39; parameter to Colorbar has no effect because it is overridden by the mappable; it is deprecated since 3.3 and will be removed two minor releases later.
   cbar = pp.colorbar(contourf, ax=ax, extend=&#39;both&#39;)
 </pre></div></div>
 </div>
@@ -931,11 +991,11 @@ Estimating error ...
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.125s
-  bias poten. : 00h 00m 01.551s
-  solve scf   : 00h 00m 07.621s
-  error est.  : 00h 00m 02.689s
-  TOTAL       : 00h 00m 11.988s
+  histograms  : 00h 00m 00.067s
+  bias poten. : 00h 00m 01.177s
+  solve scf   : 00h 00m 05.439s
+  error est.  : 00h 00m 02.166s
+  TOTAL       : 00h 00m 08.850s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -977,28 +1037,11 @@ TIMING SUMMARY
 </pre></div>
 </div>
 </div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:1853: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
-  lower, upper = lower[slicer], upper[slicer]
-</pre></div></div>
-</div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_deprojection_38_2.png" src="../_images/tut_advanced_deprojection_38_2.png" />
+<img alt="../_images/tut_advanced_deprojection_38_0.png" src="../_images/tut_advanced_deprojection_38_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -1009,28 +1052,11 @@ WARNING: multivariate normal sampling failed using Cholesky decomposition, switc
 </pre></div>
 </div>
 </div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:1853: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
-  lower, upper = lower[slicer], upper[slicer]
-</pre></div></div>
-</div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_deprojection_39_2.png" src="../_images/tut_advanced_deprojection_39_2.png" />
+<img alt="../_images/tut_advanced_deprojection_39_0.png" src="../_images/tut_advanced_deprojection_39_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -1041,28 +1067,11 @@ WARNING: multivariate normal sampling failed using Cholesky decomposition, switc
 </pre></div>
 </div>
 </div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:1853: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
-  lower, upper = lower[slicer], upper[slicer]
-</pre></div></div>
-</div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_deprojection_40_2.png" src="../_images/tut_advanced_deprojection_40_2.png" />
+<img alt="../_images/tut_advanced_deprojection_40_0.png" src="../_images/tut_advanced_deprojection_40_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -1073,28 +1082,11 @@ WARNING: multivariate normal sampling failed using Cholesky decomposition, switc
 </pre></div>
 </div>
 </div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:1853: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
-  lower, upper = lower[slicer], upper[slicer]
-</pre></div></div>
-</div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_deprojection_41_2.png" src="../_images/tut_advanced_deprojection_41_2.png" />
+<img alt="../_images/tut_advanced_deprojection_41_0.png" src="../_images/tut_advanced_deprojection_41_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -1105,28 +1097,11 @@ WARNING: multivariate normal sampling failed using Cholesky decomposition, switc
 </pre></div>
 </div>
 </div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:1853: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
-  lower, upper = lower[slicer], upper[slicer]
-</pre></div></div>
-</div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_deprojection_42_2.png" src="../_images/tut_advanced_deprojection_42_2.png" />
+<img alt="../_images/tut_advanced_deprojection_42_0.png" src="../_images/tut_advanced_deprojection_42_0.png" />
 </div>
 </div>
 </section>
@@ -1194,19 +1169,6 @@ F(CV,U) &amp;= -k_B T logleft(P(CV,U)right) = F(CV) -k_BT logleft(P(U|CV)right)<
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/condprob.py:444: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
-  xs = self.error.mean()[slicer]
-/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/condprob.py:456: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
-  lower = self.error.nsigma_conf_int(2)[0][slicer]
-/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/condprob.py:457: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
-  upper = self.error.nsigma_conf_int(2)[1][slicer]
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 &lt;Figure size 432x288 with 0 Axes&gt;
@@ -1216,7 +1178,7 @@ F(CV,U) &amp;= -k_B T logleft(P(CV,U)right) = F(CV) -k_BT logleft(P(U|CV)right)<
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_deprojection_48_2.png" src="../_images/tut_advanced_deprojection_48_2.png" />
+<img alt="../_images/tut_advanced_deprojection_48_1.png" src="../_images/tut_advanced_deprojection_48_1.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -1265,8 +1227,6 @@ WARNING: multivariate normal sampling failed using Cholesky decomposition, switc
 WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
 WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
 WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
-WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
-WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -1282,7 +1242,7 @@ WARNING: multivariate normal sampling failed using Cholesky decomposition, switc
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:1901: MatplotlibDeprecationWarning: The &#39;extend&#39; parameter to Colorbar has no effect because it is overridden by the mappable; it is deprecated since 3.3 and will be removed two minor releases later.
+/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:2157: MatplotlibDeprecationWarning: The &#39;extend&#39; parameter to Colorbar has no effect because it is overridden by the mappable; it is deprecated since 3.3 and will be removed two minor releases later.
   cbar = pp.colorbar(contourf, ax=ax, extend=&#39;both&#39;)
 </pre></div></div>
 </div>
@@ -1356,15 +1316,6 @@ WARNING: multivariate normal sampling failed using Cholesky decomposition, switc
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/condprob.py:441: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
-  xs = self.pconds[slicer].copy()
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 &lt;Figure size 432x288 with 0 Axes&gt;
@@ -1374,7 +1325,7 @@ WARNING: multivariate normal sampling failed using Cholesky decomposition, switc
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_deprojection_57_2.png" src="../_images/tut_advanced_deprojection_57_2.png" />
+<img alt="../_images/tut_advanced_deprojection_57_1.png" src="../_images/tut_advanced_deprojection_57_1.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -1392,8 +1343,6 @@ WARNING: multivariate normal sampling failed using Cholesky decomposition, switc
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
-WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
 WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
 WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
 WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
@@ -1463,7 +1412,6 @@ WARNING: multivariate normal sampling failed using Cholesky decomposition, switc
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
 WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
 WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
 WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
@@ -1573,7 +1521,6 @@ WARNING: multivariate normal sampling failed using Cholesky decomposition, switc
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
 WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
 WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
 WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
