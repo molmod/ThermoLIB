@@ -660,7 +660,7 @@ class BaseFreeEnergyProfile(BaseProfile):
             :param derivative: The analytical derivative of the transformation function :math:`f`. If set to None, the derivative will be estimated through numerical differentiation.
             :type derivative: callable, optional, default=None
 
-            :param qs_new: grid points for the new Q grid. If None, a grid will be constructed between f(CV[0]) and f(CV[-1]) with equal number of points as CV grid.
+            :param qs_new: grid points for the new Q grid. If None, a uniform grid will be constructed between f(CV[0]) and f(CV[-1]) with equal number of points as the original CV grid.
             :type qs_new: np.ndarray, optional, default=None
 
             :param interpolate: if set to True, the free energy of bins on the new grid in which not a single old grid point ends up will be interpolated from the neighboring bins
@@ -1580,18 +1580,35 @@ class FreeEnergySurface2D(object):
 
     def transform_function(self, functions, q1s, q2s, derivatives=None, interpolate=True, propagator=None, cv1_label='Q1', cv2_label='Q2', cv1_output_unit='au', cv2_output_unit='au'):
         '''
-            Routine to transform the current free energy profile in terms of the original collective variables :math:`(CV_1,CV_2)` towards a free energy profile in terms of new collective variables :math:`(Q_1,Q_2)` according to the given deterministic relation :math:`Q_1=f_1(CV_1,CV_2)` and :math:`Q_2=f_2(CV_1,CV_2)`. Depending on the size of your grid, this routine might take several minutes in case an error bar was included in the original FES and hence needs to be propagated. The transformation is done according to the formula
+            Routine to transform the current free energy profile in terms of the original collective variables :math:`(CV_1,CV_2)` towards a free energy profile in terms of new collective variables :math:`(Q_1,Q_2)` according to the given deterministic relation 
+            
+            .. math::
+
+                \\left\\{\\begin{array}{rl}
+                    Q_1 &= f_1(CV_1,CV_2) \\\\
+                    Q_2 &= f_2(CV_1,CV_2) \\\\
+                \\end{array}\\right. \\Leftrightarrow \\left\\{\\begin{array}{rl}
+                    CV_1 &= H_1(Q_1,Q_2) \\\\
+                    CV_2 &= H_2(Q_1,Q_2) \\\\
+                \\end{array}\\right.
+            
+            with :math:`(H_1,H_2)` the inverse of :math:`(f_1,f_2)`. The transformed free energy surface :math:`F_Q(Q_1,Q_2)` is given by:
 
             .. math:: 
 
-                F_Q(Q_1,Q_1) &= F_{CV}(H_1(Q_1,Q_2),H_2(Q_1,Q_2)) + k_B T \\log\\left[f'(f^{-1}(Q))\\right]
+                F_Q(Q_1,Q_1) &= F_{CV}(H_1(Q_1,Q_2),H_2(Q_1,Q_2)) + k_B T \\log\\left[J\\left(H_1(Q_1,Q_2),H_2(Q_1,Q_2)\\right)\\right]
+            
+            where :math:`J(CV_1,CV_2)` represents the Jacobian determinant of the transformation:
 
-            where :math:`(H_1,H_2)` represent the inverse of :math:`(f_1,f_2)`, in other words
+            .. math:: 
 
-            .. math::
+                J(CV_1,CV_2) = \\left|\\begin{array}{cc}
+                                    \\frac{\\partial f_1}{\\partial CV_1} & \\frac{\\partial f_1}{\\partial CV_2} \\\\
+                                    \\frac{\\partial f_2}{\\partial CV_1} & \\frac{\\partial f_2}{\\partial CV_2} \\\\
+                                    \\end{array}\\right| \\\\
+                            = \\frac{\\partial f_1}{\\partial CV_1}\\cdot\\frac{\\partial f_2}{\\partial CV_2} - \\frac{\\partial f_2}{\\partial CV_1}\\cdot\\frac{\\partial f_1}{\\partial CV_2}
 
-                f_1\\left(H_1(Q_1,Q_2),H_2(Q_1,Q_2)\\right) & \\equiv Q_1 \\\\
-                f_2\\left(H_1(Q_1,Q_2),H_2(Q_1,Q_2)\\right) & \\equiv Q_2
+            Depending on the size of your grid, this routine might take several minutes in case an error bar was included in the original FES and hence needs to be propagated.
 
             :param functions: The transformation functions :math:`f_1` and :math:`f_2` from the equations above.
             :type functions: callable
@@ -1602,7 +1619,7 @@ class FreeEnergySurface2D(object):
             :param q2s: array of grid points of the new collective variable :math:`Q_2`
             :type q2s: np.ndarray
 
-            :param derivatives: The analytical derivatives of the transformation functions :math:`f_1` and :math:`f_2`. Should be given as a list :math:`[[\\frac{df_1}{dCV_1},\\frac{df_1}{dCV_2}],[\\frac{df_2}{dCV_1},\\frac{df_2}{dCV_2}]]`. If set to None, the derivative will be estimated through numerical differentiation.
+            :param derivatives: The analytical derivatives of the transformation functions :math:`f_1` and :math:`f_2`. Should be given as a list :math:`[[\\frac{\\partial f_1}{\\partial CV_1},\\frac{\\partial f_1}{\\partial CV_2}],[\\frac{\\partial f_2}{\\partial CV_1},\\frac{\\partial f_2}{\\partial CV_2}]]`. If set to None, the derivatives will be estimated through numerical differentiation.
             :type derivatives: callable, optional, default=None
 
             :param interpolate: If set to True, perform a interpolation using the :py:meth:`interpolate_surface_2d <thermolib.tools.interpolate_surface_2d>` (see documentation there for more info).

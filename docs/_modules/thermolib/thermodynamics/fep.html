@@ -106,7 +106,11 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../ug_micromacro.html">Extracting micro- and macrostate free energy</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ug_kinetics.html">Computing the reaction rate</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ug_transformation.html">Transformations</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../ug_transformation.html#deterministic-transformation">Deterministic transformation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../ug_transformation.html#deterministic-transformation">Deterministic transformation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../ug_transformation.html#dimensional">1 dimensional</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../ug_transformation.html#id1">2 dimensional</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="../../../ug_transformation.html#probabilistic-transformation">Probabilistic transformation</a></li>
 </ul>
 </li>
@@ -1070,7 +1074,7 @@
 <span class="sd">            :param derivative: The analytical derivative of the transformation function :math:`f`. If set to None, the derivative will be estimated through numerical differentiation.</span>
 <span class="sd">            :type derivative: callable, optional, default=None</span>
 
-<span class="sd">            :param qs_new: grid points for the new Q grid. If None, a grid will be constructed between f(CV[0]) and f(CV[-1]) with equal number of points as CV grid.</span>
+<span class="sd">            :param qs_new: grid points for the new Q grid. If None, a uniform grid will be constructed between f(CV[0]) and f(CV[-1]) with equal number of points as the original CV grid.</span>
 <span class="sd">            :type qs_new: np.ndarray, optional, default=None</span>
 
 <span class="sd">            :param interpolate: if set to True, the free energy of bins on the new grid in which not a single old grid point ends up will be interpolated from the neighboring bins</span>
@@ -1990,18 +1994,35 @@
 
 <div class="viewcode-block" id="FreeEnergySurface2D.transform_function"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.fep.FreeEnergySurface2D.transform_function">[docs]</a>    <span class="k">def</span> <span class="nf">transform_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">functions</span><span class="p">,</span> <span class="n">q1s</span><span class="p">,</span> <span class="n">q2s</span><span class="p">,</span> <span class="n">derivatives</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">interpolate</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">propagator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv1_label</span><span class="o">=</span><span class="s1">&#39;Q1&#39;</span><span class="p">,</span> <span class="n">cv2_label</span><span class="o">=</span><span class="s1">&#39;Q2&#39;</span><span class="p">,</span> <span class="n">cv1_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv2_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">            Routine to transform the current free energy profile in terms of the original collective variables :math:`(CV_1,CV_2)` towards a free energy profile in terms of new collective variables :math:`(Q_1,Q_2)` according to the given deterministic relation :math:`Q_1=f_1(CV_1,CV_2)` and :math:`Q_2=f_2(CV_1,CV_2)`. Depending on the size of your grid, this routine might take several minutes in case an error bar was included in the original FES and hence needs to be propagated. The transformation is done according to the formula</span>
+<span class="sd">            Routine to transform the current free energy profile in terms of the original collective variables :math:`(CV_1,CV_2)` towards a free energy profile in terms of new collective variables :math:`(Q_1,Q_2)` according to the given deterministic relation </span>
+<span class="sd">            </span>
+<span class="sd">            .. math::</span>
+
+<span class="sd">                \\left\\{\\begin{array}{rl}</span>
+<span class="sd">                    Q_1 &amp;= f_1(CV_1,CV_2) \\\\</span>
+<span class="sd">                    Q_2 &amp;= f_2(CV_1,CV_2) \\\\</span>
+<span class="sd">                \\end{array}\\right. \\Leftrightarrow \\left\\{\\begin{array}{rl}</span>
+<span class="sd">                    CV_1 &amp;= H_1(Q_1,Q_2) \\\\</span>
+<span class="sd">                    CV_2 &amp;= H_2(Q_1,Q_2) \\\\</span>
+<span class="sd">                \\end{array}\\right.</span>
+<span class="sd">            </span>
+<span class="sd">            with :math:`(H_1,H_2)` the inverse of :math:`(f_1,f_2)`. The transformed free energy surface :math:`F_Q(Q_1,Q_2)` is given by:</span>
 
 <span class="sd">            .. math:: </span>
 
-<span class="sd">                F_Q(Q_1,Q_1) &amp;= F_{CV}(H_1(Q_1,Q_2),H_2(Q_1,Q_2)) + k_B T \\log\\left[f&#39;(f^{-1}(Q))\\right]</span>
+<span class="sd">                F_Q(Q_1,Q_1) &amp;= F_{CV}(H_1(Q_1,Q_2),H_2(Q_1,Q_2)) + k_B T \\log\\left[J\\left(H_1(Q_1,Q_2),H_2(Q_1,Q_2)\\right)\\right]</span>
+<span class="sd">            </span>
+<span class="sd">            where :math:`J(CV_1,CV_2)` represents the Jacobian determinant of the transformation:</span>
 
-<span class="sd">            where :math:`(H_1,H_2)` represent the inverse of :math:`(f_1,f_2)`, in other words</span>
+<span class="sd">            .. math:: </span>
 
-<span class="sd">            .. math::</span>
+<span class="sd">                J(CV_1,CV_2) = \\left|\\begin{array}{cc}</span>
+<span class="sd">                                    \\frac{\\partial f_1}{\\partial CV_1} &amp; \\frac{\\partial f_1}{\\partial CV_2} \\\\</span>
+<span class="sd">                                    \\frac{\\partial f_2}{\\partial CV_1} &amp; \\frac{\\partial f_2}{\\partial CV_2} \\\\</span>
+<span class="sd">                                    \\end{array}\\right| \\\\</span>
+<span class="sd">                            = \\frac{\\partial f_1}{\\partial CV_1}\\cdot\\frac{\\partial f_2}{\\partial CV_2} - \\frac{\\partial f_2}{\\partial CV_1}\\cdot\\frac{\\partial f_1}{\\partial CV_2}</span>
 
-<span class="sd">                f_1\\left(H_1(Q_1,Q_2),H_2(Q_1,Q_2)\\right) &amp; \\equiv Q_1 \\\\</span>
-<span class="sd">                f_2\\left(H_1(Q_1,Q_2),H_2(Q_1,Q_2)\\right) &amp; \\equiv Q_2</span>
+<span class="sd">            Depending on the size of your grid, this routine might take several minutes in case an error bar was included in the original FES and hence needs to be propagated.</span>
 
 <span class="sd">            :param functions: The transformation functions :math:`f_1` and :math:`f_2` from the equations above.</span>
 <span class="sd">            :type functions: callable</span>
@@ -2012,7 +2033,7 @@
 <span class="sd">            :param q2s: array of grid points of the new collective variable :math:`Q_2`</span>
 <span class="sd">            :type q2s: np.ndarray</span>
 
-<span class="sd">            :param derivatives: The analytical derivatives of the transformation functions :math:`f_1` and :math:`f_2`. Should be given as a list :math:`[[\\frac{df_1}{dCV_1},\\frac{df_1}{dCV_2}],[\\frac{df_2}{dCV_1},\\frac{df_2}{dCV_2}]]`. If set to None, the derivative will be estimated through numerical differentiation.</span>
+<span class="sd">            :param derivatives: The analytical derivatives of the transformation functions :math:`f_1` and :math:`f_2`. Should be given as a list :math:`[[\\frac{\\partial f_1}{\\partial CV_1},\\frac{\\partial f_1}{\\partial CV_2}],[\\frac{\\partial f_2}{\\partial CV_1},\\frac{\\partial f_2}{\\partial CV_2}]]`. If set to None, the derivatives will be estimated through numerical differentiation.</span>
 <span class="sd">            :type derivatives: callable, optional, default=None</span>
 
 <span class="sd">            :param interpolate: If set to True, perform a interpolation using the :py:meth:`interpolate_surface_2d &lt;thermolib.tools.interpolate_surface_2d&gt;` (see documentation there for more info).</span>

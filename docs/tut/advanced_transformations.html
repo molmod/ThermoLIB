@@ -199,6 +199,7 @@
 <li class="toctree-l3"><a class="reference internal" href="advanced_transformations_2D.html#Introduction">Introduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="advanced_transformations_2D.html#Construction-of-original-2D-FES">Construction of original 2D FES</a></li>
 <li class="toctree-l3"><a class="reference internal" href="advanced_transformations_2D.html#Transformation-to-new-CVs">Transformation to new CVs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="advanced_transformations_2D.html#Projection-comparison">Projection comparison</a></li>
 </ul>
 </li>
 </ul>
@@ -531,11 +532,11 @@ SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.060s
+  histograms  : 00h 00m 00.061s
   bias poten. : 00h 00m 00.014s
-  solve scf   : 00h 00m 00.328s
-  error est.  : 00h 00m 00.050s
-  TOTAL       : 00h 00m 00.453s
+  solve scf   : 00h 00m 00.287s
+  error est.  : 00h 00m 00.035s
+  TOTAL       : 00h 00m 00.398s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -608,7 +609,7 @@ findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu S
 <div class="highlight"><pre>
 Rate factor with block averaging:
 ---------------------------------
-  A = 17.455 +- 0.011 1e12*au/s (9486 TS samples, int. autocorr. time = 21.804 timesteps)
+  A = 17.459 +- 0.010 1e12*au/s (8285 TS samples, int. autocorr. time = 4.067 timesteps)
 
 </pre></div></div>
 </div>
@@ -649,30 +650,59 @@ Rate factor with block averaging:
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:588: RuntimeWarning: Mean of empty slice.
-  fs_new[k] = values.mean()
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-WARNING: could not interpolate for Q[0] = 0.218 au as no lower/upper bound was found for interpolation
-WARNING: could not interpolate for Q[157] = 4.215 au as no lower/upper bound was found for interpolation
-WARNING: could not interpolate for Q[158] = 4.241 au as no lower/upper bound was found for interpolation
-WARNING: could not interpolate for Q[159] = 4.266 au as no lower/upper bound was found for interpolation
-WARNING: could not interpolate for Q[160] = 4.292 au as no lower/upper bound was found for interpolation
-WARNING: could not interpolate for Q[161] = 4.317 au as no lower/upper bound was found for interpolation
-WARNING: could not interpolate for Q[162] = 4.342 au as no lower/upper bound was found for interpolation
-WARNING: could not interpolate for Q[163] = 4.368 au as no lower/upper bound was found for interpolation
-WARNING: could not interpolate for Q[164] = 4.393 au as no lower/upper bound was found for interpolation
-WARNING: could not interpolate for Q[165] = 4.419 au as no lower/upper bound was found for interpolation
-WARNING: could not interpolate for Q[166] = 4.444 au as no lower/upper bound was found for interpolation
-WARNING: could not interpolate for Q[167] = 4.470 au as no lower/upper bound was found for interpolation
-WARNING: could not interpolate for Q[168] = 4.495 au as no lower/upper bound was found for interpolation
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
+WARNING: lowest point on new CV grid is larger than original CV grid. You will potentially lose data by recollection. Set return_new_fes to True to force the recollection and store to new FES.
 WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
 WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
 WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
@@ -684,7 +714,7 @@ WARNING: multivariate normal sampling failed using Cholesky decomposition, switc
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_transformations_22_2.png" src="../_images/tut_advanced_transformations_22_2.png" />
+<img alt="../_images/tut_advanced_transformations_22_1.png" src="../_images/tut_advanced_transformations_22_1.png" />
 </div>
 </div>
 <p>We clearly see that the free energy profile is not the same anymore as before. We now compute the rate according to the transformed CV and see if that has changed. For this, we use the CollectiveVariable child class <code class="docutils literal notranslate"><span class="pre">FunctionCV</span></code> to define a function of another CV:</p>
@@ -726,7 +756,7 @@ dQ &amp;= f’(CV^{TS})cdot dCV</p>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[0.9991501298879246, 1.0894422027905217]
+[0.9800238496120881, 1.0687371361831082]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -744,7 +774,7 @@ dQ &amp;= f’(CV^{TS})cdot dCV</p>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Estimating rate factor from trajectory data/formic_acid_dimer_link/colvars/u64.xyz for TS=[0.999,1.089] au using analytical momentum integration
+Estimating rate factor from trajectory data/formic_acid_dimer_link/colvars/u64.xyz for TS=[0.980,1.069] au using analytical momentum integration
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -764,7 +794,7 @@ Estimating rate factor from trajectory data/formic_acid_dimer_link/colvars/u64.x
 <div class="highlight"><pre>
 Rate factor with block averaging:
 ---------------------------------
-  A = 16.040 +- 0.022 1e12*au/s (7244 TS samples, int. autocorr. time = 1.240 timesteps)
+  A = 15.934 +- 0.020 1e12*au/s (9211 TS samples, int. autocorr. time = 28.525 timesteps)
 
 </pre></div></div>
 </div>
