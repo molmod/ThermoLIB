@@ -2106,7 +2106,7 @@ class FreeEnergySurface2D(object):
         
         if ndim==1 and self.error is not None:
             lower, upper = self.error.nsigma_conf_int(2)
-            lower, upper = lower[slicer], upper[slicer]
+            lower, upper = lower[slicer[0],slicer[1]], upper[slicer[0],slicer[1]]
         if linestyles is None:
             linestyles = [None,]*len(data)
         if linewidths is None:
