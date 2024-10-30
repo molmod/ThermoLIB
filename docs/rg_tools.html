@@ -372,6 +372,8 @@
 <li class="toctree-l3"><a class="reference internal" href="#thermolib.tools.interpolate_surface_2d"><code class="docutils literal notranslate"><span class="pre">interpolate_surface_2d()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#thermolib.tools.invert_fisher_to_covariance"><code class="docutils literal notranslate"><span class="pre">invert_fisher_to_covariance()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#thermolib.tools.multivariate_normal"><code class="docutils literal notranslate"><span class="pre">multivariate_normal()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#thermolib.tools.plot_histograms_1d"><code class="docutils literal notranslate"><span class="pre">plot_histograms_1d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#thermolib.tools.plot_histograms_overlap_1d"><code class="docutils literal notranslate"><span class="pre">plot_histograms_overlap_1d()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#thermolib.tools.read_wham_input"><code class="docutils literal notranslate"><span class="pre">read_wham_input()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#thermolib.tools.rolling_average"><code class="docutils literal notranslate"><span class="pre">rolling_average()</span></code></a></li>
 </ul>
@@ -671,6 +673,49 @@
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="thermolib.tools.plot_histograms_1d">
+<span class="sig-prename descclassname"><span class="pre">thermolib.tools.</span></span><span class="sig-name descname"><span class="pre">plot_histograms_1d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trajs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cv_unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'au'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/tools.html#plot_histograms_1d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.tools.plot_histograms_1d" title="Permalink to this definition"></a></dt>
+<dd><p>Routine to plot 1d histograms of all trajectories to check overlap. This is usefull to check the choice of umbrellas in an umbrella simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>trajs</strong> (<em>list</em><em>(</em><em>np.ndarray</em><em>)</em>) – List of all trajectories for which the histogram needs to be plotted.</p></li>
+<li><p><strong>bins</strong> (<em>int</em><em> or </em><em>np.ndarray</em><em>, </em><em>optional</em><em>, </em><em>default=200</em>) – Specification of the bins for histograming. Can either be an integer specifying the number of bins over all CV range of all simulations or a numpy array explicitly defining all bins. Either bins or width needs to be specified, but not both.</p></li>
+<li><p><strong>width</strong> (<em>float</em><em>, </em><em>optional</em><em>, </em><em>default=None</em>) – Specification of the width of the bins to be used in the histogramming. Either bins or width needs to be specified, but not both.</p></li>
+<li><p><strong>cv_unit</strong> (<em>str</em><em>, </em><em>optional</em><em>, </em><em>default='au'</em>) – unit of the CV to be used in the plot</p></li>
+<li><p><strong>alpha</strong> (<em>float</em><em>, </em><em>optional</em><em>, </em><em>default=0.8</em>) – transparancy value of each histogram to allow visualizing overlap</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="thermolib.tools.plot_histograms_overlap_1d">
+<span class="sig-prename descclassname"><span class="pre">thermolib.tools.</span></span><span class="sig-name descname"><span class="pre">plot_histograms_overlap_1d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trajs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/tools.html#plot_histograms_overlap_1d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.tools.plot_histograms_overlap_1d" title="Permalink to this definition"></a></dt>
+<dd><p>Routine to compute and plot overlap between all pairs of given trajectories. The overlap metric used is the one suggested by Borgmans et al. [J. Chem. Theory Comput. 2023, 19, 9032-9048], which expressed overlap <img class="math" src="_images/math/f5100bf1c50ee7b35d781346d7ced6f333473483.png" alt="O_{ij}"/> between probability distribution <img class="math" src="_images/math/5247131b3b1b9cc457d29a9b08a19c2062ed3d16.png" alt="p_i"/> and <img class="math" src="_images/math/c975c0ce699f1ada89a3ca5d97ed4a050bd67d74.png" alt="p_j"/> as:</p>
+<div class="math">
+<p><img src="_images/math/ab7532573d4b7866ac564b9c994e7780c8db9f48.png" alt="O_{ij} = \int_{-\infty}^{+\infty} \min(p_i(q),p_j(q))dq"/></p>
+</div><p>Three plots will be generated:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>left</strong>   – CV mean for each trajectory. This should be monotonically increasing in order to adequately interpret the right pane. If this is not the case, set sort=True</p></li>
+<li><p><strong>center</strong> – matrix of overlap between each pair of trajectories. In a well sorted set, this matrix should be dominant along the diagonal. All diagonal values are 1, as those elements represent overlap of a trajectory with itself.</p></li>
+<li><p><strong>right</strong> – Overlap of each simulation with its right neighbor (as well as right second neighbor). In a good umbrella simulation set, this line should be consistingly high (e.g. above 0.33 as suggested by Borgmans et al. [J. Chem. Theory Comput. 2023, 19, 9032-9048]).</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>trajs</strong> (<em>list</em><em>(</em><em>np.ndarray</em><em>)</em>) – List of all trajectories for which the histogram needs to be plotted.</p></li>
+<li><p><strong>bins</strong> (<em>int</em><em> or </em><em>np.ndarray</em><em>, </em><em>optional</em><em>, </em><em>default=200</em>) – Specification of the bins in order to construct the probability distributions through histogramming. Can either be an integer specifying the number of bins over all CV range of all simulations or a numpy array explicitly defining all bins.</p></li>
+<li><p><strong>sort</strong> (<em>bool</em><em>, </em><em>optional</em><em>, </em><em>default=False</em>) – If set to True and it is detected that the trajectories are not sorted according to increasing mean, the routine will first do so. This is crucial in order to properly interpret the ‘overlap with right neighbor’ plot generated by this routine.</p></li>
+<li><p><strong>fn</strong> (<em>str</em><em>, </em><em>optional</em><em>, </em><em>default=None</em>) – File name to write plot to. Plot will not be saved to file if fn=None</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>

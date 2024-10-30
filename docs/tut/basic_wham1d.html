@@ -373,6 +373,8 @@
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.interpolate_surface_2d"><code class="docutils literal notranslate"><span class="pre">interpolate_surface_2d()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.invert_fisher_to_covariance"><code class="docutils literal notranslate"><span class="pre">invert_fisher_to_covariance()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.multivariate_normal"><code class="docutils literal notranslate"><span class="pre">multivariate_normal()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.plot_histograms_1d"><code class="docutils literal notranslate"><span class="pre">plot_histograms_1d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.plot_histograms_overlap_1d"><code class="docutils literal notranslate"><span class="pre">plot_histograms_overlap_1d()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.read_wham_input"><code class="docutils literal notranslate"><span class="pre">read_wham_input()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.rolling_average"><code class="docutils literal notranslate"><span class="pre">rolling_average()</span></code></a></li>
 </ul>
@@ -435,9 +437,9 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">thermolib.thermodynamics.fep</span> <span class="kn">import</span> <span class="n">BaseFreeEnergyProfile</span><span class="p">,</span> <span class="n">SimpleFreeEnergyProfile</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">thermolib.thermodynamics.fep</span> <span class="kn">import</span> <span class="n">BaseFreeEnergyProfile</span><span class="p">,</span> <span class="n">SimpleFreeEnergyProfile</span><span class="p">,</span> <span class="n">plot_profiles</span>
 <span class="kn">from</span> <span class="nn">thermolib.thermodynamics.histogram</span> <span class="kn">import</span> <span class="n">Histogram1D</span>
-<span class="kn">from</span> <span class="nn">thermolib.tools</span> <span class="kn">import</span> <span class="n">read_wham_input</span><span class="p">,</span> <span class="n">decorrelate</span>
+<span class="kn">from</span> <span class="nn">thermolib.tools</span> <span class="kn">import</span> <span class="n">read_wham_input</span><span class="p">,</span> <span class="n">decorrelate</span><span class="p">,</span> <span class="n">plot_histograms_overlap_1d</span><span class="p">,</span> <span class="n">plot_histograms_1d</span>
 <span class="kn">from</span> <span class="nn">thermolib.thermodynamics.trajectory</span> <span class="kn">import</span> <span class="n">ColVarReader</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -475,9 +477,58 @@ metadata file directory. This file is then read by <code class="docutils literal
 </pre></div>
 </div>
 </div>
-<p>The output for the <code class="docutils literal notranslate"><span class="pre">read_wham_input</span></code> routine shows (at least if the keyword <code class="docutils literal notranslate"><span class="pre">verbose</span></code> is set to <code class="docutils literal notranslate"><span class="pre">True</span></code>) for each simulation from which file the CV data is read, how many samples are in that simulation as well as which bias potential is used. Next, we construct the 1D probability histogram on the given grid (defined by <code class="docutils literal notranslate"><span class="pre">bins</span></code>) using the WHAM routine.</p>
+<p>The output for the <code class="docutils literal notranslate"><span class="pre">read_wham_input</span></code> routine shows (at least if the keyword <code class="docutils literal notranslate"><span class="pre">verbose</span></code> is set to <code class="docutils literal notranslate"><span class="pre">True</span></code>) for each simulation from which file the CV data is read, how many samples are in that simulation as well as which bias potential is used. Before we continue, we should check whether the various Umbrella simulations have sufficiently overlapping histograms. We could simply plot all histograms on top of each other in a single plot:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plot_histograms_1d</span><span class="p">(</span><span class="n">trajectories</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tut_basic_wham1d_11_0.png" src="../_images/tut_basic_wham1d_11_0.png" />
+</div>
+</div>
+<p>As it is in this case difficult to assess the overlap (because there are many small histograms), we can also compute the overlap (according to a metric suggested by Borgmans et al. [J. Chem. Theory Comput. 2023, 19, 9032-9048] which is a value between 0 (no overlap) and 1 (perfect overlap)) and plot that:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plot_histograms_overlap_1d</span><span class="p">(</span><span class="n">trajectories</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Figure size 432x288 with 0 Axes&gt;
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu Sans.
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tut_basic_wham1d_13_2.png" src="../_images/tut_basic_wham1d_13_2.png" />
+</div>
+</div>
+<p>In the right plot, which shows the overlap of each trajectory with its right neighbor (as well as its right second neighbor), we see a consistent overlap of more than 0.6, which is rather high. Even the overlap with the second neighbor is still above 0.33, a threshold suggested for another system by Borgmans et al. [J. Chem. Theory Comput. 2023, 19, 9032-9048]. Hence, we are confident the various simulations are sufficiently overlapping. Next, we construct the 1D probability histogram on the
+given grid (defined by <code class="docutils literal notranslate"><span class="pre">bins</span></code>) using the WHAM routine.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mf">1.7</span><span class="p">,</span> <span class="mf">1.7</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">)</span>
@@ -494,17 +545,17 @@ SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.072s
-  bias poten. : 00h 00m 00.016s
-  solve scf   : 00h 00m 00.396s
+  histograms  : 00h 00m 00.063s
+  bias poten. : 00h 00m 00.015s
+  solve scf   : 00h 00m 00.321s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.485s
+  TOTAL       : 00h 00m 00.400s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
 <p>We can plot the histogram:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hist</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">plims</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">0.005</span><span class="p">,</span><span class="mf">0.06</span><span class="p">])</span>
@@ -515,12 +566,12 @@ TIMING SUMMARY
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_basic_wham1d_13_0.png" src="../_images/tut_basic_wham1d_13_0.png" />
+<img alt="../_images/tut_basic_wham1d_17_0.png" src="../_images/tut_basic_wham1d_17_0.png" />
 </div>
 </div>
 <p>From the histogram, we can construct the corresponding free energy profile. We assume the profile contains a single transition state maximum within the Q-range of <code class="docutils literal notranslate"><span class="pre">[-0.2,0.2]</span></code>, and a reactant state minimum for lower Q value and product state minimum for higher Q value. This is encoded in the class <code class="docutils literal notranslate"><span class="pre">SimpleFreeEnergyProfile</span></code>. We then also define the energy reference by setting the reactant state minimum to zero and plot the resulting profile.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fep</span> <span class="o">=</span> <span class="n">SimpleFreeEnergyProfile</span><span class="o">.</span><span class="n">from_histogram</span><span class="p">(</span><span class="n">hist</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">cv_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv_label</span><span class="o">=</span><span class="s1">&#39;CV&#39;</span><span class="p">,</span> <span class="n">f_output_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">)</span>
@@ -538,14 +589,13 @@ TIMING SUMMARY
 findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu Sans.
 findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu Sans.
 findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu Sans.
-findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu Sans.
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_basic_wham1d_15_1.png" src="../_images/tut_basic_wham1d_15_1.png" />
+<img alt="../_images/tut_basic_wham1d_19_1.png" src="../_images/tut_basic_wham1d_19_1.png" />
 </div>
 </div>
 </section>
@@ -557,7 +607,7 @@ assumes it to be Normally distributed, resulting in an error on the probability 
 the estimated error for propagation to the error on derived properties.</p>
 <p>For more information and guidelines on the various schemes of error estimation, we refer to the <code class="docutils literal notranslate"><span class="pre">advanced_wham1D_error</span></code> notebook, here we will only demonstrate the <code class="docutils literal notranslate"><span class="pre">mle_f_cov</span></code> method. In order to estimate the error reliably, we need to first compute the correlation time between the MD steps (see the <code class="docutils literal notranslate"><span class="pre">advanced_wham1D_error</span></code> notebook for more details on this as well), which we then also will need to parse to the from_wham routine for error estimation:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">corrtimes</span> <span class="o">=</span> <span class="n">decorrelate</span><span class="p">(</span><span class="n">trajectories</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -585,11 +635,11 @@ the estimated error for propagation to the error on derived properties.</p>
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_basic_wham1d_18_2.png" src="../_images/tut_basic_wham1d_18_2.png" />
+<img alt="../_images/tut_basic_wham1d_22_2.png" src="../_images/tut_basic_wham1d_22_2.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mf">1.7</span><span class="p">,</span><span class="mf">1.7</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">)</span>
@@ -606,17 +656,17 @@ SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.067s
-  bias poten. : 00h 00m 00.019s
-  solve scf   : 00h 00m 00.350s
-  error est.  : 00h 00m 00.196s
-  TOTAL       : 00h 00m 00.633s
+  histograms  : 00h 00m 00.078s
+  bias poten. : 00h 00m 00.013s
+  solve scf   : 00h 00m 00.311s
+  error est.  : 00h 00m 00.033s
+  TOTAL       : 00h 00m 00.437s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
 <p>We can now plot the histogram and/or the free energy profile together with its error bar as well as 5 random samples of the FEP within the error bar.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hist</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
@@ -633,11 +683,12 @@ TIMING SUMMARY
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_basic_wham1d_21_0.png" src="../_images/tut_basic_wham1d_21_0.png" />
+<img alt="../_images/tut_basic_wham1d_25_0.png" src="../_images/tut_basic_wham1d_25_0.png" />
 </div>
 </div>
+<p>One can also plot various samples of the full profile taken according the error estimate:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fep</span> <span class="o">=</span> <span class="n">BaseFreeEnergyProfile</span><span class="o">.</span><span class="n">from_histogram</span><span class="p">(</span><span class="n">hist</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="n">temp</span><span class="p">)</span>
@@ -656,13 +707,56 @@ TIMING SUMMARY
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_basic_wham1d_22_0.png" src="../_images/tut_basic_wham1d_22_0.png" />
+<img alt="../_images/tut_basic_wham1d_27_0.png" src="../_images/tut_basic_wham1d_27_0.png" />
 </div>
 </div>
-<p>One can also plot various samples of the full profile taken according the error estimate:</p>
-<p>Finally, we can also make a matrix plot of the correlation between the free energy of different points on the fep:</p>
+<p>Below, we briefly illustrate how the FEP would look like if we would only have done half the number of umbrella simulations (i.e. only include every other umbrella simulation, which still restults in overlap above 0.33):</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hist2</span> <span class="o">=</span> <span class="n">Histogram1D</span><span class="o">.</span><span class="n">from_wham</span><span class="p">(</span><span class="n">bins</span><span class="p">,</span> <span class="n">trajectories</span><span class="p">[::</span><span class="mi">2</span><span class="p">],</span> <span class="n">biasses</span><span class="p">[::</span><span class="mi">2</span><span class="p">],</span> <span class="n">temp</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="s1">&#39;mle_f_cov&#39;</span><span class="p">,</span> <span class="n">corrtimes</span><span class="o">=</span><span class="n">corrtimes</span><span class="p">[::</span><span class="mi">2</span><span class="p">],</span> <span class="n">Nscf</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
+<span class="n">fep2</span> <span class="o">=</span> <span class="n">BaseFreeEnergyProfile</span><span class="o">.</span><span class="n">from_histogram</span><span class="p">(</span><span class="n">hist2</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="n">temp</span><span class="p">)</span>
+<span class="n">fep2</span><span class="o">.</span><span class="n">set_ref</span><span class="p">(</span><span class="n">ref</span><span class="o">=</span><span class="s1">&#39;min&#39;</span><span class="p">)</span>
+<span class="n">plot_profiles</span><span class="p">([</span><span class="n">fep</span><span class="p">,</span> <span class="n">fep2</span><span class="p">],</span> <span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Original&#39;</span><span class="p">,</span><span class="s1">&#39;half data&#39;</span><span class="p">],</span> <span class="n">colors</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">,</span><span class="s1">&#39;r&#39;</span><span class="p">],</span> <span class="n">flims</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span><span class="mi">30</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+SCF Converged!
+---------------------------------------------------------------------
+TIMING SUMMARY
+  initializing: 00h 00m 00.000s
+  histograms  : 00h 00m 00.030s
+  bias poten. : 00h 00m 00.006s
+  solve scf   : 00h 00m 00.456s
+  error est.  : 00h 00m 00.009s
+  TOTAL       : 00h 00m 00.503s
+---------------------------------------------------------------------
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Figure size 432x288 with 0 Axes&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tut_basic_wham1d_29_2.png" src="../_images/tut_basic_wham1d_29_2.png" />
+</div>
+</div>
+<p>As we can see, the profile still looks almost identical (maybe slightly less smooth), just with an increased error bar. Hence, overlap of 0.33 or higher seems to be OK (at least for this example). Finally, we can also make a matrix plot of the correlation between the free energy of different points on the fep:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fep</span><span class="o">.</span><span class="n">plot_corr_matrix</span><span class="p">(</span><span class="n">flims</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span><span class="mi">30</span><span class="p">],</span> <span class="n">fn</span><span class="o">=</span><span class="s1">&#39;basic_corrmatrixplot.pdf&#39;</span><span class="p">)</span>
@@ -681,7 +775,7 @@ TIMING SUMMARY
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_basic_wham1d_25_1.png" src="../_images/tut_basic_wham1d_25_1.png" />
+<img alt="../_images/tut_basic_wham1d_31_1.png" src="../_images/tut_basic_wham1d_31_1.png" />
 </div>
 </div>
 <p>From the plot above (where blue means correlation of -1, red correlation of -1 and white correlation of 0) we can make the following interesting observations: - the free energy of each point is strongly correlated with the free energy of neighboring points (red along the diagonal) - the free energy of the reactant states is strongly anticorrelated with the free energy of the product states (blue in lower left and upper right region). This is due to the normalisation of the probability associated
@@ -694,7 +788,7 @@ The free energy of a microstate is just simply the corresponding free energy val
 <p><img class="math" src="../_images/math/d8431d88c06cf3e329ae84067a96e56ab37a01b7.png" alt="F_R = -k_BT\ln\left[\int_{-\infty}^{q^{TST}} e^{-\beta F(q)}dq\right]"/></p>
 <p>where <img class="math" src="../_images/math/eb14a28b2e93276cdc55fb5f98652c64d597fecf.png" alt="q^{TST}"/> is the value of the CV in the transition state. In case of a macrostate, it might also be usefull to know the average (and variance) off the CV in the macrostate. All of these properties can be computed with ThermoLIB using the classes in the <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.state</span></code> module. To this end, we start from the free energy profile <code class="docutils literal notranslate"><span class="pre">fep</span></code> as computed in the previous section.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">thermolib.thermodynamics.state</span> <span class="kn">import</span> <span class="n">Minimum</span><span class="p">,</span> <span class="n">Maximum</span><span class="p">,</span> <span class="n">Integrate</span>
@@ -717,7 +811,7 @@ The free energy of a microstate is just simply the corresponding free energy val
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#you can access the cv or f value by calling the get_cv() or get_f() routine:</span>
@@ -733,13 +827,13 @@ The free energy of a microstate is just simply the corresponding free energy val
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-TransState:    cv = 0.012 au     f  = 24.815 kjmol
-MacroReac:    cv = -1.241 au     f  = 2.432 kjmol
-MicroReac:    cv = -1.252 au     f  = 0.163 kjmol
+TransState:    cv = -0.012 au     f  = 24.945 kjmol
+MacroReac:    cv = -1.236 au     f  = 2.691 kjmol
+MicroReac:    cv = -1.247 au     f  = 0.273 kjmol
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#you can also print the print thermodynamic state properties more easily by calling its print routine:</span>
@@ -756,20 +850,20 @@ MicroReac:    cv = -1.252 au     f  = 0.163 kjmol
 MICROSTATE TransState:
 --------------
   index =  None
-  F     = 24.815 +- 1.415 kjmol
-  CV    = 0.012 +- 0.114 au
+  F     = 24.945 +- 1.492 kjmol
+  CV    = -0.012 +- 0.133 au
 
 MICROSTATE MicroReac:
 --------------
   index =  None
-  F     = 0.163 +- 1.622 kjmol
-  CV    = -1.252 +- 0.123 au
+  F     = 0.273 +- 1.290 kjmol
+  CV    = -1.247 +- 0.076 au
 
 MACROSTATE MacroReac:
 --------------
-  F       = 2.432 +- 1.334 kjmol
-  CV Mean = -1.241 +- 0.021 au
-  CV StD  = 0.160 +- 0.010 au
+  F       = 2.691 +- 1.237 kjmol
+  CV Mean = -1.236 +- 0.023 au
+  CV StD  = 0.162 +- 0.011 au
 
 </pre></div></div>
 </div>
@@ -783,7 +877,7 @@ from the SimpleFreeEnergyProfile instead of BaseFreeEnergyProfile, i.e. execute:
 </div></blockquote>
 <p>Or we simply convert the BaseFreeEnergyProfile to a SimpleFreeEnergyProfile as follows:</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fep</span> <span class="o">=</span> <span class="n">SimpleFreeEnergyProfile</span><span class="o">.</span><span class="n">from_base</span><span class="p">(</span><span class="n">fep</span><span class="p">)</span>
@@ -794,7 +888,7 @@ from the SimpleFreeEnergyProfile instead of BaseFreeEnergyProfile, i.e. execute:
 distribution. In the current example this is indeed the case, therefore, we limit the overal CV range to <code class="docutils literal notranslate"><span class="pre">cv_lims=[-1.5,1.5]</span></code>.</p>
 <p>Next, ThermoLIB will automatically defines the reactant/product microstate (as a local minimum left/right of the transition state) as well as the Reactant/Product macrostate (as the integral over all microstates left/right of the transition state):</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fep</span><span class="o">.</span><span class="n">process_states</span><span class="p">(</span><span class="n">lims</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">1.5</span><span class="p">,</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">1.5</span><span class="p">],</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -809,38 +903,38 @@ distribution. In the current example this is indeed the case, therefore, we limi
 MICROSTATE ts:
 --------------
   index =  None
-  F     = 24.881 +- 1.330 kjmol
-  CV    = 0.013 +- 0.123 au
+  F     = 24.832 +- 1.491 kjmol
+  CV    = 0.010 +- 0.136 au
 
 MICROSTATE r:
 --------------
   index =  None
-  F     = 0.071 +- 1.456 kjmol
-  CV    = -1.236 +- 0.064 au
+  F     = 0.106 +- 1.405 kjmol
+  CV    = -1.244 +- 0.071 au
 
 MICROSTATE p:
 --------------
   index =  None
-  F     = -0.158 +- 1.386 kjmol
-  CV    = 1.310 +- 0.010 au
+  F     = 0.004 +- 1.557 kjmol
+  CV    = 1.307 +- 0.041 au
 
 MACROSTATE R:
 --------------
-  F       = 2.697 +- 1.444 kjmol
+  F       = 2.813 +- 1.649 kjmol
   CV Mean = -1.230 +- 0.020 au
-  CV StD  = 0.146 +- 0.010 au
+  CV StD  = 0.146 +- 0.009 au
 
 MACROSTATE P:
 --------------
-  F       = 2.694 +- 1.163 kjmol
-  CV Mean = 1.236 +- 0.018 au
-  CV StD  = 0.145 +- 0.010 au
+  F       = 2.667 +- 1.355 kjmol
+  CV Mean = 1.236 +- 0.015 au
+  CV StD  = 0.145 +- 0.008 au
 
 </pre></div></div>
 </div>
 <p>If now plot the free energy profile using the <code class="docutils literal notranslate"><span class="pre">fep_f.plot(fn)</span></code> routine, we will also see the macrostates and microstates indicated:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fep</span><span class="o">.</span><span class="n">set_ref</span><span class="p">(</span><span class="n">ref</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
@@ -852,7 +946,7 @@ MACROSTATE P:
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_basic_wham1d_37_0.png" src="../_images/tut_basic_wham1d_37_0.png" />
+<img alt="../_images/tut_basic_wham1d_43_0.png" src="../_images/tut_basic_wham1d_43_0.png" />
 </div>
 </div>
 </section>

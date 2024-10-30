@@ -29,7 +29,7 @@ import time
 __all__ = [
     'format_scientific', 'h5_read_dataset',
     'integrate', 'integrate2d', 'interpolate_surface_2d', 'recollect_surface_2d', 'rolling_average',
-    'read_wham_input', 'extract_polynomial_bias_info',
+    'read_wham_input', 'extract_polynomial_bias_info', 'plot_histograms_1d', 'plot_histograms_overlap_1d',
     'blav', 'corrtime_from_acf', 'decorrelate', 'multivariate_normal',
     'invert_fisher_to_covariance', 'fisher_matrix_mle_probdens',
 ]
@@ -576,6 +576,141 @@ def extract_polynomial_bias_info(fn_plumed: str='plumed.dat'):
                 poly_coef = [float(i) for i in split_line] #remark that -float is needed to get the resulting fe.
                 break
     return poly_coef
+
+def plot_histograms_1d(trajs, bins=200, width=None, cv_unit='au', alpha=0.8):
+    '''
+        Routine to plot 1d histograms of all trajectories to check overlap. This is usefull to check the choice of umbrellas in an umbrella simulation.
+
+        :param trajs: List of all trajectories for which the histogram needs to be plotted.
+        :type trajs: list(np.ndarray)
+
+        :param bins: Specification of the bins for histograming. Can either be an integer specifying the number of bins over all CV range of all simulations or a numpy array explicitly defining all bins. Either bins or width needs to be specified, but not both.
+        :type bins: int or np.ndarray, optional, default=200
+
+        :param width: Specification of the width of the bins to be used in the histogramming. Either bins or width needs to be specified, but not both.
+        :type width: float, optional, default=None
+
+        :param cv_unit: unit of the CV to be used in the plot
+        :type cv_unit: str, optional, default='au'
+
+        :param alpha: transparancy value of each histogram to allow visualizing overlap
+        :type alpha: float, optional, default=0.8
+    '''
+    #process bins argument
+    assert not (bins is None and width is None), 'One out of the two arguments bins and width must be specified!'
+    assert bins is None or width is None, 'Only one out of the two arguments bins and width can be specified!'
+    if bins is not None:
+        if isinstance(bins, int):
+            min = np.array([traj.min() for traj in trajs]).min()
+            max = np.array([traj.max() for traj in trajs]).max()
+            bins = np.linspace(min, max, num=bins)
+        else:
+            assert isinstance(bins, np.ndarray), 'Invalid type for argument bins, should be integer (representing number of bins) or np.ndarray representing all bin edges'
+        width = (bins[1:]-bins[:-1]).max()
+    #construct and plot all histograms
+    pp.clf()
+    for traj in trajs:
+        if bins is not None:
+            current_bins = bins.copy()
+        else:
+            min = np.floor(traj.min()/width)*width
+            max = np.ceil(traj.max()/width)*width
+            current_bins = np.arange(min, max, width)
+        hist, bin_edges = np.histogram(traj, bins=current_bins, density=True)
+        bin_centers = 0.5*(bin_edges[:-1]+bin_edges[1:])
+        pp.bar(bin_centers/parse_unit(cv_unit), hist, width=width, alpha=alpha)
+    pp.xlabel('CV [%s]' %cv_unit, fontsize=16)
+    pp.ylabel('Prob [a.u.]', fontsize=16)
+    fig = pp.gcf()
+    fig.set_size_inches([8,8])
+
+def plot_histograms_overlap_1d(trajs, bins=200, sort=False, fn=None):
+    '''
+        Routine to compute and plot overlap between all pairs of given trajectories. The overlap metric used is the one suggested by Borgmans et al. [J. Chem. Theory Comput. 2023, 19, 9032-9048], which expressed overlap :math:`O_{ij}` between probability distribution :math:`p_i` and :math:`p_j` as:
+
+        .. math::
+
+            O_{ij} = \\int_{-\\infty}^{+\\infty} \\min(p_i(q),p_j(q))dq
+        
+        Three plots will be generated: 
+
+            * **left**   -- CV mean for each trajectory. This should be monotonically increasing in order to adequately interpret the right pane. If this is not the case, set sort=True
+            * **center** -- matrix of overlap between each pair of trajectories. In a well sorted set, this matrix should be dominant along the diagonal. All diagonal values are 1, as those elements represent overlap of a trajectory with itself.
+            * **right** -- Overlap of each simulation with its right neighbor (as well as right second neighbor). In a good umbrella simulation set, this line should be consistingly high (e.g. above 0.33 as suggested by Borgmans et al. [J. Chem. Theory Comput. 2023, 19, 9032-9048]).
+
+
+        :param trajs: List of all trajectories for which the histogram needs to be plotted.
+        :type trajs: list(np.ndarray)
+
+        :param bins: Specification of the bins in order to construct the probability distributions through histogramming. Can either be an integer specifying the number of bins over all CV range of all simulations or a numpy array explicitly defining all bins.
+        :type bins: int or np.ndarray, optional, default=200
+
+        :param sort: If set to True and it is detected that the trajectories are not sorted according to increasing mean, the routine will first do so. This is crucial in order to properly interpret the 'overlap with right neighbor' plot generated by this routine.
+        :type sort: bool, optional, default=False
+
+        :param fn: File name to write plot to. Plot will not be saved to file if fn=None
+        :type fn: str, optional, default=None
+    '''
+    N = len(trajs)
+    #process bins argument
+    if isinstance(bins, int):
+        min = np.array([traj.min() for traj in trajs]).min()
+        max = np.array([traj.max() for traj in trajs]).max()
+        bins = np.linspace(min, max, num=bins)
+    else:
+        assert isinstance(bins, np.ndarray), 'Invalid type for argument bins, should be integer (representing number of bins) or np.ndarray representing all bin edges'
+    width = (bins[1:]-bins[:-1]).max()
+    #construct and plot all histograms
+    O = np.zeros([N,N], dtype=float)
+    histograms = []
+    means = []
+    for traj in trajs:
+        hist, bin_edges = np.histogram(traj, bins=bins, density=True)
+        histograms.append(hist)
+        bin_centers = 0.5*(bin_edges[0:-1]+bin_edges[1:])
+        mean=(hist*bin_centers).sum()*width
+        means.append(mean)
+    #sort trajectories according to mean
+    indices = sorted(range(N), key=lambda i: means[i])
+    if not (np.array(indices)==np.arange(N)).all():
+        if not sort:
+            print('WARNING: Trajectories were not sorting according to increasing mean, to do so use sort=True')
+        else:
+            print('Trajectories were not sorting according to increasing mean, resorting as follows:')
+            print(indices)
+            histograms = [histograms[i] for i in indices]
+            means      = [means[i]      for i in indices]
+    #compte overlap
+    for i, Hi in enumerate(histograms):
+        for j, Hj in enumerate(histograms):
+            O[i,j]=(np.minimum(Hi,Hj)).sum()*width
+    Oright = np.array([O[i,i+1] for i in range(0,N-1)]+[np.nan])
+    Oright2 = np.array([O[i,i+2] for i in range(0,N-2)]+[np.nan,np.nan])
+    #make plot
+    pp.clf()
+    fig, axs = pp.subplots(1,3)
+    axs[0].plot(means, 'bo-')
+    axs[0].set_xlabel('Simulation', fontsize=16)
+    axs[0].set_ylabel('CV mean [a.u.]', fontsize=16)
+    axs[0].set_title('Trajectory means', fontsize=16)
+    axs[1].imshow(O,cmap='Greys')
+    axs[1].set_xlabel('Trajectory index', fontsize=16)
+    axs[1].set_ylabel('Trajectory index', fontsize=16)
+    axs[1].set_title('Overlap matrix', fontsize=16)
+    axs[2].plot(Oright, 'r>-', label='with neighbor')
+    axs[2].plot(Oright2, 'b>-', label='with second neighbor')
+    #axs[2].axhline(0.5, color='k', linestyle='--', label='0.50 threshold')
+    axs[2].axhline(0.33, color='k', linestyle=':', label='0.33 threshold')
+    axs[2].legend(loc='best', fontsize=16, ncol=2)
+    axs[2].set_ylim([0,1])
+    axs[2].set_xlabel('Trajectory index', fontsize=16)
+    axs[2].set_ylabel('Overlap', fontsize=16)
+    axs[2].set_title('Overlap of each trajectory with right neighbor', fontsize=16)
+    fig = pp.gcf()
+    fig.set_size_inches([24,8])
+    if fn is not None:
+        pp.savefig(fn)
+
 
 #Routines related to (de)correlation
 

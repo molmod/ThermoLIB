@@ -913,8 +913,8 @@ class ConditionalProbability1D2D(ConditionalProbability):
             :type sub: slice, optional, default=slice(None, None, None)
         '''
         cv_reader = CVComputer([CV], name=self.cv_labels[0], start=sub.start, stride=sub.step, end=sub.stop, verbose=self.verbose)
-        q1_reader = CVComputer([Q1], name=self.q_labels[1], start=sub.start, stride=sub.step, end=sub.stop, verbose=self.verbose)
-        q2_reader = CVComputer([Q2], name=self.q_labels[2], start=sub.start, stride=sub.step, end=sub.stop, verbose=self.verbose)
+        q1_reader = CVComputer([Q1], name=self.q_labels[0], start=sub.start, stride=sub.step, end=sub.stop, verbose=self.verbose)
+        q2_reader = CVComputer([Q2], name=self.q_labels[1], start=sub.start, stride=sub.step, end=sub.stop, verbose=self.verbose)
         for fn in fns:
             self.process_simulation([(fn,q1_reader), (fn,q2_reader)], [(fn,cv_reader)])
 
@@ -1002,6 +1002,7 @@ class ConditionalProbability1D2D(ConditionalProbability):
         fs = transform(fep.fs, self.pconds)
         error = None
         if fep.error is not None:
+            propagator.flattener = Flattener(len(self.qs[0]), len(self.qs[1]))
             if self.error is not None:
                 error = propagator(transform, fep.error, self.error)
             else:
