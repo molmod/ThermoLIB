@@ -8,10 +8,10 @@
 # This file is part of a library developed by Louis Vanduyfhuys at
 # the Center for Molecular Modeling under supervision of prof. Veronique
 # Van Speybroeck. Usage of this package should be authorized by prof. Van
-# Vanduyfhuys or prof. Van Van Speybroeck.
+# Vanduyfhuys or prof. Van Speybroeck.
 
-from .kinetics import *
-from .thermodynamics import *
-from .tools import *
-from .units import *
-from .constants import *
+from .fep import *
+from .condprob import *
+from .cv import *
+from .histogram import *
+from .bias import *
