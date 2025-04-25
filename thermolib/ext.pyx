@@ -123,7 +123,7 @@ def wham1d_bias(int Nsims, int Ngrid, double beta, list biasses, double delta, i
 
 
 #
-def wham1d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=2] Hs, np.ndarray[double, ndim=2] bs, int Nscf=1000, double convergence=1e-6, double overflow_threshold=1e-150, verbose=False):
+def wham1d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=2] Hs, np.ndarray[double, ndim=2] bs, np.ndarray[double] weights, int Nscf=1000, double convergence=1e-6, double overflow_threshold=1e-150, verbose=False):
     '''
         Internal WHAM routine to solve the WHAM equations for the unbiased probability distribution
         
@@ -142,6 +142,9 @@ def wham1d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=2] Hs, np.ndarray[dou
 
         :param bs: array containing the (integrated) bias on the CV-grid for each simulation, i.e. :math:`b_{ik}` array from equation above.
         :type bs: np.ndarray[double, shape=(Nsims, Ngrid)]
+
+        :param weights: array containing the weights to be given to the probability of each bin upon enforcing normalisation. This is only relevant when periodic boundary conditions are used.
+        :type weights: np.ndarray[double, shape=(Ngrid,)]
 
         :param Nscf: maximum number of SCF cycles to obtain self-consistency
         :type Nscf: int, optional, default=1000
@@ -193,7 +196,7 @@ def wham1d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=2] Hs, np.ndarray[dou
 
         as_new = np.zeros(Ngrid) # if a is zero, it will be ignored in both fs and the error calculation
         as_new[grid_mask] = np.divide(nominator[grid_mask],denominator[grid_mask])
-        as_new[grid_mask] /= np.sum(as_new) #enforce normalization
+        as_new[grid_mask] /= np.sum(weights*as_new) #enforce normalization
 
         #check convergence
         integrated_diff = np.abs(as_new-as_old).sum()
@@ -217,7 +220,7 @@ def wham1d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=2] Hs, np.ndarray[dou
 
 
 #
-def wham1d_error(int Nsims, int Ngrid, np.ndarray[long] Nis, np.ndarray[double] ps, np.ndarray[double] fs, np.ndarray[double, ndim=2] bs, np.ndarray[double] corrtimes, method='mle_f_cov', p_threshold=0.0, verbosity='off'):
+def wham1d_error(int Nsims, np.ndarray[long] Nis, np.ndarray[double] ps, np.ndarray[double] fs, np.ndarray[double, ndim=2] bs, np.ndarray[double] corrtimes, method='mle_f_cov', p_threshold=0.0, verbosity='off'):
     '''
         Internal WHAM routine that allows to compute the error distribution on the unbiased probability distirbution that is estimated using the WHAM equations. The error estimation is based on the interpretation of the WHAM solutio as a Maximum Likelihood Estimater (MLE), which in term allows to estimate the error based on the Fisher information matrix.
 
@@ -267,8 +270,10 @@ def wham1d_error(int Nsims, int Ngrid, np.ndarray[long] Nis, np.ndarray[double] 
     cdef np.ndarray[double, ndim=2] I, Ii, Imask, sigma
     cdef np.ndarray[double] err, logps
     cdef np.ndarray[np.uint8_t, ndim=2] mask
-    cdef int i, k
+    cdef int i, k, Ngrid
     cdef long Nmask2, Nmask
+
+    Ngrid = len(ps)
     I = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1], dtype=float)
     for i in range(Nsims):
         Ii = np.zeros([Ngrid+2*Nsims+1, Ngrid+2*Nsims+1])

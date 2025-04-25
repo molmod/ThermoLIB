@@ -24,12 +24,106 @@ import time
 
 from thermolib.thermodynamics.fep import BaseProfile, BaseFreeEnergyProfile
 from thermolib.ext import wham1d_hs, wham1d_bias, wham1d_scf, wham1d_error, wham2d_hs, wham2d_bias, wham2d_scf, wham2d_error
-from thermolib.error import GaussianDistribution, LogGaussianDistribution, Propagator, MultiGaussianDistribution, MultiLogGaussianDistribution
+from thermolib.error import GaussianDistribution, LogGaussianDistribution, Propagator, MultiGaussianDistribution, MultiLogGaussianDistribution, DummyFlattener
 from thermolib.tools import fisher_matrix_mle_probdens, invert_fisher_to_covariance
 
 __all__ = [
 	'Histogram1D', 'Histogram2D', 'plot_histograms'
 ]
+
+class PeriodicBoundaryConditions(object):
+	def __init__(self, period, bins):
+		'''
+			Class representing periodic boundary conditions for a 1D histogram. The histogram is assumed to be defined with the given bins and periodic with a given period.
+
+			:param period: the period of the histogram
+			:type period: float
+
+			:param grid: the grid on which the histogram is defined
+			:type grid: np.ndarray
+		'''
+		self.period = period
+		self.bins = bins
+		self._define_wrapmask()
+
+	def _define_wrapmask(self):
+		'''
+			Define the wrapmask for the periodic boundary conditions. The wrapmask is a matrix that defines how to wrap the histogram values to the periodic boundary conditions. The [l,k] element of the wrapmask is 1 if the unwrappred bin k is a periodic image of wrapped bin l.
+		'''
+		self.m = []
+		l = 0
+		while self.bins[l]-self.bins[0]<self.period:
+			row = np.zeros(len(self.bins),dtype=int)
+			for k, bin in enumerate(self.bins):
+				if k==0:
+					if l==0: 
+						row[0] = 1
+				else:
+					dq = bin-self.bins[k-1]
+					if (bin-self.bins[l])%self.period < dq and (self.bins[k-1]-self.bins[l])%self.period >= dq:
+						row[k] = 1
+			self.m.append(row)
+			l += 1
+		self.m = np.array(self.m)
+		self.weights_wrapped = np.array(np.einsum('lk->l', self.m), dtype=float)
+	
+	def wrap(self, x):
+		'''
+			Wrap the given array x to the periodic boundary conditions defined by this class.
+			
+			:param x: the array to be wrapped
+			:type x: np.ndarray
+		
+			:return: the wrapped value
+			:rtype: np.ndarray
+		'''
+		return np.einsum('lk,...k->...l', self.m,x)
+
+	def unwrap(self, x):
+		'''
+			Unwrap the given array x to the periodic boundary conditions defined by this class.
+			
+			:param x: the array to be unwrapped
+			:type x: np.ndarray
+		
+			:return: the unwrapped value
+			:rtype: np.ndarray
+		'''
+		return np.einsum('lk,...l->...k', self.m,x)
+
+	def unwrap_error(self, error):
+		'''
+			Unwrap the given error distribution using the periodic boundary conditions defined by this class.
+			
+			:param error: the error to be unwrapped
+			:type error: child of :py:class:`Distribution <thermolib.error.Distribution>`
+			:rtype: child of :py:class:`Distribution <thermolib.error.Distribution>`
+		'''
+		if isinstance(error, GaussianDistribution):
+			means = self.unwrap(error.means)
+			stds = self.unwrap(error.stds)
+			return GaussianDistribution(means, stds)
+		elif isinstance(error, LogGaussianDistribution):
+			lmeans = self.unwrap(error.lmeans)
+			lstds = self.unwrap(error.lstds)
+			return LogGaussianDistribution(lmeans, lstds)
+		elif isinstance(error, MultiGaussianDistribution):
+			if isinstance(error.flattener, DummyFlattener):
+				means = self.unwrap(error.means)
+				covariance = np.einsum('lk,rs,lr->ks', self.m, self.m, error.covariance)
+				return MultiGaussianDistribution(means, covariance, flattener=DummyFlattener())
+			else:
+				raise NotImplementedError('Unwrapping of error distribution not implemented for MultiDistribution with any flattener other than DummyFlattener')
+		elif isinstance(error, MultiLogGaussianDistribution):
+			print(error.lcovariance.shape)
+			if isinstance(error.flattener, DummyFlattener):
+				lmeans = self.unwrap(error.lmeans)
+				lcovariance = np.einsum('lk,rs,lr->ks', self.m, self.m, error.lcovariance)
+				return MultiLogGaussianDistribution(lmeans, lcovariance, flattener=DummyFlattener())
+			else:
+				raise NotImplementedError('Unwrapping of error distribution not implemented for MultiDistribution with any flattener other than DummyFlattener')
+		else:
+			raise NotImplementedError('Unwrapping of error distribution not implemented for this type of distribution')
 
 class Histogram1D(object):
 	'''
@@ -212,7 +306,7 @@ class Histogram1D(object):
 		return cls(cvs, ps, error=error, cv_output_unit=cv_output_unit, cv_label=cv_label)
 
 	@classmethod
-	def from_wham(cls, bins, traj_input, biasses, temp, error_estimate=None, corrtimes=None, error_p_threshold=0.0, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, bias_thress=1e-3, cv_output_unit='au', cv_label='CV', verbosity='low'):
+	def from_wham(cls, bins, traj_input, biasses, temp, pbc=None, error_estimate=None, corrtimes=None, error_p_threshold=0.0, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, bias_thress=1e-3, cv_output_unit='au', cv_label='CV', verbosity='low'):
 		'''
 			Routine that implements the Weighted Histogram Analysis Method (WHAM) for reconstructing the overall 1D probability histogram in terms of collective variable CV from a series of molecular simulations that are (possibly) biased in terms of CV.
 
@@ -227,6 +321,9 @@ class Histogram1D(object):
 
 			:param temp: the temperature at which all simulations were performed
 			:type temp: float
+
+			:param pbc: the period of the histogram. If None, no periodic boundary conditions are applied. If a float is given, the histogram is assumed to be periodic with that period.
+			:type pbc: float or None, optional, default=None
 
 			:param error_estimate: indicate if and how to perform error analysis. One of following options is available:
 
@@ -306,18 +403,24 @@ class Histogram1D(object):
 		assert grid_non_uniformity<1e-6, 'CV grid defined by bins argument should be of uniform spacing!'
 		delta = deltas.mean()
 		Ngrid = len(bin_centers)
+		if pbc is not None:
+			pbc = PeriodicBoundaryConditions(pbc, bin_centers)
 		timings['init'] = time.time()
 
 		#generate the individual histograms using numpy.histogram
 		if verbosity.lower() in ['medium', 'high']:
 			print('Constructing individual histograms for each biased simulation ...')
 		Hs = wham1d_hs(Nsims, Ngrid, trajectories, bins, Nis)
+		if pbc is not None:
+			Hs = pbc.wrap(Hs)
 		timings['hist'] = time.time()
 
 		#compute the integrated boltzmann factors of the biases in each grid interval
 		if verbosity.lower() in ['medium', 'high']:
 			print('Computing bias on grid ...')
 		bs = wham1d_bias(Nsims, Ngrid, beta, biasses, delta, bias_subgrid_num, bin_centers, threshold=bias_thress)
+		if pbc is not None:
+			bs = pbc.wrap(bs)
 		timings['bias'] = time.time()
 
 		#some init printing
@@ -334,7 +437,10 @@ class Histogram1D(object):
 
 		if verbosity.lower() in ['medium', 'high']:
 			print('Solving WHAM equations (SCF loop) ...')
-		ps, fs, converged = wham1d_scf(Nis, Hs, bs, Nscf=Nscf, convergence=convergence, verbose=verbosity.lower() in ['high'])
+		weights = np.ones(len(bin_centers), float)
+		if pbc is not None:
+			weights = pbc.weights_wrapped
+		ps, fs, converged = wham1d_scf(Nis, Hs, bs, weights=weights, Nscf=Nscf, convergence=convergence, verbose=verbosity.lower() in ['high'])
 		if verbosity.lower() in ['low', 'medium', 'high']:
 			if bool(converged):
 				print('SCF Converged!')
@@ -347,10 +453,14 @@ class Histogram1D(object):
 			if verbosity.lower() in ['medium', 'high']:
 				print('Estimating error ...')
 			if corrtimes is None: corrtimes = np.ones(len(traj_input), float)
-			error = wham1d_error(Nsims, Ngrid, Nis, ps, fs, bs, corrtimes, method=error_estimate, verbosity=verbosity, p_threshold=error_p_threshold)
+			error = wham1d_error(Nsims, Nis, ps, fs, bs, corrtimes, method=error_estimate, verbosity=verbosity, p_threshold=error_p_threshold)
 		elif error_estimate is not None and error_estimate not in ["None"]:
 			raise ValueError('Received invalid value for keyword argument error_estimate, got %s. See documentation for valid choices.' %error_estimate)
 		timings['error'] = time.time()
+
+		if pbc is not None:
+			ps = pbc.unwrap(ps)
+			error = pbc.unwrap_error(error)
 
 		if verbosity.lower() in ['low', 'medium', 'high']:
 			print('---------------------------------------------------------------------')
