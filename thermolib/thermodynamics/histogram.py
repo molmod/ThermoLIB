@@ -115,7 +115,6 @@ class PeriodicBoundaryConditions(object):
 			else:
 				raise NotImplementedError('Unwrapping of error distribution not implemented for MultiDistribution with any flattener other than DummyFlattener')
 		elif isinstance(error, MultiLogGaussianDistribution):
-			print(error.lcovariance.shape)
 			if isinstance(error.flattener, DummyFlattener):
 				lmeans = self.unwrap(error.lmeans)
 				lcovariance = np.einsum('lk,rs,lr->ks', self.m, self.m, error.lcovariance)
@@ -124,6 +123,7 @@ class PeriodicBoundaryConditions(object):
 				raise NotImplementedError('Unwrapping of error distribution not implemented for MultiDistribution with any flattener other than DummyFlattener')
 		else:
 			raise NotImplementedError('Unwrapping of error distribution not implemented for this type of distribution')
+
 
 class Histogram1D(object):
 	'''
@@ -440,7 +440,7 @@ class Histogram1D(object):
 		weights = np.ones(len(bin_centers), float)
 		if pbc is not None:
 			weights = pbc.weights_wrapped
-		ps, fs, converged = wham1d_scf(Nis, Hs, bs, weights=weights, Nscf=Nscf, convergence=convergence, verbose=verbosity.lower() in ['high'])
+		ps, fs, converged = wham1d_scf(Nis, Hs, bs, weights, Nscf=Nscf, convergence=convergence, verbose=verbosity.lower() in ['high'])
 		if verbosity.lower() in ['low', 'medium', 'high']:
 			if bool(converged):
 				print('SCF Converged!')
