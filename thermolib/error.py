@@ -449,7 +449,7 @@ class LogGaussianDistribution(Distribution):
         if nsamples is None:
             return np.exp(np.random.normal(loc=self.lmeans, scale=self.lstds))
         else:
-            result = np.stack([np.exp(np.random.normal(loc=self.lmeans, scale=self.lstds)) for i in range(nsamples)], axis=len(self.lmeans.shape))
+            result = np.stack([np.exp(np.random.normal(loc=self.lmeans, scale=self.lstds)) for i in range(nsamples)], axis=len(self.shape))
             return result
     
     def nsigma_conf_int(self, nsigma):
