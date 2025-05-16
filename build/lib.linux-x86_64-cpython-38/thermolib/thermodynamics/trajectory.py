@@ -10,9 +10,7 @@
 # Van Speybroeck. Usage of this package should be authorized by prof. Van
 # Vanduyfhuys or prof. Van Speybroeck.
 
-from molmod.units import *
-from molmod.io.xyz import XYZReader as mmXYZReader
-
+from ..units import *
 from .cv import CollectiveVariable
 
 from ase.io import read
@@ -195,21 +193,20 @@ class CVComputer(TrajectoryReader):
             :rtype: np.ndarray
         '''
         cvdata = None
-        xyz = mmXYZReader(fn)
+        xyz = read(fn, index=slice(self.start,self.end,self.stride))
         for i, CV in enumerate(self.CVs):
             data = []
-            for title, coords in xyz:
-                data.append(CV.compute(coords, deriv=False))
-            col = self._slice(np.array(data))
-            if len(col)==0:
-                raise ValueError('No data for CV(%s) could be read from trajectory %s. Are you sure you did not choose start:end:stride to restrictive?' %(CV.name,fn))
+            for atoms in xyz:
+                data.append(CV.compute(atoms, deriv=False))
+            if len(data)==0:
+                raise ValueError('No data for CV(%s) could be read from trajectory %s. Are you sure you did not choose start:end:stride to restrictive?' %(CV.name,fn)) # not sure this is needed with ase.io.read
             if cvdata is None:
                 assert i==0
-                cvdata = np.zeros([len(col), len(self.CVs)])
-                cvdata[:,0] = col
+                cvdata = np.zeros([len(data), len(self.CVs)])
+                cvdata[:,0] = data
             else:
-                assert len(col)==len(cvdata[:,0]), 'Trajectory for CV(%s) has %i time steps, while first CV has %i. They should both have an equal number.' %(CV.name, len(col), len(cvdata[:,0]))
-                cvdata[:,i] = col
+                assert len(data)==len(cvdata[:,0]), 'Trajectory for CV(%s) has %i time steps, while first CV has %i. They should both have an equal number.' %(CV.name, len(data), len(cvdata[:,0]))
+                cvdata[:,i] = data
         return cvdata
 
     def _read_h5(self, fn: str):

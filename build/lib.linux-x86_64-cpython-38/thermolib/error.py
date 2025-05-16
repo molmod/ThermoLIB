@@ -13,7 +13,7 @@
 import numpy as np, numpy.ma as ma
 np.seterr(divide='ignore', invalid='ignore')
 
-from molmod.units import *
+from .units import *
 
 import matplotlib.pyplot as pp
 
@@ -91,9 +91,9 @@ class Distribution(object):
         upper /= parse_unit(unit)
         mean = self.mean()/parse_unit(unit)
         if do_scientific:
-            lower = format_scientific(lower)
-            upper = format_scientific(upper)
-            mean = format_scientific(mean)
+            lower = format_scientific(lower, latex=False)
+            upper = format_scientific(upper, latex=False)
+            mean = format_scientific(mean, latex=False)
         else:
             lower = fmt % lower
             upper = fmt % upper
@@ -343,8 +343,8 @@ class GaussianDistribution(Distribution):
         error /= parse_unit(unit)
         mean = self.mean()/parse_unit(unit)
         if do_scientific:
-            error = format_scientific(error)
-            mean = format_scientific(mean)
+            error = format_scientific(error, latex=False)
+            mean = format_scientific(mean, latex=False)
         else:
             error = fmt % error
             mean  = fmt % mean

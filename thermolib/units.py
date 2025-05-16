@@ -69,7 +69,20 @@
 """
 
 
-from thermolib.constants import avogadro
+from .constants import avogadro
+
+import ast
+import operator as op
+
+# define which operations among units are allowed
+ALLOWED_OPERATORS = {
+    ast.Add: op.add,
+    ast.Sub: op.sub,
+    ast.Mult: op.mul,
+    ast.Div: op.truediv,
+    ast.Pow: op.pow,
+    ast.USub: op.neg,
+}
 
 
 def parse_unit(expression):
@@ -78,17 +91,45 @@ def parse_unit(expression):
        Argument:
         | ``expression``  --  A string containing a numerical expressions
                               including unit conversions.
-
-       In addition to the variables in this module, also the following
-       shorthands are supported:
-
     """
     try:
+        node = ast.parse(expression, mode='eval').body
         g = globals()
         g.update(shorthands)
-        return float(eval(str(expression), g))
+        return _eval_ast(node, g)
     except:
-        raise ValueError("Could not interpret '%s' as a unit or a measure." % expression)
+        raise ValueError(f"Invalid expression '{expression}'")
+    
+
+def _eval_ast(node, g):
+    '''Recursive evaluation of the string'''
+    if isinstance(node, ast.Constant):
+        return node.value
+    elif isinstance(node, ast.BinOp):
+        # evaluate a binary operation (e.g., a + b)
+        left = _eval_ast(node.left, g)
+        right = _eval_ast(node.right, g)
+        op_type = type(node.op)
+        if op_type in ALLOWED_OPERATORS:
+            return ALLOWED_OPERATORS[op_type](left, right)
+        else:
+            raise ValueError(f"Invalid operation '{op_type}'")
+    elif isinstance(node, ast.UnaryOp):
+        # evaluate a unary operation (e.g., -a)
+        operand = _eval_ast(node.operand, g)
+        op_type = type(node.op)
+        if op_type in ALLOWED_OPERATORS:
+            return ALLOWED_OPERATORS[op_type](operand)
+        else:
+            raise ValueError(f"Invalid operation '{op_type}'")
+    elif isinstance(node, ast.Name):
+        # replace variable name with its value
+        if node.id in g:
+            return g[node.id]
+        else:
+            raise ValueError(f"Unknown unit '{node.id}'")
+    else:
+        raise ValueError(f"Unsupported expression: {ast.dump(node)}")
 
 
 # *** Generic ***
@@ -108,7 +149,7 @@ mol = avogadro
 kilogram = 1.0/9.10938188e-31
 
 gram = 1.0e-3*kilogram
-miligram = 1.0e-6*kilogram
+milligram = 1.0e-6*kilogram
 unified = 1.0e-3*kilogram/mol
 amu = unified
 
@@ -118,7 +159,7 @@ meter = 1.0/0.5291772083e-10
 
 decimeter = 1.0e-1*meter
 centimeter = 1.0e-2*meter
-milimeter = 1.0e-3*meter
+millimeter = 1.0e-3*meter
 micrometer = 1.0e-6*meter
 nanometer = 1.0e-9*meter
 angstrom = 1.0e-10*meter
@@ -184,11 +225,11 @@ shorthands = {
     "C": coulomb,
     "kg": kilogram,
     "g": gram,
-    "mg": miligram,
+    "mg": milligram,
     "u": unified,
     "m": meter,
     "cm": centimeter,
-    "mm": milimeter,
+    "mm": millimeter,
     "um": micrometer,
     "nm": nanometer,
     "A": angstrom,

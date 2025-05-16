@@ -1960,6 +1960,7 @@ static const char __pyx_k_pinit[] = "pinit";
 static const char __pyx_k_print[] = "print";
 static const char __pyx_k_range[] = "range";
 static const char __pyx_k_sigma[] = "sigma";
+static const char __pyx_k_units[] = "units";
 static const char __pyx_k_where[] = "where";
 static const char __pyx_k_zeros[] = "zeros";
 static const char __pyx_k_F_mask[] = "F_mask";
@@ -2048,7 +2049,6 @@ static const char __pyx_k_RuntimeError[] = "RuntimeError";
 static const char __pyx_k_bin_centers1[] = "bin_centers1";
 static const char __pyx_k_bin_centers2[] = "bin_centers2";
 static const char __pyx_k_initializing[] = "  initializing ...";
-static const char __pyx_k_molmod_units[] = "molmod.units";
 static const char __pyx_k_ps_flattened[] = "ps_flattened";
 static const char __pyx_k_trajectories[] = "trajectories";
 static const char __pyx_k_wham1d_error[] = "wham1d_error";
@@ -2314,7 +2314,6 @@ static PyObject *__pyx_n_s_mle_f;
 static PyObject *__pyx_n_s_mle_f_cov;
 static PyObject *__pyx_n_s_mle_p;
 static PyObject *__pyx_n_s_mle_p_cov;
-static PyObject *__pyx_n_s_molmod_units;
 static PyObject *__pyx_n_s_name;
 static PyObject *__pyx_n_s_nan;
 static PyObject *__pyx_n_s_ndenumerate;
@@ -2374,6 +2373,7 @@ static PyObject *__pyx_n_s_thermolib_tools;
 static PyObject *__pyx_n_s_threshold;
 static PyObject *__pyx_n_s_trajectories;
 static PyObject *__pyx_n_s_unflatten_array;
+static PyObject *__pyx_n_s_units;
 static PyObject *__pyx_n_s_var;
 static PyObject *__pyx_n_s_verbose;
 static PyObject *__pyx_n_s_verbosity;
@@ -22562,7 +22562,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_mle_f_cov, __pyx_k_mle_f_cov, sizeof(__pyx_k_mle_f_cov), 0, 0, 1, 1},
   {&__pyx_n_s_mle_p, __pyx_k_mle_p, sizeof(__pyx_k_mle_p), 0, 0, 1, 1},
   {&__pyx_n_s_mle_p_cov, __pyx_k_mle_p_cov, sizeof(__pyx_k_mle_p_cov), 0, 0, 1, 1},
-  {&__pyx_n_s_molmod_units, __pyx_k_molmod_units, sizeof(__pyx_k_molmod_units), 0, 0, 1, 1},
   {&__pyx_n_s_name, __pyx_k_name, sizeof(__pyx_k_name), 0, 0, 1, 1},
   {&__pyx_n_s_nan, __pyx_k_nan, sizeof(__pyx_k_nan), 0, 0, 1, 1},
   {&__pyx_n_s_ndenumerate, __pyx_k_ndenumerate, sizeof(__pyx_k_ndenumerate), 0, 0, 1, 1},
@@ -22622,6 +22621,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_threshold, __pyx_k_threshold, sizeof(__pyx_k_threshold), 0, 0, 1, 1},
   {&__pyx_n_s_trajectories, __pyx_k_trajectories, sizeof(__pyx_k_trajectories), 0, 0, 1, 1},
   {&__pyx_n_s_unflatten_array, __pyx_k_unflatten_array, sizeof(__pyx_k_unflatten_array), 0, 0, 1, 1},
+  {&__pyx_n_s_units, __pyx_k_units, sizeof(__pyx_k_units), 0, 0, 1, 1},
   {&__pyx_n_s_var, __pyx_k_var, sizeof(__pyx_k_var), 0, 0, 1, 1},
   {&__pyx_n_s_verbose, __pyx_k_verbose, sizeof(__pyx_k_verbose), 0, 0, 1, 1},
   {&__pyx_n_s_verbosity, __pyx_k_verbosity, sizeof(__pyx_k_verbosity), 0, 0, 1, 1},
@@ -23258,7 +23258,7 @@ if (!__Pyx_RefNanny) {
   /* "thermolib/ext.pyx":15
  * #cython: embedsignature=True
  * 
- * from molmod.units import parse_unit             # <<<<<<<<<<<<<<
+ * from .units import parse_unit             # <<<<<<<<<<<<<<
  * 
  * import matplotlib.pyplot as pp
  */
@@ -23267,7 +23267,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_INCREF(__pyx_n_s_parse_unit);
   __Pyx_GIVEREF(__pyx_n_s_parse_unit);
   PyList_SET_ITEM(__pyx_t_1, 0, __pyx_n_s_parse_unit);
-  __pyx_t_2 = __Pyx_Import(__pyx_n_s_molmod_units, __pyx_t_1, -1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 15, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_Import(__pyx_n_s_units, __pyx_t_1, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 15, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_parse_unit); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 15, __pyx_L1_error)
@@ -23277,7 +23277,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "thermolib/ext.pyx":17
- * from molmod.units import parse_unit
+ * from .units import parse_unit
  * 
  * import matplotlib.pyplot as pp             # <<<<<<<<<<<<<<
  * import warnings, sys

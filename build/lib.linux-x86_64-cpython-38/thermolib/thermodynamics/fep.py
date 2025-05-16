@@ -12,8 +12,8 @@
 
 from __future__ import annotations
 
-from molmod.units import *
-from molmod.constants import *
+from ..units import *
+from ..constants import *
 
 import numpy as np
 np.seterr(divide='ignore', invalid='ignore')
@@ -40,19 +40,19 @@ class BaseProfile(object):
     '''
     def __init__(self, cvs, fs, error=None, cv_output_unit='au', f_output_unit='au', cv_label='CV', f_label='X'):
         """
-            :param cvs: the collective variable values, which should be in atomic units! If you need help properly converting to atomic units, we refer to the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :param cvs: the collective variable values, which should be in atomic units! 
             :type cvs: np.ndarray
 
-            :param fs: the values of the property X, which should be in atomic units! If you need help properly converting to atomic units, we refer to the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :param fs: the values of the property X, which should be in atomic units! 
             :type fs: np.ndarray
 
             :param error: error distribution on the profile, defaults to None
             :type error: child class of :py:class:`Distribution <thermolib.error.Distribution>` class, optional
 
-            :param cv_output_unit: the units for printing and plotting of CV values (not the unit of the input array, that is assumed to be in atomic units). Units are defined using the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :param cv_output_unit: the units for printing and plotting of CV values (not the unit of the input array, that is assumed to be in atomic units). 
             :type cv_output_unit: str, default='au'
                 
-            :param f_output_unit: the units for printing and plotting of free energy values (not the unit of the input array, that is assumed to be in atomic units). Units are defined using the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :param f_output_unit: the units for printing and plotting of free energy values (not the unit of the input array, that is assumed to be in atomic units). 
             :type f_output_unit: str, default='kjmol'
 
             :param cv_label: label for the CV for printing and plotting
@@ -119,16 +119,16 @@ class BaseProfile(object):
             :param fstdcol: index of the column in which the standard deviation of observable X is stored, which is used to construct an error distribution. If None, no standard deviation will be read and no error bar will be computed.
             :type fstdcol: int, default=None
 
-            :param cv_input_unit: the units in which the CV values are stored in the file. Units are defined using the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :param cv_input_unit: the units in which the CV values are stored in the file. 
             :type cv_input_unit: str or float, default='au'
 
-            :param f_input_unit: the units in which the observable X values are stored in the file. Units are defined using the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :param f_input_unit: the units in which the observable X values are stored in the file. 
             :type f_input_unit: str or float, default='kjmol'
 
-            :param cv_output_unit: the units for printing and plotting of CV values (not the unit of the input array, that is defined by cv_input_unit). Units are defined using the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :param cv_output_unit: the units for printing and plotting of CV values (not the unit of the input array, that is defined by cv_input_unit). 
             :type cv_output_unit: str or float, default='au'
 
-            :param f_output_unit: the units for printing and plotting of observable X values (not the unit of the input array, that is defined by x_input_unit). Units are defined using the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :param f_output_unit: the units for printing and plotting of observable X values (not the unit of the input array, that is defined by x_input_unit). 
             :type f_output_unit: str or float, default='kjmol'
 
             :param cv_label: label for the CV for printing and plotting
@@ -216,13 +216,13 @@ class BaseProfile(object):
             :param profiles: set of profiles to be averaged
             :type profiles: list of instances of :py:class:`BaseProfile <thermolib.thermodynamics.fep.BaseProfile>` (or one of its child classes such as :py:class:`BaseFreeEnergyProfile <thermolib.thermodynamics.fep.BaseFreeEnergyProfile>` or :py:class:`SimpleFreeEnergyProfile <thermolib.thermodynamics.fep.SimpleFreeEnergyProfile>`) 
 
-            :param cv_output_unit: the units for printing and plotting of CV values. If None, use the value of the ``cv_output_unit`` attribute of the first profile. Units are defined using the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :param cv_output_unit: the units for printing and plotting of CV values. If None, use the value of the ``cv_output_unit`` attribute of the first profile. 
             :type cv_output_unit: str or float, optional, default=None
 
             :param cv_label: label for the collective variable in plots. If None, use the value of the ``cv_label`` attribute of the first profile.
             :type cv_label: str, optional, default=None
 
-            :param f_output_unit: the units for printing and plotting of X values (not the unit of the input array, that is defined by x_input_unit). If None, use the value of the ``f_output_unit`` attribute of the first profile. Units are defined using the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :param f_output_unit: the units for printing and plotting of X values (not the unit of the input array, that is defined by x_input_unit). If None, use the value of the ``f_output_unit`` attribute of the first profile. 
             :type f_output_unit: str or float, optional, default=None.
 
             :param f_label: label for the X observable in plots. If None, use the value of the ``f_label`` attribute of the first profile.
@@ -507,10 +507,10 @@ class BaseFreeEnergyProfile(BaseProfile):
             :param temp: the temperature at which the histogram input data was simulated, in atomic units.
             :type temp: float
 
-            :param cv_output_unit: the units for printing and plotting of CV values (not the unit of the input array, that is assumed to be in atomic units). Units are defined using the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module. If None is given, the cv_output_unit attribute of the histogram instance is used.
+            :param cv_output_unit: the units for printing and plotting of CV values (not the unit of the input array, that is assumed to be in atomic units).
             :type cv_output_unit: str, default=None
                 
-            :param f_output_unit: the units for printing and plotting of free energy values (not the unit of the input array, that is assumed to be in atomic units). Units are defined using the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :param f_output_unit: the units for printing and plotting of free energy values (not the unit of the input array, that is assumed to be in atomic units). 
             :type f_output_unit: str, default='kjmol'
 
             :param cv_label: label for the CV for printing and plotting. If None is given, the cv_label attribute of the histogram instance is used.
@@ -669,7 +669,7 @@ class BaseFreeEnergyProfile(BaseProfile):
             :param cv_label: The label of the new collective variable used in plotting etc
             :type cv_label: str, optional, default='f(CV)'
 
-            :param cv_output_unit: The unit of the new collective varaible used in plotting and printing. Units are defined using the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :param cv_output_unit: The unit of the new collective varaible used in plotting and printing. 
             :type cv_output_unit: str, optional, default='au'
 
             :param plot: If True, make a plot illustrating the transformation. It will show (1) the transformation of the original FEP on the transformed CV grid, i.e. (Q[i],F_Q[i]) with :math:`Q[i]=f(CV[i])` and :math:`F_Q[i]=F(CV[i]) + k_BT\\log\\left[\\frac{df}{dCV}(CV[i])\\right]` in black crosses, as well as (2) the (possibly interpolated) recollection of this new FEP on a newly defined Q-grid, i.e. use the specified Q-grid or define one automatically and average/interpolate the free energy in the new bins based on the (Q[i],F_Q[i]) data, in a blue line and finally (3) the new Q-grid points for which no free energy was found (because no transformed data ended up in it and it could not be interpolated from neighbors) will be indicated as gray dashed verticle lines.
@@ -1143,27 +1143,27 @@ class FreeEnergySurface2D(object):
     '''
     def __init__(self, cv1s, cv2s, fs, temp, error=None, cv1_output_unit='au', cv2_output_unit='au', f_output_unit='kjmol', cv1_label='CV1', cv2_label='CV2', f_label='F'):
         '''
-            :param cv1s: array containing the values for the first collective variable CV1. Should be given in atomic units. If you need help properly converting to atomic units, we refer to the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :param cv1s: array containing the values for the first collective variable CV1. Should be given in atomic units. 
             :type cv1s: np.ndarray
 
-            :param cv2s: array the values for the second collective variable CV2. Should be given in atomic units. If you need help properly converting to atomic units, we refer to the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :param cv2s: array the values for the second collective variable CV2. Should be given in atomic units. 
 
-            :param fs: 2D array containing the free energy values corresponding to the given values of CV1 and CV2 in xy indexing. Should be given in atomic units. If you need help properly converting to atomic units, we refer to the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :param fs: 2D array containing the free energy values corresponding to the given values of CV1 and CV2 in xy indexing. Should be given in atomic units. 
             :type fs: np.ndarray
 
-            :param temp: temperature at which the free energy is given. Should be given in atomic units. Units are defined using the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :param temp: temperature at which the free energy is given. Should be given in atomic units. 
             :type temp: float
 
             :param error: error distribution on the free energy profile, defaults to None
             :type error: child of :py:class:`Distribution <thermolib.error.Distribution>`, optional, default=None
 
-            :param cv1_output_unit: unit in which the CV1 values will be printed/plotted, not the unit in which the input array is given (which is assumed to be atomic units). Units are defined using the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :param cv1_output_unit: unit in which the CV1 values will be printed/plotted, not the unit in which the input array is given (which is assumed to be atomic units). 
             :type cv1_output_unit: str, optional, defaults to 'au'
 
-            :param cv2_output_unit: unit in which the CV2 values will be printed/plotted, not the unit in which the input array is given (which is assumed to be atomic units). Units are defined using the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :param cv2_output_unit: unit in which the CV2 values will be printed/plotted, not the unit in which the input array is given (which is assumed to be atomic units). 
             :type cv2_output_unit: str, optional, defaults to 'au'
 
-            :param f_output_unit: unit in which the free energy values will be printe/plotted, not the unit in which the input array f is given (which is assumed to be kjmol). Units are defined using the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :param f_output_unit: unit in which the free energy values will be printe/plotted, not the unit in which the input array f is given (which is assumed to be kjmol). 
             :type f_output_unit: str, optional, default='kjmol'
 
             :param cv1_label: label of CV1 for printing and plotting
@@ -1263,19 +1263,19 @@ class FreeEnergySurface2D(object):
             :param cv1_input_unit: the unit in which the first CV values are stored in the input file
             :type cv1_unit: str, optional, default='au'
 
-            :param cv1_output_unit: unit in which the CV1 values will be printed/plotted, not the unit in which the input array is given (which is given by cv1_input_unit). Units are defined using the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :param cv1_output_unit: unit in which the CV1 values will be printed/plotted, not the unit in which the input array is given (which is given by cv1_input_unit). 
             :type cv1_output_unit: str, optional, default='au'
 
             :param cv2_input_unit: the unit in which the second CV values are stored in the input file
             :type cv2_input_unit: str, optional, default='au'
 
-            :param cv2_output_unit: unit in which the CV2 values will be printed/plotted, not the unit in which the input array is given (which is given by cv2_input_unit). Units are defined using the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :param cv2_output_unit: unit in which the CV2 values will be printed/plotted, not the unit in which the input array is given (which is given by cv2_input_unit). 
             :type cv2_output_unit: str, optional, default='au'
 
             :param f_input_unit: the unit in which the free energy values are stored in the input file
             :type f_input_unit: str, optional, default='kjmol'
 
-            :param f_output_unit: unit in which the free energy values will be printed/plotted, not the unit in which the input array is given (which is given by f_input_unit). Units are defined using the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :param f_output_unit: unit in which the free energy values will be printed/plotted, not the unit in which the input array is given (which is given by f_input_unit). 
             :type cv2_output_unit: str, optional, default='kjmol'
 
             :param cv1_label: the label for the CV1 axis in plots
@@ -1345,13 +1345,13 @@ class FreeEnergySurface2D(object):
             :param temp: the temperature at which the histogram input data was simulated
             :type temp: float
 
-            :param cv1_output_unit: the units for printing and plotting of CV1 values (not the unit of the input array, that is assumed to be in atomic units). Units are defined using the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module. If None is given, the cv1_output_unit attribute of the histogram instance is used.
+            :param cv1_output_unit: the units for printing and plotting of CV1 values (not the unit of the input array, that is assumed to be in atomic units). 
             :type cv1_output_unit: str, default=None
 
-            :param cv2_output_unit: the units for printing and plotting of CV2 values (not the unit of the input array, that is assumed to be in atomic units). Units are defined using the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module. If None is given, the cv2_output_unit attribute of the histogram instance is used.
+            :param cv2_output_unit: the units for printing and plotting of CV2 values (not the unit of the input array, that is assumed to be in atomic units). 
             :type cv2_output_unit: str, default=None
                 
-            :param f_output_unit: the units for printing and plotting of free energy values (not the unit of the input array, that is assumed to be in atomic units). Units are defined using the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :param f_output_unit: the units for printing and plotting of free energy values (not the unit of the input array, that is assumed to be in atomic units). 
             :type f_output_unit: str, default='kjmol'
 
             :param cv1_label: label for the CV1 for printing and plotting. If None is given, the cv1_label attribute of the histogram instance is used.
@@ -1634,10 +1634,10 @@ class FreeEnergySurface2D(object):
             :param cv2_label: The label of the new second collective variable used in plotting etc
             :type cv2_label: str, optional, default='Q2'
 
-            :param cv1_output_unit: The unit of the new first collective varaible used in plotting and printing. Units are defined using the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :param cv1_output_unit: The unit of the new first collective varaible used in plotting and printing. 
             :type cv1_output_unit: str, optional, default='au'
 
-            :param cv2_output_unit: The unit of the new second collective varaible used in plotting and printing. Units are defined using the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+            :param cv2_output_unit: The unit of the new second collective varaible used in plotting and printing. 
             :type cv2_output_unit: str, optional, default='au'
 
             :return: transformed free energy profile

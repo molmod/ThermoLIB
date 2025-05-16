@@ -10,12 +10,9 @@
 # Van Speybroeck. Usage of this package should be authorized by prof. Van
 # Vanduyfhuys or prof. Van Speybroeck.
 
-from molmod.units import *
-from molmod.constants import *
-from molmod.periodic import periodic as pt
-from molmod.io.xyz import XYZReader, XYZFile
-from molmod.minimizer import check_delta
-from molmod.unit_cells import UnitCell
+from ..units import *
+from ..constants import *
+from ase.io import read
 
 from ..tools import blav, h5_read_dataset
 from ..error import GaussianDistribution, LogGaussianDistribution, Propagator
@@ -136,13 +133,13 @@ class BaseRateFactor(object):
         if blocksizes is None:
             blocksizes = np.arange(1,int(len(As)/2), 1)
         self.A = As.mean()
-        A_std, Acorrtime = blav(As, blocksizes=blocksizes, fitrange=fitrange, model_function=model_function, plot=plot, fn_plot=fn, unit='1e12/s', plot_ylims=plot_ylims)
+        A_std, Acorrtime = blav(As, blocksizes=blocksizes, fitrange=fitrange, model_function=model_function, plot=plot, fn_plot=fn, unit='1/s', plot_ylims=plot_ylims)
         self.A_dist = GaussianDistribution(self.A, A_std) 
         
         if verbose:
             print('Rate factor with block averaging:')
             print('---------------------------------')
-            print('  A = %s (%i TS samples, int. autocorr. time = %.3f timesteps)' %(self.A_dist.print(unit='1e12*%s/s' %self.CV_unit), len(As), Acorrtime))
+            print('  A = %s (%i TS samples, int. autocorr. time = %.3f timesteps)' %(self.A_dist.print(unit='%s/s' %self.CV_unit, do_scientific=True), len(As), Acorrtime))
             print()
         return self.A, self.A_dist
         
@@ -172,7 +169,7 @@ class BaseRateFactor(object):
         if verbose:
             print('Rate factor with bootstrapping (nboot=%i):' %nboot)
             print('------------------------------------------')
-            print('  A = %s (%i TS samples)' %(self.A_dist.print(unit='1e12*%s/s' %self.CV_unit), Ndata))
+            print('  A = %s (%i TS samples)' %(self.A_dist.print(unit='%s/s' %self.CV_unit, do_scientific=True), Ndata))
             print()
         return self.A, self.A_dist
 
@@ -221,9 +218,9 @@ class BaseRateFactor(object):
             propagator.calc_fun_values(fun_F)
             dF_backward = propagator.get_distribution(target_distribution=GaussianDistribution)
             if verbose:
-                print('k_F  = %s' %k_forward.print(unit='1e8/s'))
+                print('k_F  = %s' %k_forward.print(unit='1/s', do_scientific=True))
                 print('dF_F = %s' %dF_forward.print(unit='kjmol'))
-                print('k_B  = %s' %k_backward.print(unit='1e8/s'))
+                print('k_B  = %s' %k_backward.print(unit='1/s', do_scientific=True))
                 print('dF_B = %s' %dF_backward.print(unit='kjmol'))
             return k_forward.mean(), k_forward, dF_forward.mean(), dF_forward, k_backward.mean(), k_backward, dF_backward.mean(), dF_backward
         else:
@@ -232,9 +229,9 @@ class BaseRateFactor(object):
             dF_forward  = boltzmann*fep.T*np.log(boltzmann*fep.T/(planck*k_forward ))
             dF_backward = boltzmann*fep.T*np.log(boltzmann*fep.T/(planck*k_backward))
             if verbose:
-                print('k_F  = %.3e 1e8/s'    %(k_forward/1e8*second))
+                print('k_F  = %.3e 1/s'    %(k_forward*second))
                 print('dF_F = %.3f kJ/mol' %(dF_forward/kjmol))
-                print('k_B  = %.3e 1e8/s'    %(k_backward/1e8*second))
+                print('k_B  = %.3e 1/s'    %(k_backward*second))
                 print('dF_B = %.3f kJ/mol' %(dF_backward/kjmol))
             return k_forward, None, dF_forward, None, k_backward, None, dF_backward, None
 
@@ -287,7 +284,7 @@ class RateFactorEquilibrium(BaseRateFactor):
             :param fn_xyz: filename of the trajectory from which the rate factor will be computed.
             :type fn_xyz: str
             
-            :param sub: slice object to subsample the xyz trajectory. For more information see https://molmod.github.io/molmod/reference/io.html#module-molmod.io.xyz
+            :param sub: slice object to subsample the xyz trajectory. For more information see https://wiki.fysik.dtu.dk/ase/ase/io/io.html
             :type sub: slice, optional, default=(None,None,None)
 
             :param finish: when set to True, the finish routine will be called after processing the trajectory, which will finalize storing the data. If multiple trajectory from different files need to be read, set finish to False for all but the last trajectory.
@@ -310,23 +307,22 @@ class RateFactorEquilibrium(BaseRateFactor):
             :type verbose: bool, optional, default=False
         '''
         #initialization
-        xyzreader = XYZReader(fn_xyz, sub=sub)
-        masses = np.array([pt[Z].mass for Z in xyzreader.numbers])
+        trajectory = read(fn_xyz, index=sub)
+        masses = trajectory[0].get_masses() * amu
         Natoms = len(masses)
         masses3 = np.array([masses, masses, masses]).T.reshape([3*Natoms, 1]).flatten()
         if self.Natoms is None:
             self.Natoms = Natoms
             self.masses = masses3
-            self._inv_sqrt_masses = 1.0/np.sqrt(masses3)
+            self._inv_sqrt_masses = 1.0 / np.sqrt(masses3)
         else:
             assert self.Natoms==len(masses), "Incompatible number of atoms in file %s with respect to previously read files" %fn_xyz
             assert (self.masses==masses3).all(), "Incompatible masses in file %s with respect to previously read files" %fn_xyz
         
         if verbose:
             print('Estimating rate factor from trajectory %s for TS=[%.3f,%.3f] %s using %s momentum integration' %(fn_xyz, self.CV_TS_lims[0]/parse_unit(self.CV_unit), self.CV_TS_lims[1]/parse_unit(self.CV_unit), self.CV_unit, momenta))
-        for i, (title, coords) in enumerate(xyzreader):
-            #framenumber = int(title.split()[2].rstrip(','))
-            self._compute_contribution(coords, momenta=momenta, Nmomenta=Nmomenta)
+        for atoms in trajectory:
+            self._compute_contribution(atoms, momenta=momenta, Nmomenta=Nmomenta)
         
         if finish:
             if verbose:
@@ -340,7 +336,7 @@ class RateFactorEquilibrium(BaseRateFactor):
             :param fn_h5: filename of the trajectory from which the rate factor will be computed.
             :type fn_h5: str
             
-            :param sub: slice object to subsample the xyz trajectory. For more information see https://molmod.github.io/molmod/reference/io.html#module-molmod.io.xyz
+            :param sub: slice object to subsample the xyz trajectory.
             :type sub: slice, optional, default=(None,None,None)
 
             :param finish: when set to True, the finish routine will be called after processing the trajectory, which will finalize storing the data. If multiple trajectory from different files need to be read, set finish to False for all but the last trajectory.
@@ -385,7 +381,7 @@ class RateFactorEquilibrium(BaseRateFactor):
                 print('Finishing')
             self.finish(fn=fn_samples)
 
-    def _compute_contribution(self, coords, momenta='analytical', Nmomenta=500):
+    def _compute_contribution(self, atoms, momenta='analytical', Nmomenta=500):
         '''
             Compute a sample for the A rate factor from the current frame given by **coords**. These samples are stored in self.As. Afterwards, <|DQ|>_TS is computed from these contributions as well as some statistics to estimate the error (or at least get an idea of the error).
 
@@ -402,8 +398,7 @@ class RateFactorEquilibrium(BaseRateFactor):
             :param Nmomenta: number of random samples taken from the Maxwell-Boltzmann distribution upon selection of the MB method for momenta parameter. This parameter is ignored if momenta='analytical'
             :type momenta: int, optional, default=500
         '''
-        assert (coords.shape[0]==self.Natoms and coords.shape[1]==3)
-        Q, DQ = self.CV.compute(coords)
+        Q, DQ = self.CV.compute(atoms)
         DQ = DQ.flatten()
         Ai = np.nan
         if self.CV_TS_lims[0]<=Q<=self.CV_TS_lims[1]:
