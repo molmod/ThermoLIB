@@ -70,6 +70,44 @@ class BaseProfile(object):
         self.cv_label = cv_label
         self.f_label = f_label
 
+    def __add__(self, other):
+        assert np.array_equal(self.cvs, other.cvs), 'Upon adding two profiles, their cvs attribute should be equal!'
+        cvs = self.cvs.copy()
+        fs = self.fs.copy()+other.fs.copy()
+        if self.error is not None:
+            if other.error is not None:
+                print('WARNING: Adding up two profiles which both feature error estimates. Current implementation of addition assumes no correlation between the two profile errors!')
+                fun = lambda f1,f2: f1+f2
+                propagator = Propagator()
+                error = propagator(fun, self.error, other.error, target_distribution=self.error.__class__)
+            else:
+                error = self.error.copy()
+        else:
+            if other.error is not None:
+                error = other.error.copy()
+            else:
+                error = None
+        return BaseProfile(cvs, fs, error=error, cv_output_unit=self.cv_output_unit, f_output_unit=self.f_output_unit, cv_label=self.cv_label, f_label=self.f_label)
+
+    def __sub__(self, other):
+        assert np.array_equal(self.cvs, other.cvs), 'Upon subtracting two profiles, their cvs attribute should be equal!'
+        cvs = self.cvs.copy()
+        fs = self.fs.copy()-other.fs.copy()
+        if self.error is not None:
+            if other.error is not None:
+                print('WARNING: Subtracting up two profiles which both feature error estimates. Current implementation of subtraction assumes no correlation between the two profile errors!')
+                fun = lambda f1,f2: f1-f2
+                propagator = Propagator()
+                error = propagator(fun, self.error, other.error, target_distribution=self.error.__class__)
+            else:
+                error = self.error.copy()
+        else:
+            if other.error is not None:
+                error = other.error.copy()
+            else:
+                error = None
+        return BaseProfile(cvs, fs, error=error, cv_output_unit=self.cv_output_unit, f_output_unit=self.f_output_unit, cv_label=self.cv_label, f_label=self.f_label)
+
     def flower(self, nsigma=2):
         '''
             Return the lower limit of an n-sigma error bar on the profile property, i.e. :math:`\\mu - n\\sigma` with :math:`\\mu` the mean and :math:`\\sigma` the standard deviation.
