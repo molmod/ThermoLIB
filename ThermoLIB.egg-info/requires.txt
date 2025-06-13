@@ -1,8 +1,0 @@
-cython>=0.29.23
-numpy>=1.0
-scipy
-scikit-learn>=0.24.2
-matplotlib
-molmod
-h5py
-ase
