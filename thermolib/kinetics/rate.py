@@ -14,11 +14,12 @@ from ..units import *
 from ..constants import *
 from ase.io import read
 
-from ..tools import blav, h5_read_dataset
+from ..tools import blav
 from ..error import GaussianDistribution, LogGaussianDistribution, Propagator
 
 import numpy as np
 import matplotlib.pyplot as pp
+import h5py as h5
 
 __all__ = ['BaseRateFactor', 'RateFactorEquilibrium']
 
@@ -359,7 +360,9 @@ class RateFactorEquilibrium(BaseRateFactor):
             :type verbose: bool, optional, default=False
         '''
         #initialization
-        masses = h5_read_dataset(fn_h5, '/system/masses/')
+        f = h5.File(fn_h5, mode='r')
+        masses = f['/system/masses/']
+        numbers = f['system/numbers/']
         Natoms = len(masses)
         masses3 = np.array([masses, masses, masses]).T.reshape([3*Natoms, 1]).flatten()
         if self.Natoms is None:
@@ -373,8 +376,18 @@ class RateFactorEquilibrium(BaseRateFactor):
         if verbose:
             print('Estimating rate factor from trajectory %s for TS=[%.3f,%.3f] %s using %s momentum integration' %(fn_h5, self.CV_TS_lims[0]/parse_unit(self.CV_unit), self.CV_TS_lims[1]/parse_unit(self.CV_unit), self.CV_unit, momenta))
         
-        for coords in h5_read_dataset(fn_h5, '/trajectory/pos/'):
-            self._compute_contribution(coords, momenta=momenta, Nmomenta=Nmomenta)
+        Nsteps = len(f['/trajectory/time'])
+        for itime in range(Nsteps):
+            positions = f['/trajectory/pos/'][itime,:,:]/angstrom
+            try:
+                cell = f['/trajectory/cell/'][itime,:,:]/angstrom
+            except:
+                cell = None
+            atoms = Atoms(numbers=numbers, positions=positions)
+            if cell is not None:
+                atoms.set_pbc(True)
+                atoms.set_cell(cell)
+            self._compute_contribution(atoms, momenta=momenta, Nmomenta=Nmomenta)
         
         if finish:
             if verbose:

@@ -13,6 +13,7 @@
 from ..units import *
 from .cv import CollectiveVariable
 
+from ase import Atoms
 from ase.io import read
 
 import numpy as np, h5py as h5, os
@@ -224,15 +225,24 @@ class CVComputer(TrajectoryReader):
         '''
         cvdata = None
         f = h5.File(fn, mode = 'r')
+        numbers = f['system/numbers']
         Nsteps = len(f['/trajectory/time'])
         for i, CV in enumerate(self.CVs):
             data = []
             for itime in range(Nsteps):
                 if self.coords_key is not None:
-                    coords = f[self.coords_key][itime,:,:]
+                    positions = f[self.coords_key][itime,:,:]/angstrom
                 else:
-                    coords = f['/trajectory/pos'][itime,:,:]
-                data.append(CV.compute(coords, deriv=False))
+                    positions = f['/trajectory/pos'][itime,:,:]/angstrom
+                try:
+                    cell = f['trajectory/cell']/angstrom
+                except:
+                    cell = None
+                atoms = Atoms(numbers=numbers, positions=positions)
+                if cell is not None:
+                    atoms.set_pbc(True)
+                    atoms.set_cell(cell)
+                data.append(CV.compute(atoms, deriv=False))
             col = self._slice(np.array(data))
             if len(col)==0:
                 raise ValueError('No data for CV(%s) could be read from trajectory %s. Are you sure you did not choose start:end:stride to restrictive?' %(CV.name,fn))
