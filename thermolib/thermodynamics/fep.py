@@ -350,7 +350,7 @@ class BaseProfile(object):
                 if cvrange[0]<=cv<=cvrange[1]:
                     indexes.append(i)
             cvs = cvs[np.array(indexes)]
-            fs = fs[:,np.array(indexes)]
+            fs = fs[np.array(indexes)]
 
         self.cvs = cvs.copy()
         self.fs = fs.copy()
