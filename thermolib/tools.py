@@ -586,10 +586,10 @@ def plot_histograms_1d(trajs, bins=200, width=None, cv_unit='au', alpha=0.8):
         :param trajs: List of all trajectories for which the histogram needs to be plotted.
         :type trajs: list(np.ndarray)
 
-        :param bins: Specification of the bins for histograming. Can either be an integer specifying the number of bins over all CV range of all simulations or a numpy array explicitly defining all bins. Either bins or width needs to be specified, but not both.
+        :param bins: Specification of the bins for histograming. Can either be an integer specifying the number of bins over all CV range of all simulations or a numpy array explicitly defining all bins (in atomic units). Either bins or width needs to be specified, but not both.
         :type bins: int or np.ndarray, optional, default=200
 
-        :param width: Specification of the width of the bins to be used in the histogramming. Either bins or width needs to be specified, but not both.
+        :param width: Specification of the width of the bins to be used in the histogramming (in atomic units). Either bins or width needs to be specified, but not both.
         :type width: float, optional, default=None
 
         :param cv_unit: unit of the CV to be used in the plot
@@ -615,12 +615,13 @@ def plot_histograms_1d(trajs, bins=200, width=None, cv_unit='au', alpha=0.8):
         if bins is not None:
             current_bins = bins.copy()
         else:
-            min = np.floor(traj.min()/width)*width
-            max = np.ceil(traj.max()/width)*width
-            current_bins = np.arange(min, max, width)
+            min_val = np.floor(traj.min()/width)*width
+            max_val = np.ceil(traj.max()/width)*width
+            current_bins = np.arange(min_val, max_val, width)
         hist, bin_edges = np.histogram(traj, bins=current_bins, density=True)
         bin_centers = 0.5*(bin_edges[:-1]+bin_edges[1:])
-        pp.bar(bin_centers/parse_unit(cv_unit), hist, width=width, alpha=alpha)
+        unit_scale = parse_unit(cv_unit)
+        pp.bar(bin_centers/unit_scale, hist, width=width/unit_scale, alpha=alpha)
     pp.xlabel('CV [%s]' %cv_unit, fontsize=16)
     pp.ylabel('Prob [a.u.]', fontsize=16)
     fig = pp.gcf()
