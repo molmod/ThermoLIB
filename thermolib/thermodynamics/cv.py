@@ -440,9 +440,10 @@ class DistanceCOP(CollectiveVariable):
         #computation of value
         positions = atoms.get_positions() * angstrom
         cop = 0.5*(positions[self.i2a,:]+positions[self.i2b,:])
-        atoms.append(Atom('X', cop / angstrom))  # Append cop as a dummy atom
+        _atoms = atoms.copy()
+        _atoms.append(Atom('X', cop / angstrom))  # Append cop as a dummy atom
 
-        r = atoms.get_distance(self.i1, len(atoms)-1, mic=True, vector=True) * angstrom
+        r = _atoms.get_distance(self.i1, len(_atoms)-1, mic=True, vector=True) * angstrom
         value = np.linalg.norm(r)
         if not deriv:
             return value
