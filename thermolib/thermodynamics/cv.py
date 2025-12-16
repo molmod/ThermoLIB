@@ -190,6 +190,75 @@ class CenterOfPosition(CollectiveVariable):
             grad[2, self.indices, 2] = 1/len(self.indices)
             return cop, grad
 
+class DihedralAngle(CollectiveVariable):
+
+    '''
+        Class the implement the computation of the dihedral angle between four atoms defined by their atomic indices.
+    '''
+    type = 'scalar'
+	
+    def __init__(self, indices, name=None, unit_cell_pars=None):
+        '''
+            :param indices: indices of the atoms of which the dihedral angle needs to be computed
+            :type indices: list of integers
+
+            :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.
+            :type name: str | None, optional, default=None
+
+            :param unit_cell_pars: Unit cell parameters that may be required to compute the CV value
+            :type unit_cell_pars: np.ndarray | None, optional, default=None
+        '''
+        self.indices = indices
+        CollectiveVariable.__init__(self, name=name, unit_cell_pars=unit_cell_pars)
+
+    def _default_name(self):
+        return 'DA(%s)' %('-'.join([str(i) for i in self.indices]))
+
+    def compute(self, coords, deriv=True):
+        '''
+            Compute CV value (and optionally its gradient) for given coordinates of the molecular system.
+
+            :param coords: atomic coordinates of each atom in the molecular system
+            :type coords: np.ndarray([Natoms,3])
+
+            :param deriv: if True, also compute and return the gradient of the CV towards all atomic coordinates
+            :type deriv: bool, optional, default=True
+
+            :return: CV value and potentially the gradient
+            :rtype: float or float,np.ndarray([3,Natoms,3])
+        '''
+        #unwrap coords of given indices with periodic boundary conditions if unit_cell is specified
+        rs = self._unwrap(coords[self.indices,:])
+
+        #doi.org/10.1006/jmbi.1993.1624 (gradient formulas)
+        ### Dihedral angle chi defined by points ijkl
+        rij = rs[1] - rs[0]
+        rkj = rs[1] - rs[2]
+        rkl = rs[3] - rs[2]
+        
+        rijxrkj = np.cross(rij,rkj)
+        rkjxrkl = np.cross(rkj,rkl)
+        
+        rijxrkj_x_rkjxrkl = np.cross(rijxrkj,rkjxrkl)
+
+        sign = np.sign(np.dot(rkj, rijxrkj_x_rkjxrkl))
+
+        chi = sign * np.arccos(np.dot(rijxrkj,rkjxrkl) / (np.linalg.norm(rijxrkj) * np.linalg.norm(rkjxrkl)))
+
+        if not deriv:
+            return chi
+        else:
+            ddi = (np.sqrt(np.dot(rkj,rkj)) / np.dot(rijxrkj,rijxrkj)) * rijxrkj
+            ddl = - (np.sqrt(np.dot(rkj,rkj)) / np.dot(rkjxrkl,rkjxrkl)) * rkjxrkl
+            ddj = (np.dot(rij,rkj) / np.dot(rkj,rkj) - 1) * ddi - (np.dot(rkl,rkj) / np.dot(rkj,rkj)) * ddl
+            ddk = (np.dot(rkl,rkj) / np.dot(rkj,rkj) - 1) * ddl - (np.dot(rij,rkj) / np.dot(rkj,rkj)) * ddi
+            grad = np.zeros(coords.shape, float)
+            grad[self.indices[0],:] = ddi
+            grad[self.indices[1],:] = ddj
+            grad[self.indices[2],:] = ddk
+            grad[self.indices[3],:] = ddl
+            
+            return chi, grad
 
 class NormalizedAxis(CollectiveVariable):
     '''
