@@ -12,9 +12,8 @@
 
 
 from re import I
-from molmod.units import *
-from molmod.constants import *
-from molmod.io.xyz import XYZReader
+from .units import *
+from .constants import *
 
 import numpy as np
 np.seterr(divide='ignore', invalid='ignore')
@@ -54,6 +53,9 @@ def format_scientific(x, prec=3, latex=True):
     """
     if np.isnan(x):
         return r'nan'
+    if isinstance(x, np.ma.MaskedArray):
+        x = x.item()
+        
     a, b = ('{:.%iE}' %prec).format(x).split('E')
     if latex:
         return r'$%s\cdot 10^{%s}$' %(a,b)
@@ -584,10 +586,10 @@ def plot_histograms_1d(trajs, bins=200, width=None, cv_unit='au', alpha=0.8):
         :param trajs: List of all trajectories for which the histogram needs to be plotted.
         :type trajs: list(np.ndarray)
 
-        :param bins: Specification of the bins for histograming. Can either be an integer specifying the number of bins over all CV range of all simulations or a numpy array explicitly defining all bins. Either bins or width needs to be specified, but not both.
+        :param bins: Specification of the bins for histograming. Can either be an integer specifying the number of bins over all CV range of all simulations or a numpy array explicitly defining all bins (in atomic units). Either bins or width needs to be specified, but not both.
         :type bins: int or np.ndarray, optional, default=200
 
-        :param width: Specification of the width of the bins to be used in the histogramming. Either bins or width needs to be specified, but not both.
+        :param width: Specification of the width of the bins to be used in the histogramming (in atomic units). Either bins or width needs to be specified, but not both.
         :type width: float, optional, default=None
 
         :param cv_unit: unit of the CV to be used in the plot
@@ -613,12 +615,13 @@ def plot_histograms_1d(trajs, bins=200, width=None, cv_unit='au', alpha=0.8):
         if bins is not None:
             current_bins = bins.copy()
         else:
-            min = np.floor(traj.min()/width)*width
-            max = np.ceil(traj.max()/width)*width
-            current_bins = np.arange(min, max, width)
+            min_val = np.floor(traj.min()/width)*width
+            max_val = np.ceil(traj.max()/width)*width
+            current_bins = np.arange(min_val, max_val, width)
         hist, bin_edges = np.histogram(traj, bins=current_bins, density=True)
         bin_centers = 0.5*(bin_edges[:-1]+bin_edges[1:])
-        pp.bar(bin_centers/parse_unit(cv_unit), hist, width=width, alpha=alpha)
+        unit_scale = parse_unit(cv_unit)
+        pp.bar(bin_centers/unit_scale, hist, width=width/unit_scale, alpha=alpha)
     pp.xlabel('CV [%s]' %cv_unit, fontsize=16)
     pp.ylabel('Prob [a.u.]', fontsize=16)
     fig = pp.gcf()
@@ -816,7 +819,13 @@ def _blav(data: np.ndarray, blocksizes=None, fitrange: list=[1, np.inf], model_f
     lbounds[0] = 0.0 #lower bound of true error
     lbounds[1] = 1.0 #lower bound of correlation time
     mask = (fitrange[0]<=blocksizes) & (blocksizes<=fitrange[1])
-    pars, pcov = curve_fit(model_function, blocksizes[mask], errors[mask], bounds=(lbounds,ubounds))
+    masked_errors = errors[mask]
+    # scale the data to facilitate curve_fit convergence
+    scale_factor = np.max(masked_errors)
+    scaled_errors = masked_errors / scale_factor
+    p0 = [scaled_errors[-1], 5.0]
+    pars, pcov = curve_fit(model_function, blocksizes[mask], scaled_errors, bounds=(lbounds,ubounds), p0=p0)
+    pars[0] *= scale_factor
     true_error, corrtime = pars[0], pars[1]
     model_fitted = lambda B: model_function(B, *list(pars))
     return errors, true_error, corrtime, model_fitted
@@ -846,7 +855,7 @@ def blav(data: np.ndarray, blocksizes=None, fitrange: list=[1, np.inf], model_fu
     assert len(data)>100, 'I will not apply block averaging on data series with only 100 or less samples'
     if blocksizes is None:
         blocksizes = np.arange(1,int(len(data)/10)+1,1)
-    errors, true_error, corrtime, model_fitted = _blav(data/parse_unit(unit), blocksizes, fitrange, model_function=model_function, **blav_kwargs)
+    errors, true_error, corrtime, model_fitted = _blav(data, blocksizes, fitrange, model_function=model_function, **blav_kwargs)
     #make plot
     if plot or fn_plot is not None:
         pp.clf()
@@ -856,8 +865,8 @@ def blav(data: np.ndarray, blocksizes=None, fitrange: list=[1, np.inf], model_fu
         axs[0,0].set_title('Samples', fontsize=12)
         axs[0,0].set_xlabel('Time [timestep]')
         axs[0,0].set_ylabel('Sample [%s]' %unit)          
-        axs[0,1].plot(blocksizes, errors, color='b', linestyle='none', marker='o', markersize=1)
-        axs[0,1].plot(blocksizes, model_fitted(blocksizes), color='r', linestyle='-', linewidth=1)
+        axs[0,1].plot(blocksizes, errors/parse_unit(unit), color='b', linestyle='none', marker='o', markersize=1)
+        axs[0,1].plot(blocksizes, model_fitted(blocksizes)/parse_unit(unit), color='r', linestyle='-', linewidth=1)
         #axs[0,1].axhline(y=true_error/parse_unit(unit), color='k', linestyle='--', linewidth=1)
         axs[0,1].set_title('Error of the estimate on the sample mean', fontsize=12)
         axs[0,1].set_xlabel('Block size [timestep]')
@@ -869,7 +878,7 @@ def blav(data: np.ndarray, blocksizes=None, fitrange: list=[1, np.inf], model_fu
             pp.savefig(fn_plot, dpi=300)
         else:
             pp.show()
-    return true_error*parse_unit(unit), corrtime
+    return true_error, corrtime
 
 def _acf(data, norm=True):
     '''
@@ -1202,98 +1211,3 @@ def fisher_matrix_mle_probdens(ps: np.ndarray, method: str='mle_f', verbose: boo
     elif verbose:
         print('      No Fisher information found!')
     return F
-
-#Set of old depricated routines that are only kept in ThermoLIB for backward compatibility. These routines will be removed in the near future, please use read_wham_input routine.
-
-def trajectory_xyz_to_CV(fns, CV):
-    '''
-        .. deprecated:: 1.7
-        
-            Use :py:class:`CVComputer <thermolib.trajectory.CVComputer>` class instead. This old function is still included for backward compatibility, but it will be removed in the near future.
-        
-        Compute the CV along an XYZ trajectory. The XYZ trajectory is assumed to be defined in a (list of subsequent) XYZ file(s).
-
-        :param fns: (list of) names of XYZ trajectory file(s) containing the xyz coordinates of the system
-        :type fns: str or list(str)
-
-        :param CV: collective variable defining how to compute the collective variable along the trajectory
-        :type CV: one from thermolib.thermodynamics.cv.__all__
-
-        :return: array containing the CV value along the trajectory
-        :rtype: np.ndarray(flt)
-    '''
-    cvs = []
-    for fn in fns:
-        xyz = XYZReader(fn)
-        for title, coords in xyz:
-            cv = CV.compute(coords, deriv=False)
-            cvs.append(cv)
-        del xyz
-    return np.array(cvs)
-
-def read_wham_input_old(fn, path_template_colvar_fns='%s', colvar_cv_column_index=1, kappa_unit='kjmol', q0_unit='au', start=0, end=-1, stride=1, bias_potential='Parabola1D', additional_bias=None, inverse_cv=False, verbose=False):
-    '''
-        .. deprecated:: 1.7
-        
-            Use :py:meth:`read_wham_input <thermolib.tools.read_wham_input>` instead. This old function is still included for backward compatibility, but it will be removed in the near future.
-    '''
-    from thermolib.thermodynamics.trajectory import ColVarReader
-    trajectory_reader = ColVarReader([colvar_cv_column_index], units=['au'], start=start, stride=stride, end=end, verbose=verbose)
-    return read_wham_input(
-        fn, 
-        trajectory_reader, trajectory_path_template=path_template_colvar_fns, 
-        bias_potential=bias_potential, q01_unit=q0_unit, kappa1_unit=kappa_unit, inverse_cv1=inverse_cv, 
-        additional_bias=additional_bias, 
-        verbose=verbose
-    )
-
-def read_wham_input_h5_old(fn, h5_cv_path, path_template_h5_fns='%s', kappa_unit='kjmol', q0_unit='au', cv_unit='au', start=0, end=-1, stride=1, bias_potential='Parabola1D', additional_bias=None, inverse_cv=False, verbose=False):
-    '''
-        .. deprecated:: 1.7
-        
-            Use :py:meth:`read_wham_input <thermolib.tools.read_wham_input>` instead. This old function is still included for backward compatibility, but it will be removed in the near future.
-    '''
-    from thermolib.thermodynamics.trajectory import HDF5Reader
-    trajectory_reader = HDF5Reader([h5_cv_path], units=[cv_unit], start=start, stride=stride, end=end, verbose=verbose)
-    return read_wham_input(
-        fn, 
-        trajectory_reader, trajectory_path_template=path_template_h5_fns, 
-        bias_potential=bias_potential, q01_unit=q0_unit, kappa1_unit=kappa_unit, inverse_cv1=inverse_cv, 
-        additional_bias=additional_bias, 
-        verbose=verbose
-    )
-
-def read_wham_input_2D_old(fn, path_template_colvar_fns='%s', colvar_cv1_column_index=1, colvar_cv2_column_index=2, kappa1_unit='kjmol', kappa2_unit='kjmol', q01_unit='au', q02_unit='au', start=0, end=-1, stride=1, bias_potential='Parabola2D',additional_bias=None,additional_bias_dimension='q1',inverse_cv1=False,inverse_cv2=False, verbose=False):
-    '''
-        .. deprecated:: 1.7
-        
-            Use :py:meth:`read_wham_input <thermolib.tools.read_wham_input>` instead. This old function is still included for backward compatibility, but it will be removed in the near future.
-    '''
-    from thermolib.thermodynamics.trajectory import ColVarReader
-    trajectory_reader = ColVarReader([colvar_cv1_column_index, colvar_cv2_column_index], units=['au','au'], start=start, stride=stride, end=end, verbose=verbose)
-    return read_wham_input(
-        fn, 
-        trajectory_reader, trajectory_path_template=path_template_colvar_fns, 
-        bias_potential=bias_potential, q01_unit=q01_unit, q02_unit=q02_unit, kappa1_unit=kappa1_unit, kappa2_unit=kappa2_unit, 
-        inverse_cv1=inverse_cv1, inverse_cv2=inverse_cv2,
-        additional_bias=additional_bias, additional_bias_dimension=additional_bias_dimension,
-        verbose=verbose
-    )
-
-def read_wham_input_2D_h5_old(fn, h5_cv1_path, h5_cv2_path, path_template_h5_fns='%s', kappa1_unit='kjmol', kappa2_unit='kjmol', q01_unit='au', q02_unit='au', cv1_unit='au', cv2_unit='au', start=0, end=-1, stride=1, bias_potential='Parabola2D', additional_bias=None, additional_bias_dimension='q1', inverse_cv1=False, inverse_cv2=False, verbose=False):
-    '''
-        .. deprecated:: 1.7
-        
-            Use :py:meth:`read_wham_input <thermolib.tools.read_wham_input>` instead. This old function is still included for backward compatibility, but it will be removed in the near future.
-    '''
-    from thermolib.thermodynamics.trajectory import HDF5Reader
-    trajectory_reader = HDF5Reader([h5_cv1_path, h5_cv2_path], units=[cv1_unit,cv2_unit], start=start, stride=stride, end=end, verbose=verbose)
-    return read_wham_input(
-        fn, 
-        trajectory_reader, trajectory_path_template=path_template_h5_fns, 
-        bias_potential=bias_potential, q01_unit=q01_unit, q02_unit=q02_unit, kappa1_unit=kappa1_unit, kappa2_unit=kappa2_unit, 
-        inverse_cv1=inverse_cv1, inverse_cv2=inverse_cv2,
-        additional_bias=additional_bias, additional_bias_dimension=additional_bias_dimension,
-        verbose=verbose
-    )
-

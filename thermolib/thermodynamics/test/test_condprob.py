@@ -13,9 +13,9 @@
 
 import numpy as np
 import os
-from molmod.units import kjmol
 import matplotlib.pyplot as pl
 
+from thermolib.units import kjmol
 from thermolib.thermodynamics.fep import BaseFreeEnergyProfile
 from thermolib.thermodynamics.condprob import ConditionalProbability1D1D
 
