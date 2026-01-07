@@ -396,10 +396,10 @@ class RateFactorEquilibrium(BaseRateFactor):
 
     def _compute_contribution(self, atoms, momenta='analytical', Nmomenta=500):
         '''
-            Compute a sample for the A rate factor from the current frame given by **coords**. These samples are stored in self.As. Afterwards, <|DQ|>_TS is computed from these contributions as well as some statistics to estimate the error (or at least get an idea of the error).
+            Compute a sample for the A rate factor from the current frame given by **atoms**. These samples are stored in self.As. Afterwards, <|DQ|>_TS is computed from these contributions as well as some statistics to estimate the error (or at least get an idea of the error).
 
-            :param coords: 3N-dimensional vector containing the cartesian coordinates
-            :type coords: np.ndarray
+            :param atoms: ASE Atoms object
+            :type atoms: ase.Atoms
 
             :param momenta: specify how to compute the momentum part of the phase space integral in computing the As samples. The following options are available:
             

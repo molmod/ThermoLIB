@@ -59,7 +59,8 @@
    to a spectroscopic wavenumber in inverse centimeters. This is how it can be
    done::
 
-     >>> from thermolib.units import centimeter, lightspeed
+     >>> from thermolib.units import centimeter
+     >>> from thermolib.constants import lightspeed
      >>> invcm = lightspeed/centimeter
      >>> freq = 0.00320232
      >>> print freq/invcm

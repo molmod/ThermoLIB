@@ -231,17 +231,17 @@ class CVComputer(TrajectoryReader):
             data = []
             for itime in range(Nsteps):
                 if self.coords_key is not None:
-                    positions = f[self.coords_key][itime,:,:]/angstrom
+                    positions = f[self.coords_key][itime,:,:]
                 else:
-                    positions = f['/trajectory/pos'][itime,:,:]/angstrom
+                    positions = f['/trajectory/pos'][itime,:,:]
                 try:
-                    cell = f['trajectory/cell']/angstrom
+                    cell = f['trajectory/cell']
                 except:
                     cell = None
-                atoms = Atoms(numbers=numbers, positions=positions)
+                atoms = Atoms(numbers=numbers, positions=positions/angstrom)
                 if cell is not None:
                     atoms.set_pbc(True)
-                    atoms.set_cell(cell)
+                    atoms.set_cell(cell/angstrom)
                 data.append(CV.compute(atoms, deriv=False))
             col = self._slice(np.array(data))
             if len(col)==0:

@@ -102,7 +102,7 @@ class CenterOfMass(CollectiveVariable):
         if atoms.get_pbc().any():
             atoms.wrap(center=atoms.get_positions()[0]) # wrap atoms to the first atom
         
-        positions = atoms.get_positions() * angstrom # temporary fix to unify ase with the old molmod units
+        positions = atoms.get_positions() * angstrom
         com = self.masses @ positions[self.indices] / self.masses.sum()
             
         if deriv:
@@ -229,7 +229,7 @@ class NormalizedAxis(CollectiveVariable):
 class NormalToPlane(CollectiveVariable):
     
     '''
-        Class the implement the computation of the normal to a plane defined by a set of atoms that are assumed to be orderd at the cornerpoints of a regular n-fold polygon
+        Class the implement the computation of the normal to a plane defined by a set of atoms that are assumed to be ordered at the cornerpoints of a regular n-fold polygon
     '''
 
     type = 'vector'
@@ -250,7 +250,7 @@ class NormalToPlane(CollectiveVariable):
 
     def compute(self, atoms, deriv=True):
         '''
-            Compute the normal to the ring plane (and optionally the gradient) for the given atomic coordinates. Calculations assumes that the n atoms that constitute the ring are orderd at the cornerpoints of a regular n-fold polygon
+            Compute the normal to the ring plane (and optionally the gradient) for the given atomic coordinates. Calculations assumes that the n atoms that constitute the ring are ordered at the cornerpoints of a regular n-fold polygon
 
             :param atoms: ASE Atoms object on which the CV needs to be computed
             :type atoms: ase.Atoms
@@ -264,12 +264,13 @@ class NormalToPlane(CollectiveVariable):
         theta = 2*np.pi/len(self.indices)
         if atoms.get_pbc().any():
             atoms.wrap(center=atoms.get_positions()[0]) # wrap atoms to the first atom
-        positions = atoms.get_positions()[self.indices] * angstrom
+        positions = atoms.get_positions() * angstrom
+        rs = positions[self.indices]
         R1 = np.zeros(3, float)
         R2 = np.zeros(3, float)
-        for i, position in enumerate(positions):
-            R1 += np.cos((i+1)*theta)*position
-            R2 += np.sin((i+1)*theta)*position
+        for i, r in enumerate(rs):
+            R1 += np.cos((i+1)*theta)*r
+            R2 += np.sin((i+1)*theta)*r
         vec = np.cross(R1, R2)
         v = np.linalg.norm(vec)
         normal = vec/v
@@ -284,7 +285,7 @@ class NormalToPlane(CollectiveVariable):
                 for alpha in [0,1,2]:
                     e_alpha = np.zeros(3, float)
                     e_alpha[alpha] = 1.0
-                    grad[:, i, alpha] = np.dot(tensor, cosi*np.cross(e_alpha,R2)+sini*np.cross(R1,e_alpha))
+                    grad[:, index, alpha] = np.dot(tensor, cosi*np.cross(e_alpha,R2)+sini*np.cross(R1,e_alpha))
             return normal, grad
 
 
@@ -552,7 +553,7 @@ class OrthogonalDistanceToPore(DotProduct):
         '''
         self.guest_indices = guest_indices
         self.ring_indices = ring_indices
-        com  = CenterOfMass(guest_indices, masses)
+        com  = CenterOfMass(guest_indices, masses=masses)
         cop  = CenterOfPosition(ring_indices)
         vec1 = Difference(cop, com)
         vec2 = NormalToPlane(ring_indices)
