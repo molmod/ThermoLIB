@@ -90,6 +90,15 @@ class Distribution(object):
         lower /= parse_unit(unit)
         upper /= parse_unit(unit)
         mean = self.mean()/parse_unit(unit)
+        if isinstance(lower, np.ndarray): 
+            assert len(lower)==1, "Can't print information for multiple statistical variables"
+            lower = lower[0]
+        if isinstance(upper, np.ndarray): 
+            assert len(upper)==1, "Can't print information for multiple statistical variables"
+            upper = upper[0]
+        if isinstance(mean, np.ndarray): 
+            assert len(mean)==1, "Can't print information for multiple statistical variables"
+            mean = mean[0]
         if do_scientific:
             lower = format_scientific(lower, latex=False)
             upper = format_scientific(upper, latex=False)
@@ -342,6 +351,12 @@ class GaussianDistribution(Distribution):
         error = (upper-lower)/2.0
         error /= parse_unit(unit)
         mean = self.mean()/parse_unit(unit)
+        if isinstance(error, np.ndarray): 
+            assert len(error)==1, "Can't print information for multiple statistical variables"
+            error = error[0]
+        if isinstance(mean, np.ndarray): 
+            assert len(mean)==1, "Can't print information for multiple statistical variables"
+            mean = mean[0]
         if do_scientific:
             error = format_scientific(error, latex=False)
             mean = format_scientific(mean, latex=False)

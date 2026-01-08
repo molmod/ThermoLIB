@@ -470,5 +470,9 @@ class ASEExtendedXYZReader(TrajectoryReader):
         cvdata = np.zeros([nsamples, len(self.keys)])
         for iframe, frame in enumerate(traj):
             for ikey, key in enumerate(self.keys):
-                cvdata[iframe,ikey] = frame.info[key]*parse_unit(self.units[ikey])
+                if key.lower() in ['energy']:
+                    value = frame.get_potential_energy()
+                else:
+                    value = frame.info[key]
+                cvdata[iframe,ikey] = value*parse_unit(self.units[ikey])
         return cvdata

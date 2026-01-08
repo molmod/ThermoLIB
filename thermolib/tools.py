@@ -22,8 +22,7 @@ import h5py as h5
 from scipy.optimize import curve_fit
 from inspect import signature
 import matplotlib.pyplot as pp
-import sys, os
-import time
+import os
 
 __all__ = [
     'format_scientific', 'h5_read_dataset',

@@ -24,8 +24,8 @@ from ..flatten import Flattener
 
 import matplotlib.pyplot as pp
 from matplotlib import rc
-rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
-rc('text', usetex=True)
+#rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
+#rc('text', usetex=True)
 
 import numpy as np
 np.seterr(divide='ignore', invalid='ignore')
