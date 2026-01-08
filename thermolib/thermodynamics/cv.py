@@ -172,29 +172,26 @@ class DihedralAngle(CollectiveVariable):
     '''
     type = 'scalar'
 	
-    def __init__(self, indices, name=None, unit_cell_pars=None):
+    def __init__(self, indices, name=None):
         '''
             :param indices: indices of the atoms of which the dihedral angle needs to be computed
             :type indices: list of integers
 
             :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.
             :type name: str | None, optional, default=None
-
-            :param unit_cell_pars: Unit cell parameters that may be required to compute the CV value
-            :type unit_cell_pars: np.ndarray | None, optional, default=None
         '''
         self.indices = indices
-        CollectiveVariable.__init__(self, name=name, unit_cell_pars=unit_cell_pars)
+        CollectiveVariable.__init__(self, name=name)
 
     def _default_name(self):
         return 'DA(%s)' %('-'.join([str(i) for i in self.indices]))
 
-    def compute(self, coords, deriv=True):
+    def compute(self, atoms, deriv=True):
         '''
             Compute CV value (and optionally its gradient) for given coordinates of the molecular system.
 
-            :param coords: atomic coordinates of each atom in the molecular system
-            :type coords: np.ndarray([Natoms,3])
+            :param atoms: ASE Atoms object on which the CV needs to be computed
+            :type atoms: ase.Atoms
 
             :param deriv: if True, also compute and return the gradient of the CV towards all atomic coordinates
             :type deriv: bool, optional, default=True
@@ -203,14 +200,16 @@ class DihedralAngle(CollectiveVariable):
             :rtype: float or float,np.ndarray([3,Natoms,3])
         '''
         #unwrap coords of given indices with periodic boundary conditions if unit_cell is specified
-        rs = self._unwrap(coords[self.indices,:])
+        if atoms.get_pbc().any():
+            atoms.wrap(center=atoms.get_positions()[0]) # wrap atoms to the first atom
+        rs = atoms.get_positions() * angstrom
 
         #doi.org/10.1006/jmbi.1993.1624 (gradient formulas)
         ### Dihedral angle chi defined by points ijkl
-        rij = rs[1] - rs[0]
-        rkj = rs[1] - rs[2]
-        rkl = rs[3] - rs[2]
-        
+        rij = rs[self.indices[1]] - rs[self.indices[0]]
+        rkj = rs[self.indices[1]] - rs[self.indices[2]]
+        rkl = rs[self.indices[3]] - rs[self.indices[2]]
+
         rijxrkj = np.cross(rij,rkj)
         rkjxrkl = np.cross(rkj,rkl)
         
@@ -227,7 +226,7 @@ class DihedralAngle(CollectiveVariable):
             ddl = - (np.sqrt(np.dot(rkj,rkj)) / np.dot(rkjxrkl,rkjxrkl)) * rkjxrkl
             ddj = (np.dot(rij,rkj) / np.dot(rkj,rkj) - 1) * ddi - (np.dot(rkl,rkj) / np.dot(rkj,rkj)) * ddl
             ddk = (np.dot(rkl,rkj) / np.dot(rkj,rkj) - 1) * ddl - (np.dot(rij,rkj) / np.dot(rkj,rkj)) * ddi
-            grad = np.zeros(coords.shape, float)
+            grad = np.zeros([len(rs), 3], float)
             grad[self.indices[0],:] = ddi
             grad[self.indices[1],:] = ddj
             grad[self.indices[2],:] = ddk
