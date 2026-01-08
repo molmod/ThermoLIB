@@ -10,10 +10,11 @@
 # Van Speybroeck. Usage of this package should be authorized by prof. Van
 # Vanduyfhuys or prof. Van Speybroeck.
 
-from molmod.units import *
-from molmod.constants import *
-from molmod.io.xyz import XYZReader
-from molmod.unit_cells import UnitCell
+from ..units import *
+from ..constants import *
+
+from ase.io import read
+from ase import Atom
 
 import numpy as np
 
@@ -30,49 +31,20 @@ class CollectiveVariable(object):
 
     type = None
 
-    def __init__(self, name=None, unit_cell_pars=None):
+    def __init__(self, name=None):
         '''
             :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.
             :type name: str | None, optional, default=None
-
-            :param unit_cell_pars: Unit cell parameters that may be required to compute the CV value
-            :type unit_cell_pars: np.ndarray | None, optional, default=None
         '''
 
         if name is None:
             name = self._default_name()
         self.name = name
-        if unit_cell_pars is not None:
-            self.unit_cell = UnitCell.from_parameters3(*unit_cell_pars)
-        else:
-            self.unit_cell = None
 
     def _default_name(self):
         return 'CV'
     
-    def _unwrap(self, coords: np.ndarray, ref=None):
-        '''
-            This routine will unwrap the periodic boundary conditions around the given ref, i.e. make sure that for each r in coords, r-ref is the image with the smallest norm.
-
-            :param coords: coordinates that need to be unwrapped
-            :type coords: np.ndarray
-
-            :param ref: if not None, coords-ref will be unwrapped instead of coords
-            :type ref: np.ndarray | None, optional, default=None
-        '''
-        if self.unit_cell is None:
-            return coords.copy()
-        else:
-            if ref is None:
-                ref = coords[0,:].copy()
-            unwrapped = np.zeros(coords.shape, float)
-            unwrapped[0,:] = coords[0,:].copy()
-            for i, r in enumerate(coords):
-                if i>0:
-                    unwrapped[i,:] = ref + self.unit_cell.shortest_vector(r-ref)
-            return unwrapped
-    
-    def compute(self, coords, deriv=True):
+    def compute(self, atoms, deriv=True):
         '''
             This routine needs to be implemented in each child class
         '''
@@ -86,33 +58,30 @@ class CenterOfMass(CollectiveVariable):
 
     type = 'vector'
 
-    def __init__(self, indices, masses, name=None, unit_cell_pars=None):
+    def __init__(self, indices, masses=None, name=None):
         '''
             :param indices: indices of the atoms of which the COM needs to be computed
             :type indices: list of integers
 
-            :param masses: masses of all atoms in the molecular system. The relevant atomic masses will then be extracted using the indices parameter.
+            :param masses: masses of of the atoms listed in indices. If None, the masses are retrieved based on the chemical element.
             :type masses: np.ndarray
 
             :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.
             :type name: str | None, optional, default=None
-
-            :param unit_cell_pars: Unit cell parameters that may be required to compute the CV value
-            :type unit_cell_pars: np.ndarray | None, optional, default=None
         '''
         self.indices = indices
         self.masses = masses
-        CollectiveVariable.__init__(self, name=name, unit_cell_pars=unit_cell_pars)
+        CollectiveVariable.__init__(self, name=name)
 
     def _default_name(self):
         return 'COM(%s)' %('-'.join([str(i) for i in self.indices]))
     
-    def compute(self, coords, deriv=True):
+    def compute(self, atoms, deriv=True):
         '''
             Compute CV value (and optionally its gradient) for given coordinates of the molecular system.
 
-            :param coords: atomic coordinates of each atom in the molecular system
-            :type coords: np.ndarray([Natoms,3])
+            :param atoms: ASE Atoms object on which the CV needs to be computed
+            :type atoms: ase.Atoms
 
             :param deriv: if True, also compute and return the gradient of the CV towards all atomic coordinates
             :type deriv: bool, optional, default=True
@@ -120,23 +89,29 @@ class CenterOfMass(CollectiveVariable):
             :return: CV value and potentially the gradient
             :rtype: np.ndarray(3) or float,np.ndarray([3,Natoms,3])
         '''
-        #unwrap coords of given indices with periodic boundary conditions if unit_cell is specified
-        rs = self._unwrap(coords[self.indices])
         #Compute center of mass
-        mass = 0.0
         com = np.zeros(3, float)
         if deriv:
-            grad = np.zeros([3, len(coords), 3], float)
-        for index, r in zip(self.indices, rs):
-            mass += self.masses[index]
-            com += self.masses[index]*r
-            if deriv:
-                grad[:,index,:] = np.identity(3)*self.masses[index]
-        com /= mass
+            grad = np.zeros([3, len(atoms), 3], float)
+        
+        if self.masses is None:
+            self.masses = atoms.get_masses()[self.indices]
+        else:
+            assert len(self.masses)==len(self.indices), 'Number of masses should be equal to the number of indices'
+        
+        if atoms.get_pbc().any():
+            atoms.wrap(center=atoms.get_positions()[0]) # wrap atoms to the first atom
+        
+        positions = atoms.get_positions() * angstrom
+        com = self.masses @ positions[self.indices] / self.masses.sum()
+            
+        if deriv:
+            grad[:, self.indices, :] = np.identity(3)[:, None, :] * self.masses[:, None]
+        
         if not deriv:
             return com
         else:
-            grad /= mass
+            grad /= self.masses.sum()
             return com, grad
 
 
@@ -148,29 +123,26 @@ class CenterOfPosition(CollectiveVariable):
 
     type = 'vector'
 
-    def __init__(self, indices, name=None, unit_cell_pars=None):
+    def __init__(self, indices, name=None):
         '''
             :param indices: indices of the atoms of which the COP needs to be computed
             :type indices: list of integers
 
             :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.
             :type name: str | None, optional, default=None
-
-            :param unit_cell_pars: Unit cell parameters that may be required to compute the CV value
-            :type unit_cell_pars: np.ndarray | None, optional, default=None
         '''
         self.indices = indices
-        CollectiveVariable.__init__(self, name=name, unit_cell_pars=unit_cell_pars)
+        CollectiveVariable.__init__(self, name=name)
     
     def _default_name(self):
         return 'COP(%s)' %('-'.join([str(i) for i in self.indices]))
     
-    def compute(self, coords, deriv=True):
+    def compute(self, atoms, deriv=True):
         '''
             Compute CV value (and optionally its gradient) for given coordinates of the molecular system.
 
-            :param coords: atomic coordinates of each atom in the molecular system
-            :type coords: np.ndarray([Natoms,3])
+            :param atoms: ASE Atoms object on which the CV needs to be computed
+            :type atoms: ase.Atoms
 
             :param deriv: if True, also compute and return the gradient of the CV towards all atomic coordinates
             :type deriv: bool, optional, default=True
@@ -179,12 +151,15 @@ class CenterOfPosition(CollectiveVariable):
             :rtype: np.ndarray(3) or float,np.ndarray([3,Natoms,3])
         '''
         #unwrap coords of given indices with periodic boundary conditions if unit_cell is specified
-        rs = self._unwrap(coords[self.indices,:])
-        cop = rs.mean(axis=0)
+        if atoms.get_pbc().any():
+            atoms.wrap(center=atoms.get_positions()[0]) # wrap atoms to the first atom
+
+        positions = atoms.get_positions() * angstrom 
+        cop = positions[self.indices].mean(axis=0)
         if not deriv:
             return cop
         else:
-            grad = np.zeros([3, len(coords), 3], float)
+            grad = np.zeros([3, len(positions), 3], float)
             grad[0, self.indices, 0] = 1/len(self.indices)
             grad[1, self.indices, 1] = 1/len(self.indices)
             grad[2, self.indices, 2] = 1/len(self.indices)
@@ -197,29 +172,26 @@ class DihedralAngle(CollectiveVariable):
     '''
     type = 'scalar'
 	
-    def __init__(self, indices, name=None, unit_cell_pars=None):
+    def __init__(self, indices, name=None):
         '''
             :param indices: indices of the atoms of which the dihedral angle needs to be computed
             :type indices: list of integers
 
             :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.
             :type name: str | None, optional, default=None
-
-            :param unit_cell_pars: Unit cell parameters that may be required to compute the CV value
-            :type unit_cell_pars: np.ndarray | None, optional, default=None
         '''
         self.indices = indices
-        CollectiveVariable.__init__(self, name=name, unit_cell_pars=unit_cell_pars)
+        CollectiveVariable.__init__(self, name=name)
 
     def _default_name(self):
         return 'DA(%s)' %('-'.join([str(i) for i in self.indices]))
 
-    def compute(self, coords, deriv=True):
+    def compute(self, atoms, deriv=True):
         '''
             Compute CV value (and optionally its gradient) for given coordinates of the molecular system.
 
-            :param coords: atomic coordinates of each atom in the molecular system
-            :type coords: np.ndarray([Natoms,3])
+            :param atoms: ASE Atoms object on which the CV needs to be computed
+            :type atoms: ase.Atoms
 
             :param deriv: if True, also compute and return the gradient of the CV towards all atomic coordinates
             :type deriv: bool, optional, default=True
@@ -228,14 +200,16 @@ class DihedralAngle(CollectiveVariable):
             :rtype: float or float,np.ndarray([3,Natoms,3])
         '''
         #unwrap coords of given indices with periodic boundary conditions if unit_cell is specified
-        rs = self._unwrap(coords[self.indices,:])
+        if atoms.get_pbc().any():
+            atoms.wrap(center=atoms.get_positions()[0]) # wrap atoms to the first atom
+        rs = atoms.get_positions() * angstrom
 
         #doi.org/10.1006/jmbi.1993.1624 (gradient formulas)
         ### Dihedral angle chi defined by points ijkl
-        rij = rs[1] - rs[0]
-        rkj = rs[1] - rs[2]
-        rkl = rs[3] - rs[2]
-        
+        rij = rs[self.indices[1]] - rs[self.indices[0]]
+        rkj = rs[self.indices[1]] - rs[self.indices[2]]
+        rkl = rs[self.indices[3]] - rs[self.indices[2]]
+
         rijxrkj = np.cross(rij,rkj)
         rkjxrkl = np.cross(rkj,rkl)
         
@@ -252,7 +226,7 @@ class DihedralAngle(CollectiveVariable):
             ddl = - (np.sqrt(np.dot(rkj,rkj)) / np.dot(rkjxrkl,rkjxrkl)) * rkjxrkl
             ddj = (np.dot(rij,rkj) / np.dot(rkj,rkj) - 1) * ddi - (np.dot(rkl,rkj) / np.dot(rkj,rkj)) * ddl
             ddk = (np.dot(rkl,rkj) / np.dot(rkj,rkj) - 1) * ddl - (np.dot(rij,rkj) / np.dot(rkj,rkj)) * ddi
-            grad = np.zeros(coords.shape, float)
+            grad = np.zeros([len(rs), 3], float)
             grad[self.indices[0],:] = ddi
             grad[self.indices[1],:] = ddj
             grad[self.indices[2],:] = ddk
@@ -267,7 +241,7 @@ class NormalizedAxis(CollectiveVariable):
 
     type = 'vector'
 
-    def __init__(self, vec1, vec2, name=None, unit_cell_pars=None):
+    def __init__(self, vec1, vec2, name=None):
         '''
             :param vec1: first of two vectors defining the plane for which the normal needs to be computed
             :type vec1: instance of child class of CollectiveVariable with type='vector'
@@ -277,9 +251,6 @@ class NormalizedAxis(CollectiveVariable):
 
             :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.
             :type name: str | None, optional, default=None
-
-            :param unit_cell_pars: Unit cell parameters that may be required to compute the CV value
-            :type unit_cell_pars: np.ndarray | None, optional, default=None
 
             :raises AssertionError: if vec1 is not instance of (child of) CollectiveVariable
             :raises AssertionError: if vec1.type is not 'vector'
@@ -292,17 +263,17 @@ class NormalizedAxis(CollectiveVariable):
         assert vec2.type=='vector', 'input argument vec2 should be an instance of CollectiveVariable with type vector'
         self.vec1 = vec1
         self.vec2 = vec2
-        CollectiveVariable.__init__(self, name=name, unit_cell_pars=unit_cell_pars)
+        CollectiveVariable.__init__(self, name=name)
 
     def _default_name(self):
         return 'NormalAxis(%s,%s)' %(self.vec1.name, self.vec2.name)
     
-    def compute(self, coords, deriv=True):
+    def compute(self, atoms, deriv=True):
         '''
             Compute CV value (and optionally its gradient) for given coordinates of the molecular system.
 
-            :param coords: atomic coordinates of each atom in the molecular system
-            :type coords: np.ndarray([Natoms,3])
+            :param atoms: ASE Atoms object on which the CV needs to be computed
+            :type atoms: ase.Atoms
 
             :param deriv: if True, also compute and return the gradient of the CV towards all atomic coordinates
             :type deriv: bool, optional, default=True
@@ -311,49 +282,46 @@ class NormalizedAxis(CollectiveVariable):
             :rtype: np.ndarray(3) or float,np.ndarray([3,Natoms,3])
         '''
         if not deriv:
-            v1 = self.vec1.compute(coords, deriv=False)
-            v2 = self.vec2.compute(self._unwrap(coords, ref=v1), deriv=False)
+            v1 = self.vec1.compute(atoms, deriv=False)
+            v2 = self.vec2.compute(atoms, deriv=False)
             norm = np.linalg.norm(v2-v1)
-            return (v2-v1)/norm
+            return (v2-v1) / norm
         if deriv:
-            v1, grad1 = self.vec1.compute(coords, deriv=True)
-            v2, grad2 = self.vec2.compute(self._unwrap(coords, ref=v1), deriv=True)
+            v1, grad1 = self.vec1.compute(atoms, deriv=True)
+            v2, grad2 = self.vec2.compute(atoms, deriv=True)
             norm = np.linalg.norm(v2-v1)
-            tmp = grad2 - grad1 - np.einsum('a,bic,b->aic',v2-v1, grad2-grad1,v2-v1)/norm**2
-            return (v2-v1)/norm, tmp/norm
+            tmp = grad2 - grad1 - np.einsum('a,bic,b->aic',v2-v1, grad2-grad1, v2-v1) / norm**2
+            return (v2-v1) / norm, tmp / norm
 
 
 class NormalToPlane(CollectiveVariable):
     
     '''
-        Class the implement the computation of the normal to a plane defined by a set of atoms that are assumed to be orderd at the cornerpoints of a regular n-fold polygon
+        Class the implement the computation of the normal to a plane defined by a set of atoms that are assumed to be ordered at the cornerpoints of a regular n-fold polygon
     '''
 
     type = 'vector'
     
-    def __init__(self, indices, name=None, unit_cell_pars=None):
+    def __init__(self, indices, name=None):
         '''
             :param indices: indices of the atoms in the plane for which the normal needs to be computed
             :type indices: list of integers
 
             :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.
             :type name: str or None, optional, default=None
-
-            :param unit_cell_pars: Unit cell parameters that may be required to compute the CV value
-            :type unit_cell_pars: np.ndarray or None, optional, default=None
         '''
         self.indices = indices
-        CollectiveVariable.__init__(self, name=name, unit_cell_pars=unit_cell_pars)
+        CollectiveVariable.__init__(self, name=name)
     
     def _default_name(self):
         return 'NormalToPlane(%s)' %('-'.join([str(i) for i in self.indices]))
 
-    def compute(self, coords, deriv=True):
+    def compute(self, atoms, deriv=True):
         '''
-            Compute the normal to the ring plane (and optionally the gradient) for the given atomic coordinates. Calculations assumes that the n atoms that constitute the ring are orderd at the cornerpoints of a regular n-fold polygon
+            Compute the normal to the ring plane (and optionally the gradient) for the given atomic coordinates. Calculations assumes that the n atoms that constitute the ring are ordered at the cornerpoints of a regular n-fold polygon
 
-            :param coords: atomic coordinates of each atom in the molecular system
-            :type coords: np.ndarray([Natoms,3])
+            :param atoms: ASE Atoms object on which the CV needs to be computed
+            :type atoms: ase.Atoms
 
             :param deriv: if True, also compute and return the gradient of the CV towards all atomic coordinates
             :type deriv: bool, optional, default=True
@@ -362,8 +330,10 @@ class NormalToPlane(CollectiveVariable):
             :rtype: np.ndarray(3) or float,np.ndarray([3,Natoms,3])
         '''
         theta = 2*np.pi/len(self.indices)
-        #unwrap ring coords with periodic boundary conditions if unit_cell is specified
-        rs = self._unwrap(coords[self.indices,:])
+        if atoms.get_pbc().any():
+            atoms.wrap(center=atoms.get_positions()[0]) # wrap atoms to the first atom
+        positions = atoms.get_positions() * angstrom
+        rs = positions[self.indices]
         R1 = np.zeros(3, float)
         R2 = np.zeros(3, float)
         for i, r in enumerate(rs):
@@ -375,7 +345,7 @@ class NormalToPlane(CollectiveVariable):
         if not deriv:
             return normal, None
         else:
-            grad = np.zeros([3, len(coords), 3], float)
+            grad = np.zeros([3, len(positions), 3], float)
             tensor = (np.identity(3)-np.outer(vec, vec)/v**2)/v
             for i, index in enumerate(self.indices):
                 cosi = np.cos((i+1)*theta)
@@ -394,7 +364,7 @@ class DotProduct(CollectiveVariable):
 
     type = 'scalar'
 
-    def __init__(self, vec1, vec2, name=None, unit_cell_pars=None):
+    def __init__(self, vec1, vec2, name=None):
         '''
             :param vec1: first of two vectors defining the plane for which the normal needs to be computed
             :type vec1: instance of child class of CollectiveVariable with type='vector'
@@ -405,9 +375,6 @@ class DotProduct(CollectiveVariable):
             :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.
             :type name: str or None, optional, default=None
 
-            :param unit_cell_pars: Unit cell parameters that may be required to compute the CV value
-            :type unit_cell_pars: np.ndarray or None, optional, default=None
-
             :raises AssertionError: if vec1 is not instance of (child of) CollectiveVariable
             :raises AssertionError: if vec1.type is not 'vector'
             :raises AssertionError: if vec2 is not instance of (child of) CollectiveVariable
@@ -417,17 +384,17 @@ class DotProduct(CollectiveVariable):
         assert isinstance(vec2, CollectiveVariable) and vec2.type=='vector'
         self.vec1 = vec1
         self.vec2 = vec2
-        CollectiveVariable.__init__(self, name=name, unit_cell_pars=unit_cell_pars)
+        CollectiveVariable.__init__(self, name=name)
     
     def _default_name(self):
         return 'Dot(%s,%s)' %(self.vec1.name, self.vec2.name)
     
-    def compute(self, coords, deriv=True):
+    def compute(self, atoms, deriv=True):
         '''
             Compute the dot product (and optionally gradient) of the two vectors for the given atomic coordinates
 
-            :param coords: atomic coordinates of each atom in the molecular system
-            :type coords: np.ndarray([Natoms,3])
+            :param atoms: ASE Atoms object on which the CV needs to be computed
+            :type atoms: ase.Atoms
 
             :param deriv: if True, also compute and return the gradient of the CV towards all atomic coordinates
             :type deriv: bool, optional, default=True
@@ -436,12 +403,12 @@ class DotProduct(CollectiveVariable):
             :rtype: np.ndarray(3) or float,np.ndarray([3,Natoms,3])
         '''
         if not deriv:
-            v1 = self.vec1.compute(coords, deriv=False)
-            v2 = self.vec2.compute(coords, deriv=False)
+            v1 = self.vec1.compute(atoms, deriv=False)
+            v2 = self.vec2.compute(atoms, deriv=False)
             return np.dot(v1, v2)
         else:
-            v1, grad1 = self.vec1.compute(coords, deriv=True)
-            v2, grad2 = self.vec2.compute(coords, deriv=True)
+            v1, grad1 = self.vec1.compute(atoms, deriv=True)
+            v2, grad2 = self.vec2.compute(atoms, deriv=True)
             cv = np.dot(v1,v2)
             grad = np.einsum('ikl,i->kl', grad1, v2) + np.einsum('i,ikl->kl', v1, grad2)
             return cv, grad
@@ -454,7 +421,7 @@ class Distance(CollectiveVariable):
     
     type = 'scalar'
     
-    def __init__(self, index1, index2, name=None, unit_cell_pars=None):
+    def __init__(self, index1, index2, name=None):
         '''
             :param index1: index of the first atom
             :type indices: int
@@ -464,23 +431,20 @@ class Distance(CollectiveVariable):
 
             :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.
             :type name: str or None, optional, default=None
-
-            :param unit_cell_pars: Unit cell parameters that may be required to compute the CV value
-            :type unit_cell_pars: np.ndarray or None, optional, default=None
         '''
         self.i1 = index1
         self.i2 = index2
-        CollectiveVariable.__init__(self, name=name, unit_cell_pars=unit_cell_pars)
+        CollectiveVariable.__init__(self, name=name)
 
     def _default_name(self):
         return 'Distance(%i,%i)' %(self.i1, self.i2)
 
-    def compute(self, coords, deriv=True):
+    def compute(self, atoms, deriv=True):
         '''
             Compute the distance (and optionally gradient) between the two atoms for the given atomic coordinates
 
-            :param coords: atomic coordinates of each atom in the molecular system
-            :type coords: np.ndarray([Natoms,3])
+            :param atoms: ASE Atoms object on which the CV needs to be computed
+            :type atoms: ase.Atoms
 
             :param deriv: if True, also compute and return the gradient of the CV towards all atomic coordinates
             :type deriv: bool, optional, default=True
@@ -489,16 +453,12 @@ class Distance(CollectiveVariable):
             :rtype: np.ndarray(3) or float,np.ndarray([3,Natoms,3])
         '''
         #computation of value
-        r1 = coords[self.i1,:]
-        r2 = coords[self.i2,:]
-        r = r2-r1
-        if self.unit_cell is not None:
-            r = self.unit_cell.shortest_vector(r)
+        r = atoms.get_distance(self.i1, self.i2, mic=True, vector=True) * angstrom
         value = np.linalg.norm(r)
         if not deriv:
             return value
         #computation of deriv
-        grad = np.zeros(coords.shape, float)
+        grad = np.zeros(atoms.get_positions().shape, float)
         grad[self.i1,:] += -r/value
         grad[self.i2,:] += r/value
         return value, grad
@@ -511,7 +471,7 @@ class DistanceCOP(CollectiveVariable):
     
     type = 'scalar'
     
-    def __init__(self, index1, index2a, index2b, name=None, unit_cell_pars=None):
+    def __init__(self, index1, index2a, index2b, name=None):
         '''
             :param index1: index of the first atom
             :type indices: int
@@ -524,24 +484,21 @@ class DistanceCOP(CollectiveVariable):
 
             :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.
             :type name: str or None, optional, default=None
-
-            :param unit_cell_pars: Unit cell parameters that may be required to compute the CV value
-            :type unit_cell_pars: np.ndarray or None, optional, default=None
         '''
         self.i1  = index1
         self.i2a = index2a
         self.i2b = index2b
-        CollectiveVariable.__init__(self, name=name, unit_cell_pars=unit_cell_pars)
+        CollectiveVariable.__init__(self, name=name)
 
     def _default_name(self):
         return 'DistanceCOP(%i,%i,%i)' %(self.i1, self.i2a, self.i2b)
 
-    def compute(self, coords, deriv=True):
+    def compute(self, atoms, deriv=True):
         '''
             Compute the COP distance (and optionally gradient) between the atoms for the given atomic coordinates
 
-            :param coords: atomic coordinates of each atom in the molecular system
-            :type coords: np.ndarray([Natoms,3])
+            :param atoms: ASE Atoms object on which the CV needs to be computed
+            :type atoms: ase.Atoms
 
             :param deriv: if True, also compute and return the gradient of the CV towards all atomic coordinates
             :type deriv: bool, optional, default=True
@@ -550,19 +507,20 @@ class DistanceCOP(CollectiveVariable):
             :rtype: np.ndarray(3) or float,np.ndarray([3,Natoms,3])
         '''
         #computation of value
-        r1 = coords[self.i1,:]
-        com = 0.5*(coords[self.i2a,:]+coords[self.i2b,:])
-        r = r1-com
-        if self.unit_cell is not None:
-            r = self.unit_cell.shortest_vector(r)
+        positions = atoms.get_positions() * angstrom
+        cop = 0.5*(positions[self.i2a,:]+positions[self.i2b,:])
+        _atoms = atoms.copy()
+        _atoms.append(Atom('X', cop / angstrom))  # Append cop as a dummy atom
+
+        r = _atoms.get_distance(self.i1, len(_atoms)-1, mic=True, vector=True) * angstrom
         value = np.linalg.norm(r)
         if not deriv:
             return value
         #computation of deriv
-        grad = np.zeros(coords.shape, float)
-        grad[self.i1 ,:] += r/value
-        grad[self.i2a,:] += -0.5*r/value
-        grad[self.i2b,:] += -0.5*r/value
+        grad = np.zeros(positions.shape, float)
+        grad[self.i1 ,:] += - r / value
+        grad[self.i2a,:] += 0.5 * r / value
+        grad[self.i2b,:] += 0.5 * r / value
         return value, grad
 
 
@@ -583,7 +541,7 @@ class CoordinationNumber(CollectiveVariable):
     
     type = 'scalar'
     
-    def __init__(self, pairs, r0=2.0*angstrom, nn=6, nd=12, name=None, unit_cell_pars=None):
+    def __init__(self, pairs, r0=2.0*angstrom, nn=6, nd=12, name=None):
         '''
             :param pairs: pairs of atoms between which the coordination number needs to be computed
             :type pairs: list tuples
@@ -599,25 +557,22 @@ class CoordinationNumber(CollectiveVariable):
 
             :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.
             :type name: str or None, optional, default=None
-
-            :param unit_cell_pars: Unit cell parameters that may be required to compute the CV value
-            :type unit_cell_pars: np.ndarray or None, optional, default=None
         '''
         self.pairs = pairs
         self.r0 = r0
         self.nn = nn
         self.nd = nd
-        CollectiveVariable.__init__(self, name=name, unit_cell_pars=unit_cell_pars)
+        CollectiveVariable.__init__(self, name=name)
 
     def _default_name(self):
         return 'CoordinationNumber([' + ' , '.join(['(%i,%i)' %(i,j) for i,j in self.pairs]) + '])'
 
-    def compute(self, coords, deriv=True):
+    def compute(self, atoms, deriv=True):
         '''
             Compute the coordination number (and optionally gradient) between the atom pairs for the given atomic coordinates
 
-            :param coords: atomic coordinates of each atom in the molecular system
-            :type coords: np.ndarray([Natoms,3])
+            :param atoms: ASE Atoms object on which the CV needs to be computed
+            :type atoms: ase.Atoms
 
             :param deriv: if True, also compute and return the gradient of the CV towards all atomic coordinates
             :type deriv: bool, optional, default=True
@@ -626,23 +581,17 @@ class CoordinationNumber(CollectiveVariable):
             :rtype: np.ndarray(3) or float,np.ndarray([3,Natoms,3])
         '''
         value = 0.0
-        grad = np.zeros(coords.shape, float)
+        grad = np.zeros(atoms.get_positions().shape, float)
         for i,j in self.pairs:
-            ri = coords[i,:]
-            rj = coords[j,:]
-            r = ri-rj
-            if self.unit_cell is not None:
-                r = self.unit_cell.shortest_vector(r)
-            rij = np.linalg.norm(r)
-            xij = rij/self.r0
-            cij = (1-xij**self.nn)/(1-xij**self.nd)
-            value += cij
+            rij = atoms.get_distance(j, i, mic=True, vector=True) * angstrom
+            r = np.linalg.norm(rij)
+            value += (1 - (r / self.r0)**self.nn) / (1 - (r / self.r0)**self.nd)
             if deriv:
-                T = (self.nn-self.nd)*xij**(self.nn+self.nd-1)+self.nd*xij**(self.nd-1)-self.nn*xij**(self.nn-1)
-                N = (1-xij**self.nd)**2
-                dcij_drij = 1./self.r0*T/N
-                grad[i,:] += (ri-rj)/rij*dcij_drij
-                grad[j,:] += (rj-ri)/rij*dcij_drij
+                T = (self.nn - self.nd) * (r /  self.r0)**(self.nn +self.nd -1) + self.nd * (r / self.r0)**(self.nd - 1) - self.nn * (r / self.r0)**(self.nn - 1)
+                N = (1 - (r / self.r0)**self.nd)**2
+                dcij_drij = (1. / self.r0) * T / N
+                grad[i,:] +=  rij / r * dcij_drij
+                grad[j,:] += -rij / r * dcij_drij
         if deriv:
             return value, grad
         else:
@@ -656,7 +605,7 @@ class OrthogonalDistanceToPore(DotProduct):
     
     type = 'scalar'
     
-    def __init__(self, ring_indices, guest_indices, masses, unit_cell_pars=None, name=None):
+    def __init__(self, ring_indices, guest_indices, masses=None, name=None):
         '''
             :param ring_indices: atomic indices of the ring
             :type ring_indices: list of integers
@@ -664,21 +613,18 @@ class OrthogonalDistanceToPore(DotProduct):
             :param guest_indices: atomic indices of the guest
             :type guest_indices: list of integers
 
-            :param masses: masses of all atoms in the molecular system. The relevant atomic masses of the guest atoms will then be extracted using the guest_indices parameter.
+            :param masses: masses of the atoms specified in indices. If none, default atomic masses are used.
             :type masses: np.ndarray
 
             :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.
             :type name: str | None, optional, default=None
-
-            :param unit_cell_pars: Unit cell parameters that may be required to compute the CV value
-            :type unit_cell_pars: np.ndarray | None, optional, default=None
         '''
         self.guest_indices = guest_indices
         self.ring_indices = ring_indices
-        com  = CenterOfMass(guest_indices, masses, unit_cell_pars=unit_cell_pars)
-        cop  = CenterOfPosition(ring_indices, unit_cell_pars=unit_cell_pars)
+        com  = CenterOfMass(guest_indices, masses=masses)
+        cop  = CenterOfPosition(ring_indices)
         vec1 = Difference(cop, com)
-        vec2 = NormalToPlane(ring_indices, unit_cell_pars=unit_cell_pars)
+        vec2 = NormalToPlane(ring_indices)
         DotProduct.__init__(self, vec1, vec2, name=name)
     
     def _default_name(self):
@@ -686,49 +632,6 @@ class OrthogonalDistanceToPore(DotProduct):
             ','.join([str(i) for i in self.ring_indices]),
             ','.join([str(i) for i in self.guest_indices])
         )
-
-
-class OrthogonalDistanceToPore_depricated(CollectiveVariable):
-    '''
-        .. depricated:: 1.7
-        
-            This is an old implementation of OrthogonalDistanceToPore and will be removed soon.
-    '''
-    
-    type = 'scalar'
-    
-    def __init__(self, ring_indices, guest_indices, masses, unit_cell_pars=None, name=None):
-        self.com  = CenterOfMass(guest_indices, masses, unit_cell_pars=unit_cell_pars)
-        self.cop  = CenterOfPosition(ring_indices, unit_cell_pars=unit_cell_pars)
-        self.norm = NormalToPlane(ring_indices, unit_cell_pars=unit_cell_pars)
-        CollectiveVariable.__init__(self, name=name, unit_cell_pars=unit_cell_pars)
-    
-    def _default_name(self):
-        return 'OrthogonalDistanceToPore(ring=[%s],guest=[%s])' %(
-            ','.join([str(i) for i in self.cop.indices]), 
-            ','.join([str(i) for i in self.com.indices])
-        )
-
-    def compute(self, coords, deriv=True):
-        if deriv:
-            com , grad_com  = self.com.compute(coords, deriv=True)
-            cop , grad_cop  = self.cop.compute(coords, deriv=True)
-            norm, grad_norm = self.norm.compute(coords, deriv=True)
-        else:
-            com  = self.com.compute(coords, deriv=False)
-            cop  = self.cop.compute(coords, deriv=False)
-            norm = self.norm.compute(coords, deriv=False)
-        #compute cv
-        if self.unit_cell is not None:
-            cv = np.dot(self.unit_cell.shortest_vector(com-cop), norm)
-        else:
-            cv = np.dot(com-cop, norm)
-        #compute derivative
-        if not deriv:
-            return cv
-        else:
-            grad = np.einsum('bia,b->ia', grad_com-grad_cop, norm) + np.einsum('b,bia->ia', com-cop, grad_norm)
-            return cv, grad
 
 
 class Average(CollectiveVariable):
@@ -740,7 +643,7 @@ class Average(CollectiveVariable):
     
     type = None #depends on type of argument cvs
     
-    def __init__(self, cv1, cv2, name=None, unit_cell_pars=None):
+    def __init__(self, cv1, cv2, name=None):
         '''
             :param cv1: first collective variable in the average
             :type cv1: any child class of :py:class:`CollectiveVariable <thermolib.thermodynamics.cv.CollectiveVariable>`
@@ -750,25 +653,22 @@ class Average(CollectiveVariable):
 
             :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.
             :type name: str | None, optional, default=None
-
-            :param unit_cell_pars: Unit cell parameters that may be required to compute the CV value
-            :type unit_cell_pars: np.ndarray | None, optional, default=None
         '''
         assert cv1.type==cv2.type
         self.type = cv1.type
         self.cv1 = cv1
         self.cv2 = cv2
-        CollectiveVariable.__init__(self, name=name, unit_cell_pars=unit_cell_pars)
+        CollectiveVariable.__init__(self, name=name)
 
     def _default_name(self):
         return '0.5*(%s+%s)' %(self.cv1.name, self.cv2.name)
 
-    def compute(self, coords, deriv=True):
+    def compute(self, atoms, deriv=True):
         '''
             Compute the average (and optionally gradient) of the two CVs for the given atomic coordinates
 
-            :param coords: atomic coordinates of each atom in the molecular system
-            :type coords: np.ndarray([Natoms,3])
+            :param atoms: ASE Atoms object on which the CV needs to be computed
+            :type atoms: ase.Atoms
 
             :param deriv: if True, also compute and return the gradient of the CV towards all atomic coordinates
             :type deriv: bool, optional, default=True
@@ -777,12 +677,12 @@ class Average(CollectiveVariable):
             :rtype: np.ndarray(3) or float,np.ndarray([3,Natoms,3])
         '''
         if not deriv:
-            cv1 = self.cv1.compute(coords, deriv=False)
-            cv2 = self.cv2.compute(coords, deriv=False)
+            cv1 = self.cv1.compute(atoms, deriv=False)
+            cv2 = self.cv2.compute(atoms, deriv=False)
             return 0.5*(cv1+cv2)
         else:
-            cv1, grad1 = self.cv1.compute(coords, deriv=True)
-            cv2, grad2 = self.cv2.compute(coords, deriv=True)
+            cv1, grad1 = self.cv1.compute(atoms, deriv=True)
+            cv2, grad2 = self.cv2.compute(atoms, deriv=True)
             value = 0.5*(cv1+cv2)
             grad = 0.5*(grad1 + grad2)
         return value, grad
@@ -797,7 +697,7 @@ class Difference(CollectiveVariable):
     
     type = None #depends on type of argument cvs
     
-    def __init__(self, cv1, cv2, name=None, unit_cell_pars=None):
+    def __init__(self, cv1, cv2, name=None):
         '''
             :param cv1: first collective variable in the difference
             :type cv1: any child class of :py:class:`CollectiveVariable <thermolib.thermodynamics.cv.CollectiveVariable>`
@@ -807,25 +707,22 @@ class Difference(CollectiveVariable):
 
             :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.
             :type name: str | None, optional, default=None
-
-            :param unit_cell_pars: Unit cell parameters that may be required to compute the CV value
-            :type unit_cell_pars: np.ndarray | None, optional, default=None
         '''
         assert cv1.type==cv2.type
         self.type = cv1.type
         self.cv1 = cv1
         self.cv2 = cv2
-        CollectiveVariable.__init__(self, name=name, unit_cell_pars=unit_cell_pars)
+        CollectiveVariable.__init__(self, name=name)
 
     def _default_name(self):
         return 'Diff(%s,%s)' %(self.cv2.name, self.cv1.name)
 
-    def compute(self, coords, deriv=True):
+    def compute(self, atoms, deriv=True):
         '''
             Compute the difference (and optionally gradient) between the two CVs for the given atomic coordinates
 
-            :param coords: atomic coordinates of each atom in the molecular system
-            :type coords: np.ndarray([Natoms,3])
+            :param atoms: ASE Atoms object on which the CV needs to be computed
+            :type atoms: ase.Atoms
 
             :param deriv: if True, also compute and return the gradient of the CV towards all atomic coordinates
             :type deriv: bool, optional, default=True
@@ -834,12 +731,12 @@ class Difference(CollectiveVariable):
             :rtype: np.ndarray(3) or float,np.ndarray([3,Natoms,3])
         '''
         if not deriv:
-            cv1 = self.cv1.compute(coords, deriv=False)
-            cv2 = self.cv2.compute(coords, deriv=False)
+            cv1 = self.cv1.compute(atoms, deriv=False)
+            cv2 = self.cv2.compute(atoms, deriv=False)
             return cv2-cv1
         else:
-            cv1, grad1 = self.cv1.compute(coords, deriv=True)
-            cv2, grad2 = self.cv2.compute(coords, deriv=True)
+            cv1, grad1 = self.cv1.compute(atoms, deriv=True)
+            cv2, grad2 = self.cv2.compute(atoms, deriv=True)
             value = cv2-cv1
             grad = grad2 - grad1
         return value, grad
@@ -854,7 +751,7 @@ class Minimum(CollectiveVariable):
     
     type = 'scalar'
     
-    def __init__(self, cv1, cv2, name=None, unit_cell_pars=None):
+    def __init__(self, cv1, cv2, name=None):
         '''
             :param cv1: first collective variable in the minimum
             :type cv1: any child class of :py:class:`CollectiveVariable <thermolib.thermodynamics.cv.CollectiveVariable>`
@@ -864,23 +761,20 @@ class Minimum(CollectiveVariable):
 
             :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.
             :type name: str | None, optional, default=None
-
-            :param unit_cell_pars: Unit cell parameters that may be required to compute the CV value
-            :type unit_cell_pars: np.ndarray | None, optional, default=None
         '''
         self.cv1 = cv1
         self.cv2 = cv2
-        CollectiveVariable.__init__(self, name=name, unit_cell_pars=unit_cell_pars)
+        CollectiveVariable.__init__(self, name=name)
 
     def _default_name(self):
         return 'Min(%s,%s)' %(self.cv1.name, self.cv2.name)
 
-    def compute(self, coords, deriv=True):
+    def compute(self, atoms, deriv=True):
         '''
             Compute the minimum (and optionally gradient) of the two CVs for the given atomic coordinates
 
-            :param coords: atomic coordinates of each atom in the molecular system
-            :type coords: np.ndarray([Natoms,3])
+            :param atoms: ASE Atoms object on which the CV needs to be computed
+            :type atoms: ase.Atoms
 
             :param deriv: if True, also compute and return the gradient of the CV towards all atomic coordinates
             :type deriv: bool, optional, default=True
@@ -889,14 +783,14 @@ class Minimum(CollectiveVariable):
             :rtype: np.ndarray(3) or float,np.ndarray([3,Natoms,3])
         '''
         if not deriv:
-            cv1 = self.cv1.compute(coords, deriv=False)
-            cv2 = self.cv2.compute(coords, deriv=False)
+            cv1 = self.cv1.compute(atoms, deriv=False)
+            cv2 = self.cv2.compute(atoms, deriv=False)
             return min(cv1,cv2)
         else:
-            cv1, grad1 = self.cv1.compute(coords, deriv=True)
-            cv2, grad2 = self.cv2.compute(coords, deriv=True)
+            cv1, grad1 = self.cv1.compute(atoms, deriv=True)
+            cv2, grad2 = self.cv2.compute(atoms, deriv=True)
             value = min(cv1,cv2)
-            if cv1<cv2:
+            if cv1<cv2: # note that right not gradient is discontinuous, can be fixed using plumed MIN CV
                 grad = grad1
             else:
                 grad = grad2
@@ -936,12 +830,12 @@ class LinearCombination(CollectiveVariable):
     def _default_name(self):
         return ''.join(['%+.2f%s' %(coeff,cv.name) for (coeff,cv) in zip(self.coeffs, self.cvs)])
 
-    def compute(self, coords, deriv=True):
+    def compute(self, atoms, deriv=True):
         '''
             Compute the linear combination (and optionally gradient) of the CVs for the given atomic coordinates
 
-            :param coords: atomic coordinates of each atom in the molecular system
-            :type coords: np.ndarray([Natoms,3])
+            :param atoms: ASE Atoms object on which the CV needs to be computed
+            :type atoms: ase.Atoms
 
             :param deriv: if True, also compute and return the gradient of the CV towards all atomic coordinates
             :type deriv: bool, optional, default=True
@@ -952,13 +846,13 @@ class LinearCombination(CollectiveVariable):
         if not deriv:
             value = 0.0
             for coeff, cv in zip(self.coeffs, self.cvs):
-                value += coeff*cv.compute(coords, deriv=False)
+                value += coeff*cv.compute(atoms, deriv=False)
             return value
         else:
             value = 0.0
-            grad = np.zeros(coords.shape)
+            grad = np.zeros(atoms.get_positions().shape)
             for coeff, cv in zip(self.coeffs, self.cvs):
-                v,g = cv.compute(coords, deriv=True)
+                v, g = cv.compute(atoms, deriv=True)
                 value += coeff*v
                 grad += coeff*g
             return value, grad
@@ -1005,7 +899,7 @@ class FunctionCV(CollectiveVariable):
     '''
         Class to implement a collective variable that represents the function of a given CV
     '''
-    def __init__(self, CV, function, derivative, name=None, unit_cell_pars=None):
+    def __init__(self, CV, function, derivative, name=None):
         '''
             :param CV: the CV of which the function will be computed
             :type CV: child instance of :py:class:`CollectiveVariable <thermolib.thermodynamics.cv.CollectiveVariable>`
@@ -1025,17 +919,17 @@ class FunctionCV(CollectiveVariable):
         self.CV = CV
         self.function = function
         self.derivative = derivative
-        CollectiveVariable.__init__(self, name=name, unit_cell_pars=unit_cell_pars)
+        CollectiveVariable.__init__(self, name=name)
 
     def _default_name(self):
         return 'fun(%s)' %(self.CV.name)
     
-    def compute(self, coords, deriv=True):
+    def compute(self, atoms, deriv=True):
         '''
             Compute the function (and optionally gradient) of the CV for the given atomic coordinates
 
-            :param coords: atomic coordinates of each atom in the molecular system
-            :type coords: np.ndarray([Natoms,3])
+            :param atoms: ASE Atoms object on which the CV needs to be computed
+            :type atoms: ase.Atoms
 
             :param deriv: if True, also compute and return the gradient of the CV towards all atomic coordinates
             :type deriv: bool, optional, default=True
@@ -1044,16 +938,16 @@ class FunctionCV(CollectiveVariable):
             :rtype: np.ndarray(3) or float,np.ndarray([3,Natoms,3])
         '''
         if deriv:
-            cv, grad = self.CV.compute(coords, deriv=True)
+            cv, grad = self.CV.compute(atoms, deriv=True)
             q = self.function(cv)
             qgrad = self.derivative(cv)*grad
             return q, qgrad
         else:
-            cv = self.CV.compute(coords, deriv=False)
+            cv = self.CV.compute(atoms, deriv=False)
             return self.function(cv)
 
 
-def test_CV_implementations(fn, cvs, dx=0.001*angstrom, maxframes=100):
+def test_CV_implementations(fn, cvs, dx=0.001*angstrom, maxframes=100, tol=1E-9):
     '''
         Routine to test the implementation of the derivative in the compute methods of child class of :py:class:`CollectiveVariable <thermolib.thermodynamics.cv.CollectiveVariable>` by comparing it with a numerical derivative. This routine serves as a tool to test new CV implementations. In the future, this routine will be moved to a new dedicated test module that should be run upon installation of ThermoLIB.
 
@@ -1069,20 +963,61 @@ def test_CV_implementations(fn, cvs, dx=0.001*angstrom, maxframes=100):
         :param maxframes: the first maxframes from the given XYZ trajectory will be used in the testing
         :type maxframes: int, optional, default=100
 
+        :param tol: the tolerance between the numerical and analytical CV value.
+        :type tol: float, optional, default 1E-9
+
         :raises AssertionError: if a CV failes the test
     '''
-    xyz = XYZReader(fn)
+    trajectory = read(fn, index=f':{maxframes}')
     for cv in cvs:
-        print('Testing consistency between value and gradient of %s' %cv.name)
-        for i, (title, coords) in enumerate(xyz):
-            if i>=maxframes: break
-            value, grad = cv.compute(coords)
-            for aindex in range(len(coords)):
-                for carindex in range(3):
-                    delta = np.zeros(coords.shape, float)
-                    delta[aindex,carindex] = 1
-                    v1 = cv.compute(coords-delta*dx, deriv=False)
-                    v2 = cv.compute(coords+delta*dx, deriv=False)
-                    numerical = (v2-v1)/(2*dx)
-                    assert abs(numerical-grad[aindex,carindex])<1e-9, 'Analytical derivative check failed! grad[%i,%i]=%20.15e    numerical=%20.15e' %(aindex,carindex,grad[aindex,carindex],numerical)
-    del xyz
+        print('Testing consistency between value and gradient of %s' % cv.name)
+        for i, atoms in enumerate(trajectory):
+            value, grad = cv.compute(atoms)
+            coords = atoms.get_positions() * angstrom
+            grad_shape = grad.shape
+            # Handle (3, N, 3) shape (vector-valued CVs)
+            if len(grad_shape) == 3 and grad_shape[0] == 3 and grad_shape[2] == 3:
+                n_atoms = grad_shape[1]
+                for comp in range(3):
+                    for aindex in range(n_atoms):
+                        for carindex in range(3):
+                            delta = np.zeros(coords.shape, float)
+                            # Only update if aindex is within coords shape
+                            if aindex < coords.shape[0]:
+                                delta[aindex, carindex] = 1
+                            _atoms = atoms.copy()
+                            _atoms.set_positions((coords - delta * dx) / angstrom)
+                            v1 = cv.compute(_atoms, deriv=False)
+                            _atoms = atoms.copy()
+                            _atoms.set_positions((coords + delta * dx) / angstrom)
+                            v2 = cv.compute(_atoms, deriv=False)
+                            numerical = (v2[comp] - v1[comp]) / (2 * dx)
+                            diff = np.abs(numerical - grad[comp, aindex, carindex])
+                            assert diff < tol, (
+                                'Analytical derivative check failed! grad[%i,%i,%i]=%20.15e numerical=%20.15e (difference=%20.15e)'
+                                % (comp, aindex, carindex, grad[comp, aindex, carindex], numerical, diff)
+                            )
+            # Handle (N, 3) shape (scalar-valued CVs)
+            elif len(grad_shape) == 2 and grad_shape[1] == 3:
+                n_atoms = grad_shape[0]
+                for aindex in range(n_atoms):
+                    for carindex in range(3):
+                        delta = np.zeros(coords.shape, float)
+                        if aindex < coords.shape[0]:
+                            delta[aindex, carindex] = 1
+                        _atoms = atoms.copy()
+                        _atoms.set_positions((coords - delta * dx) / angstrom)
+                        v1 = cv.compute(_atoms, deriv=False)
+                        _atoms = atoms.copy()
+                        _atoms.set_positions((coords + delta * dx) / angstrom)
+                        v2 = cv.compute(_atoms, deriv=False)
+                        numerical = (v2 - v1) / (2 * dx)
+                        diff = np.abs(numerical - grad[aindex, carindex])
+                        assert diff < tol, (
+                            'Analytical derivative check failed! grad[%i,%i]=%20.15e numerical=%20.15e (difference=%20.15e)'
+                            % (aindex, carindex, grad[aindex, carindex], numerical, diff)
+                        )
+            else:
+                raise ValueError(f"Unexpected gradient shape: {grad_shape}")
+        print("Test for %s successful!" % cv._default_name())
+    del trajectory

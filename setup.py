@@ -38,7 +38,6 @@ setup(
                       'scipy',
                       'scikit-learn>=0.24.2',
                       'matplotlib',
-                      'molmod',
                       'h5py',
                       'ase',
                       ],

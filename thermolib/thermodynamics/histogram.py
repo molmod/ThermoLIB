@@ -11,8 +11,8 @@
 # Vanduyfhuys or prof. Van Speybroeck.
 
 
-from molmod.units import *
-from molmod.constants import *
+from ..units import *
+from ..constants import *
 
 import matplotlib.pyplot as pp
 import matplotlib.cm as cm
@@ -37,16 +37,16 @@ class Histogram1D(object):
 	'''
 	def __init__(self, cvs, ps, error=None, cv_output_unit='au', cv_label='CV'):
 		'''
-			:param cvs: the bin values of the collective variable CV, which should be in atomic units! If you need help properly converting to atomic units, we refer to the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+			:param cvs: the bin values of the collective variable CV, which should be in atomic units! 
 			:type cvs: np.ndarray
 
-			:param ps: the histogram probability values at the given CV values. The probabilities should be in atomic units! If you need help properly converting to atomic units, we refer to the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+			:param ps: the histogram probability values at the given CV values. The probabilities should be in atomic units! 
 			:type ps: np.ndarray
 
 			:param error: error distribution on the free energy profile
 			:type error: child of :py:class:`Distribution <thermolib.error.Distribution>`, optional, default=None
 			
-			:param cv_output_unit: the units for printing and plotting of CV values (not the unit of the input array, that is assumed to be in atomic units). Units are defined using the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+			:param cv_output_unit: the units for printing and plotting of CV values (not the unit of the input array, that is assumed to be in atomic units). 
 			:type cv_output_unit: str, optional, default='au'
 			
 			:param cv_label: label for the CV for printing and plotting
@@ -151,7 +151,7 @@ class Histogram1D(object):
 		'''
 			Routine to estimate a 1D probability histogram in terms of a single collective variable from a series of samples of that collective variable.
 
-			:param data: series of samples of the collective variable. Should be in atomic units! If you need help properly converting to atomic units, we refer to the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+			:param data: series of samples of the collective variable. Should be in atomic units! 
 			:type data: np.ndarray
 
 			:param bins: the edges of the bins for which a histogram will be constructed. This argument is parsed to `the numpy.histogram routine <https://numpy.org/doc/stable/reference/generated/numpy.histogram.html>`_. Hence, more information on its meaning and allowed values can be found there.
@@ -172,7 +172,7 @@ class Histogram1D(object):
 			:param error_p_threshold: only relevant when error estimation is enabled (see parameter ``error_estimate``). When ``error_p_threshold`` is set to x, bins in the histogram for which the probability resulting from the trajectory is smaller than x will be disabled for error estimation (i.e. its error will be set to np.nan). This is similar as the error_p_threshold keyword for the from_wham routine, for which the use is illustrated in :doc:`one of the tutorial notebooks <tut/advanced_projection>`.
 			:type error_p_threshold: float, optional, default=0.0
 
-			:param cv_output_unit: the unit in which cv will be plotted/printed (not the unit of the input array, that is assumed to be atomic units). If you need help properly converting to atomic units, we refer to the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+			:param cv_output_unit: the unit in which cv will be plotted/printed (not the unit of the input array, that is assumed to be atomic units). 
 			:type cv_output_unit: str, optional, default='au'
 
 			:param cv_label: label of the cv that will be used for plotting and printing
@@ -261,7 +261,7 @@ class Histogram1D(object):
 			:param verbosity: controls the level of verbosity for logging during the WHAM algorithm. 
 			:type verbose: str, optional, allowed='none'|'low'|'medium'|'high', default='low'
 
-			:param cv_output_unit: the unit in which cv will be plotted/printed. If you need help properly converting to atomic units, we refer to the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+			:param cv_output_unit: the unit in which cv will be plotted/printed. 
 			:type cv_output_unit: str, optional, default='au'
 
 			:param cv_label: the label of the cv that will be used on plots
@@ -511,22 +511,22 @@ class Histogram2D(object):
 	'''
 	def __init__(self, cv1s, cv2s, ps, error=None, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2'):
 		'''
-			:param cv1s: the bin values of the first collective variable CV1, which should be in atomic units! If you need help properly converting to atomic units, we refer to the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+			:param cv1s: the bin values of the first collective variable CV1, which should be in atomic units! 
 			:type data: np.ndarray
 
-			:param cv2s: the bin values of the second collective variable CV2, which should be in atomic units! If you need help properly converting to atomic units, we refer to the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+			:param cv2s: the bin values of the second collective variable CV2, which should be in atomic units! 
 			:type data: np.ndarray
 
-			:param ps: 2D array corresponding to  the histogram probability values at the given CV1,CV2 grid. The probabilities should be in atomic units! If you need help properly converting to atomic units, we refer to the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+			:param ps: 2D array corresponding to  the histogram probability values at the given CV1,CV2 grid. The probabilities should be in atomic units! 
 			:type bins: np.ndarray
 
 			:param error: error distribution on the free energy profile
 			:type error: child of :py:class:`Distribution <thermolib.error.Distribution>`, optional, default=None
 
-			:param cv1_output_unit: the units for printing and plotting of CV1 values (not the unit of the input array, that is assumed to be in atomic units). Units are defined using the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+			:param cv1_output_unit: the units for printing and plotting of CV1 values (not the unit of the input array, that is assumed to be in atomic units).
 			:type cv1_output_unit: str, optional, default='au'
 
-			:param cv2_output_unit: the units for printing and plotting of CV2 values (not the unit of the input array, that is assumed to be in atomic units). Units are defined using the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+			:param cv2_output_unit: the units for printing and plotting of CV2 values (not the unit of the input array, that is assumed to be in atomic units). 
 			:type cv2_output_unit: str, optional, default='au'
 
 			:param cv1_label: label for CV1 for printing and plotting
@@ -669,10 +669,10 @@ class Histogram2D(object):
 
 			:type error_estimate: str or None, optional, default=None
 
-			:param cv1_output_unit: the unit in which CV1 will be plotted/printed (not the unit of the input array, that is assumed to be atomic units). If you need help properly converting to atomic units, we refer to the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+			:param cv1_output_unit: the unit in which CV1 will be plotted/printed (not the unit of the input array, that is assumed to be atomic units). 
 			:type cv1_output_unit: str, optional, default='au'
 
-			:param cv2_output_unit: the unit in which CV2 will be plotted/printed (not the unit of the input array, that is assumed to be atomic units). If you need help properly converting to atomic units, we refer to the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+			:param cv2_output_unit: the unit in which CV2 will be plotted/printed (not the unit of the input array, that is assumed to be atomic units). 
 			:type cv2_output_unit: str, optional, default='au'
 
 			:param cv1_label: label of CV1 that will be used for plotting and printing
@@ -761,10 +761,10 @@ class Histogram2D(object):
 			:param overflow_threshold: see documentation for this argument in the :py:meth:`wham2d_scf <thermolib.ext.wham2d_scf>` routine
 			:type overflow_threshold: double, optional, default=1e-150
 
-			:param cv1_output_unit: the unit in which CV1 will be plotted/printed. If you need help properly converting to atomic units, we refer to the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+			:param cv1_output_unit: the unit in which CV1 will be plotted/printed. 
 			:type cv1_output_unit: str, optional, default='au'
 
-			:param cv2_output_unit: the unit in which CV2 will be plotted/printed. If you need help properly converting to atomic units, we refer to the molmod `units <https://molmod.github.io/molmod/reference/const.html#module-molmod.units>`_ module.
+			:param cv2_output_unit: the unit in which CV2 will be plotted/printed. 
 			:type cv2_output_unit: str, optional, default='au'
 
 			:param cv1_label: label of CV1 used for plotting and printing
