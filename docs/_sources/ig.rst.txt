@@ -16,31 +16,10 @@ Some software packages should be installed before ThermoLIB can be installed and
 *  Scipy: http://www.scipy.org/
 *  matplotlib: http://matplotlib.sourceforge.net
 *  scikit-learn: https://scikit-learn.org/
-*  Atomic Simulation environment (ASE): https://wiki.fysik.dtu.dk/ase/
+*  Atomic Simulation environment (ASE): https://wiki.fysik.dtu.dk/ase/ (Version 3.23.0 or newer)
 *  h5py: https://www.h5py.org/
 
-Finally, ThermoLIB currently also requires a working build of the `MolMod <http://molmod.github.com/molmod/>`_ pacakge, which could normally be installed using pip as follows:
-
-.. code-block:: bash
-
-    pip install git+https://github.com/molmod/molmod.git
-
-Unfortunately, MolMod is no longer maintained and updated, which might give rise to conflicts when installing molmod on top of recent versions of the packages given above. Therefore, we give below instructions on how to create a working conda environment with specific versions of these packages that should all be compatible with each other and with molmod and ThermoLIB:
-
-.. code-block:: bash
-
-    conda create -n thermolib python==3.8.5
-    conda activate thermolib
-    pip install numpy==1.22.0
-    pip install matplotlib==3.3.4
-    pip install scipy==1.6.3
-    pip install scikit-learn==0.24.2
-    pip install cython==0.29.23
-    pip install h5py==2.10.0
-    pip install ase==3.22.1
-    pip install git+https://github.com/molmod/molmod.git
-
-In order to get the LaTeX support in the plots made by ThermoLIB, you also need the following packages installed
+(Optionally) In order to get the LaTeX support in the plots made by ThermoLIB, you also need the following packages installed
 
 *  latex: https://www.latex-project.org/
 *  cm-super: https://www.ctan.org/tex-archive/fonts/ps-type1/cm-super/
@@ -57,7 +36,7 @@ Download and install ThermoLIB
 Direct install using pip
 ========================
 
-You can directly install ThermoLIB (e.g. in the conda environment detailed above) using pip. **Researchers of Ghent University** can access it through `<https://github.ugent.be>`_ as follows:
+You can directly install ThermoLIB using pip. **Researchers of Ghent University** can access it through `<https://github.ugent.be>`_ as follows:
 
 .. code-block:: bash
 
