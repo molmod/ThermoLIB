@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>thermolib.tools &mdash; ThermoLIB v1.7.2 documentation</title>
+  <title>thermolib.tools &mdash; ThermoLIB v1.8.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
@@ -13,7 +13,7 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=6b3927aa"></script>
+      <script src="../../_static/documentation_options.js?v=4eaa865d"></script>
       <script src="../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -168,19 +168,30 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../tut/advanced_deprojection.html">Tutorial 6 - Deprojecting 1D FEP to 2D FES</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../tut/advanced_deprojection.html">Tutorial 6 - Deprojection to extract energetic contribution to free energy</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_deprojection.html#Introduction">Introduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_deprojection.html#Construct-1D-FEP">Construct 1D FEP</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_deprojection.html#Deproject-to-2D-FES">Deproject to 2D FES</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_deprojection.html#Deproject-to-2D-FES">Deproject to 2D FES</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tut/advanced_deprojection.html#Direct-route---2D-WHAM">Direct route - 2D WHAM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tut/advanced_deprojection.html#Indirect-route---deproject-1D-FEP">Indirect route - deproject 1D FEP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tut/advanced_deprojection.html#CONSISTENCY-CHECK:-project-2D-FES-to-1D-FEP">CONSISTENCY CHECK: project 2D FES to 1D FEP</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../tut/advanced_transformations.html">Tutorial 8 - Transformations of 1D FEP and kinetics</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_deprojection.html#U(CV)-profile">U(CV) profile</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tut/advanced_deprojection.html#Method-1---from-2D-FES">Method 1 - from 2D FES</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tut/advanced_deprojection.html#Method-2---from-conditional-probability">Method 2 - from conditional probability</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tut/advanced_deprojection.html#comparison">comparison</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../tut/advanced_transformations.html">Tutorial 7 - Transformations of 1D FEP and kinetics</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_transformations.html#Introduction">Introduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_transformations.html#FEP-and-rate-with-original-CV">FEP and rate with original CV</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_transformations.html#FEP-and-rate-in-terms-of-alternative-CV">FEP and rate in terms of alternative CV</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../tut/advanced_transformations_2D.html">Tutorial 9 - Transformation of 2D free energy surfaces</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../tut/advanced_transformations_2D.html">Tutorial 8 - Transformation of 2D free energy surfaces</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_transformations_2D.html#Introduction">Introduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_transformations_2D.html#Construction-of-original-2D-FES">Construction of original 2D FES</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_transformations_2D.html#Transformation-to-new-CVs">Transformation to new CVs</a></li>
@@ -790,7 +801,7 @@
 
 <div class="viewcode-block" id="read_wham_input">
 <a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.read_wham_input">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">read_wham_input</span><span class="p">(</span><span class="n">fn</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">trajectory_readers</span><span class="p">,</span> <span class="n">trajectory_path_templates</span><span class="p">,</span> <span class="n">bias_potential</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="n">q01_unit</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">kappa1_unit</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">q02_unit</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">kappa2_unit</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">inverse_cv1</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">inverse_cv2</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">additional_bias</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">additional_bias_dimension</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;cv1&#39;</span><span class="p">,</span> <span class="n">skip_bias_names</span><span class="o">=</span><span class="p">[],</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_wham_input</span><span class="p">(</span><span class="n">fn</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">trajectory_readers</span><span class="p">,</span> <span class="n">trajectory_path_templates</span><span class="p">,</span> <span class="n">bias_potential</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="n">order_2D</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;q01 q02 kappa1 kappa2&#39;</span><span class="p">,</span> <span class="n">q01_unit</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">kappa1_unit</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">q02_unit</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">kappa2_unit</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">inverse_cv1</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">inverse_cv2</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">additional_bias</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">additional_bias_dimension</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;cv1&#39;</span><span class="p">,</span> <span class="n">skip_bias_names</span><span class="o">=</span><span class="p">[],</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Read a WHAM input file (metadata file) to read the simulation temperature, trajectories (CV samples) and bias potentials.</span>
 
@@ -820,6 +831,9 @@
 <span class="sd">                * **Parabola2D** -- harmonic bias of the form 0.5*kappa1*(q1-q01)**2 + 0.5*kappa2*(q2-q02)**2</span>
 
 <span class="sd">        :type bias_potential: str, optional, allowed_values=[&#39;Parabola1D&#39;,&#39;Parabola2D&#39;,&#39;None&#39;], default=&#39;None&#39;</span>
+
+<span class="sd">        :param order_2D: The order in which the parameters of the 2D bias potential are given in fn. Only relevant if ``bias_potential`` is set to &#39;Parabola2D&#39;. Should be a string containing the four substrings &#39;q01&#39;, &#39;q02&#39;, &#39;kappa1&#39; and &#39;kappa2&#39; separated by spaces, indicating the order in which these parameters are given in fn.</span>
+<span class="sd">        :type order_2D: str, optional, default=&#39;q01 q02 kappa1 kappa2&#39;</span>
 
 <span class="sd">        :param q01_unit: The unit for the q01 value for each bias potential, q01 corresponds to the minimum in CV (or CV1 in case of a 2D bias) of the harmonic bias potential.</span>
 <span class="sd">        :type q01_unit: str, optional, default=&#39;au&#39;</span>
@@ -932,10 +946,14 @@
                     <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Bias potential of type </span><span class="si">%s</span><span class="s1"> not implemented.&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">bias_potential</span><span class="p">))</span>
             <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">)</span><span class="o">==</span><span class="mi">5</span><span class="p">:</span> <span class="c1">#2D bias</span>
                 <span class="n">name</span> <span class="o">=</span> <span class="n">words</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">q01</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">words</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">*</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">q01_unit</span><span class="p">)</span>
-                <span class="n">q02</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">words</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="o">*</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">q02_unit</span><span class="p">)</span>
-                <span class="n">kappa1</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">words</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span><span class="o">*</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">kappa1_unit</span><span class="p">)</span>
-                <span class="n">kappa2</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">words</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span><span class="o">*</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">kappa2_unit</span><span class="p">)</span>
+                <span class="n">order</span> <span class="o">=</span> <span class="n">order_2D</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">q01</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">words</span><span class="p">[</span><span class="n">order</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;q01&#39;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span><span class="o">*</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">q01_unit</span><span class="p">)</span>
+                    <span class="n">q02</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">words</span><span class="p">[</span><span class="n">order</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;q02&#39;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span><span class="o">*</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">q02_unit</span><span class="p">)</span>
+                    <span class="n">kappa1</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">words</span><span class="p">[</span><span class="n">order</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;kappa1&#39;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span><span class="o">*</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">kappa1_unit</span><span class="p">)</span>
+                    <span class="n">kappa2</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">words</span><span class="p">[</span><span class="n">order</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;kappa2&#39;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span><span class="o">*</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">kappa2_unit</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Could not parse 2D bias parameters from line </span><span class="si">%i</span><span class="s1"> in </span><span class="si">%s</span><span class="s1">: </span><span class="si">%s</span><span class="s1">. Please check if the order_2D argument contains all required elements (i.e. q01, q02, kappa1, kappa2) separated by spaces.&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">iline</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="n">line</span><span class="p">))</span>
                 <span class="c1">#read trajectory cv data</span>
                 <span class="n">icv</span> <span class="o">=</span> <span class="mi">0</span>
                 <span class="n">nsamples</span> <span class="o">=</span> <span class="kc">None</span>
@@ -1668,7 +1686,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Louis Vanduyfhuys.</p>
+    <p>&#169; Copyright 2026, Louis Vanduyfhuys.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>thermolib.error &mdash; ThermoLIB v1.7.2 documentation</title>
+  <title>thermolib.error &mdash; ThermoLIB v1.8.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
@@ -13,7 +13,7 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=6b3927aa"></script>
+      <script src="../../_static/documentation_options.js?v=4eaa865d"></script>
       <script src="../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -168,19 +168,30 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../tut/advanced_deprojection.html">Tutorial 6 - Deprojecting 1D FEP to 2D FES</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../tut/advanced_deprojection.html">Tutorial 6 - Deprojection to extract energetic contribution to free energy</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_deprojection.html#Introduction">Introduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_deprojection.html#Construct-1D-FEP">Construct 1D FEP</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_deprojection.html#Deproject-to-2D-FES">Deproject to 2D FES</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_deprojection.html#Deproject-to-2D-FES">Deproject to 2D FES</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tut/advanced_deprojection.html#Direct-route---2D-WHAM">Direct route - 2D WHAM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tut/advanced_deprojection.html#Indirect-route---deproject-1D-FEP">Indirect route - deproject 1D FEP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tut/advanced_deprojection.html#CONSISTENCY-CHECK:-project-2D-FES-to-1D-FEP">CONSISTENCY CHECK: project 2D FES to 1D FEP</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../tut/advanced_transformations.html">Tutorial 8 - Transformations of 1D FEP and kinetics</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_deprojection.html#U(CV)-profile">U(CV) profile</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tut/advanced_deprojection.html#Method-1---from-2D-FES">Method 1 - from 2D FES</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tut/advanced_deprojection.html#Method-2---from-conditional-probability">Method 2 - from conditional probability</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tut/advanced_deprojection.html#comparison">comparison</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../tut/advanced_transformations.html">Tutorial 7 - Transformations of 1D FEP and kinetics</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_transformations.html#Introduction">Introduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_transformations.html#FEP-and-rate-with-original-CV">FEP and rate with original CV</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_transformations.html#FEP-and-rate-in-terms-of-alternative-CV">FEP and rate in terms of alternative CV</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../tut/advanced_transformations_2D.html">Tutorial 9 - Transformation of 2D free energy surfaces</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../tut/advanced_transformations_2D.html">Tutorial 8 - Transformation of 2D free energy surfaces</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_transformations_2D.html#Introduction">Introduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_transformations_2D.html#Construction-of-original-2D-FES">Construction of original 2D FES</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_transformations_2D.html#Transformation-to-new-CVs">Transformation to new CVs</a></li>
@@ -1923,7 +1934,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Louis Vanduyfhuys.</p>
+    <p>&#169; Copyright 2026, Louis Vanduyfhuys.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
