@@ -369,7 +369,7 @@ def recollect_surface_2d(cv1s_old, cv2s_old, fs_old, q1s_new, q2s_new):
 
 #Routines for reading WHAM input
 
-def read_wham_input(fn: str, trajectory_readers, trajectory_path_templates, bias_potential: str='None', q01_unit: str='au', kappa1_unit: str='au', q02_unit: str='au', kappa2_unit: str='au', inverse_cv1: bool=False, inverse_cv2: bool=False, additional_bias=None, additional_bias_dimension: str='cv1', skip_bias_names=[], verbose: bool=False):
+def read_wham_input(fn: str, trajectory_readers, trajectory_path_templates, bias_potential: str='None', order_2D: str='q01 q02 kappa1 kappa2', q01_unit: str='au', kappa1_unit: str='au', q02_unit: str='au', kappa2_unit: str='au', inverse_cv1: bool=False, inverse_cv2: bool=False, additional_bias=None, additional_bias_dimension: str='cv1', skip_bias_names=[], verbose: bool=False):
     '''
         Read a WHAM input file (metadata file) to read the simulation temperature, trajectories (CV samples) and bias potentials.
 
@@ -399,6 +399,9 @@ def read_wham_input(fn: str, trajectory_readers, trajectory_path_templates, bias
                 * **Parabola2D** -- harmonic bias of the form 0.5*kappa1*(q1-q01)**2 + 0.5*kappa2*(q2-q02)**2
 
         :type bias_potential: str, optional, allowed_values=['Parabola1D','Parabola2D','None'], default='None'
+
+        :param order_2D: The order in which the parameters of the 2D bias potential are given in fn. Only relevant if ``bias_potential`` is set to 'Parabola2D'. Should be a string containing the four substrings 'q01', 'q02', 'kappa1' and 'kappa2' separated by spaces, indicating the order in which these parameters are given in fn.
+        :type order_2D: str, optional, default='q01 q02 kappa1 kappa2'
 
         :param q01_unit: The unit for the q01 value for each bias potential, q01 corresponds to the minimum in CV (or CV1 in case of a 2D bias) of the harmonic bias potential.
         :type q01_unit: str, optional, default='au'
@@ -511,10 +514,14 @@ def read_wham_input(fn: str, trajectory_readers, trajectory_path_templates, bias
                     raise NotImplementedError('Bias potential of type %s not implemented.' %(bias_potential))
             elif len(words)==5: #2D bias
                 name = words[0]
-                q01 = float(words[1])*parse_unit(q01_unit)
-                q02 = float(words[2])*parse_unit(q02_unit)
-                kappa1 = float(words[3])*parse_unit(kappa1_unit)
-                kappa2 = float(words[4])*parse_unit(kappa2_unit)
+                order = order_2D.lower().split()
+                try:
+                    q01 = float(words[order.index('q01')+1])*parse_unit(q01_unit)
+                    q02 = float(words[order.index('q02')+1])*parse_unit(q02_unit)
+                    kappa1 = float(words[order.index('kappa1')+1])*parse_unit(kappa1_unit)
+                    kappa2 = float(words[order.index('kappa2')+1])*parse_unit(kappa2_unit)
+                except ValueError:
+                    raise ValueError('Could not parse 2D bias parameters from line %i in %s: %s. Please check if the order_2D argument contains all required elements (i.e. q01, q02, kappa1, kappa2) separated by spaces.' %(iline, fn, line))
                 #read trajectory cv data
                 icv = 0
                 nsamples = None
