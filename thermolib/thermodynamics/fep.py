@@ -1346,16 +1346,16 @@ class FreeEnergySurface2D(object):
         assert len(cv1s)==N1*N2, 'Something went wrong in unraveling input data'
         assert len(cv2s)==N1*N2, 'Something went wrong in unraveling input data'
         assert len(fs)==N1*N2, 'Something went wrong in unraveling input data'
-        fus = np.zeros([N2,N1], float)*np.nan
+        fus = np.zeros([N1,N2], float)*np.nan
         for index, (cv1, cv2, f) in enumerate(zip(cv1s,cv2s,fs)):
             i1 = int(index//N2)
             i2 = int(index%N2)
             assert abs(cv1us[i1]-cv1)<1e-6, 'Internal CV consistency check failed'
             assert abs(cv2us[i2]-cv2)<1e-6, 'Internal CV consistency check failed'
             if np.isinf(f):
-                fus[i2,i1] = np.nan
+                fus[i1,i2] = np.nan
             else:
-                fus[i2,i1] = f
+                fus[i1,i2] = f
         cv1s = cv1us.copy()
         cv2s = cv2us.copy()
         fs = fus.copy()
@@ -1446,8 +1446,17 @@ class FreeEnergySurface2D(object):
             :type fn_txt: str
         '''
         header = '%s [%s]\t %s [%s]\t Free energy [%s]' %(self.cv1_label, self.cv1_output_unit,self.cv2_label, self.cv2_output_unit, self.f_output_unit)
-        xv,yv = np.meshgrid(self.cv1s,self.cv2s)
-        np.savetxt(fn_txt, np.vstack((yv.flatten()/parse_unit(self.cv1_output_unit),xv.flatten()/parse_unit(self.cv2_output_unit), self.fs.flatten()/parse_unit(self.f_output_unit))).T, header=header,fmt='%f')
+        yv, xv = np.meshgrid(self.cv2s, self.cv1s)
+        np.savetxt(
+            fn_txt, 
+            np.vstack((
+                xv.flatten()/parse_unit(self.cv1_output_unit),
+                yv.flatten()/parse_unit(self.cv2_output_unit),
+                self.fs.flatten()/parse_unit(self.f_output_unit)
+            )).T, 
+            header=header,
+            fmt='%f'
+        )
 
     def set_ref(self, ref='min'):
         '''
