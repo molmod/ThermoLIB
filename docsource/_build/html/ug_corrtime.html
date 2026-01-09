@@ -1,0 +1,520 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Computing the correlation time &mdash; ThermoLIB v1.7.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=6b3927aa"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Error estimation" href="ug_error.html" />
+    <link rel="prev" title="Constructing 2D histograms &amp; free energy surfaces" href="ug_2DFES.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            ThermoLIB
+              <img src="_static/logo_thermolib_light.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="ig.html">Installation Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ig.html#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ig.html#download-and-install-thermolib">Download and install ThermoLIB</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ig.html#direct-install-using-pip">Direct install using pip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ig.html#source-code-download-and-install">Source code download and install</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ig.html#update-thermolib">Update ThermoLIB</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ig.html#test-installation">Test installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="ug.html">User Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="ug_1DFEP.html">Constructing 1D histograms &amp; free energy profiles</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ug_1DFEP.html#construct-a-1d-histrogam">Construct a 1D histrogam …</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ug_1DFEP.html#from-a-single-simulation">… from a single simulation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ug_1DFEP.html#from-multiple-simulations-using-wham">… from multiple simulations using WHAM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ug_1DFEP.html#constructing-a-1d-free-energy-profile">Constructing a 1D free energy profile …</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ug_1DFEP.html#using-the-constructor">… using the constructor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ug_1DFEP.html#reading-from-a-text-file">… reading from a text file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ug_1DFEP.html#from-a-histogram">… from a histogram</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ug_2DFES.html">Constructing 2D histograms &amp; free energy surfaces</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ug_2DFES.html#constructing-a-2d-histogram">Constructing a 2D histogram …</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ug_2DFES.html#from-single-simulation">… from single simulation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ug_2DFES.html#from-multiple-simulations-using-wham">… from multiple simulations using WHAM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ug_2DFES.html#constructing-a-2d-free-energy-surface">Constructing a 2D free energy surface …</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ug_2DFES.html#using-the-constructor">… using the constructor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ug_2DFES.html#reading-from-a-text-file">… reading from a text file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ug_2DFES.html#from-a-histogram">… from a histogram</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Computing the correlation time</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#fit-to-autocorrelation-function-for-single-trajectory">Fit to autocorrelation function for single trajectory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#compute-correlation-time-for-trajectory-series">Compute correlation time for trajectory series</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ug_error.html">Error estimation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ug_error.html#without-correlations">Without correlations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ug_error.html#with-correlations">With correlations</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ug_plotting.html">Plotting histograms and FEP/FES</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ug_plotting.html#d-histograms-free-energy-profile">1D Histograms &amp; free energy profile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ug_plotting.html#d-histograms-free-energy-surfaces">2D Histograms &amp; free energy surfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ug_micromacro.html">Extracting micro- and macrostate free energy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ug_kinetics.html">Computing the reaction rate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ug_transformation.html">Transformations of the FEP/FES</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ug_transformation.html#deterministic-transformation">Deterministic transformation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ug_transformation.html#dimensional">1 dimensional</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ug_transformation.html#id1">2 dimensional</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ug_transformation.html#probabilistic-transformation">Probabilistic transformation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ug_projection.html">(De)projections of the FEP/FES</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ug_projection.html#projecting-2d-fes-to-1d-fep">Projecting 2D FES to 1D FEP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ug_projection.html#deprojecting-1d-fep-to-2d-fes">Deprojecting 1D FEP to 2D FES</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tut/basic_wham1d.html">Tutorial 1 - Construction of 1D free energy profile using WHAM</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tut/basic_wham1d.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/basic_wham1d.html#WHAM-without-error-estimation">WHAM without error estimation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/basic_wham1d.html#WHAM-with-error-estimation">WHAM with error estimation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/basic_wham1d.html#Defining-macrostates-and-microstates">Defining macrostates and microstates</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tut/basic_kinetics.html">Tutorial 2 - Extracting kinetic reaction rates in 1D</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tut/basic_kinetics.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/basic_kinetics.html#Construct-free-energy-profile">Construct free energy profile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/basic_kinetics.html#Compute-rate-prefactor">Compute rate prefactor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/basic_kinetics.html#Add-kinetic-information-to-FEP-plot">Add kinetic information to FEP plot</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tut/basic_wham2d.html">Tutorial 3 - Construction of 2D free energy surface using WHAM</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tut/basic_wham2d.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/basic_wham2d.html#2D-WHAM-without-error-estimation">2D WHAM without error estimation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/basic_wham2d.html#2D-WHAM-with-error-estimate">2D WHAM with error estimate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/basic_wham2d.html#Alternative-plotting">Alternative plotting</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tut/advanced_error_estimation.html">Tutorial 4 - Advanced techniques in error estimation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_error_estimation.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_error_estimation.html#Impact-correlation-between-samples-on-FEP">Impact correlation between samples on FEP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_error_estimation.html#Estimating-the-autocorrelation-time">Estimating the autocorrelation time</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_error_estimation.html#Constructing-the-FEP-with-correlated-error-estimate">Constructing the FEP with correlated error estimate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_error_estimation.html#Evaluating-the-correlated-error-estimate">Evaluating the correlated error estimate</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="tut/advanced_error_estimation.html#Delayed-strided-WHAM-profiles">Delayed-strided WHAM profiles</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tut/advanced_error_estimation.html#Blocked-WHAM-profile">Blocked WHAM profile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tut/advanced_error_estimation.html#Bootstrapped-WHAM-profiles">Bootstrapped WHAM profiles</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_error_estimation.html#Covariance-between-different-points-on-FEP">Covariance between different points on FEP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_error_estimation.html#Error-propagation">Error propagation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tut/advanced_projection.html">Tutorial 5 - Projection of 2D FES to 1D FEP with error propagation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_projection.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_projection.html#Constructing-2D-FES">Constructing 2D FES</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_projection.html#Projection-onto-1D-profile">Projection onto 1D profile</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="tut/advanced_projection.html#Along-predefined-direction">Along predefined direction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tut/advanced_projection.html#Along-any-custom-direction">Along any custom direction</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_projection.html#Error-propagation">Error propagation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="tut/advanced_projection.html#Deal-with-the-unsufficiently-sampled-edges-of-phase-space-in-FES-projection">Deal with the unsufficiently sampled edges of phase space in FES projection</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tut/advanced_deprojection.html">Tutorial 6 - Deprojection to extract energetic contribution to free energy</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_deprojection.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_deprojection.html#Construct-1D-FEP">Construct 1D FEP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_deprojection.html#Deproject-to-2D-FES">Deproject to 2D FES</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="tut/advanced_deprojection.html#Direct-route---2D-WHAM">Direct route - 2D WHAM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tut/advanced_deprojection.html#Indirect-route---deproject-1D-FEP">Indirect route - deproject 1D FEP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tut/advanced_deprojection.html#CONSISTENCY-CHECK:-project-2D-FES-to-1D-FEP">CONSISTENCY CHECK: project 2D FES to 1D FEP</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_deprojection.html#U(CV)-profile">U(CV) profile</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="tut/advanced_deprojection.html#Method-1---from-2D-FES">Method 1 - from 2D FES</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tut/advanced_deprojection.html#Method-2---from-conditional-probability">Method 2 - from conditional probability</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tut/advanced_deprojection.html#comparison">comparison</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tut/advanced_transformations.html">Tutorial 7 - Transformations of 1D FEP and kinetics</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_transformations.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_transformations.html#FEP-and-rate-with-original-CV">FEP and rate with original CV</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_transformations.html#FEP-and-rate-in-terms-of-alternative-CV">FEP and rate in terms of alternative CV</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tut/advanced_transformations_2D.html">Tutorial 8 - Transformation of 2D free energy surfaces</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_transformations_2D.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_transformations_2D.html#Construction-of-original-2D-FES">Construction of original 2D FES</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_transformations_2D.html#Transformation-to-new-CVs">Transformation to new CVs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_transformations_2D.html#Projection-comparison">Projection comparison</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rg.html">Reference Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rg_thermo.html">Thermodynamics – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rg_thermo.html#module-thermolib.thermodynamics.fep">Free energy profiles – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.fep</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.fep.BaseFreeEnergyProfile"><code class="docutils literal notranslate"><span class="pre">BaseFreeEnergyProfile</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.fep.BaseProfile"><code class="docutils literal notranslate"><span class="pre">BaseProfile</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.fep.FreeEnergySurface2D"><code class="docutils literal notranslate"><span class="pre">FreeEnergySurface2D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.fep.SimpleFreeEnergyProfile"><code class="docutils literal notranslate"><span class="pre">SimpleFreeEnergyProfile</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.fep.plot_profiles"><code class="docutils literal notranslate"><span class="pre">plot_profiles()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rg_thermo.html#module-thermolib.thermodynamics.histogram">Histograms – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.histogram</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.histogram.Histogram1D"><code class="docutils literal notranslate"><span class="pre">Histogram1D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.histogram.Histogram2D"><code class="docutils literal notranslate"><span class="pre">Histogram2D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.histogram.plot_histograms"><code class="docutils literal notranslate"><span class="pre">plot_histograms()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rg_thermo.html#module-thermolib.thermodynamics.trajectory">Trajectory readers – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.trajectory</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.trajectory.ASEExtendedXYZReader"><code class="docutils literal notranslate"><span class="pre">ASEExtendedXYZReader</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.trajectory.CVComputer"><code class="docutils literal notranslate"><span class="pre">CVComputer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.trajectory.ColVarReader"><code class="docutils literal notranslate"><span class="pre">ColVarReader</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.trajectory.HDF5Reader"><code class="docutils literal notranslate"><span class="pre">HDF5Reader</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rg_thermo.html#module-thermolib.thermodynamics.bias">Bias potentials – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.bias</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.bias.BiasPotential1D"><code class="docutils literal notranslate"><span class="pre">BiasPotential1D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.bias.BiasPotential2D"><code class="docutils literal notranslate"><span class="pre">BiasPotential2D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.bias.MultipleBiasses1D"><code class="docutils literal notranslate"><span class="pre">MultipleBiasses1D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.bias.Parabola1D"><code class="docutils literal notranslate"><span class="pre">Parabola1D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.bias.Parabola2D"><code class="docutils literal notranslate"><span class="pre">Parabola2D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.bias.PlumedSplinePotential1D"><code class="docutils literal notranslate"><span class="pre">PlumedSplinePotential1D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.bias.Polynomial1D"><code class="docutils literal notranslate"><span class="pre">Polynomial1D</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rg_thermo.html#module-thermolib.thermodynamics.cv">Collective variables – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.cv</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.Average"><code class="docutils literal notranslate"><span class="pre">Average</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.CenterOfMass"><code class="docutils literal notranslate"><span class="pre">CenterOfMass</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.CenterOfPosition"><code class="docutils literal notranslate"><span class="pre">CenterOfPosition</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.CoordinationNumber"><code class="docutils literal notranslate"><span class="pre">CoordinationNumber</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.Difference"><code class="docutils literal notranslate"><span class="pre">Difference</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.DistOrthProjOrig"><code class="docutils literal notranslate"><span class="pre">DistOrthProjOrig</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.Distance"><code class="docutils literal notranslate"><span class="pre">Distance</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.DistanceCOP"><code class="docutils literal notranslate"><span class="pre">DistanceCOP</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.DotProduct"><code class="docutils literal notranslate"><span class="pre">DotProduct</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.LinearCombination"><code class="docutils literal notranslate"><span class="pre">LinearCombination</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.Minimum"><code class="docutils literal notranslate"><span class="pre">Minimum</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.NormalToPlane"><code class="docutils literal notranslate"><span class="pre">NormalToPlane</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.NormalizedAxis"><code class="docutils literal notranslate"><span class="pre">NormalizedAxis</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.OrthogonalDistanceToPore"><code class="docutils literal notranslate"><span class="pre">OrthogonalDistanceToPore</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rg_thermo.html#module-thermolib.thermodynamics.state">State – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.state</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.state.Integrate"><code class="docutils literal notranslate"><span class="pre">Integrate</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.state.Maximum"><code class="docutils literal notranslate"><span class="pre">Maximum</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.state.Minimum"><code class="docutils literal notranslate"><span class="pre">Minimum</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rg_thermo.html#module-thermolib.thermodynamics.condprob">Conditional probability – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.condprob</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.condprob.ConditionalProbability1D1D"><code class="docutils literal notranslate"><span class="pre">ConditionalProbability1D1D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.condprob.ConditionalProbability1D2D"><code class="docutils literal notranslate"><span class="pre">ConditionalProbability1D2D</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rg_kin.html">Kinetics – <code class="docutils literal notranslate"><span class="pre">thermolib.kinetics</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rg_kin.html#module-thermolib.kinetics.rate">Rate constant – <code class="docutils literal notranslate"><span class="pre">thermolib.kinetics.rate</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_kin.html#thermolib.kinetics.rate.BaseRateFactor"><code class="docutils literal notranslate"><span class="pre">BaseRateFactor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_kin.html#thermolib.kinetics.rate.RateFactorEquilibrium"><code class="docutils literal notranslate"><span class="pre">RateFactorEquilibrium</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rg_error.html">Error distributions – <code class="docutils literal notranslate"><span class="pre">thermolib.error</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rg_error.html#thermolib.error.ErrorArray"><code class="docutils literal notranslate"><span class="pre">ErrorArray</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.ErrorArray.mean"><code class="docutils literal notranslate"><span class="pre">ErrorArray.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.ErrorArray.nsigma_conf_int"><code class="docutils literal notranslate"><span class="pre">ErrorArray.nsigma_conf_int()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.ErrorArray.sample"><code class="docutils literal notranslate"><span class="pre">ErrorArray.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.ErrorArray.std"><code class="docutils literal notranslate"><span class="pre">ErrorArray.std()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution.copy"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution.from_samples"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.from_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution.log_from_loggaussian"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.log_from_loggaussian()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution.mean"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution.nsigma_conf_int"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.nsigma_conf_int()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution.print"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.print()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution.sample"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution.set_ref"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.set_ref()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution.shift"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.shift()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution.std"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.std()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rg_error.html#thermolib.error.LogGaussianDistribution"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.LogGaussianDistribution.copy"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.LogGaussianDistribution.exp_from_gaussian"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.exp_from_gaussian()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.LogGaussianDistribution.from_samples"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.from_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.LogGaussianDistribution.mean"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.LogGaussianDistribution.nsigma_conf_int"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.nsigma_conf_int()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.LogGaussianDistribution.sample"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.LogGaussianDistribution.set_ref"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.set_ref()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.LogGaussianDistribution.shift"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.shift()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.LogGaussianDistribution.std"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.std()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rg_error.html#thermolib.error.MultiDistribution"><code class="docutils literal notranslate"><span class="pre">MultiDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiDistribution.corr"><code class="docutils literal notranslate"><span class="pre">MultiDistribution.corr()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution.copy"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution.cov"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.cov()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution.from_samples"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.from_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution.log_from_loggaussian"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.log_from_loggaussian()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution.mean"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution.nsigma_conf_int"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.nsigma_conf_int()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution.plot_corr_matrix"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.plot_corr_matrix()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution.sample"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution.set_ref"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.set_ref()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution.std"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.std()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rg_error.html#thermolib.error.MultiLogGaussianDistribution"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiLogGaussianDistribution.copy"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiLogGaussianDistribution.cov"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.cov()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiLogGaussianDistribution.exp_from_gaussian"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.exp_from_gaussian()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiLogGaussianDistribution.from_samples"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.from_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiLogGaussianDistribution.mean"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiLogGaussianDistribution.nsigma_conf_int"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.nsigma_conf_int()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiLogGaussianDistribution.plot_corr_matrix"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.plot_corr_matrix()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiLogGaussianDistribution.sample"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiLogGaussianDistribution.std"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.std()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rg_error.html#thermolib.error.Propagator"><code class="docutils literal notranslate"><span class="pre">Propagator</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.Propagator.calc_fun_values"><code class="docutils literal notranslate"><span class="pre">Propagator.calc_fun_values()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.Propagator.gen_args_samples"><code class="docutils literal notranslate"><span class="pre">Propagator.gen_args_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.Propagator.get_distribution"><code class="docutils literal notranslate"><span class="pre">Propagator.get_distribution()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.Propagator.reset"><code class="docutils literal notranslate"><span class="pre">Propagator.reset()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rg_error.html#thermolib.error.SampleDistribution"><code class="docutils literal notranslate"><span class="pre">SampleDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.SampleDistribution.from_samples"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.from_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.SampleDistribution.mean"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.SampleDistribution.sample"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.SampleDistribution.set_ref"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.set_ref()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.SampleDistribution.shift"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.shift()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.SampleDistribution.std"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.std()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rg_tools.html">Tools – <code class="docutils literal notranslate"><span class="pre">thermolib.tools</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.blav"><code class="docutils literal notranslate"><span class="pre">blav()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.corrtime_from_acf"><code class="docutils literal notranslate"><span class="pre">corrtime_from_acf()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.decorrelate"><code class="docutils literal notranslate"><span class="pre">decorrelate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.extract_polynomial_bias_info"><code class="docutils literal notranslate"><span class="pre">extract_polynomial_bias_info()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.fisher_matrix_mle_probdens"><code class="docutils literal notranslate"><span class="pre">fisher_matrix_mle_probdens()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.format_scientific"><code class="docutils literal notranslate"><span class="pre">format_scientific()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.h5_read_dataset"><code class="docutils literal notranslate"><span class="pre">h5_read_dataset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.integrate"><code class="docutils literal notranslate"><span class="pre">integrate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.integrate2d"><code class="docutils literal notranslate"><span class="pre">integrate2d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.interpolate_surface_2d"><code class="docutils literal notranslate"><span class="pre">interpolate_surface_2d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.invert_fisher_to_covariance"><code class="docutils literal notranslate"><span class="pre">invert_fisher_to_covariance()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.multivariate_normal"><code class="docutils literal notranslate"><span class="pre">multivariate_normal()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.plot_histograms_1d"><code class="docutils literal notranslate"><span class="pre">plot_histograms_1d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.plot_histograms_overlap_1d"><code class="docutils literal notranslate"><span class="pre">plot_histograms_overlap_1d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.read_wham_input"><code class="docutils literal notranslate"><span class="pre">read_wham_input()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.rolling_average"><code class="docutils literal notranslate"><span class="pre">rolling_average()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rg_ext.html">Extensions – <code class="docutils literal notranslate"><span class="pre">thermolib.ext</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rg_ext.html#thermolib.ext.wham1d_bias"><code class="docutils literal notranslate"><span class="pre">wham1d_bias()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_ext.html#thermolib.ext.wham1d_error"><code class="docutils literal notranslate"><span class="pre">wham1d_error()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_ext.html#thermolib.ext.wham1d_hs"><code class="docutils literal notranslate"><span class="pre">wham1d_hs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_ext.html#thermolib.ext.wham1d_scf"><code class="docutils literal notranslate"><span class="pre">wham1d_scf()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_ext.html#thermolib.ext.wham2d_bias"><code class="docutils literal notranslate"><span class="pre">wham2d_bias()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_ext.html#thermolib.ext.wham2d_error"><code class="docutils literal notranslate"><span class="pre">wham2d_error()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_ext.html#thermolib.ext.wham2d_hs"><code class="docutils literal notranslate"><span class="pre">wham2d_hs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_ext.html#thermolib.ext.wham2d_scf"><code class="docutils literal notranslate"><span class="pre">wham2d_scf()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ThermoLIB</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="ug.html">User Guide</a></li>
+      <li class="breadcrumb-item active">Computing the correlation time</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/ug_corrtime.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="computing-the-correlation-time">
+<span id="seclab-ug-corrtime"></span><h1>Computing the correlation time<a class="headerlink" href="#computing-the-correlation-time" title="Link to this heading"></a></h1>
+<p>Whenever samples are correlated (as is the case when each subsequent step of a molecular dynamics simulation is used for the trajectory data), we cannot compute error bars without explicitly taking these correlations into account (if we don’t we will underestimate the error bars). Therefore, we need to estimate the (auto)correlation time for each trajectory used in the histogram construction. Her, we illustrate how to do this using ThermoLIB. There are several methods possible to do this, the one we illustrate here is by means of constructing the auto correlation function (acf) and fit a simple exponential decay to it as implemented in the <a class="reference internal" href="rg_tools.html#thermolib.tools.decorrelate" title="thermolib.tools.decorrelate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">decorrelate</span></code></a> routine.</p>
+<section id="fit-to-autocorrelation-function-for-single-trajectory">
+<h2>Fit to autocorrelation function for single trajectory<a class="headerlink" href="#fit-to-autocorrelation-function-for-single-trajectory" title="Link to this heading"></a></h2>
+<p>To estimate the (integrated) autocorrelation time of the CV in a given trajectory, we first compute the autocorrelation function (acf) and fit a simple exponentional function to it of the form</p>
+<div class="math">
+<p><img src="_images/math/f057154ba27bee3db37b6e221a394345cad40b91.png" alt="\exp(-\frac{t}{\tau})"/></p>
+</div><p>in which <img class="math" src="_images/math/914b2d4b6659b86d3153d5510839dfb254dfc8a3.png" alt="\tau"/> is the <em>exponential</em> correlation time from which we can compute the <em>integrated</em> correlation time as <img class="math" src="_images/math/ff6a1b9e44826c3af220e12b1d082c1a92de7950.png" alt="2\tau-1"/>. This can be done using the <a class="reference internal" href="rg_tools.html#thermolib.tools.corrtime_from_acf" title="thermolib.tools.corrtime_from_acf"><code class="xref py py-meth docutils literal notranslate"><span class="pre">corrtime_from_acf</span></code></a> routine. To illustrate, you can use the code below which will do (and plot) the fit for first trajectory present in the list argument <code class="docutils literal notranslate"><span class="pre">traj</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">corrtime</span> <span class="o">=</span> <span class="n">corrtime_from_acf</span><span class="p">(</span><span class="n">traj</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>This plot could look as follows:</p>
+<a class="reference internal image-reference" href="_images/acf.png"><img alt="_images/acf.png" src="_images/acf.png" style="width: 600px;" />
+</a>
+<p>The meaning for the various elements in this plot are:</p>
+<ul class="simple">
+<li><p>The shaded black area is resulting from very high frequency atomic oscillations (which may be absent in your plot if the trajectory comes from an MD simulation with a much larger time step, or when you only dumped the trajectory every so many time steps)</p></li>
+<li><p>The solid red line represents the enveloppe of the black area and hence has the purpose to eliminate the rapid oscillations. This is done by default in ThermoLIB due to the default value of the keyword argument <code class="docutils literal notranslate"><span class="pre">n_nested_envolopes=1</span></code>.</p></li>
+<li><p>The dashed red line is the result of the exponential fit to the solid red line.</p></li>
+</ul>
+<p>If the fit (dashed red line) nicely follows the trend of the black curve (or the boundary of the black region), especially in the beginning, we know we can trust the resulting integrated correlation time and parse it to the <code class="docutils literal notranslate"><span class="pre">from_wham</span></code> routine (see next subsection).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As a clarification of the need for the envelope construction, we illustrate what would have happend if we would have omitted it (by setting <code class="docutils literal notranslate"><span class="pre">n_nested_envolopes=0</span></code>):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">corrtime</span> <span class="o">=</span> <span class="n">corrtime_from_acf</span><span class="p">(</span><span class="n">traj</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">n_nested_envolopes</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In the present example, this results in the following plot:</p>
+<a class="reference internal image-reference" href="_images/acf2.png"><img alt="_images/acf2.png" src="_images/acf2.png" style="width: 600px;" />
+</a>
+<p>Now we clearly see that the fit was not done properly. This is because the exponential curve tries to follow a function that oscillates very quickly from positive numbers to equally large but opposite negative numbers. As the exponential cannot follow this, it just averages to zero. This is exactly why we have set the default value of n_nested_envelopes to 1 (as this will usually be the case if MD trajectories are used with small time steps without sub sampling in the output generation).</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If your simulation data does not exhibit the fast oscillations indicated by the black solid region shown above, it is actually advised to switch of the envolope construction by defining <code class="docutils literal notranslate"><span class="pre">n_nested_envolopes=0</span></code> as done in the note above.</p>
+</div>
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p><strong>What if the fit was not done adequately?</strong></p>
+<p>To illustrate how to identify a bad fit and how to fix it using the <code class="docutils literal notranslate"><span class="pre">p0</span></code> keyword argument, we consider what happens if we would have set <code class="docutils literal notranslate"><span class="pre">n_nested_envelopes=2</span></code>, which means we compute the envelope of the envelope and fit the exponential decay to that.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">corrtime</span> <span class="o">=</span> <span class="n">corrtime_from_acf</span><span class="p">(</span><span class="n">traj</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">n_nested_envolopes</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="_images/acf3.png"><img alt="_images/acf3.png" src="_images/acf3.png" style="width: 600px;" />
+</a>
+<p>We can now see that the fit to the envelope of the envelope was not well performed, i.e. the red dashed line does not follow the red solid line. Furthermore, we also see that the resulting exponential correlation time is 1 (corresponding to an integrated correlation time of 1 as indicated in the plot legend). This value of <img class="math" src="_images/math/02d0897a6b00abcf1e0b969fad3ff0cab665995f.png" alt="\tau=1"/> actually corresponds to the initial value of the fitter, indicating the the fit routine actually immediately gave up and just returned the initial guess. To improve on this, we can provide a better initial guess through the use of the <code class="docutils literal notranslate"><span class="pre">p0</span></code> argument.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">corrtime</span> <span class="o">=</span> <span class="n">corrtime_from_acf</span><span class="p">(</span><span class="n">traj</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">n_nested_envolopes</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">p0</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="_images/acf4.png"><img alt="_images/acf4.png" src="_images/acf4.png" style="width: 600px;" />
+</a>
+<p>The fit now indeed nicely follows the red solid line again. The choice of <code class="docutils literal notranslate"><span class="pre">p0=1000</span></code> was made just based on the previous plots of the acf which clearly indicated a decay in the order of magnitude of 1000 timesteps.</p>
+</div>
+</section>
+<section id="compute-correlation-time-for-trajectory-series">
+<h2>Compute correlation time for trajectory series<a class="headerlink" href="#compute-correlation-time-for-trajectory-series" title="Link to this heading"></a></h2>
+<p>Once we know a decent setup for fitting the autocorrelation function (i.e. the choice of the optional parameters discussed above), we can proceed to repeat the procedure for each trajectory in a list of trajectories (as given by <code class="docutils literal notranslate"><span class="pre">traj</span></code> below):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">#code to compute correlation times for each trajectory in the list traj</span>
+<span class="n">corrtimes</span> <span class="o">=</span> <span class="n">decorrelate</span><span class="p">(</span><span class="n">traj</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Setting <code class="docutils literal notranslate"><span class="pre">plot=True</span></code> will automatically generate a figure plotting the correlation time as function of the trajectory index for each trajectory present in the list argument <code class="docutils literal notranslate"><span class="pre">traj</span></code>.</p>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>In case the user wants to adapt some of the acf fit parameters as discussed in the previous subsection, he can do so. The <cite>p0</cite> parameter can be parsed to the decorrelate routine as well, the <code class="docutils literal notranslate"><span class="pre">n_nested_envelopes</span></code> parameter is renamed to <code class="docutils literal notranslate"><span class="pre">acf_n_nested_envelopes</span></code>. So one would need to use the following code:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">corrtimes</span> <span class="o">=</span> <span class="n">decorrelate</span><span class="p">(</span><span class="n">traj</span><span class="p">,</span> <span class="n">acf_n_nested_envelopes</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">p0</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="ug_2DFES.html" class="btn btn-neutral float-left" title="Constructing 2D histograms &amp; free energy surfaces" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ug_error.html" class="btn btn-neutral float-right" title="Error estimation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Louis Vanduyfhuys.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

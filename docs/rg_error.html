@@ -1,25 +1,23 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Error distributions – thermolib.error &mdash; ThermoLIB v1.7.2 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+  <title>Error distributions – thermolib.error &mdash; ThermoLIB v1.8.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/custom.css" />
 
   
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="_static/jquery.js?v=5d32c60e"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=131c94de"></script>
-        <script src="_static/doctools.js?v=888ff710"></script>
-        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=4eaa865d"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -39,9 +37,6 @@
             ThermoLIB
               <img src="_static/logo_thermolib_light.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                1.7
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -56,7 +51,7 @@
 <li class="toctree-l2"><a class="reference internal" href="ig.html#dependencies">Dependencies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ig.html#download-and-install-thermolib">Download and install ThermoLIB</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="ig.html#direct-install-using-pip">Direct install using pip</a></li>
-<li class="toctree-l3"><a class="reference internal" href="ig.html#developers-download">Developers download</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ig.html#source-code-download-and-install">Source code download and install</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="ig.html#update-thermolib">Update ThermoLIB</a></li>
@@ -176,7 +171,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="tut/advanced_deprojection.html">Tutorial 6 - Deprojecting 1D FEP to 2D FES</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tut/advanced_deprojection.html">Tutorial 6 - Deprojection to extract energetic contribution to free energy</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="tut/advanced_deprojection.html#Introduction">Introduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tut/advanced_deprojection.html#Construct-1D-FEP">Construct 1D FEP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tut/advanced_deprojection.html#Deproject-to-2D-FES">Deproject to 2D FES</a><ul>
@@ -419,10 +414,10 @@
            <div itemprop="articleBody">
              
   <section id="module-thermolib.error">
-<span id="error-distributions-thermolib-error"></span><h1>Error distributions – <code class="docutils literal notranslate"><span class="pre">thermolib.error</span></code><a class="headerlink" href="#module-thermolib.error" title="Permalink to this heading"></a></h1>
+<span id="error-distributions-thermolib-error"></span><h1>Error distributions – <code class="docutils literal notranslate"><span class="pre">thermolib.error</span></code><a class="headerlink" href="#module-thermolib.error" title="Link to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="thermolib.error.ErrorArray">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">thermolib.error.</span></span><span class="sig-name descname"><span class="pre">ErrorArray</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">errors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#ErrorArray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.ErrorArray" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">thermolib.error.</span></span><span class="sig-name descname"><span class="pre">ErrorArray</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">errors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#ErrorArray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.ErrorArray" title="Link to this definition"></a></dt>
 <dd><p>A class to represent an array of independent error distributions. This class is used to store the distributiosn for errors on the conditional probabilities, i.e. for each value of cv in p(q|cv) there is an error distribution. The error distribution on p(q|cv1) is assumed uncorrelated with that of p(q|cv2), but we still want to store the distribution for the errors for each cv value in one object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -434,7 +429,7 @@
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.ErrorArray.mean">
-<span class="sig-name descname"><span class="pre">mean</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#ErrorArray.mean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.ErrorArray.mean" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">mean</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#ErrorArray.mean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.ErrorArray.mean" title="Link to this definition"></a></dt>
 <dd><p>Return the distribution mean for each element in the errors list</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -448,7 +443,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.ErrorArray.nsigma_conf_int">
-<span class="sig-name descname"><span class="pre">nsigma_conf_int</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nsigma</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#ErrorArray.nsigma_conf_int"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.ErrorArray.nsigma_conf_int" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">nsigma_conf_int</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nsigma</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#ErrorArray.nsigma_conf_int"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.ErrorArray.nsigma_conf_int" title="Link to this definition"></a></dt>
 <dd><p>Compute the n-sigma confidence interval, i.e. <img class="math" src="_images/math/8ce535574a18547b1ae32a4a56d758d38db172be.png" alt="\mu \pm n\cdot\sigma"/>, for each element in the errors list</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -462,7 +457,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.ErrorArray.sample">
-<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nsamples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#ErrorArray.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.ErrorArray.sample" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nsamples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#ErrorArray.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.ErrorArray.sample" title="Link to this definition"></a></dt>
 <dd><p>Returns a number of random samples taken according to the error distribution for each element in the error list</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -479,7 +474,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.ErrorArray.std">
-<span class="sig-name descname"><span class="pre">std</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#ErrorArray.std"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.ErrorArray.std" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">std</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#ErrorArray.std"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.ErrorArray.std" title="Link to this definition"></a></dt>
 <dd><p>Return the distribution standard deviation for each element in the errors list</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -495,7 +490,7 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="thermolib.error.GaussianDistribution">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">thermolib.error.</span></span><span class="sig-name descname"><span class="pre">GaussianDistribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">means</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#GaussianDistribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.GaussianDistribution" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">thermolib.error.</span></span><span class="sig-name descname"><span class="pre">GaussianDistribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">means</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#GaussianDistribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.GaussianDistribution" title="Link to this definition"></a></dt>
 <dd><p>Implementation of a Gaussian distribution defined by its mean and standard deviation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -513,13 +508,13 @@
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.GaussianDistribution.copy">
-<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#GaussianDistribution.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.GaussianDistribution.copy" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#GaussianDistribution.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.GaussianDistribution.copy" title="Link to this definition"></a></dt>
 <dd><p>Return a hard copy of the Gaussian distribution</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.GaussianDistribution.from_samples">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_samples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#GaussianDistribution.from_samples"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.GaussianDistribution.from_samples" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_samples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#GaussianDistribution.from_samples"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.GaussianDistribution.from_samples" title="Link to this definition"></a></dt>
 <dd><p>Defines a GaussianDistribution based on a population defined by the given samples. The routine will derive the mean and std from the population and use that to define the Gaussian Distribution.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -530,7 +525,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.GaussianDistribution.log_from_loggaussian">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">log_from_loggaussian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logdist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#GaussianDistribution.log_from_loggaussian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.GaussianDistribution.log_from_loggaussian" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">log_from_loggaussian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logdist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#GaussianDistribution.log_from_loggaussian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.GaussianDistribution.log_from_loggaussian" title="Link to this definition"></a></dt>
 <dd><p>Define the Gaussian distribution of a variable <img class="math" src="_images/math/bdf6e601ad25010282dbffd50114d33c963821e5.png" alt="Y=log(X)"/> in which <img class="math" src="_images/math/ed38fa24f1c94891bd312012aab3f6673be3eb83.png" alt="X"/> has a given LogGaussian distribution, potential after imposing a shift and rescaling.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -548,7 +543,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.GaussianDistribution.mean">
-<span class="sig-name descname"><span class="pre">mean</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#GaussianDistribution.mean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.GaussianDistribution.mean" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">mean</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#GaussianDistribution.mean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.GaussianDistribution.mean" title="Link to this definition"></a></dt>
 <dd><p>Return the distribution mean</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -562,7 +557,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.GaussianDistribution.nsigma_conf_int">
-<span class="sig-name descname"><span class="pre">nsigma_conf_int</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nsigma</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#GaussianDistribution.nsigma_conf_int"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.GaussianDistribution.nsigma_conf_int" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">nsigma_conf_int</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nsigma</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#GaussianDistribution.nsigma_conf_int"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.GaussianDistribution.nsigma_conf_int" title="Link to this definition"></a></dt>
 <dd><p>Compute the n-sigma confidence interval, i.e. <img class="math" src="_images/math/8ce535574a18547b1ae32a4a56d758d38db172be.png" alt="\mu \pm n\cdot\sigma"/></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -573,7 +568,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.GaussianDistribution.print">
-<span class="sig-name descname"><span class="pre">print</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'%.3f'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'au'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_scientific</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nsigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#GaussianDistribution.print"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.GaussianDistribution.print" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">print</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'%.3f'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'au'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_scientific</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nsigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#GaussianDistribution.print"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.GaussianDistribution.print" title="Link to this definition"></a></dt>
 <dd><p>Routine to print the statistical properties of a scalar quantity.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -589,7 +584,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.GaussianDistribution.sample">
-<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nsamples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#GaussianDistribution.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.GaussianDistribution.sample" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nsamples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#GaussianDistribution.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.GaussianDistribution.sample" title="Link to this definition"></a></dt>
 <dd><p>Returns a number of random samples from the population defined by the Gaussian distribution</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -606,7 +601,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.GaussianDistribution.set_ref">
-<span class="sig-name descname"><span class="pre">set_ref</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#GaussianDistribution.set_ref"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.GaussianDistribution.set_ref" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">set_ref</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#GaussianDistribution.set_ref"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.GaussianDistribution.set_ref" title="Link to this definition"></a></dt>
 <dd><p>Set reference of distribution means by shifting them over an amount equal to -value or -self.means[index].</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -623,7 +618,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.GaussianDistribution.shift">
-<span class="sig-name descname"><span class="pre">shift</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#GaussianDistribution.shift"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.GaussianDistribution.shift" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">shift</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#GaussianDistribution.shift"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.GaussianDistribution.shift" title="Link to this definition"></a></dt>
 <dd><p>Shift the distribution means with the given ref.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -634,7 +629,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.GaussianDistribution.std">
-<span class="sig-name descname"><span class="pre">std</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#GaussianDistribution.std"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.GaussianDistribution.std" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">std</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#GaussianDistribution.std"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.GaussianDistribution.std" title="Link to this definition"></a></dt>
 <dd><p>Return the distribution standard deviation</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -650,7 +645,7 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="thermolib.error.LogGaussianDistribution">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">thermolib.error.</span></span><span class="sig-name descname"><span class="pre">LogGaussianDistribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lmeans</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lstds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#LogGaussianDistribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.LogGaussianDistribution" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">thermolib.error.</span></span><span class="sig-name descname"><span class="pre">LogGaussianDistribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lmeans</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lstds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#LogGaussianDistribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.LogGaussianDistribution" title="Link to this definition"></a></dt>
 <dd><p>Implementation of a Log-Gaussian distribution, i.e. variable X is Log-Gaussian with mean lmu and std lsigma if variable log(X) is Gaussian distributed with mean lmu and std lsigma.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -668,13 +663,13 @@
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.LogGaussianDistribution.copy">
-<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#LogGaussianDistribution.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.LogGaussianDistribution.copy" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#LogGaussianDistribution.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.LogGaussianDistribution.copy" title="Link to this definition"></a></dt>
 <dd><p>Return a hard copy of the LogGaussian distribution</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.LogGaussianDistribution.exp_from_gaussian">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">exp_from_gaussian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gaussdist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#LogGaussianDistribution.exp_from_gaussian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.LogGaussianDistribution.exp_from_gaussian" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">exp_from_gaussian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gaussdist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#LogGaussianDistribution.exp_from_gaussian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.LogGaussianDistribution.exp_from_gaussian" title="Link to this definition"></a></dt>
 <dd><p>Define the LogGaussian distribution of a variable <img class="math" src="_images/math/fc7300026bbaa23b5c25e75a80e48358353ffb31.png" alt="Y=exp(X)"/> in which <img class="math" src="_images/math/ed38fa24f1c94891bd312012aab3f6673be3eb83.png" alt="X"/> has a given Gaussian distribution, potential after imposing a shift and rescaling.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -692,7 +687,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.LogGaussianDistribution.from_samples">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_samples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#LogGaussianDistribution.from_samples"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.LogGaussianDistribution.from_samples" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_samples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#LogGaussianDistribution.from_samples"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.LogGaussianDistribution.from_samples" title="Link to this definition"></a></dt>
 <dd><p>Defines a LogGaussianDistribution based on a population defined by the given samples. The routine will derive lmean and lstd from the log of the given population samples and use that to define the LogGaussian Distribution.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -703,7 +698,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.LogGaussianDistribution.mean">
-<span class="sig-name descname"><span class="pre">mean</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#LogGaussianDistribution.mean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.LogGaussianDistribution.mean" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">mean</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#LogGaussianDistribution.mean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.LogGaussianDistribution.mean" title="Link to this definition"></a></dt>
 <dd><p>Return the distribution mean</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -717,7 +712,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.LogGaussianDistribution.nsigma_conf_int">
-<span class="sig-name descname"><span class="pre">nsigma_conf_int</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nsigma</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#LogGaussianDistribution.nsigma_conf_int"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.LogGaussianDistribution.nsigma_conf_int" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">nsigma_conf_int</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nsigma</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#LogGaussianDistribution.nsigma_conf_int"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.LogGaussianDistribution.nsigma_conf_int" title="Link to this definition"></a></dt>
 <dd><p>Compute the n-sigma confidence interval, i.e. <img class="math" src="_images/math/77523b7ef8093dcf3237992ff5e037fdae97b319.png" alt="\exp\left(\mu \pm n\cdot\sigma\right)"/></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -728,7 +723,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.LogGaussianDistribution.sample">
-<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nsamples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#LogGaussianDistribution.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.LogGaussianDistribution.sample" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nsamples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#LogGaussianDistribution.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.LogGaussianDistribution.sample" title="Link to this definition"></a></dt>
 <dd><p>Returns a number of random samples from the population defined by the distribution</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -745,7 +740,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.LogGaussianDistribution.set_ref">
-<span class="sig-name descname"><span class="pre">set_ref</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#LogGaussianDistribution.set_ref"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.LogGaussianDistribution.set_ref" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">set_ref</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#LogGaussianDistribution.set_ref"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.LogGaussianDistribution.set_ref" title="Link to this definition"></a></dt>
 <dd><p>Set reference of distribution lmeans (NOT THE DISTRIBUTION MEANS!!) by shifting them over an amount equal to -value or -self.lmeans[index].</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -762,7 +757,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.LogGaussianDistribution.shift">
-<span class="sig-name descname"><span class="pre">shift</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#LogGaussianDistribution.shift"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.LogGaussianDistribution.shift" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">shift</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#LogGaussianDistribution.shift"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.LogGaussianDistribution.shift" title="Link to this definition"></a></dt>
 <dd><p>Shift the distribution lmeans (NOT THE DISTRIBUTION MEAN!!) with the given ref.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -773,7 +768,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.LogGaussianDistribution.std">
-<span class="sig-name descname"><span class="pre">std</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#LogGaussianDistribution.std"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.LogGaussianDistribution.std" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">std</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#LogGaussianDistribution.std"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.LogGaussianDistribution.std" title="Link to this definition"></a></dt>
 <dd><p>Return the distribution standard deviation</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -789,7 +784,7 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="thermolib.error.MultiDistribution">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">thermolib.error.</span></span><span class="sig-name descname"><span class="pre">MultiDistribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flattener=&lt;thermolib.flatten.DummyFlattener</span> <span class="pre">object&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiDistribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiDistribution" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">thermolib.error.</span></span><span class="sig-name descname"><span class="pre">MultiDistribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flattener=&lt;thermolib.flatten.DummyFlattener</span> <span class="pre">object&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiDistribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiDistribution" title="Link to this definition"></a></dt>
 <dd><p>Abstract parent class for probability distributions of multidimensional stochastic properties used for error propagation. This class will explicitly account for correlation across the dimensions, as such it can be used to account for the correlation between the free energy at two different points in a FEP. Most of the routines here are implemented in the child classes.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -801,7 +796,7 @@
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.MultiDistribution.corr">
-<span class="sig-name descname"><span class="pre">corr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unflatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiDistribution.corr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiDistribution.corr" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">corr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unflatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiDistribution.corr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiDistribution.corr" title="Link to this definition"></a></dt>
 <dd><p>Routine that will convert the covariance matrix computed with self.cov to a correlation matrix according to the formula</p>
 <div class="math">
 <p><img src="_images/math/22b5d1a898ff523ff8764894386a1cb24375c39a.png" alt="Cor[i,j] &amp;= \frac{Cov[i,j]}{\sigma_i \sigma_j}"/></p>
@@ -817,7 +812,7 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="thermolib.error.MultiGaussianDistribution">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">thermolib.error.</span></span><span class="sig-name descname"><span class="pre">MultiGaussianDistribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">means</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">covariance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flattener=&lt;thermolib.flatten.DummyFlattener</span> <span class="pre">object&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiGaussianDistribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiGaussianDistribution" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">thermolib.error.</span></span><span class="sig-name descname"><span class="pre">MultiGaussianDistribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">means</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">covariance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flattener=&lt;thermolib.flatten.DummyFlattener</span> <span class="pre">object&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiGaussianDistribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiGaussianDistribution" title="Link to this definition"></a></dt>
 <dd><p>Implementation of a multivariate normal distribution for a given vector of means and a given covariance matrix</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -830,13 +825,13 @@
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.MultiGaussianDistribution.copy">
-<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiGaussianDistribution.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiGaussianDistribution.copy" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiGaussianDistribution.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiGaussianDistribution.copy" title="Link to this definition"></a></dt>
 <dd><p>Return a hard copy of the MultiGaussian distribution</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.MultiGaussianDistribution.cov">
-<span class="sig-name descname"><span class="pre">cov</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unflatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiGaussianDistribution.cov"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiGaussianDistribution.cov" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">cov</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unflatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiGaussianDistribution.cov"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiGaussianDistribution.cov" title="Link to this definition"></a></dt>
 <dd><p>Return the covariance matrix of the MultiGaussian distribution.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -847,7 +842,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.MultiGaussianDistribution.from_samples">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_samples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flattener=&lt;thermolib.flatten.DummyFlattener</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flattened=True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiGaussianDistribution.from_samples"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiGaussianDistribution.from_samples" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_samples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flattener=&lt;thermolib.flatten.DummyFlattener</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flattened=True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiGaussianDistribution.from_samples"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiGaussianDistribution.from_samples" title="Link to this definition"></a></dt>
 <dd><p>Defines a MultiGaussianDistribution based on a population defined by the given samples. The routine will derive the mean and std from the population and use that to define the Gaussian Distribution.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -868,7 +863,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.MultiGaussianDistribution.log_from_loggaussian">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">log_from_loggaussian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logdist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiGaussianDistribution.log_from_loggaussian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiGaussianDistribution.log_from_loggaussian" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">log_from_loggaussian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logdist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiGaussianDistribution.log_from_loggaussian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiGaussianDistribution.log_from_loggaussian" title="Link to this definition"></a></dt>
 <dd><p>Define the MultiGaussian distribution of a variable <img class="math" src="_images/math/bdf6e601ad25010282dbffd50114d33c963821e5.png" alt="Y=log(X)"/> in which <img class="math" src="_images/math/ed38fa24f1c94891bd312012aab3f6673be3eb83.png" alt="X"/> has a given MultiLogGaussian distribution, potential after imposing a shift and rescaling.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -886,7 +881,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.MultiGaussianDistribution.mean">
-<span class="sig-name descname"><span class="pre">mean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unflatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiGaussianDistribution.mean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiGaussianDistribution.mean" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">mean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unflatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiGaussianDistribution.mean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiGaussianDistribution.mean" title="Link to this definition"></a></dt>
 <dd><p>Return the distribution mean</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -903,7 +898,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.MultiGaussianDistribution.nsigma_conf_int">
-<span class="sig-name descname"><span class="pre">nsigma_conf_int</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nsigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unflatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiGaussianDistribution.nsigma_conf_int"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiGaussianDistribution.nsigma_conf_int" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">nsigma_conf_int</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nsigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unflatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiGaussianDistribution.nsigma_conf_int"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiGaussianDistribution.nsigma_conf_int" title="Link to this definition"></a></dt>
 <dd><p>Compute the n-sigma confidence interval, i.e. <img class="math" src="_images/math/8ce535574a18547b1ae32a4a56d758d38db172be.png" alt="\mu \pm n\cdot\sigma"/></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -917,7 +912,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.MultiGaussianDistribution.plot_corr_matrix">
-<span class="sig-name descname"><span class="pre">plot_corr_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig_size_inches</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[8,</span> <span class="pre">8]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bwr'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cvs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nticks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decimals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiGaussianDistribution.plot_corr_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiGaussianDistribution.plot_corr_matrix" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">plot_corr_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig_size_inches</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[8,</span> <span class="pre">8]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bwr'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cvs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nticks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decimals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiGaussianDistribution.plot_corr_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiGaussianDistribution.plot_corr_matrix" title="Link to this definition"></a></dt>
 <dd><p>gMake a plot of the correlation matrix of the current multivariate Gaussian distribution</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -936,7 +931,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.MultiGaussianDistribution.sample">
-<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nsamples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unflatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiGaussianDistribution.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiGaussianDistribution.sample" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nsamples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unflatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiGaussianDistribution.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiGaussianDistribution.sample" title="Link to this definition"></a></dt>
 <dd><p>Returns a number of random samples from the population defined by the distribution</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -956,7 +951,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.MultiGaussianDistribution.set_ref">
-<span class="sig-name descname"><span class="pre">set_ref</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiGaussianDistribution.set_ref"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiGaussianDistribution.set_ref" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">set_ref</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiGaussianDistribution.set_ref"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiGaussianDistribution.set_ref" title="Link to this definition"></a></dt>
 <dd><p>Set reference of distribution means by shifting them over an amount equal to -value or -self.means[index].</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -973,7 +968,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.MultiGaussianDistribution.std">
-<span class="sig-name descname"><span class="pre">std</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unflatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiGaussianDistribution.std"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiGaussianDistribution.std" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">std</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unflatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiGaussianDistribution.std"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiGaussianDistribution.std" title="Link to this definition"></a></dt>
 <dd><p>Return the distribution standard deviation (std)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -992,7 +987,7 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="thermolib.error.MultiLogGaussianDistribution">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">thermolib.error.</span></span><span class="sig-name descname"><span class="pre">MultiLogGaussianDistribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lmeans</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lcovariance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flattener=&lt;thermolib.flatten.DummyFlattener</span> <span class="pre">object&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiLogGaussianDistribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiLogGaussianDistribution" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">thermolib.error.</span></span><span class="sig-name descname"><span class="pre">MultiLogGaussianDistribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lmeans</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lcovariance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flattener=&lt;thermolib.flatten.DummyFlattener</span> <span class="pre">object&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiLogGaussianDistribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiLogGaussianDistribution" title="Link to this definition"></a></dt>
 <dd><p>Implementation of a multivariate log-normal distribution for a given vector of means and a given covariance matrix</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1005,13 +1000,13 @@
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.MultiLogGaussianDistribution.copy">
-<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiLogGaussianDistribution.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiLogGaussianDistribution.copy" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiLogGaussianDistribution.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiLogGaussianDistribution.copy" title="Link to this definition"></a></dt>
 <dd><p>Return a hard copy of the MultiLogGaussian distribution</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.MultiLogGaussianDistribution.cov">
-<span class="sig-name descname"><span class="pre">cov</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unflatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiLogGaussianDistribution.cov"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiLogGaussianDistribution.cov" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">cov</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unflatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiLogGaussianDistribution.cov"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiLogGaussianDistribution.cov" title="Link to this definition"></a></dt>
 <dd><p>Compute and and return the covariance matrix of the MultiLogGaussian distribution.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1022,7 +1017,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.MultiLogGaussianDistribution.exp_from_gaussian">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">exp_from_gaussian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gaussdist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiLogGaussianDistribution.exp_from_gaussian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiLogGaussianDistribution.exp_from_gaussian" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">exp_from_gaussian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gaussdist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiLogGaussianDistribution.exp_from_gaussian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiLogGaussianDistribution.exp_from_gaussian" title="Link to this definition"></a></dt>
 <dd><p>Define the MultiLogGaussian distribution of a variable <img class="math" src="_images/math/fc7300026bbaa23b5c25e75a80e48358353ffb31.png" alt="Y=exp(X)"/> in which <img class="math" src="_images/math/ed38fa24f1c94891bd312012aab3f6673be3eb83.png" alt="X"/> has a given MultiGaussian distribution, potential after imposing a shift and rescaling.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1040,7 +1035,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.MultiLogGaussianDistribution.from_samples">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_samples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flattener=&lt;thermolib.flatten.DummyFlattener</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flattened=True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiLogGaussianDistribution.from_samples"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiLogGaussianDistribution.from_samples" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_samples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flattener=&lt;thermolib.flatten.DummyFlattener</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flattened=True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiLogGaussianDistribution.from_samples"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiLogGaussianDistribution.from_samples" title="Link to this definition"></a></dt>
 <dd><p>Defines a MultiLogGaussianDistribution based on a population defined by the given samples. The routine will derive the lmean and lcovariance from the population and use that to define the MultiLogGaussian Distribution.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1061,7 +1056,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.MultiLogGaussianDistribution.mean">
-<span class="sig-name descname"><span class="pre">mean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unflatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiLogGaussianDistribution.mean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiLogGaussianDistribution.mean" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">mean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unflatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiLogGaussianDistribution.mean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiLogGaussianDistribution.mean" title="Link to this definition"></a></dt>
 <dd><p>Return the distribution mean</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1078,7 +1073,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.MultiLogGaussianDistribution.nsigma_conf_int">
-<span class="sig-name descname"><span class="pre">nsigma_conf_int</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nsigma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unflatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiLogGaussianDistribution.nsigma_conf_int"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiLogGaussianDistribution.nsigma_conf_int" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">nsigma_conf_int</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nsigma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unflatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiLogGaussianDistribution.nsigma_conf_int"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiLogGaussianDistribution.nsigma_conf_int" title="Link to this definition"></a></dt>
 <dd><p>Compute the n-sigma confidence interval, i.e. <img class="math" src="_images/math/77523b7ef8093dcf3237992ff5e037fdae97b319.png" alt="\exp\left(\mu \pm n\cdot\sigma\right)"/></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1092,7 +1087,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.MultiLogGaussianDistribution.plot_corr_matrix">
-<span class="sig-name descname"><span class="pre">plot_corr_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig_size_inches</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[8,</span> <span class="pre">8]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bwr'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cvs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nticks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decimals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiLogGaussianDistribution.plot_corr_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiLogGaussianDistribution.plot_corr_matrix" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">plot_corr_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig_size_inches</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[8,</span> <span class="pre">8]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bwr'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cvs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nticks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decimals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiLogGaussianDistribution.plot_corr_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiLogGaussianDistribution.plot_corr_matrix" title="Link to this definition"></a></dt>
 <dd><p>gMake a plot of the correlation matrix of the current multivariate Gaussian distribution</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1112,7 +1107,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.MultiLogGaussianDistribution.sample">
-<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nsamples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unflatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiLogGaussianDistribution.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiLogGaussianDistribution.sample" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nsamples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unflatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiLogGaussianDistribution.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiLogGaussianDistribution.sample" title="Link to this definition"></a></dt>
 <dd><p>Returns a number of random samples from the population defined by the distribution</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1132,7 +1127,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.MultiLogGaussianDistribution.std">
-<span class="sig-name descname"><span class="pre">std</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unflatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiLogGaussianDistribution.std"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiLogGaussianDistribution.std" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">std</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unflatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#MultiLogGaussianDistribution.std"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.MultiLogGaussianDistribution.std" title="Link to this definition"></a></dt>
 <dd><p>Return the distribution standard deviation (std)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1151,7 +1146,7 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="thermolib.error.Propagator">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">thermolib.error.</span></span><span class="sig-name descname"><span class="pre">Propagator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ncycles=50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_distribution=&lt;class</span> <span class="pre">'thermolib.error.GaussianDistribution'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flattener=&lt;thermolib.flatten.DummyFlattener</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples_are_flattened=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#Propagator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.Propagator" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">thermolib.error.</span></span><span class="sig-name descname"><span class="pre">Propagator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ncycles=50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_distribution=&lt;class</span> <span class="pre">'thermolib.error.GaussianDistribution'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flattener=&lt;thermolib.flatten.DummyFlattener</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples_are_flattened=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#Propagator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.Propagator" title="Link to this definition"></a></dt>
 <dd><p>A class to propagate the error distribution on a set of arguments towards the error distribution on a given function of those arguments. This routine uses the <code class="docutils literal notranslate"><span class="pre">sample</span></code> routine of each of its distrubution arguments, meaning that the resulting error is stochastic (will not give the same repeated result).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1166,7 +1161,7 @@
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.Propagator.calc_fun_values">
-<span class="sig-name descname"><span class="pre">calc_fun_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fun</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#Propagator.calc_fun_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.Propagator.calc_fun_values" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">calc_fun_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fun</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#Propagator.calc_fun_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.Propagator.calc_fun_values" title="Link to this definition"></a></dt>
 <dd><p>Routine to compute the function value for each set of random samples stored for the arguments during execution of the <code class="docutils literal notranslate"><span class="pre">gen_args_samples</span></code> routine.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1177,7 +1172,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.Propagator.gen_args_samples">
-<span class="sig-name descname"><span class="pre">gen_args_samples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#Propagator.gen_args_samples"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.Propagator.gen_args_samples" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">gen_args_samples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#Propagator.gen_args_samples"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.Propagator.gen_args_samples" title="Link to this definition"></a></dt>
 <dd><p>Routine that will generate random samples for each of the given arguments. The total number of samples per argument is defined in self.ncycles.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1188,7 +1183,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.Propagator.get_distribution">
-<span class="sig-name descname"><span class="pre">get_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_distribution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flattener</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples_are_flattened</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#Propagator.get_distribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.Propagator.get_distribution" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_distribution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flattener</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples_are_flattened</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#Propagator.get_distribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.Propagator.get_distribution" title="Link to this definition"></a></dt>
 <dd><p>Routine to construct the error distribution of the function value from a population generated by the routines <code class="docutils literal notranslate"><span class="pre">gen_args_samples</span></code> and <code class="docutils literal notranslate"><span class="pre">calc_fun_values</span></code>. For more info on arguments target_distribution, flattener or samples_are_flattened, see documentation in the initializer. Only if such an argument is explicitly specified (i.e. is not None), will it be overwritten with the given value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -1202,7 +1197,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.Propagator.reset">
-<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_distribution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flattener</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples_are_flattened</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#Propagator.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.Propagator.reset" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_distribution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flattener</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples_are_flattened</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#Propagator.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.Propagator.reset" title="Link to this definition"></a></dt>
 <dd><p>Reinitialize argsamples  for future reuse. For more info on arguments target_distribution, flattener or samples_are_flattened, see documentation in the initializer. Only if such an argument is explicitly specified (i.e. is not None), will it be overwritten with the given value.</p>
 </dd></dl>
 
@@ -1210,7 +1205,7 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="thermolib.error.SampleDistribution">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">thermolib.error.</span></span><span class="sig-name descname"><span class="pre">SampleDistribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#SampleDistribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.SampleDistribution" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">thermolib.error.</span></span><span class="sig-name descname"><span class="pre">SampleDistribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#SampleDistribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.SampleDistribution" title="Link to this definition"></a></dt>
 <dd><p>Define the distribution by explicitly supplying it with a population of samples. All statistical properties will be derived from this population.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1219,7 +1214,7 @@
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.SampleDistribution.from_samples">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_samples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#SampleDistribution.from_samples"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.SampleDistribution.from_samples" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_samples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#SampleDistribution.from_samples"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.SampleDistribution.from_samples" title="Link to this definition"></a></dt>
 <dd><p>Defines the current SampleDistribution based on a population defined by the given samples. A trivial routine for the current class, but implemented for completeness of Distribution parent class.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1230,7 +1225,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.SampleDistribution.mean">
-<span class="sig-name descname"><span class="pre">mean</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#SampleDistribution.mean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.SampleDistribution.mean" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">mean</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#SampleDistribution.mean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.SampleDistribution.mean" title="Link to this definition"></a></dt>
 <dd><p>Return the distribution mean</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -1244,7 +1239,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.SampleDistribution.sample">
-<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#SampleDistribution.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.SampleDistribution.sample" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#SampleDistribution.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.SampleDistribution.sample" title="Link to this definition"></a></dt>
 <dd><p>Returns a random sample from the population given at initialization</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -1258,7 +1253,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.SampleDistribution.set_ref">
-<span class="sig-name descname"><span class="pre">set_ref</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#SampleDistribution.set_ref"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.SampleDistribution.set_ref" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">set_ref</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#SampleDistribution.set_ref"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.SampleDistribution.set_ref" title="Link to this definition"></a></dt>
 <dd><p>Set reference of population samples by shifting all population samples over an amount equal to -value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1278,7 +1273,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.SampleDistribution.shift">
-<span class="sig-name descname"><span class="pre">shift</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#SampleDistribution.shift"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.SampleDistribution.shift" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">shift</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#SampleDistribution.shift"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.SampleDistribution.shift" title="Link to this definition"></a></dt>
 <dd><p>Shift all samples in the population with the given ref.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1289,7 +1284,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.error.SampleDistribution.std">
-<span class="sig-name descname"><span class="pre">std</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#SampleDistribution.std"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.SampleDistribution.std" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">std</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/error.html#SampleDistribution.std"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.error.SampleDistribution.std" title="Link to this definition"></a></dt>
 <dd><p>Return the distribution standard deviation</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -1316,7 +1311,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Louis Vanduyfhuys.</p>
+    <p>&#169; Copyright 2026, Louis Vanduyfhuys.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

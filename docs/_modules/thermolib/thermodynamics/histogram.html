@@ -1,24 +1,22 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>thermolib.thermodynamics.histogram &mdash; ThermoLIB v1.7.2 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+  <title>thermolib.thermodynamics.histogram &mdash; ThermoLIB v1.8.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../../_static/custom.css" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=131c94de"></script>
-        <script src="../../../_static/doctools.js?v=888ff710"></script>
-        <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=4eaa865d"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -36,9 +34,6 @@
             ThermoLIB
               <img src="../../../_static/logo_thermolib_light.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                1.7
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -53,7 +48,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../ig.html#dependencies">Dependencies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ig.html#download-and-install-thermolib">Download and install ThermoLIB</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../ig.html#direct-install-using-pip">Direct install using pip</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../ig.html#developers-download">Developers download</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../ig.html#source-code-download-and-install">Source code download and install</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ig.html#update-thermolib">Update ThermoLIB</a></li>
@@ -173,7 +168,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../../tut/advanced_deprojection.html">Tutorial 6 - Deprojecting 1D FEP to 2D FES</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../tut/advanced_deprojection.html">Tutorial 6 - Deprojection to extract energetic contribution to free energy</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../tut/advanced_deprojection.html#Introduction">Introduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../tut/advanced_deprojection.html#Construct-1D-FEP">Construct 1D FEP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../tut/advanced_deprojection.html#Deproject-to-2D-FES">Deproject to 2D FES</a><ul>
@@ -428,42 +423,44 @@
 <span class="c1"># Vanduyfhuys or prof. Van Speybroeck.</span>
 
 
-<span class="kn">from</span> <span class="nn">molmod.units</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">molmod.constants</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..units</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..constants</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
 
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">pp</span>
-<span class="kn">import</span> <span class="nn">matplotlib.cm</span> <span class="k">as</span> <span class="nn">cm</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.cm</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cm</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="n">np</span><span class="o">.</span><span class="n">seterr</span><span class="p">(</span><span class="n">divide</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">invalid</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
 
-<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 
-<span class="kn">from</span> <span class="nn">thermolib.thermodynamics.fep</span> <span class="kn">import</span> <span class="n">BaseProfile</span><span class="p">,</span> <span class="n">BaseFreeEnergyProfile</span>
-<span class="kn">from</span> <span class="nn">thermolib.ext</span> <span class="kn">import</span> <span class="n">wham1d_hs</span><span class="p">,</span> <span class="n">wham1d_bias</span><span class="p">,</span> <span class="n">wham1d_scf</span><span class="p">,</span> <span class="n">wham1d_error</span><span class="p">,</span> <span class="n">wham2d_hs</span><span class="p">,</span> <span class="n">wham2d_bias</span><span class="p">,</span> <span class="n">wham2d_scf</span><span class="p">,</span> <span class="n">wham2d_error</span>
-<span class="kn">from</span> <span class="nn">thermolib.error</span> <span class="kn">import</span> <span class="n">GaussianDistribution</span><span class="p">,</span> <span class="n">LogGaussianDistribution</span><span class="p">,</span> <span class="n">Propagator</span><span class="p">,</span> <span class="n">MultiGaussianDistribution</span><span class="p">,</span> <span class="n">MultiLogGaussianDistribution</span>
-<span class="kn">from</span> <span class="nn">thermolib.tools</span> <span class="kn">import</span> <span class="n">fisher_matrix_mle_probdens</span><span class="p">,</span> <span class="n">invert_fisher_to_covariance</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamics.fep</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseProfile</span><span class="p">,</span> <span class="n">BaseFreeEnergyProfile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.ext</span><span class="w"> </span><span class="kn">import</span> <span class="n">wham1d_hs</span><span class="p">,</span> <span class="n">wham1d_bias</span><span class="p">,</span> <span class="n">wham1d_scf</span><span class="p">,</span> <span class="n">wham1d_error</span><span class="p">,</span> <span class="n">wham2d_hs</span><span class="p">,</span> <span class="n">wham2d_bias</span><span class="p">,</span> <span class="n">wham2d_scf</span><span class="p">,</span> <span class="n">wham2d_error</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.error</span><span class="w"> </span><span class="kn">import</span> <span class="n">GaussianDistribution</span><span class="p">,</span> <span class="n">LogGaussianDistribution</span><span class="p">,</span> <span class="n">Propagator</span><span class="p">,</span> <span class="n">MultiGaussianDistribution</span><span class="p">,</span> <span class="n">MultiLogGaussianDistribution</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">fisher_matrix_mle_probdens</span><span class="p">,</span> <span class="n">invert_fisher_to_covariance</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
 	<span class="s1">&#39;Histogram1D&#39;</span><span class="p">,</span> <span class="s1">&#39;Histogram2D&#39;</span><span class="p">,</span> <span class="s1">&#39;plot_histograms&#39;</span>
 <span class="p">]</span>
 
-<div class="viewcode-block" id="Histogram1D"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram1D">[docs]</a><span class="k">class</span> <span class="nc">Histogram1D</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Histogram1D">
+<a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram1D">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Histogram1D</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">	</span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		Class representing a 1D probability histogram :math:`p(CV)` in terms of a single collective variable :math:`CV`.</span>
 <span class="sd">	&#39;&#39;&#39;</span>
-	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cvs</span><span class="p">,</span> <span class="n">ps</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv_label</span><span class="o">=</span><span class="s1">&#39;CV&#39;</span><span class="p">):</span>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cvs</span><span class="p">,</span> <span class="n">ps</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv_label</span><span class="o">=</span><span class="s1">&#39;CV&#39;</span><span class="p">):</span>
 <span class="w">		</span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">			:param cvs: the bin values of the collective variable CV, which should be in atomic units! If you need help properly converting to atomic units, we refer to the molmod `units &lt;https://molmod.github.io/molmod/reference/const.html#module-molmod.units&gt;`_ module.</span>
+<span class="sd">			:param cvs: the bin values of the collective variable CV, which should be in atomic units! </span>
 <span class="sd">			:type cvs: np.ndarray</span>
 
-<span class="sd">			:param ps: the histogram probability values at the given CV values. The probabilities should be in atomic units! If you need help properly converting to atomic units, we refer to the molmod `units &lt;https://molmod.github.io/molmod/reference/const.html#module-molmod.units&gt;`_ module.</span>
+<span class="sd">			:param ps: the histogram probability values at the given CV values. The probabilities should be in atomic units! </span>
 <span class="sd">			:type ps: np.ndarray</span>
 
 <span class="sd">			:param error: error distribution on the free energy profile</span>
 <span class="sd">			:type error: child of :py:class:`Distribution &lt;thermolib.error.Distribution&gt;`, optional, default=None</span>
 <span class="sd">			</span>
-<span class="sd">			:param cv_output_unit: the units for printing and plotting of CV values (not the unit of the input array, that is assumed to be in atomic units). Units are defined using the molmod `units &lt;https://molmod.github.io/molmod/reference/const.html#module-molmod.units&gt;`_ module.</span>
+<span class="sd">			:param cv_output_unit: the units for printing and plotting of CV values (not the unit of the input array, that is assumed to be in atomic units). </span>
 <span class="sd">			:type cv_output_unit: str, optional, default=&#39;au&#39;</span>
 <span class="sd">			</span>
 <span class="sd">			:param cv_label: label for the CV for printing and plotting</span>
@@ -477,7 +474,9 @@
 		<span class="bp">self</span><span class="o">.</span><span class="n">cv_output_unit</span> <span class="o">=</span> <span class="n">cv_output_unit</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">cv_label</span> <span class="o">=</span> <span class="n">cv_label</span>
 
-<div class="viewcode-block" id="Histogram1D.plower"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram1D.plower">[docs]</a>	<span class="k">def</span> <span class="nf">plower</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsigma</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+<div class="viewcode-block" id="Histogram1D.plower">
+<a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram1D.plower">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="nf">plower</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsigma</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
 <span class="w">		</span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Return the lower limit of an n-sigma error bar on the histogram probability, i.e. :math:`\\mu - n\\sigma` with :math:`\\mu` the mean and :math:`\\sigma` the standard deviation.</span>
 
@@ -493,7 +492,10 @@
 		<span class="n">plower</span><span class="p">,</span> <span class="n">pupper</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="o">.</span><span class="n">nsigma_conf_int</span><span class="p">(</span><span class="n">nsigma</span><span class="p">)</span>
 		<span class="k">return</span> <span class="n">plower</span></div>
 
-<div class="viewcode-block" id="Histogram1D.pupper"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram1D.pupper">[docs]</a>	<span class="k">def</span> <span class="nf">pupper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsigma</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Histogram1D.pupper">
+<a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram1D.pupper">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="nf">pupper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsigma</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
 <span class="w">		</span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Return the upper limit of an n-sigma error bar on the histogram probability, i.e. :math:`\\mu + n\\sigma` with :math:`\\mu` the mean and :math:`\\sigma` the standard deviation.</span>
 
@@ -509,7 +511,10 @@
 		<span class="n">plower</span><span class="p">,</span> <span class="n">pupper</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="o">.</span><span class="n">nsigma_conf_int</span><span class="p">(</span><span class="n">nsigma</span><span class="p">)</span>
 		<span class="k">return</span> <span class="n">pupper</span></div>
 
-<div class="viewcode-block" id="Histogram1D.copy"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram1D.copy">[docs]</a>	<span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Histogram1D.copy">
+<a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram1D.copy">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">		</span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Make and return a copy of the current Histogram1D instance.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -519,8 +524,11 @@
 			<span class="n">error</span> <span class="o">=</span> <span class="kc">None</span>
 		<span class="k">return</span> <span class="n">Histogram1D</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cvs</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">ps</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">error</span><span class="o">=</span><span class="n">error</span><span class="p">,</span> <span class="n">cv_output_unit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cv_output_unit</span><span class="p">,</span> <span class="n">cv_label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cv_label</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Histogram1D.from_average"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram1D.from_average">[docs]</a>	<span class="nd">@classmethod</span>
-	<span class="k">def</span> <span class="nf">from_average</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">histograms</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv_output_unit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv_label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Histogram1D.from_average">
+<a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram1D.from_average">[docs]</a>
+	<span class="nd">@classmethod</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">from_average</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">histograms</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv_output_unit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv_label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">		</span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">			Start from a set of 1D histograms and compute and return the averaged histogram (and optionally the error bar).</span>
 
@@ -563,12 +571,15 @@
 			<span class="n">error</span> <span class="o">=</span> <span class="n">GaussianDistribution</span><span class="p">(</span><span class="n">ps</span><span class="p">,</span> <span class="n">perr</span><span class="p">)</span>
 		<span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">cvs</span><span class="p">,</span> <span class="n">ps</span><span class="p">,</span><span class="n">error</span><span class="o">=</span><span class="n">error</span><span class="p">,</span> <span class="n">cv_output_unit</span><span class="o">=</span><span class="n">cv_output_unit</span><span class="p">,</span> <span class="n">cv_label</span><span class="o">=</span><span class="n">cv_label</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Histogram1D.from_single_trajectory"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram1D.from_single_trajectory">[docs]</a>	<span class="nd">@classmethod</span>
-	<span class="k">def</span> <span class="nf">from_single_trajectory</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">error_p_threshold</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">cv_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv_label</span><span class="o">=</span><span class="s1">&#39;CV&#39;</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Histogram1D.from_single_trajectory">
+<a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram1D.from_single_trajectory">[docs]</a>
+	<span class="nd">@classmethod</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">from_single_trajectory</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">error_p_threshold</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">cv_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv_label</span><span class="o">=</span><span class="s1">&#39;CV&#39;</span><span class="p">):</span>
 <span class="w">		</span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">			Routine to estimate a 1D probability histogram in terms of a single collective variable from a series of samples of that collective variable.</span>
 
-<span class="sd">			:param data: series of samples of the collective variable. Should be in atomic units! If you need help properly converting to atomic units, we refer to the molmod `units &lt;https://molmod.github.io/molmod/reference/const.html#module-molmod.units&gt;`_ module.</span>
+<span class="sd">			:param data: series of samples of the collective variable. Should be in atomic units! </span>
 <span class="sd">			:type data: np.ndarray</span>
 
 <span class="sd">			:param bins: the edges of the bins for which a histogram will be constructed. This argument is parsed to `the numpy.histogram routine &lt;https://numpy.org/doc/stable/reference/generated/numpy.histogram.html&gt;`_. Hence, more information on its meaning and allowed values can be found there.</span>
@@ -589,7 +600,7 @@
 <span class="sd">			:param error_p_threshold: only relevant when error estimation is enabled (see parameter ``error_estimate``). When ``error_p_threshold`` is set to x, bins in the histogram for which the probability resulting from the trajectory is smaller than x will be disabled for error estimation (i.e. its error will be set to np.nan). This is similar as the error_p_threshold keyword for the from_wham routine, for which the use is illustrated in :doc:`one of the tutorial notebooks &lt;tut/advanced_projection&gt;`.</span>
 <span class="sd">			:type error_p_threshold: float, optional, default=0.0</span>
 
-<span class="sd">			:param cv_output_unit: the unit in which cv will be plotted/printed (not the unit of the input array, that is assumed to be atomic units). If you need help properly converting to atomic units, we refer to the molmod `units &lt;https://molmod.github.io/molmod/reference/const.html#module-molmod.units&gt;`_ module.</span>
+<span class="sd">			:param cv_output_unit: the unit in which cv will be plotted/printed (not the unit of the input array, that is assumed to be atomic units). </span>
 <span class="sd">			:type cv_output_unit: str, optional, default=&#39;au&#39;</span>
 
 <span class="sd">			:param cv_label: label of the cv that will be used for plotting and printing</span>
@@ -628,8 +639,11 @@
 			<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid value for error_estimate argument, received </span><span class="si">%s</span><span class="s1">. Check documentation for allowed values.&#39;</span> <span class="o">%</span><span class="n">error_estimate</span><span class="p">)</span>
 		<span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">cvs</span><span class="p">,</span> <span class="n">ps</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="n">error</span><span class="p">,</span> <span class="n">cv_output_unit</span><span class="o">=</span><span class="n">cv_output_unit</span><span class="p">,</span> <span class="n">cv_label</span><span class="o">=</span><span class="n">cv_label</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Histogram1D.from_wham"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram1D.from_wham">[docs]</a>	<span class="nd">@classmethod</span>
-	<span class="k">def</span> <span class="nf">from_wham</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">traj_input</span><span class="p">,</span> <span class="n">biasses</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">corrtimes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">error_p_threshold</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">bias_subgrid_num</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Nscf</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">convergence</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">bias_thress</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">cv_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv_label</span><span class="o">=</span><span class="s1">&#39;CV&#39;</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="s1">&#39;low&#39;</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Histogram1D.from_wham">
+<a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram1D.from_wham">[docs]</a>
+	<span class="nd">@classmethod</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">from_wham</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">traj_input</span><span class="p">,</span> <span class="n">biasses</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">corrtimes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">error_p_threshold</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">bias_subgrid_num</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Nscf</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">convergence</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">bias_thress</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">cv_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv_label</span><span class="o">=</span><span class="s1">&#39;CV&#39;</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="s1">&#39;low&#39;</span><span class="p">):</span>
 <span class="w">		</span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">			Routine that implements the Weighted Histogram Analysis Method (WHAM) for reconstructing the overall 1D probability histogram in terms of collective variable CV from a series of molecular simulations that are (possibly) biased in terms of CV.</span>
 
@@ -678,7 +692,7 @@
 <span class="sd">			:param verbosity: controls the level of verbosity for logging during the WHAM algorithm. </span>
 <span class="sd">			:type verbose: str, optional, allowed=&#39;none&#39;|&#39;low&#39;|&#39;medium&#39;|&#39;high&#39;, default=&#39;low&#39;</span>
 
-<span class="sd">			:param cv_output_unit: the unit in which cv will be plotted/printed. If you need help properly converting to atomic units, we refer to the molmod `units &lt;https://molmod.github.io/molmod/reference/const.html#module-molmod.units&gt;`_ module.</span>
+<span class="sd">			:param cv_output_unit: the unit in which cv will be plotted/printed. </span>
 <span class="sd">			:type cv_output_unit: str, optional, default=&#39;au&#39;</span>
 
 <span class="sd">			:param cv_label: the label of the cv that will be used on plots</span>
@@ -788,8 +802,11 @@
 
 		<span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">bin_centers</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">ps</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="n">error</span><span class="p">,</span> <span class="n">cv_output_unit</span><span class="o">=</span><span class="n">cv_output_unit</span><span class="p">,</span> <span class="n">cv_label</span><span class="o">=</span><span class="n">cv_label</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Histogram1D.from_wham_c"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram1D.from_wham_c">[docs]</a>	<span class="nd">@classmethod</span>
-	<span class="k">def</span> <span class="nf">from_wham_c</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">trajectories</span><span class="p">,</span> <span class="n">biasses</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">bias_subgrid_num</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Nscf</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">convergence</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">cv_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv_label</span><span class="o">=</span><span class="s1">&#39;CV&#39;</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="s1">&#39;low&#39;</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Histogram1D.from_wham_c">
+<a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram1D.from_wham_c">[docs]</a>
+	<span class="nd">@classmethod</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">from_wham_c</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">trajectories</span><span class="p">,</span> <span class="n">biasses</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">bias_subgrid_num</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Nscf</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">convergence</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">cv_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv_label</span><span class="o">=</span><span class="s1">&#39;CV&#39;</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="s1">&#39;low&#39;</span><span class="p">):</span>
 <span class="w">		</span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">			.. deprecated:: v1.7</span>
 
@@ -797,8 +814,11 @@
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_wham</span><span class="p">(</span><span class="n">bins</span><span class="p">,</span> <span class="n">trajectories</span><span class="p">,</span> <span class="n">biasses</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="n">error_estimate</span><span class="p">,</span> <span class="n">bias_subgrid_num</span><span class="o">=</span><span class="n">bias_subgrid_num</span><span class="p">,</span> <span class="n">Nscf</span><span class="o">=</span><span class="n">Nscf</span><span class="p">,</span> <span class="n">convergence</span><span class="o">=</span><span class="n">convergence</span><span class="p">,</span> <span class="n">cv_output_unit</span><span class="o">=</span><span class="n">cv_output_unit</span><span class="p">,</span> <span class="n">cv_label</span><span class="o">=</span><span class="n">cv_label</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Histogram1D.from_fep"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram1D.from_fep">[docs]</a>	<span class="nd">@classmethod</span>
-	<span class="k">def</span> <span class="nf">from_fep</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fep</span><span class="p">,</span> <span class="n">temp</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Histogram1D.from_fep">
+<a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram1D.from_fep">[docs]</a>
+	<span class="nd">@classmethod</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">from_fep</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fep</span><span class="p">,</span> <span class="n">temp</span><span class="p">):</span>
 <span class="w">		</span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">			Compute a probability histogram from the given free energy profile at the given temperature.</span>
 
@@ -820,7 +840,10 @@
 			<span class="n">error</span> <span class="o">=</span> <span class="n">LogGaussianDistribution</span><span class="p">(</span><span class="n">means</span><span class="p">,</span> <span class="n">stds</span><span class="p">)</span>
 		<span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">fep</span><span class="o">.</span><span class="n">cvs</span><span class="p">,</span> <span class="n">ps</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="n">error</span><span class="p">,</span> <span class="n">cv_output_unit</span><span class="o">=</span><span class="n">fep</span><span class="o">.</span><span class="n">cv_output_unit</span><span class="p">,</span> <span class="n">cv_label</span><span class="o">=</span><span class="n">fep</span><span class="o">.</span><span class="n">cv_label</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Histogram1D.plot"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram1D.plot">[docs]</a>	<span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">obss</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span> <span class="n">linestyles</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">linewidths</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cvlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_legend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">plot_kwargs</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Histogram1D.plot">
+<a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram1D.plot">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">obss</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span> <span class="n">linestyles</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">linewidths</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cvlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_legend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">plot_kwargs</span><span class="p">):</span>
 <span class="w">		</span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">			Plot the probability histogram as function of the CV. If the error distribution is stored in self.error, various statistical quantities besides the estimated mean probabilty ietsel (such as the error width, lower/upper limit on the error bar, random sample) can be plotted using the ``obss`` keyword. You can specify additional matplotlib keyword arguments that will be parsed to the matplotlib plotter (`plot` and/or `fill_between`) at the end of the argument list of this routine.</span>
 
@@ -918,32 +941,36 @@
 			<span class="n">pp</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
 		<span class="k">else</span><span class="p">:</span>
 			<span class="n">pp</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-		<span class="k">return</span></div></div>
+		<span class="k">return</span></div>
+</div>
 
 
 
-<div class="viewcode-block" id="Histogram2D"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram2D">[docs]</a><span class="k">class</span> <span class="nc">Histogram2D</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Histogram2D">
+<a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram2D">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Histogram2D</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">	</span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		Class representing a 2D probability histogram :math:`p(CV1,CV2)` in terms of two collective variable :math:`CV1` and :math:`CV2`.</span>
 <span class="sd">	&#39;&#39;&#39;</span>
-	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cv1s</span><span class="p">,</span> <span class="n">cv2s</span><span class="p">,</span> <span class="n">ps</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv1_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv2_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv1_label</span><span class="o">=</span><span class="s1">&#39;CV1&#39;</span><span class="p">,</span> <span class="n">cv2_label</span><span class="o">=</span><span class="s1">&#39;CV2&#39;</span><span class="p">):</span>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cv1s</span><span class="p">,</span> <span class="n">cv2s</span><span class="p">,</span> <span class="n">ps</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv1_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv2_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv1_label</span><span class="o">=</span><span class="s1">&#39;CV1&#39;</span><span class="p">,</span> <span class="n">cv2_label</span><span class="o">=</span><span class="s1">&#39;CV2&#39;</span><span class="p">):</span>
 <span class="w">		</span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">			:param cv1s: the bin values of the first collective variable CV1, which should be in atomic units! If you need help properly converting to atomic units, we refer to the molmod `units &lt;https://molmod.github.io/molmod/reference/const.html#module-molmod.units&gt;`_ module.</span>
+<span class="sd">			:param cv1s: the bin values of the first collective variable CV1, which should be in atomic units! </span>
 <span class="sd">			:type data: np.ndarray</span>
 
-<span class="sd">			:param cv2s: the bin values of the second collective variable CV2, which should be in atomic units! If you need help properly converting to atomic units, we refer to the molmod `units &lt;https://molmod.github.io/molmod/reference/const.html#module-molmod.units&gt;`_ module.</span>
+<span class="sd">			:param cv2s: the bin values of the second collective variable CV2, which should be in atomic units! </span>
 <span class="sd">			:type data: np.ndarray</span>
 
-<span class="sd">			:param ps: 2D array corresponding to  the histogram probability values at the given CV1,CV2 grid. The probabilities should be in atomic units! If you need help properly converting to atomic units, we refer to the molmod `units &lt;https://molmod.github.io/molmod/reference/const.html#module-molmod.units&gt;`_ module.</span>
+<span class="sd">			:param ps: 2D array corresponding to  the histogram probability values at the given CV1,CV2 grid. The probabilities should be in atomic units! </span>
 <span class="sd">			:type bins: np.ndarray</span>
 
 <span class="sd">			:param error: error distribution on the free energy profile</span>
 <span class="sd">			:type error: child of :py:class:`Distribution &lt;thermolib.error.Distribution&gt;`, optional, default=None</span>
 
-<span class="sd">			:param cv1_output_unit: the units for printing and plotting of CV1 values (not the unit of the input array, that is assumed to be in atomic units). Units are defined using the molmod `units &lt;https://molmod.github.io/molmod/reference/const.html#module-molmod.units&gt;`_ module.</span>
+<span class="sd">			:param cv1_output_unit: the units for printing and plotting of CV1 values (not the unit of the input array, that is assumed to be in atomic units).</span>
 <span class="sd">			:type cv1_output_unit: str, optional, default=&#39;au&#39;</span>
 
-<span class="sd">			:param cv2_output_unit: the units for printing and plotting of CV2 values (not the unit of the input array, that is assumed to be in atomic units). Units are defined using the molmod `units &lt;https://molmod.github.io/molmod/reference/const.html#module-molmod.units&gt;`_ module.</span>
+<span class="sd">			:param cv2_output_unit: the units for printing and plotting of CV2 values (not the unit of the input array, that is assumed to be in atomic units). </span>
 <span class="sd">			:type cv2_output_unit: str, optional, default=&#39;au&#39;</span>
 
 <span class="sd">			:param cv1_label: label for CV1 for printing and plotting</span>
@@ -963,7 +990,9 @@
 		<span class="bp">self</span><span class="o">.</span><span class="n">cv1_label</span> <span class="o">=</span> <span class="n">cv1_label</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">cv2_label</span> <span class="o">=</span> <span class="n">cv2_label</span>
 
-<div class="viewcode-block" id="Histogram2D.plower"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram2D.plower">[docs]</a>	<span class="k">def</span> <span class="nf">plower</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsigma</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+<div class="viewcode-block" id="Histogram2D.plower">
+<a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram2D.plower">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="nf">plower</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsigma</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
 <span class="w">		</span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Return the lower limit of an n-sigma error bar on the histogram probability, i.e. :math:`\\mu - n\\sigma` with :math:`\\mu` the mean and :math:`\\sigma` the standard deviation.</span>
 
@@ -980,7 +1009,10 @@
 		<span class="n">plower</span> <span class="o">/=</span> <span class="n">plower</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 		<span class="k">return</span> <span class="n">plower</span></div>
 
-<div class="viewcode-block" id="Histogram2D.pupper"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram2D.pupper">[docs]</a>	<span class="k">def</span> <span class="nf">pupper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsigma</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Histogram2D.pupper">
+<a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram2D.pupper">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="nf">pupper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsigma</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
 <span class="w">		</span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Return the upper limit of an n-sigma error bar on the histogram probability, i.e. :math:`\\mu + n\\sigma` with :math:`\\mu` the mean and :math:`\\sigma` the standard deviation.</span>
 
@@ -997,7 +1029,10 @@
 		<span class="n">pupper</span> <span class="o">/=</span> <span class="n">pupper</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 		<span class="k">return</span> <span class="n">pupper</span></div>
 
-<div class="viewcode-block" id="Histogram2D.copy"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram2D.copy">[docs]</a>	<span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Histogram2D.copy">
+<a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram2D.copy">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">		</span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">			Make and return a copy of the current 2D probability histogram.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
@@ -1010,8 +1045,11 @@
 			<span class="n">cv1_label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cv1_label</span><span class="p">,</span> <span class="n">cv2_label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cv2_label</span>
 		<span class="p">)</span></div>
 
-<div class="viewcode-block" id="Histogram2D.from_average"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram2D.from_average">[docs]</a>	<span class="nd">@classmethod</span>
-	<span class="k">def</span> <span class="nf">from_average</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">histograms</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv1_output_unit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv2_output_unit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv1_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv2_label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Histogram2D.from_average">
+<a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram2D.from_average">[docs]</a>
+	<span class="nd">@classmethod</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">from_average</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">histograms</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv1_output_unit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv2_output_unit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv1_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv2_label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">		</span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">			Start from a set of 2D histograms and compute and return the averaged histogram (and optionally the error bar).</span>
 
@@ -1066,9 +1104,12 @@
 			<span class="n">perr</span> <span class="o">=</span> <span class="n">pss</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 			<span class="n">error</span> <span class="o">=</span> <span class="n">GaussianDistribution</span><span class="p">(</span><span class="n">ps</span><span class="p">,</span> <span class="n">perr</span><span class="p">)</span>
 		<span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">cv1s</span><span class="p">,</span> <span class="n">cv2s</span><span class="p">,</span> <span class="n">ps</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="n">error</span><span class="p">,</span> <span class="n">cv1_output_unit</span><span class="o">=</span><span class="n">cv1_output_unit</span><span class="p">,</span> <span class="n">cv2_output_unit</span><span class="o">=</span><span class="n">cv2_output_unit</span><span class="p">,</span> <span class="n">cv1_label</span><span class="o">=</span><span class="n">cv1_label</span><span class="p">,</span> <span class="n">cv2_label</span><span class="o">=</span><span class="n">cv2_label</span><span class="p">)</span></div>
+
 	
-<div class="viewcode-block" id="Histogram2D.from_single_trajectory"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram2D.from_single_trajectory">[docs]</a>	<span class="nd">@classmethod</span>
-	<span class="k">def</span> <span class="nf">from_single_trajectory</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv1_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv2_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv1_label</span><span class="o">=</span><span class="s1">&#39;CV1&#39;</span><span class="p">,</span> <span class="n">cv2_label</span><span class="o">=</span><span class="s1">&#39;CV2&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="Histogram2D.from_single_trajectory">
+<a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram2D.from_single_trajectory">[docs]</a>
+	<span class="nd">@classmethod</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">from_single_trajectory</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv1_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv2_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv1_label</span><span class="o">=</span><span class="s1">&#39;CV1&#39;</span><span class="p">,</span> <span class="n">cv2_label</span><span class="o">=</span><span class="s1">&#39;CV2&#39;</span><span class="p">):</span>
 <span class="w">		</span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">			Routine to estimate a 2D probability histogram in terms of two collective variable from a series of samples of those two collective variables.</span>
 
@@ -1086,10 +1127,10 @@
 
 <span class="sd">			:type error_estimate: str or None, optional, default=None</span>
 
-<span class="sd">			:param cv1_output_unit: the unit in which CV1 will be plotted/printed (not the unit of the input array, that is assumed to be atomic units). If you need help properly converting to atomic units, we refer to the molmod `units &lt;https://molmod.github.io/molmod/reference/const.html#module-molmod.units&gt;`_ module.</span>
+<span class="sd">			:param cv1_output_unit: the unit in which CV1 will be plotted/printed (not the unit of the input array, that is assumed to be atomic units). </span>
 <span class="sd">			:type cv1_output_unit: str, optional, default=&#39;au&#39;</span>
 
-<span class="sd">			:param cv2_output_unit: the unit in which CV2 will be plotted/printed (not the unit of the input array, that is assumed to be atomic units). If you need help properly converting to atomic units, we refer to the molmod `units &lt;https://molmod.github.io/molmod/reference/const.html#module-molmod.units&gt;`_ module.</span>
+<span class="sd">			:param cv2_output_unit: the unit in which CV2 will be plotted/printed (not the unit of the input array, that is assumed to be atomic units). </span>
 <span class="sd">			:type cv2_output_unit: str, optional, default=&#39;au&#39;</span>
 
 <span class="sd">			:param cv1_label: label of CV1 that will be used for plotting and printing</span>
@@ -1124,9 +1165,12 @@
 		<span class="k">elif</span> <span class="n">error_estimate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
 			<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid value for error_estimate argument, received </span><span class="si">%s</span><span class="s1">. Check documentation for allowed values.&#39;</span> <span class="o">%</span><span class="n">error_estimate</span><span class="p">)</span>
 		<span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">cv1s</span><span class="p">,</span> <span class="n">cv2s</span><span class="p">,</span> <span class="n">ps</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="n">error</span><span class="p">,</span> <span class="n">cv1_output_unit</span><span class="o">=</span><span class="n">cv1_output_unit</span><span class="p">,</span> <span class="n">cv2_output_unit</span><span class="o">=</span><span class="n">cv2_output_unit</span><span class="p">,</span> <span class="n">cv1_label</span><span class="o">=</span><span class="n">cv1_label</span><span class="p">,</span> <span class="n">cv2_label</span><span class="o">=</span><span class="n">cv2_label</span><span class="p">)</span></div>
+
 	
-<div class="viewcode-block" id="Histogram2D.from_wham"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram2D.from_wham">[docs]</a>	<span class="nd">@classmethod</span>
-	<span class="k">def</span> <span class="nf">from_wham</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">traj_input</span><span class="p">,</span> <span class="n">biasses</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">pinit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">error_p_threshold</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">corrtimes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">bias_subgrid_num</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Nscf</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">convergence</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">bias_thress</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">overflow_threshold</span><span class="o">=</span><span class="mf">1e-150</span><span class="p">,</span> <span class="n">cv1_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv2_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv1_label</span><span class="o">=</span><span class="s1">&#39;CV1&#39;</span><span class="p">,</span> <span class="n">cv2_label</span><span class="o">=</span><span class="s1">&#39;CV2&#39;</span><span class="p">,</span> <span class="n">plot_biases</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="s1">&#39;low&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="Histogram2D.from_wham">
+<a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram2D.from_wham">[docs]</a>
+	<span class="nd">@classmethod</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">from_wham</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">traj_input</span><span class="p">,</span> <span class="n">biasses</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">pinit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">error_p_threshold</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">corrtimes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">bias_subgrid_num</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Nscf</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">convergence</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">bias_thress</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">overflow_threshold</span><span class="o">=</span><span class="mf">1e-150</span><span class="p">,</span> <span class="n">cv1_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv2_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv1_label</span><span class="o">=</span><span class="s1">&#39;CV1&#39;</span><span class="p">,</span> <span class="n">cv2_label</span><span class="o">=</span><span class="s1">&#39;CV2&#39;</span><span class="p">,</span> <span class="n">plot_biases</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="s1">&#39;low&#39;</span><span class="p">):</span>
 <span class="w">		</span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">			Routine that implements the Weighted Histogram Analysis Method (WHAM) for reconstructing the overall 2D probability histogram in terms of two collective variables CV1 and CV2 from a series of molecular simulations that are (possibly) biased in terms of CV1 and/or CV2.</span>
 
@@ -1178,10 +1222,10 @@
 <span class="sd">			:param overflow_threshold: see documentation for this argument in the :py:meth:`wham2d_scf &lt;thermolib.ext.wham2d_scf&gt;` routine</span>
 <span class="sd">			:type overflow_threshold: double, optional, default=1e-150</span>
 
-<span class="sd">			:param cv1_output_unit: the unit in which CV1 will be plotted/printed. If you need help properly converting to atomic units, we refer to the molmod `units &lt;https://molmod.github.io/molmod/reference/const.html#module-molmod.units&gt;`_ module.</span>
+<span class="sd">			:param cv1_output_unit: the unit in which CV1 will be plotted/printed. </span>
 <span class="sd">			:type cv1_output_unit: str, optional, default=&#39;au&#39;</span>
 
-<span class="sd">			:param cv2_output_unit: the unit in which CV2 will be plotted/printed. If you need help properly converting to atomic units, we refer to the molmod `units &lt;https://molmod.github.io/molmod/reference/const.html#module-molmod.units&gt;`_ module.</span>
+<span class="sd">			:param cv2_output_unit: the unit in which CV2 will be plotted/printed. </span>
 <span class="sd">			:type cv2_output_unit: str, optional, default=&#39;au&#39;</span>
 
 <span class="sd">			:param cv1_label: label of CV1 used for plotting and printing</span>
@@ -1323,8 +1367,11 @@
 
 		<span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">bin_centers1</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">bin_centers2</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">ps</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="n">error</span><span class="p">,</span> <span class="n">cv1_output_unit</span><span class="o">=</span><span class="n">cv1_output_unit</span><span class="p">,</span> <span class="n">cv2_output_unit</span><span class="o">=</span><span class="n">cv2_output_unit</span><span class="p">,</span> <span class="n">cv1_label</span><span class="o">=</span><span class="n">cv1_label</span><span class="p">,</span> <span class="n">cv2_label</span><span class="o">=</span><span class="n">cv2_label</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Histogram2D.from_wham_c"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram2D.from_wham_c">[docs]</a>	<span class="nd">@classmethod</span>
-	<span class="k">def</span> <span class="nf">from_wham_c</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">trajectories</span><span class="p">,</span> <span class="n">biasses</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">pinit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">bias_subgrid_num</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Nscf</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">convergence</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">cv1_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv2_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv1_label</span><span class="o">=</span><span class="s1">&#39;CV1&#39;</span><span class="p">,</span> <span class="n">cv2_label</span><span class="o">=</span><span class="s1">&#39;CV2&#39;</span><span class="p">,</span> <span class="n">plot_biases</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="s1">&#39;low&#39;</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Histogram2D.from_wham_c">
+<a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram2D.from_wham_c">[docs]</a>
+	<span class="nd">@classmethod</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">from_wham_c</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">trajectories</span><span class="p">,</span> <span class="n">biasses</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">pinit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">bias_subgrid_num</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Nscf</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">convergence</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">cv1_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv2_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv1_label</span><span class="o">=</span><span class="s1">&#39;CV1&#39;</span><span class="p">,</span> <span class="n">cv2_label</span><span class="o">=</span><span class="s1">&#39;CV2&#39;</span><span class="p">,</span> <span class="n">plot_biases</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="s1">&#39;low&#39;</span><span class="p">):</span>
 <span class="w">		</span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">			.. deprecated:: v1.7</span>
 
@@ -1332,8 +1379,11 @@
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_wham</span><span class="p">(</span><span class="n">bins</span><span class="p">,</span> <span class="n">trajectories</span><span class="p">,</span> <span class="n">biasses</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">pinit</span><span class="o">=</span><span class="n">pinit</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="n">error_estimate</span><span class="p">,</span> <span class="n">bias_subgrid_num</span><span class="o">=</span><span class="n">bias_subgrid_num</span><span class="p">,</span> <span class="n">Nscf</span><span class="o">=</span><span class="n">Nscf</span><span class="p">,</span> <span class="n">convergence</span><span class="o">=</span><span class="n">convergence</span><span class="p">,</span> <span class="n">cv1_output_unit</span><span class="o">=</span><span class="n">cv1_output_unit</span><span class="p">,</span> <span class="n">cv2_output_unit</span><span class="o">=</span><span class="n">cv2_output_unit</span><span class="p">,</span> <span class="n">cv1_label</span><span class="o">=</span><span class="n">cv1_label</span><span class="p">,</span> <span class="n">cv2_label</span><span class="o">=</span><span class="n">cv2_label</span><span class="p">,</span> <span class="n">plot_biases</span><span class="o">=</span><span class="n">plot_biases</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Histogram2D.from_fes"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram2D.from_fes">[docs]</a>	<span class="nd">@classmethod</span>
-	<span class="k">def</span> <span class="nf">from_fes</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fes</span><span class="p">,</span> <span class="n">temp</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Histogram2D.from_fes">
+<a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram2D.from_fes">[docs]</a>
+	<span class="nd">@classmethod</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">from_fes</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fes</span><span class="p">,</span> <span class="n">temp</span><span class="p">):</span>
 <span class="w">		</span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">			Compute a probability histogram from the given free energy surface at the given temperature.</span>
 
@@ -1352,8 +1402,11 @@
 		<span class="k">if</span> <span class="n">fes</span><span class="o">.</span><span class="n">error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
 			<span class="k">raise</span> <span class="ne">NotImplementedError</span> <span class="c1">#TODO</span>
 		<span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">fes</span><span class="o">.</span><span class="n">cv1s</span><span class="p">,</span> <span class="n">fes</span><span class="o">.</span><span class="n">cv2s</span><span class="p">,</span> <span class="n">ps</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="n">error</span><span class="p">,</span> <span class="n">cv1_output_unit</span><span class="o">=</span><span class="n">fes</span><span class="o">.</span><span class="n">cv1_output_unit</span><span class="p">,</span> <span class="n">cv2_output_unit</span><span class="o">=</span><span class="n">fes</span><span class="o">.</span><span class="n">cv2_output_unit</span><span class="p">,</span> <span class="n">cv1_label</span><span class="o">=</span><span class="n">fes</span><span class="o">.</span><span class="n">cv1_label</span><span class="p">,</span> <span class="n">cv2_label</span><span class="o">=</span><span class="n">fes</span><span class="o">.</span><span class="n">cv2_label</span><span class="p">)</span></div>
+
 	
-<div class="viewcode-block" id="Histogram2D.average_cv_constraint_other"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram2D.average_cv_constraint_other">[docs]</a>	<span class="k">def</span> <span class="nf">average_cv_constraint_other</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">target_distribution</span><span class="o">=</span><span class="n">MultiGaussianDistribution</span><span class="p">,</span> <span class="n">propagator</span><span class="o">=</span><span class="n">Propagator</span><span class="p">()):</span>
+<div class="viewcode-block" id="Histogram2D.average_cv_constraint_other">
+<a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram2D.average_cv_constraint_other">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="nf">average_cv_constraint_other</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">target_distribution</span><span class="o">=</span><span class="n">MultiGaussianDistribution</span><span class="p">,</span> <span class="n">propagator</span><span class="o">=</span><span class="n">Propagator</span><span class="p">()):</span>
 <span class="w">		</span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">			Routine to compute a profile representing the average of one CV (denoted as y/Y below, y for integration values and Y for resulting averaged values) as function of the other CV (denoted as x below), i.e. the other CV is contraint to one of its bin values x. This is done using the following formula:</span>
 
@@ -1383,7 +1436,7 @@
 			<span class="n">f_output_unit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv1_output_unit</span>
 			<span class="n">cv_label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv2_label</span>
 			<span class="n">f_label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv1_label</span>
-			<span class="k">def</span> <span class="nf">function</span><span class="p">(</span><span class="n">ps_inp</span><span class="p">):</span>
+			<span class="k">def</span><span class="w"> </span><span class="nf">function</span><span class="p">(</span><span class="n">ps_inp</span><span class="p">):</span>
 				<span class="n">ps</span> <span class="o">=</span> <span class="n">ps_inp</span><span class="o">/</span><span class="n">ps_inp</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">ps_inp</span><span class="p">)]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 				<span class="n">Ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xs</span><span class="p">))</span>
 				<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xs</span><span class="p">)):</span>
@@ -1402,7 +1455,7 @@
 			<span class="n">f_output_unit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv2_output_unit</span>
 			<span class="n">cv_label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv1_label</span>
 			<span class="n">f_label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv2_label</span>
-			<span class="k">def</span> <span class="nf">function</span><span class="p">(</span><span class="n">ps_inp</span><span class="p">):</span>
+			<span class="k">def</span><span class="w"> </span><span class="nf">function</span><span class="p">(</span><span class="n">ps_inp</span><span class="p">):</span>
 				<span class="n">ps</span> <span class="o">=</span> <span class="n">ps_inp</span><span class="o">/</span><span class="n">ps_inp</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">ps_inp</span><span class="p">)]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 				<span class="n">Ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xs</span><span class="p">))</span>
 				<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xs</span><span class="p">)):</span>
@@ -1424,8 +1477,11 @@
 			<span class="n">Ys</span> <span class="o">=</span> <span class="n">function</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ps</span><span class="p">)</span>
 			<span class="n">error</span> <span class="o">=</span> <span class="kc">None</span>
 		<span class="k">return</span> <span class="n">BaseProfile</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">Ys</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="n">error</span><span class="p">,</span> <span class="n">cv_output_unit</span><span class="o">=</span><span class="n">cv_output_unit</span><span class="p">,</span> <span class="n">f_output_unit</span><span class="o">=</span><span class="n">f_output_unit</span><span class="p">,</span> <span class="n">cv_label</span><span class="o">=</span><span class="n">cv_label</span><span class="p">,</span> <span class="n">f_label</span><span class="o">=</span><span class="n">f_label</span><span class="p">)</span></div>
+
 	
-<div class="viewcode-block" id="Histogram2D.plot"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram2D.plot">[docs]</a>	<span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">slicer</span><span class="o">=</span><span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)],</span> <span class="n">obss</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span> <span class="n">linestyles</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">linewidths</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv1_lims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv2_lims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ncolors</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">ref_max</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">plot_kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Histogram2D.plot">
+<a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram2D.plot">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">slicer</span><span class="o">=</span><span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)],</span> <span class="n">obss</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span> <span class="n">linestyles</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">linewidths</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv1_lims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv2_lims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ncolors</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">ref_max</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">plot_kwargs</span><span class="p">):</span>
 <span class="w">		</span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Make either a 2D contour plot of p(CV1,CV2) or a 1D sliced plot of the probability along a slice in the direction specified by the slicer argument. Appart from the value of the probability itself, other (statistical) related properties can be plotted as defined in the obbs argument. At the end of the argument list, you can also specify any matplotlib keyword arguments you wish to parse to the matplotlib plotter. E.g. if you want to specify the colormap, you can just add at the end of the arguments ``cmap=&#39;rainbow&#39;``.</span>
 
@@ -1597,11 +1653,15 @@
 			<span class="n">pp</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
 		<span class="k">else</span><span class="p">:</span>
 			<span class="n">pp</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-		<span class="k">return</span></div></div>
+		<span class="k">return</span></div>
+</div>
 
 
 
-<div class="viewcode-block" id="plot_histograms"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.plot_histograms">[docs]</a><span class="k">def</span> <span class="nf">plot_histograms</span><span class="p">(</span><span class="n">histograms</span><span class="p">,</span> <span class="n">fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">linestyles</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">linewidths</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="plot_histograms">
+<a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.plot_histograms">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_histograms</span><span class="p">(</span><span class="n">histograms</span><span class="p">,</span> <span class="n">fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">linestyles</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">linewidths</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">	</span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		Make a plot to compare multiple 1D probability histograms (and possibly teh corresponding free energy profiles)</span>
 <span class="sd">		</span>
@@ -1702,6 +1762,7 @@
 		<span class="n">pp</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
 	<span class="k">else</span><span class="p">:</span>
 		<span class="n">pp</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
 </pre></div>
 
            </div>
@@ -1711,7 +1772,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Louis Vanduyfhuys.</p>
+    <p>&#169; Copyright 2026, Louis Vanduyfhuys.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

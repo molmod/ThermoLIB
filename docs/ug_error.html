@@ -1,25 +1,23 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Error estimation &mdash; ThermoLIB v1.7.2 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+  <title>Error estimation &mdash; ThermoLIB v1.8.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/custom.css" />
 
   
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="_static/jquery.js?v=5d32c60e"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=131c94de"></script>
-        <script src="_static/doctools.js?v=888ff710"></script>
-        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=4eaa865d"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -39,9 +37,6 @@
             ThermoLIB
               <img src="_static/logo_thermolib_light.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                1.7
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -56,9 +51,10 @@
 <li class="toctree-l2"><a class="reference internal" href="ig.html#dependencies">Dependencies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ig.html#download-and-install-thermolib">Download and install ThermoLIB</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="ig.html#direct-install-using-pip">Direct install using pip</a></li>
-<li class="toctree-l3"><a class="reference internal" href="ig.html#developers-download">Developers download</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ig.html#source-code-download-and-install">Source code download and install</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="ig.html#update-thermolib">Update ThermoLIB</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ig.html#test-installation">Test installation</a></li>
 </ul>
 </li>
@@ -175,7 +171,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="tut/advanced_deprojection.html">Tutorial 6 - Deprojecting 1D FEP to 2D FES</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tut/advanced_deprojection.html">Tutorial 6 - Deprojection to extract energetic contribution to free energy</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="tut/advanced_deprojection.html#Introduction">Introduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tut/advanced_deprojection.html#Construct-1D-FEP">Construct 1D FEP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tut/advanced_deprojection.html#Deproject-to-2D-FES">Deproject to 2D FES</a><ul>
@@ -371,6 +367,8 @@
 <li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.interpolate_surface_2d"><code class="docutils literal notranslate"><span class="pre">interpolate_surface_2d()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.invert_fisher_to_covariance"><code class="docutils literal notranslate"><span class="pre">invert_fisher_to_covariance()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.multivariate_normal"><code class="docutils literal notranslate"><span class="pre">multivariate_normal()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.plot_histograms_1d"><code class="docutils literal notranslate"><span class="pre">plot_histograms_1d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.plot_histograms_overlap_1d"><code class="docutils literal notranslate"><span class="pre">plot_histograms_overlap_1d()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.read_wham_input"><code class="docutils literal notranslate"><span class="pre">read_wham_input()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.rolling_average"><code class="docutils literal notranslate"><span class="pre">rolling_average()</span></code></a></li>
 </ul>
@@ -416,7 +414,7 @@
            <div itemprop="articleBody">
              
   <section id="error-estimation">
-<span id="seclab-ug-errorestimation"></span><h1>Error estimation<a class="headerlink" href="#error-estimation" title="Permalink to this heading"></a></h1>
+<span id="seclab-ug-errorestimation"></span><h1>Error estimation<a class="headerlink" href="#error-estimation" title="Link to this heading"></a></h1>
 <p>With a few extra keyword arguments added to the routines for constructing 1D/2D histograms, we can include an estimation of the error bar, which is then automatically propagated to free energy profiles/surfaces constructed using the <code class="docutils literal notranslate"><span class="pre">from_histogram</span></code> routines. Four methods are distinguished:</p>
 <blockquote>
 <div><ul class="simple">
@@ -432,16 +430,16 @@
 </div>
 <p>The method can be chosen using the <code class="docutils literal notranslate"><span class="pre">error_estimate</span></code> keyword of the <code class="docutils literal notranslate"><span class="pre">from_single_trajectory</span></code> and <code class="docutils literal notranslate"><span class="pre">from_wham</span></code> routines in the <a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.histogram.Histogram1D" title="thermolib.thermodynamics.histogram.Histogram1D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Histogram1D</span></code></a>/<a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.histogram.Histogram2D" title="thermolib.thermodynamics.histogram.Histogram2D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Histogram2D</span></code></a> classes. If a histogram was constructed with error estimation and afterwards converted to a free energy profile using the <code class="docutils literal notranslate"><span class="pre">from_histogram</span></code> routines, the error bar will be propagated to the free energy profile. If a histogram or free energy profile with error estimate is plotted, the error bar will be visualized as a shaded area. This error bar is computed as a 2-sigma error bar corresponding to a 95% confidence interval.</p>
 <section id="without-correlations">
-<h2>Without correlations<a class="headerlink" href="#without-correlations" title="Permalink to this heading"></a></h2>
+<h2>Without correlations<a class="headerlink" href="#without-correlations" title="Link to this heading"></a></h2>
 <p>In case the samples used to generate the histogram (i.e. the trajectory data) are fully uncorrelated, one can directly estimate the error bar by only setting the appropriate <code class="docutils literal notranslate"><span class="pre">error_estimate</span></code> keyword as is shown below:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">#Example to read CV trajectory</span>
-<span class="kn">from</span> <span class="nn">thermolib.thermodynamics.trajectory</span> <span class="kn">import</span> <span class="n">ColVarReader</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamics.trajectory</span><span class="w"> </span><span class="kn">import</span> <span class="n">ColVarReader</span>
 <span class="n">reader</span> <span class="o">=</span> <span class="n">ColVarReader</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span>
 <span class="n">cv_data</span> <span class="o">=</span> <span class="n">reader</span><span class="p">(</span><span class="s1">&#39;traj.xyz&#39;</span><span class="p">)</span>
 
 <span class="c1">#construct free energy profile with error estimation</span>
-<span class="kn">from</span> <span class="nn">thermolib.thermodynamics.histogram</span> <span class="kn">import</span> <span class="n">Histogram1D</span>
-<span class="kn">from</span> <span class="nn">thermolib.thermodynamics.fep</span> <span class="kn">import</span> <span class="n">BaseFreeEnergyProfile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamics.histogram</span><span class="w"> </span><span class="kn">import</span> <span class="n">Histogram1D</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamics.fep</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseFreeEnergyProfile</span>
 <span class="n">bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mf">1.55</span><span class="p">,</span> <span class="mf">1.55</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">)</span>
 <span class="n">hist</span> <span class="o">=</span> <span class="n">Histogram1D</span><span class="o">.</span><span class="n">from_single_trajectory</span><span class="p">(</span><span class="n">cv_data</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="s1">&#39;mle_f&#39;</span><span class="p">)</span>
 <span class="n">fep</span> <span class="o">=</span> <span class="n">BaseFreeEnergyProfile</span><span class="o">.</span><span class="n">from_histogram</span><span class="p">(</span><span class="n">hist</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span>
@@ -449,11 +447,11 @@
 </div>
 </section>
 <section id="with-correlations">
-<h2>With correlations<a class="headerlink" href="#with-correlations" title="Permalink to this heading"></a></h2>
+<h2>With correlations<a class="headerlink" href="#with-correlations" title="Link to this heading"></a></h2>
 <p>However, whenever samples are correlated (as is the case when each subsequent step of a molecular dynamics simulation is used for the trajectory data), we first have to estimate the correlation time for each trajectory used and feed it to e.g. the ThermoLIB <code class="docutils literal notranslate"><span class="pre">from_wham</span></code> routines. This can be done by means of constructing the auto correlation function (acf) and fit a simple exponential decay to it as implemented in the <a class="reference internal" href="rg_tools.html#thermolib.tools.decorrelate" title="thermolib.tools.decorrelate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">decorrelate</span></code></a> routine. The following code illustrates its use:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">#code to read in trajectories from wham input file as explained before</span>
-<span class="kn">from</span> <span class="nn">thermolib.thermodynamics.trajectory</span> <span class="kn">import</span> <span class="n">ColVarReader</span>
-<span class="kn">from</span> <span class="nn">thermolib.tools</span> <span class="kn">import</span> <span class="n">read_wham_input</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamics.trajectory</span><span class="w"> </span><span class="kn">import</span> <span class="n">ColVarReader</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_wham_input</span>
 <span class="n">colvar_reader</span> <span class="o">=</span> <span class="n">ColVarReader</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span>
 <span class="n">temp</span><span class="p">,</span> <span class="n">bias</span><span class="p">,</span> <span class="n">traj</span> <span class="o">=</span> <span class="n">read_wham_input</span><span class="p">(</span><span class="s1">&#39;wham_input.txt&#39;</span><span class="p">,</span> <span class="n">colvar_reader</span><span class="p">,</span> <span class="s1">&#39;colvars/COLVAR_</span><span class="si">%s</span><span class="s1">.dat&#39;</span><span class="p">)</span>
 
@@ -469,7 +467,8 @@
 </pre></div>
 </div>
 <p>This plot could look as follows:</p>
-<a class="reference internal image-reference" href="_images/acf.png"><img alt="_images/acf.png" src="_images/acf.png" style="width: 600px;" /></a>
+<a class="reference internal image-reference" href="_images/acf.png"><img alt="_images/acf.png" src="_images/acf.png" style="width: 600px;" />
+</a>
 <p>The shaded black area is resulting from very high frequency atomic oscillations (which may be absent in your plot if the trajectory comes from an MD simulation with a much larger time step, or when you only dumped the trajectory every so many time steps). Important in this plot is that the solid red line represents the enveloppe of the black area and hence has the purpose to eliminate these rapid oscillations. The dashed red line is the result of a fit of a simple exponential decay (i.e. <img class="math" src="_images/math/bc962231ceb6cdf9376d5b0c9257d167c6e1083e.png" alt="\exp\left(-\frac{t}{\tau}\right)"/>) to the solid red line. The computation of the correlation time (which is actually the integrated correlation time or <img class="math" src="_images/math/f7a8f8e08739ae6e54875a4e42e9e9bb57a9512e.png" alt="2\tau"/>) was done well if the dashed line adequately follows the general trent of the solid line in the initial decay.</p>
 </div>
 <div class="admonition important">
@@ -477,8 +476,8 @@
 <p>More details on what could go wrong with computing the autocorrelation time and how to solve it using the <code class="docutils literal notranslate"><span class="pre">n_nested_envolopes</span></code> and <code class="docutils literal notranslate"><span class="pre">p0</span></code> keyword arguments are given in the <a class="reference internal" href="tut/advanced_error_estimation.html"><span class="doc">tutorial notebook on Advanced techniques in error estimation</span></a>.</p>
 </div>
 <p>Once you have the correlation times, you can then also parse them to the <code class="docutils literal notranslate"><span class="pre">from_wham</span></code> routins so that it can take it into account for making a more reliable estimation of the error bars. This is done as follows:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">thermolib.thermodynamics.histogram</span> <span class="kn">import</span> <span class="n">Histogram1D</span>
-<span class="kn">from</span> <span class="nn">thermolib.thermodynamics.fep</span> <span class="kn">import</span> <span class="n">BaseFreeEnergyProfile</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamics.histogram</span><span class="w"> </span><span class="kn">import</span> <span class="n">Histogram1D</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamics.fep</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseFreeEnergyProfile</span>
 <span class="n">bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mf">1.55</span><span class="p">,</span> <span class="mf">1.55</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">)</span>
 <span class="n">hist</span> <span class="o">=</span> <span class="n">Histogram1D</span><span class="o">.</span><span class="n">from_wham</span><span class="p">(</span><span class="n">bins</span><span class="p">,</span> <span class="n">traj</span><span class="p">,</span> <span class="n">bias</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="s1">&#39;mle_f&#39;</span><span class="p">,</span> <span class="n">corrtimes</span><span class="o">=</span><span class="n">corrtimes</span><span class="p">)</span>
 <span class="n">fep</span> <span class="o">=</span> <span class="n">BaseFreeEnergyProfile</span><span class="o">.</span><span class="n">from_histogram</span><span class="p">(</span><span class="n">hist</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span>
@@ -498,7 +497,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Louis Vanduyfhuys.</p>
+    <p>&#169; Copyright 2026, Louis Vanduyfhuys.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

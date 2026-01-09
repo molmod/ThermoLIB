@@ -1,25 +1,23 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Constructing 2D histograms &amp; free energy surfaces &mdash; ThermoLIB v1.7.2 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+  <title>Constructing 2D histograms &amp; free energy surfaces &mdash; ThermoLIB v1.8.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/custom.css" />
 
   
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="_static/jquery.js?v=5d32c60e"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=131c94de"></script>
-        <script src="_static/doctools.js?v=888ff710"></script>
-        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=4eaa865d"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -39,9 +37,6 @@
             ThermoLIB
               <img src="_static/logo_thermolib_light.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                1.7
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -56,9 +51,10 @@
 <li class="toctree-l2"><a class="reference internal" href="ig.html#dependencies">Dependencies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ig.html#download-and-install-thermolib">Download and install ThermoLIB</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="ig.html#direct-install-using-pip">Direct install using pip</a></li>
-<li class="toctree-l3"><a class="reference internal" href="ig.html#developers-download">Developers download</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ig.html#source-code-download-and-install">Source code download and install</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="ig.html#update-thermolib">Update ThermoLIB</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ig.html#test-installation">Test installation</a></li>
 </ul>
 </li>
@@ -108,12 +104,16 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="ug_micromacro.html">Extracting micro- and macrostate free energy</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ug_kinetics.html">Computing the reaction rate</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ug_transformation.html">Transformations</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="ug_transformation.html#deterministic-transformation">Deterministic transformation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ug_transformation.html">Transformations of the FEP/FES</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ug_transformation.html#deterministic-transformation">Deterministic transformation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ug_transformation.html#dimensional">1 dimensional</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ug_transformation.html#id1">2 dimensional</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="ug_transformation.html#probabilistic-transformation">Probabilistic transformation</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="ug_projection.html">(De)projections</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ug_projection.html">(De)projections of the FEP/FES</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="ug_projection.html#projecting-2d-fes-to-1d-fep">Projecting 2D FES to 1D FEP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ug_projection.html#deprojecting-1d-fep-to-2d-fes">Deprojecting 1D FEP to 2D FES</a></li>
 </ul>
@@ -171,7 +171,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="tut/advanced_deprojection.html">Tutorial 6 - Deprojecting 1D FEP to 2D FES</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tut/advanced_deprojection.html">Tutorial 6 - Deprojection to extract energetic contribution to free energy</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="tut/advanced_deprojection.html#Introduction">Introduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tut/advanced_deprojection.html#Construct-1D-FEP">Construct 1D FEP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tut/advanced_deprojection.html#Deproject-to-2D-FES">Deproject to 2D FES</a><ul>
@@ -192,6 +192,13 @@
 <li class="toctree-l3"><a class="reference internal" href="tut/advanced_transformations.html#Introduction">Introduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tut/advanced_transformations.html#FEP-and-rate-with-original-CV">FEP and rate with original CV</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tut/advanced_transformations.html#FEP-and-rate-in-terms-of-alternative-CV">FEP and rate in terms of alternative CV</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tut/advanced_transformations_2D.html">Tutorial 8 - Transformation of 2D free energy surfaces</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_transformations_2D.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_transformations_2D.html#Construction-of-original-2D-FES">Construction of original 2D FES</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_transformations_2D.html#Transformation-to-new-CVs">Transformation to new CVs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_transformations_2D.html#Projection-comparison">Projection comparison</a></li>
 </ul>
 </li>
 </ul>
@@ -231,6 +238,8 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="rg_thermo.html#module-thermolib.thermodynamics.cv">Collective variables – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.cv</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.Average"><code class="docutils literal notranslate"><span class="pre">Average</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.CenterOfMass"><code class="docutils literal notranslate"><span class="pre">CenterOfMass</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.CenterOfPosition"><code class="docutils literal notranslate"><span class="pre">CenterOfPosition</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.CoordinationNumber"><code class="docutils literal notranslate"><span class="pre">CoordinationNumber</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.Difference"><code class="docutils literal notranslate"><span class="pre">Difference</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.DistOrthProjOrig"><code class="docutils literal notranslate"><span class="pre">DistOrthProjOrig</span></code></a></li>
@@ -239,6 +248,7 @@
 <li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.DotProduct"><code class="docutils literal notranslate"><span class="pre">DotProduct</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.LinearCombination"><code class="docutils literal notranslate"><span class="pre">LinearCombination</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.Minimum"><code class="docutils literal notranslate"><span class="pre">Minimum</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.NormalToPlane"><code class="docutils literal notranslate"><span class="pre">NormalToPlane</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.NormalizedAxis"><code class="docutils literal notranslate"><span class="pre">NormalizedAxis</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.OrthogonalDistanceToPore"><code class="docutils literal notranslate"><span class="pre">OrthogonalDistanceToPore</span></code></a></li>
 </ul>
@@ -258,25 +268,90 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="rg_kin.html">Kinetics – <code class="docutils literal notranslate"><span class="pre">thermolib.kinetics</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="rg_kin.html#module-thermolib.kinetics.rate">Rate constant – <code class="docutils literal notranslate"><span class="pre">thermolib.kinetics.rate</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_kin.html#thermolib.kinetics.rate.BaseRateFactor"><code class="docutils literal notranslate"><span class="pre">BaseRateFactor</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="rg_kin.html#thermolib.kinetics.rate.RateFactorEquilibrium"><code class="docutils literal notranslate"><span class="pre">RateFactorEquilibrium</span></code></a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="rg_error.html">Error distributions – <code class="docutils literal notranslate"><span class="pre">thermolib.error</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="rg_error.html#thermolib.error.Distribution"><code class="docutils literal notranslate"><span class="pre">Distribution</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="rg_error.html#thermolib.error.LogGaussianDistribution"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_error.html#thermolib.error.ErrorArray"><code class="docutils literal notranslate"><span class="pre">ErrorArray</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.ErrorArray.mean"><code class="docutils literal notranslate"><span class="pre">ErrorArray.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.ErrorArray.nsigma_conf_int"><code class="docutils literal notranslate"><span class="pre">ErrorArray.nsigma_conf_int()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.ErrorArray.sample"><code class="docutils literal notranslate"><span class="pre">ErrorArray.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.ErrorArray.std"><code class="docutils literal notranslate"><span class="pre">ErrorArray.std()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution.copy"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution.from_samples"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.from_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution.log_from_loggaussian"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.log_from_loggaussian()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution.mean"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution.nsigma_conf_int"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.nsigma_conf_int()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution.print"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.print()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution.sample"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution.set_ref"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.set_ref()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution.shift"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.shift()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution.std"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.std()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rg_error.html#thermolib.error.LogGaussianDistribution"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.LogGaussianDistribution.copy"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.LogGaussianDistribution.exp_from_gaussian"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.exp_from_gaussian()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.LogGaussianDistribution.from_samples"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.from_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.LogGaussianDistribution.mean"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.LogGaussianDistribution.nsigma_conf_int"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.nsigma_conf_int()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.LogGaussianDistribution.sample"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.LogGaussianDistribution.set_ref"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.set_ref()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.LogGaussianDistribution.shift"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.shift()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.LogGaussianDistribution.std"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.std()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rg_error.html#thermolib.error.MultiDistribution"><code class="docutils literal notranslate"><span class="pre">MultiDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiDistribution.corr"><code class="docutils literal notranslate"><span class="pre">MultiDistribution.corr()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution.copy"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution.cov"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.cov()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution.from_samples"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.from_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution.log_from_loggaussian"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.log_from_loggaussian()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution.mean"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution.nsigma_conf_int"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.nsigma_conf_int()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution.plot_corr_matrix"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.plot_corr_matrix()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution.sample"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution.set_ref"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.set_ref()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution.std"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.std()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="rg_error.html#thermolib.error.MultiLogGaussianDistribution"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiLogGaussianDistribution.copy"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiLogGaussianDistribution.cov"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.cov()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiLogGaussianDistribution.exp_from_gaussian"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.exp_from_gaussian()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiLogGaussianDistribution.from_samples"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.from_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiLogGaussianDistribution.mean"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiLogGaussianDistribution.nsigma_conf_int"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.nsigma_conf_int()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiLogGaussianDistribution.plot_corr_matrix"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.plot_corr_matrix()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiLogGaussianDistribution.sample"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiLogGaussianDistribution.std"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.std()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="rg_error.html#thermolib.error.Propagator"><code class="docutils literal notranslate"><span class="pre">Propagator</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="rg_error.html#thermolib.error.SampleDistribution"><code class="docutils literal notranslate"><span class="pre">SampleDistribution</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_error.html#thermolib.error.Propagator"><code class="docutils literal notranslate"><span class="pre">Propagator</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.Propagator.calc_fun_values"><code class="docutils literal notranslate"><span class="pre">Propagator.calc_fun_values()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.Propagator.gen_args_samples"><code class="docutils literal notranslate"><span class="pre">Propagator.gen_args_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.Propagator.get_distribution"><code class="docutils literal notranslate"><span class="pre">Propagator.get_distribution()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.Propagator.reset"><code class="docutils literal notranslate"><span class="pre">Propagator.reset()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rg_error.html#thermolib.error.SampleDistribution"><code class="docutils literal notranslate"><span class="pre">SampleDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.SampleDistribution.from_samples"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.from_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.SampleDistribution.mean"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.SampleDistribution.sample"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.SampleDistribution.set_ref"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.set_ref()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.SampleDistribution.shift"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.shift()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.SampleDistribution.std"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.std()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="rg_tools.html">Tools – <code class="docutils literal notranslate"><span class="pre">thermolib.tools</span></code></a><ul>
@@ -289,8 +364,11 @@
 <li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.h5_read_dataset"><code class="docutils literal notranslate"><span class="pre">h5_read_dataset()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.integrate"><code class="docutils literal notranslate"><span class="pre">integrate()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.integrate2d"><code class="docutils literal notranslate"><span class="pre">integrate2d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.interpolate_surface_2d"><code class="docutils literal notranslate"><span class="pre">interpolate_surface_2d()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.invert_fisher_to_covariance"><code class="docutils literal notranslate"><span class="pre">invert_fisher_to_covariance()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.multivariate_normal"><code class="docutils literal notranslate"><span class="pre">multivariate_normal()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.plot_histograms_1d"><code class="docutils literal notranslate"><span class="pre">plot_histograms_1d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.plot_histograms_overlap_1d"><code class="docutils literal notranslate"><span class="pre">plot_histograms_overlap_1d()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.read_wham_input"><code class="docutils literal notranslate"><span class="pre">read_wham_input()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.rolling_average"><code class="docutils literal notranslate"><span class="pre">rolling_average()</span></code></a></li>
 </ul>
@@ -336,29 +414,29 @@
            <div itemprop="articleBody">
              
   <section id="constructing-2d-histograms-free-energy-surfaces">
-<span id="seclab-ug-construct2d"></span><h1>Constructing 2D histograms &amp; free energy surfaces<a class="headerlink" href="#constructing-2d-histograms-free-energy-surfaces" title="Permalink to this heading"></a></h1>
+<span id="seclab-ug-construct2d"></span><h1>Constructing 2D histograms &amp; free energy surfaces<a class="headerlink" href="#constructing-2d-histograms-free-energy-surfaces" title="Link to this heading"></a></h1>
 <p>To construct a 2D histogram, we will proceed very similarly as was the case for a 1D histogram, but instead use routines from the <a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.histogram.Histogram2D" title="thermolib.thermodynamics.histogram.Histogram2D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Histogram2D</span></code></a> class. We again make a distinction between constructing a histogram from a single simulation or from multiple (possibly biased) simulations using WHAM. The 2D histograms that are constructed in ThermoLIB use <strong>the convention of xy indexing</strong> (see <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.meshgrid.html">documentation on the numpy.meshgrid routine</a>).</p>
 <section id="constructing-a-2d-histogram">
-<span id="seclab-ug-construct2d-hist"></span><h2>Constructing a 2D histogram …<a class="headerlink" href="#constructing-a-2d-histogram" title="Permalink to this heading"></a></h2>
+<span id="seclab-ug-construct2d-hist"></span><h2>Constructing a 2D histogram …<a class="headerlink" href="#constructing-a-2d-histogram" title="Link to this heading"></a></h2>
 <section id="from-single-simulation">
-<h3>… from single simulation<a class="headerlink" href="#from-single-simulation" title="Permalink to this heading"></a></h3>
+<h3>… from single simulation<a class="headerlink" href="#from-single-simulation" title="Link to this heading"></a></h3>
 <p>To construct a 2D Histogram from a series of cv data coming from a single simulation, we can simply do:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">thermolib.thermodynamics.histogram</span> <span class="kn">import</span> <span class="n">Histogram2D</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamics.histogram</span><span class="w"> </span><span class="kn">import</span> <span class="n">Histogram2D</span>
 <span class="n">hist</span> <span class="o">=</span> <span class="n">Histogram2D</span><span class="o">.</span><span class="n">from_single_trajectory</span><span class="p">(</span><span class="n">cv_data</span><span class="p">,</span> <span class="n">bins</span><span class="p">)</span> <span class="c1">#assumes cv_data and bins is in atomic units</span>
 </pre></div>
 </div>
 <p>Herein, cv_data represents a 2D numpy array containing the samples of the 2 CVs given in its two columns. If we still need to extract this array from simulations files, we can again do so using the readers defined in the trajectory module. For example, if we have a <code class="docutils literal notranslate"><span class="pre">COLVAR.dat</span></code> file available containing the samples of the first cv as its first column and those of the second cv as its second column, we can simply do:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">thermolib.thermodynamic.trajectory</span> <span class="kn">import</span> <span class="n">ColVarReader</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamic.trajectory</span><span class="w"> </span><span class="kn">import</span> <span class="n">ColVarReader</span>
 <span class="n">reader</span> <span class="o">=</span> <span class="n">ColVarReader</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span> <span class="c1">#assumes both CVs are in atomic units in the trajectory files</span>
 <span class="n">cv_data</span> <span class="o">=</span> <span class="n">reader</span><span class="p">(</span><span class="s1">&#39;COLVAR.dat&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="from-multiple-simulations-using-wham">
-<span id="seclab-ug-2dhistogram-wham"></span><h3>… from multiple simulations using WHAM<a class="headerlink" href="#from-multiple-simulations-using-wham" title="Permalink to this heading"></a></h3>
+<span id="seclab-ug-2dhistogram-wham"></span><h3>… from multiple simulations using WHAM<a class="headerlink" href="#from-multiple-simulations-using-wham" title="Link to this heading"></a></h3>
 <p>In order to reconstruct a 2D Histogram using data coming from multiple (possibly biased) simulations, we again use the procedure composed of first reading the WHAM input file to properly identify which trajectories can be found where and which bias potentials are associated, followed by actually reading all trajectory files. To further illustrate, we consider two possible scenarios.</p>
 <section id="scenario-1-2d-bias-2d-fes">
-<span id="seclab-ug-2dhistogram-wham-scenario1"></span><h4>SCENARIO 1 (2D bias =&gt; 2D FES)<a class="headerlink" href="#scenario-1-2d-bias-2d-fes" title="Permalink to this heading"></a></h4>
+<span id="seclab-ug-2dhistogram-wham-scenario1"></span><h4>SCENARIO 1 (2D bias =&gt; 2D FES)<a class="headerlink" href="#scenario-1-2d-bias-2d-fes" title="Link to this heading"></a></h4>
 <p>In this case, multiple simulations were done, each biased using a 2D biasing potential in terms of 2 CVs of interest (e.g. with umbrella sampling), and we want to construct a free energy surface in terms of these same two CVs. Let’s assume we have indeed done such 2D umbrella simulation with harmonic bias potentials equidistantly separated on a CV1 grid from -1 <cite>A</cite> to +1 <cite>A</cite> with a 0.2 <cite>A</cite> spacing and a CV2 grid from 0 <cite>deg</cite> to 180 <cite>deg</cite> with a 20 <cite>deg</cite> spacing. Each harmonic bias potential has a force constant of 150 <cite>kjmol/angstrom**2</cite> along CV1 and a force constant of 50 <cite>kjmol</cite> along CV2. This results in 11*10=110 simulations, each with a trajectory of samples of CV1 and CV2 stored to <code class="docutils literal notranslate"><span class="pre">COLVAR_WXX.dat</span></code> files. As such, we have a directory with the following siumulation data:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">current</span> <span class="nb">dir</span><span class="p">:</span>
 <span class="o">|</span><span class="n">wham_input</span><span class="o">.</span><span class="n">txt</span>
@@ -372,20 +450,20 @@
 </div>
 <p>Each <code class="docutils literal notranslate"><span class="pre">COLVAR_WXX.dat</span></code> file has two columns, the first column representing samples of the first CV (for example in <cite>angstrom</cite>) and the second column representing samples of the second CV (for example in <cite>degrees</cite>). Furthermore, the WHAM input file <code class="docutils literal notranslate"><span class="pre">wham_input.txt</span></code> has the following content:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">T</span><span class="o">=</span><span class="mi">300</span><span class="n">K</span>
-<span class="n">W0</span>  <span class="o">-</span><span class="mf">1.0</span> <span class="mi">150</span> <span class="mf">0.0</span> <span class="mi">50</span>
-<span class="n">W1</span>  <span class="o">-</span><span class="mf">0.8</span> <span class="mi">150</span> <span class="mf">0.0</span> <span class="mi">50</span>
+<span class="n">W0</span>  <span class="o">-</span><span class="mf">1.0</span> <span class="mf">0.0</span> <span class="mi">150</span> <span class="mi">50</span>
+<span class="n">W1</span>  <span class="o">-</span><span class="mf">0.8</span> <span class="mf">0.0</span> <span class="mi">150</span> <span class="mi">50</span>
 <span class="o">...</span>
-<span class="n">W11</span> <span class="o">-</span><span class="mf">1.0</span> <span class="mi">150</span> <span class="mf">20.0</span> <span class="mi">50</span>
-<span class="n">W12</span> <span class="o">-</span><span class="mf">0.8</span> <span class="mi">150</span> <span class="mf">20.0</span> <span class="mi">50</span>
+<span class="n">W11</span> <span class="o">-</span><span class="mf">1.0</span> <span class="mf">20.0</span> <span class="mi">150</span> <span class="mi">50</span>
+<span class="n">W12</span> <span class="o">-</span><span class="mf">0.8</span> <span class="mf">20.0</span> <span class="mi">150</span> <span class="mi">50</span>
 <span class="o">...</span>
-<span class="n">W108</span> <span class="mf">0.8</span> <span class="mi">150</span> <span class="mf">180.0</span> <span class="mi">50</span>
-<span class="n">W109</span> <span class="mf">1.0</span> <span class="mi">150</span> <span class="mf">180.0</span> <span class="mi">50</span>
+<span class="n">W108</span> <span class="mf">0.8</span> <span class="mf">180.0</span> <span class="mi">150</span> <span class="mi">50</span>
+<span class="n">W109</span> <span class="mf">1.0</span> <span class="mf">180.0</span> <span class="mi">150</span> <span class="mi">50</span>
 </pre></div>
 </div>
-<p>Looking for example at the second line in this file, we recognize a simulation which has gotten label W0 (for which we know that its trajectory of CV samples stored in the file <code class="docutils literal notranslate"><span class="pre">COLVAR_W0.dat</span></code>) and has a harmonic bias potential with a minimum at CV1 value of Q01=-1.0 (which we know has unit of <cite>angstrom</cite>), a force constant along CV1 of KAPPA1=150 (which we know has unit of <cite>kjmol/angstrom**2</cite>), a minimum at CV2 value of Q02=0.0 (unit of <cite>deg</cite>) and a force constant along CV2 of KAPPA2=50 (unit of <cite>kjmol</cite>). The units corresponding to these values of Q01, Q02, KAPPA1 and KAPPA2 can be defined in the <a class="reference internal" href="rg_tools.html#thermolib.tools.read_wham_input" title="thermolib.tools.read_wham_input"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read_wham_input</span></code></a> routine. As such, we are now able to write the piece of code required to construct the 2D Histogram:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">thermolib.thermodynamics.trajectory</span> <span class="kn">import</span> <span class="n">ColVarReader</span>
-<span class="kn">from</span> <span class="nn">thermolib.tools</span> <span class="kn">import</span> <span class="n">read_wham_input</span>
-<span class="kn">from</span> <span class="nn">thermolib.thermodynamics.histogram</span> <span class="kn">import</span> <span class="n">Histogram2D</span>
+<p>Looking for example at the second line in this file, we recognize a simulation which has gotten label W0 (for which we know that its trajectory of CV samples stored in the file <code class="docutils literal notranslate"><span class="pre">COLVAR_W0.dat</span></code>) and has a harmonic bias potential with a minimum at CV1 value of Q01=-1.0 (which we know has unit of <cite>angstrom</cite>), a minimum at CV2 value of Q02=0.0 (unit of <cite>deg</cite>), a force constant along CV1 of KAPPA1=150 (which we know has unit of <cite>kjmol/angstrom**2</cite>) and a force constant along CV2 of KAPPA2=50 (unit of <cite>kjmol</cite>). The units corresponding to these values of Q01, Q02, KAPPA1 and KAPPA2 can be defined in the <a class="reference internal" href="rg_tools.html#thermolib.tools.read_wham_input" title="thermolib.tools.read_wham_input"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read_wham_input</span></code></a> routine. If the order of the <code class="docutils literal notranslate"><span class="pre">wham_input.txt</span></code> would have been different, you can specify this using the <cite>order_2D</cite> argument. As such, we are now able to write the piece of code required to construct the 2D Histogram:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamics.trajectory</span><span class="w"> </span><span class="kn">import</span> <span class="n">ColVarReader</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_wham_input</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamics.histogram</span><span class="w"> </span><span class="kn">import</span> <span class="n">Histogram2D</span>
 
 <span class="c1">#define a Trajectory reader able to read 2 CVs from a single COLVAR file</span>
 <span class="n">cvs_reader</span> <span class="o">=</span> <span class="n">ColVarReader</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">units</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;deg&#39;</span><span class="p">])</span>
@@ -408,7 +486,7 @@
 <p>The third argument of the <a class="reference internal" href="rg_tools.html#thermolib.tools.read_wham_input" title="thermolib.tools.read_wham_input"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read_wham_input</span></code></a> routine, i.e. <code class="docutils literal notranslate"><span class="pre">COLVAR_%s.dat</span></code>, tells ThermoLIB that the trajectory corresponding the simulation that got the label W12 in <code class="docutils literal notranslate"><span class="pre">wham_input.txt</span></code> can be found in the file <code class="docutils literal notranslate"><span class="pre">COLVAR_W12.dat</span></code>. The arguments <code class="docutils literal notranslate"><span class="pre">q01_unit</span></code>, <code class="docutils literal notranslate"><span class="pre">kappa1_unit</span></code>, … allow to define the units of Q01, KAPPA1, …</p>
 </section>
 <section id="scenario-2-1d-bias-2d-fes">
-<span id="seclab-ug-2dhistogram-wham-scenario2"></span><h4>SCENARIO 2 (1D bias =&gt; 2D FES)<a class="headerlink" href="#scenario-2-1d-bias-2d-fes" title="Permalink to this heading"></a></h4>
+<span id="seclab-ug-2dhistogram-wham-scenario2"></span><h4>SCENARIO 2 (1D bias =&gt; 2D FES)<a class="headerlink" href="#scenario-2-1d-bias-2d-fes" title="Link to this heading"></a></h4>
 <p>In this case, we actually start from a set of simulations that were biased along only 1 CV (e.g. a 1D umbrella sampling simulation), but we are interested in constructing a 2D free energy surface along this original collective variable (denoted CV) plus an additional a posteriori determined collective variable (denoted Q). Let’s assume we have done 1D umbrella sampling simulation with harmonic bias potentials equidistantly separated on a CV grid from -1 <cite>A</cite> to +1 <cite>A</cite> with a 0.2 <cite>A</cite> spacing. Each harmonic bias potential has a force constant of 150 <cite>kjmol/angstrom**2</cite> along CV. This results in 11 simulations, each with a trajectory of CV samples stored to <code class="docutils literal notranslate"><span class="pre">COLVAR_WXX.dat</span></code> files. In order to extract the Q samples, it could be that these Q values are also stored in the <code class="docutils literal notranslate"><span class="pre">COLVAR_WXX.dat</span></code> files, in which case we can define the cvs_reader similar as in <a class="reference internal" href="#seclab-ug-2dhistogram-wham-scenario1"><span class="std std-ref">SCENARIO1</span></a>. Let us assume, however, that this is not the case, and we instead have to a posteriori compute the Q values from the structure coordinates stored in an XYZ file for each trajectory. In this case, we can use the CVComputer class as we will see below. To proceed, we assume we have a directory with the following siumulation data:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">current</span> <span class="nb">dir</span><span class="p">:</span>
 <span class="o">|</span><span class="n">wham_input</span><span class="o">.</span><span class="n">txt</span>
@@ -436,10 +514,10 @@
 </pre></div>
 </div>
 <p>The above <code class="docutils literal notranslate"><span class="pre">wham_input.txt</span></code> file clearly reveals that the bias potantial is 1D (with Q0 ranging from -1.0 to +1.0 and all with the same force constant of 150). In order to construct a 2D histogram, we can now use the following code:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">thermolib.thermodynamics.trajectory</span> <span class="kn">import</span> <span class="n">ColVarReader</span><span class="p">,</span> <span class="n">CVComputer</span>
-<span class="kn">from</span> <span class="nn">thermolib.thermodynamics.cv</span> <span class="kn">import</span> <span class="n">CoordinationNumber</span>
-<span class="kn">from</span> <span class="nn">thermolib.tools</span> <span class="kn">import</span> <span class="n">read_wham_input</span>
-<span class="kn">from</span> <span class="nn">thermolib.thermodynamic.histogram</span> <span class="kn">import</span> <span class="n">Histogram2D</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamics.trajectory</span><span class="w"> </span><span class="kn">import</span> <span class="n">ColVarReader</span><span class="p">,</span> <span class="n">CVComputer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamics.cv</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoordinationNumber</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_wham_input</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamic.histogram</span><span class="w"> </span><span class="kn">import</span> <span class="n">Histogram2D</span>
 
 <span class="c1">#define a Trajectory reader able to read the original collective varialbe</span>
 <span class="c1">#CV from a COLVAR file</span>
@@ -469,28 +547,28 @@
 </section>
 </section>
 <section id="constructing-a-2d-free-energy-surface">
-<span id="seclab-ug-construct2d-fes"></span><h2>Constructing a 2D free energy surface …<a class="headerlink" href="#constructing-a-2d-free-energy-surface" title="Permalink to this heading"></a></h2>
+<span id="seclab-ug-construct2d-fes"></span><h2>Constructing a 2D free energy surface …<a class="headerlink" href="#constructing-a-2d-free-energy-surface" title="Link to this heading"></a></h2>
 <p>A 2D free energy surface can be constructed using the <a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.fep.FreeEnergySurface2D" title="thermolib.thermodynamics.fep.FreeEnergySurface2D"><code class="xref py py-class docutils literal notranslate"><span class="pre">FreeEnergySurface2D</span></code></a> class. Similar as for 1D FEPs, there exist several ways to construct a FES as is illustrated in the subsections below.</p>
 <section id="using-the-constructor">
-<h3>… using the constructor<a class="headerlink" href="#using-the-constructor" title="Permalink to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">thermolib.thermodynamics.fep</span> <span class="kn">import</span> <span class="n">FreeEnergySurface2D</span>
+<h3>… using the constructor<a class="headerlink" href="#using-the-constructor" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamics.fep</span><span class="w"> </span><span class="kn">import</span> <span class="n">FreeEnergySurface2D</span>
 <span class="n">fes</span> <span class="o">=</span> <span class="n">FreeEnergySurface2D</span><span class="p">(</span><span class="n">cv1s</span><span class="p">,</span> <span class="n">cv2s</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Herein, the arguments <code class="docutils literal notranslate"><span class="pre">cv1s</span></code> and <code class="docutils literal notranslate"><span class="pre">cv2s</span></code> represent numpy arrays specifying the grid for the two CVs respectively (in atomic units). The argument <code class="docutils literal notranslate"><span class="pre">fs</span></code> represents a 2D numpy array with dimension matching those of the cv1s and cv2s array <strong>using the convention of in xy indexing</strong> (see <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.meshgrid.html">documentation on the numpy.meshgrid routine</a>), and represents the free energy corresponding to the values of cv1s and cv2s. containing respectively the collective variable and free energy on a grid, which should all be defined in atomic units. Furthermore, <code class="docutils literal notranslate"><span class="pre">temp</span></code> represents the temperature (in <code class="docutils literal notranslate"><span class="pre">atomic</span> <span class="pre">units</span></code>, hence, <code class="docutils literal notranslate"><span class="pre">Kelvin</span></code>) at which the free energy profile is evaluated.</p>
 </section>
 <section id="reading-from-a-text-file">
-<h3>… reading from a text file<a class="headerlink" href="#reading-from-a-text-file" title="Permalink to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">thermolib.thermodynamics.fep</span> <span class="kn">import</span> <span class="n">FreeEnergySurface2D</span>
+<h3>… reading from a text file<a class="headerlink" href="#reading-from-a-text-file" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamics.fep</span><span class="w"> </span><span class="kn">import</span> <span class="n">FreeEnergySurface2D</span>
 <span class="n">fes</span> <span class="o">=</span> <span class="n">FreeEnergySurface2D</span><span class="o">.</span><span class="n">from_txt</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Herein, the argument <code class="docutils literal notranslate"><span class="pre">fn</span></code> represents the name of a text file containing the values of the collective variable and the corresponding free energy on a grid. By default, the values of cv1s and cv2s should be defined in atomic units in respectively the first and second column, and the values of fs in <cite>kjmol</cite> in the third column, all separated by one or multiple whitespaces. More control on the columns from which to read the data, the delimiter used, units in which the cvs and/or f is defined and more can be found in <a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.fep.FreeEnergySurface2D.from_txt" title="thermolib.thermodynamics.fep.FreeEnergySurface2D.from_txt"><code class="xref py py-meth docutils literal notranslate"><span class="pre">here</span></code></a>. As was also the case in the constructor routine, <code class="docutils literal notranslate"><span class="pre">temp</span></code> represents the temperature (in <code class="docutils literal notranslate"><span class="pre">atomic</span> <span class="pre">units</span></code>, hence, <code class="docutils literal notranslate"><span class="pre">Kelvin</span></code>) at which the free energy profile is evaluated.</p>
 </section>
 <section id="from-a-histogram">
-<h3>… from a histogram<a class="headerlink" href="#from-a-histogram" title="Permalink to this heading"></a></h3>
+<h3>… from a histogram<a class="headerlink" href="#from-a-histogram" title="Link to this heading"></a></h3>
 <p>The free energy profile can also be constructed from a histogram that was computed from one or more (possibly biased) molecular simulations <a class="reference internal" href="#seclab-ug-construct2d-hist"><span class="std std-ref">as detailed before</span></a>. To convert this histogram into a free energy profile, we proceed as follows:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">thermolib.thermodynamics.fep</span> <span class="kn">import</span> <span class="n">FreeEnergySurface2D</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamics.fep</span><span class="w"> </span><span class="kn">import</span> <span class="n">FreeEnergySurface2D</span>
 <span class="n">temp</span> <span class="o">=</span> <span class="mi">300</span><span class="o">*</span><span class="n">kelvin</span>
 <span class="n">fes</span> <span class="o">=</span> <span class="n">FreeEnergySurface2D</span><span class="o">.</span><span class="n">from_histogram</span><span class="p">(</span><span class="n">hist</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span> <span class="c1">#hist is a Histogram2D instance</span>
 </pre></div>
@@ -510,7 +588,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Louis Vanduyfhuys.</p>
+    <p>&#169; Copyright 2026, Louis Vanduyfhuys.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

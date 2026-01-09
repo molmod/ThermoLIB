@@ -1,26 +1,24 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tutorial 4 - Advanced techniques in error estimation &mdash; ThermoLIB v1.7.2 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+  <title>Tutorial 4 - Advanced techniques in error estimation &mdash; ThermoLIB v1.8.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
       <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../_static/jquery.js?v=5d32c60e"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=131c94de"></script>
-        <script src="../_static/doctools.js?v=888ff710"></script>
-        <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=4eaa865d"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -40,9 +38,6 @@
             ThermoLIB
               <img src="../_static/logo_thermolib_light.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                1.7
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -57,7 +52,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../ig.html#dependencies">Dependencies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../ig.html#download-and-install-thermolib">Download and install ThermoLIB</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../ig.html#direct-install-using-pip">Direct install using pip</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../ig.html#developers-download">Developers download</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../ig.html#source-code-download-and-install">Source code download and install</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../ig.html#update-thermolib">Update ThermoLIB</a></li>
@@ -177,7 +172,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="advanced_deprojection.html">Tutorial 6 - Deprojecting 1D FEP to 2D FES</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="advanced_deprojection.html">Tutorial 6 - Deprojection to extract energetic contribution to free energy</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="advanced_deprojection.html#Introduction">Introduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="advanced_deprojection.html#Construct-1D-FEP">Construct 1D FEP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="advanced_deprojection.html#Deproject-to-2D-FES">Deproject to 2D FES</a><ul>
@@ -373,6 +368,8 @@
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.interpolate_surface_2d"><code class="docutils literal notranslate"><span class="pre">interpolate_surface_2d()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.invert_fisher_to_covariance"><code class="docutils literal notranslate"><span class="pre">invert_fisher_to_covariance()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.multivariate_normal"><code class="docutils literal notranslate"><span class="pre">multivariate_normal()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.plot_histograms_1d"><code class="docutils literal notranslate"><span class="pre">plot_histograms_1d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.plot_histograms_overlap_1d"><code class="docutils literal notranslate"><span class="pre">plot_histograms_overlap_1d()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.read_wham_input"><code class="docutils literal notranslate"><span class="pre">read_wham_input()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.rolling_average"><code class="docutils literal notranslate"><span class="pre">rolling_average()</span></code></a></li>
 </ul>
@@ -418,9 +415,9 @@
            <div itemprop="articleBody">
              
   <section id="Tutorial-4---Advanced-techniques-in-error-estimation">
-<h1>Tutorial 4 - Advanced techniques in error estimation<a class="headerlink" href="#Tutorial-4---Advanced-techniques-in-error-estimation" title="Permalink to this heading"></a></h1>
+<h1>Tutorial 4 - Advanced techniques in error estimation<a class="headerlink" href="#Tutorial-4---Advanced-techniques-in-error-estimation" title="Link to this heading"></a></h1>
 <section id="Introduction">
-<h2>Introduction<a class="headerlink" href="#Introduction" title="Permalink to this heading"></a></h2>
+<h2>Introduction<a class="headerlink" href="#Introduction" title="Link to this heading"></a></h2>
 <p>In this notebook, we investigate the impact of sample correlation on the error estimate of free energy profiles in ThermoLIB. To this end, we will discuss the ussage of the <code class="docutils literal notranslate"><span class="pre">decorrelate</span></code> routine and its under-the-hood <code class="docutils literal notranslate"><span class="pre">corrtime_from_acf</span></code> routine, including various interesting optional features. Furthermore, we consider various alternative ways (such as block averaging and bootstriding) of constructing free energy profiles to attempt to estimating error bars and compare the results at the
 end.</p>
 <div class="nbinput nblast docutils container">
@@ -436,14 +433,13 @@ end.</p>
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">thermolib.thermodynamics.fep</span> <span class="kn">import</span> <span class="n">SimpleFreeEnergyProfile</span><span class="p">,</span> <span class="n">plot_profiles</span>
-<span class="kn">from</span> <span class="nn">thermolib.thermodynamics.histogram</span> <span class="kn">import</span> <span class="n">Histogram1D</span><span class="p">,</span> <span class="n">plot_histograms</span>
-<span class="kn">from</span> <span class="nn">thermolib.tools</span> <span class="kn">import</span> <span class="n">read_wham_input</span><span class="p">,</span> <span class="n">blav</span><span class="p">,</span> <span class="n">decorrelate</span><span class="p">,</span> <span class="n">corrtime_from_acf</span>
-<span class="kn">from</span> <span class="nn">thermolib.thermodynamics.trajectory</span> <span class="kn">import</span> <span class="n">ColVarReader</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamics.fep</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleFreeEnergyProfile</span><span class="p">,</span> <span class="n">plot_profiles</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamics.histogram</span><span class="w"> </span><span class="kn">import</span> <span class="n">Histogram1D</span><span class="p">,</span> <span class="n">plot_histograms</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_wham_input</span><span class="p">,</span> <span class="n">blav</span><span class="p">,</span> <span class="n">decorrelate</span><span class="p">,</span> <span class="n">corrtime_from_acf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamics.trajectory</span><span class="w"> </span><span class="kn">import</span> <span class="n">ColVarReader</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.units</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span><span class="o">,</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">pp</span>
-
-<span class="kn">from</span> <span class="nn">molmod.units</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span><span class="o">,</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
 </pre></div>
 </div>
 </div>
@@ -457,14 +453,14 @@ end.</p>
 </div>
 </section>
 <section id="Impact-correlation-between-samples-on-FEP">
-<h2>Impact correlation between samples on FEP<a class="headerlink" href="#Impact-correlation-between-samples-on-FEP" title="Permalink to this heading"></a></h2>
+<h2>Impact correlation between samples on FEP<a class="headerlink" href="#Impact-correlation-between-samples-on-FEP" title="Link to this heading"></a></h2>
 <p>In this section, we illustrate the impact of correlation between subsequent samples in the MD trajectories. To that end, we apply a regular WHAM procedure to all biased simulation data defined in data/wham_input.txt using all trajectory samples, as well as using only a sample every 10/100/1000 steps.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mf">1.6</span><span class="p">,</span> <span class="mf">1.6</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">)</span>
-<span class="n">fn_meta</span> <span class="o">=</span> <span class="s1">&#39;data/formic_acid_dimer_link/wham_input.txt&#39;</span>
+<span class="n">fn_meta</span> <span class="o">=</span> <span class="s1">&#39;data/formic_acid_dimer/wham_input.txt&#39;</span>
 </pre></div>
 </div>
 </div>
@@ -474,7 +470,7 @@ end.</p>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">colvar_reader_1</span> <span class="o">=</span> <span class="n">ColVarReader</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="n">units</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;au&#39;</span><span class="p">])</span>
 <span class="n">temp</span><span class="p">,</span> <span class="n">biasses</span><span class="p">,</span> <span class="n">trajectories_1</span> <span class="o">=</span> <span class="n">read_wham_input</span><span class="p">(</span>
-    <span class="n">fn_meta</span><span class="p">,</span> <span class="n">colvar_reader_1</span><span class="p">,</span> <span class="s1">&#39;trajectories_correlated/COLVAR_</span><span class="si">%s</span><span class="s1">.dat&#39;</span><span class="p">,</span>
+    <span class="n">fn_meta</span><span class="p">,</span> <span class="n">colvar_reader_1</span><span class="p">,</span> <span class="s1">&#39;colvars/correlated/COLVAR_</span><span class="si">%s</span><span class="s1">.dat&#39;</span><span class="p">,</span>
     <span class="n">bias_potential</span><span class="o">=</span><span class="s1">&#39;Parabola1D&#39;</span><span class="p">,</span> <span class="n">q01_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">kappa1_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="n">hist_1</span> <span class="o">=</span> <span class="n">Histogram1D</span><span class="o">.</span><span class="n">from_wham</span><span class="p">(</span><span class="n">bins</span><span class="p">,</span> <span class="n">trajectories_1</span><span class="p">,</span> <span class="n">biasses</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="s1">&#39;mle_f&#39;</span><span class="p">,</span> <span class="n">Nscf</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
@@ -492,11 +488,11 @@ SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 01.522s
-  bias poten. : 00h 00m 00.022s
-  solve scf   : 00h 00m 00.376s
-  error est.  : 00h 00m 01.015s
-  TOTAL       : 00h 00m 02.936s
+  histograms  : 00h 00m 00.167s
+  bias poten. : 00h 00m 00.009s
+  solve scf   : 00h 00m 00.203s
+  error est.  : 00h 00m 00.574s
+  TOTAL       : 00h 00m 00.955s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -506,7 +502,7 @@ TIMING SUMMARY
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">colvar_reader_10</span> <span class="o">=</span> <span class="n">ColVarReader</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="n">stride</span><span class="o">=</span><span class="mi">10</span> <span class="p">,</span><span class="n">units</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;au&#39;</span><span class="p">])</span>
 <span class="n">temp</span><span class="p">,</span> <span class="n">biasses</span><span class="p">,</span> <span class="n">trajectories_10</span> <span class="o">=</span> <span class="n">read_wham_input</span><span class="p">(</span>
-    <span class="n">fn_meta</span><span class="p">,</span> <span class="n">colvar_reader_10</span><span class="p">,</span> <span class="s1">&#39;trajectories_correlated/COLVAR_</span><span class="si">%s</span><span class="s1">.dat&#39;</span><span class="p">,</span>
+    <span class="n">fn_meta</span><span class="p">,</span> <span class="n">colvar_reader_10</span><span class="p">,</span> <span class="s1">&#39;colvars/correlated/COLVAR_</span><span class="si">%s</span><span class="s1">.dat&#39;</span><span class="p">,</span>
     <span class="n">bias_potential</span><span class="o">=</span><span class="s1">&#39;Parabola1D&#39;</span><span class="p">,</span> <span class="n">q01_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">kappa1_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="n">hist_10</span> <span class="o">=</span> <span class="n">Histogram1D</span><span class="o">.</span><span class="n">from_wham</span><span class="p">(</span><span class="n">bins</span><span class="p">,</span> <span class="n">trajectories_10</span><span class="p">,</span> <span class="n">biasses</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="s1">&#39;mle_f&#39;</span><span class="p">,</span> <span class="n">Nscf</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
@@ -524,11 +520,11 @@ SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.119s
-  bias poten. : 00h 00m 00.014s
-  solve scf   : 00h 00m 00.304s
-  error est.  : 00h 00m 01.173s
-  TOTAL       : 00h 00m 01.610s
+  histograms  : 00h 00m 00.017s
+  bias poten. : 00h 00m 00.006s
+  solve scf   : 00h 00m 00.149s
+  error est.  : 00h 00m 00.345s
+  TOTAL       : 00h 00m 00.519s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -538,7 +534,7 @@ TIMING SUMMARY
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">colvar_reader_100</span> <span class="o">=</span> <span class="n">ColVarReader</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="n">stride</span><span class="o">=</span><span class="mi">100</span> <span class="p">,</span><span class="n">units</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;au&#39;</span><span class="p">])</span>
 <span class="n">temp</span><span class="p">,</span> <span class="n">biasses</span><span class="p">,</span> <span class="n">trajectories_100</span> <span class="o">=</span> <span class="n">read_wham_input</span><span class="p">(</span>
-    <span class="n">fn_meta</span><span class="p">,</span> <span class="n">colvar_reader_100</span><span class="p">,</span> <span class="s1">&#39;trajectories_correlated/COLVAR_</span><span class="si">%s</span><span class="s1">.dat&#39;</span><span class="p">,</span>
+    <span class="n">fn_meta</span><span class="p">,</span> <span class="n">colvar_reader_100</span><span class="p">,</span> <span class="s1">&#39;colvars/correlated/COLVAR_</span><span class="si">%s</span><span class="s1">.dat&#39;</span><span class="p">,</span>
     <span class="n">bias_potential</span><span class="o">=</span><span class="s1">&#39;Parabola1D&#39;</span><span class="p">,</span> <span class="n">q01_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">kappa1_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="n">hist_100</span> <span class="o">=</span> <span class="n">Histogram1D</span><span class="o">.</span><span class="n">from_wham</span><span class="p">(</span><span class="n">bins</span><span class="p">,</span> <span class="n">trajectories_100</span><span class="p">,</span> <span class="n">biasses</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="s1">&#39;mle_f&#39;</span><span class="p">,</span> <span class="n">Nscf</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
@@ -555,11 +551,11 @@ SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.013s
-  bias poten. : 00h 00m 00.012s
-  solve scf   : 00h 00m 00.759s
-  error est.  : 00h 00m 01.014s
-  TOTAL       : 00h 00m 01.799s
+  histograms  : 00h 00m 00.003s
+  bias poten. : 00h 00m 00.006s
+  solve scf   : 00h 00m 00.375s
+  error est.  : 00h 00m 00.471s
+  TOTAL       : 00h 00m 00.857s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -569,7 +565,7 @@ TIMING SUMMARY
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">colvar_reader_1000</span> <span class="o">=</span> <span class="n">ColVarReader</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1000</span> <span class="p">,</span><span class="n">units</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;au&#39;</span><span class="p">])</span>
 <span class="n">temp</span><span class="p">,</span> <span class="n">biasses</span><span class="p">,</span> <span class="n">trajectories_1000</span> <span class="o">=</span> <span class="n">read_wham_input</span><span class="p">(</span>
-    <span class="n">fn_meta</span><span class="p">,</span> <span class="n">colvar_reader_1000</span><span class="p">,</span> <span class="s1">&#39;trajectories_correlated/COLVAR_</span><span class="si">%s</span><span class="s1">.dat&#39;</span><span class="p">,</span>
+    <span class="n">fn_meta</span><span class="p">,</span> <span class="n">colvar_reader_1000</span><span class="p">,</span> <span class="s1">&#39;colvars/correlated/COLVAR_</span><span class="si">%s</span><span class="s1">.dat&#39;</span><span class="p">,</span>
     <span class="n">bias_potential</span><span class="o">=</span><span class="s1">&#39;Parabola1D&#39;</span><span class="p">,</span> <span class="n">q01_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">kappa1_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="n">hist_1000</span> <span class="o">=</span> <span class="n">Histogram1D</span><span class="o">.</span><span class="n">from_wham</span><span class="p">(</span><span class="n">bins</span><span class="p">,</span> <span class="n">trajectories_1000</span><span class="p">,</span> <span class="n">biasses</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="s1">&#39;mle_f&#39;</span><span class="p">,</span> <span class="n">Nscf</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
@@ -586,11 +582,11 @@ SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.005s
-  bias poten. : 00h 00m 00.015s
-  solve scf   : 00h 00m 00.927s
-  error est.  : 00h 00m 00.720s
-  TOTAL       : 00h 00m 01.669s
+  histograms  : 00h 00m 00.001s
+  bias poten. : 00h 00m 00.006s
+  solve scf   : 00h 00m 00.453s
+  error est.  : 00h 00m 00.515s
+  TOTAL       : 00h 00m 00.976s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -607,29 +603,20 @@ TIMING SUMMARY
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Figure size 432x288 with 0 Axes&gt;
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu Sans.
-findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu Sans.
+&lt;Figure size 640x480 with 0 Axes&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_error_estimation_13_2.png" src="../_images/tut_advanced_error_estimation_13_2.png" />
+<img alt="../_images/tut_advanced_error_estimation_14_1.png" src="../_images/tut_advanced_error_estimation_14_1.png" />
 </div>
 </div>
 <p>The plot above indicates that the error becomes larger as the stride increases (which is logical as it gives WHAM a lot less data to work with). We also observe that the (mean) estimated free energy itself becomes more noisy as the stride increases, which is also due to lower number of samples.</p>
 </section>
 <section id="Estimating-the-autocorrelation-time">
-<h2>Estimating the autocorrelation time<a class="headerlink" href="#Estimating-the-autocorrelation-time" title="Permalink to this heading"></a></h2>
+<h2>Estimating the autocorrelation time<a class="headerlink" href="#Estimating-the-autocorrelation-time" title="Link to this heading"></a></h2>
 <p>The question now is which is the most reliable representation of the error. To that end, we estimate the correlation time from the autocorrelation function of the collective variable itself during the trajectories. We first illustrate this for a few individual trajectories:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
@@ -643,7 +630,7 @@ findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu S
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_error_estimation_17_0.png" src="../_images/tut_advanced_error_estimation_17_0.png" />
+<img alt="../_images/tut_advanced_error_estimation_18_0.png" src="../_images/tut_advanced_error_estimation_18_0.png" />
 </div>
 </div>
 <p>In this plot the black solid line (which became a solid black region because it is a very fast oscilling curve, see further) represents the autocorrelation function, the red solid line represents the envoloppe of the black curve/region and the red dashed curve presents a fit of <img class="math" src="../_images/math/f87a0d638c67298a341d9b93ead88bf2f24a4eb2.png" alt="\exp(-\frac{t}{\tau})"/> to the red solid curve.</p>
@@ -665,15 +652,15 @@ if we put <code class="docutils literal notranslate"><span class="pre">n_nested_
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/home/louis/miniconda3/lib/python3.8/site-packages/scipy/optimize/minpack.py:828: OptimizeWarning: Covariance of the parameters could not be estimated
-  warnings.warn(&#39;Covariance of the parameters could not be estimated&#39;,
+/home/lvduyfhu/miniconda3/envs/test/lib/python3.14/site-packages/thermolib/tools.py:960: OptimizeWarning: Covariance of the parameters could not be estimated
+  pars, pcovs = curve_fit(function, upper_envelope_indices, upper_envelope_values, **curve_fit_kwargs)
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_error_estimation_19_1.png" src="../_images/tut_advanced_error_estimation_19_1.png" />
+<img alt="../_images/tut_advanced_error_estimation_20_1.png" src="../_images/tut_advanced_error_estimation_20_1.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -698,17 +685,8 @@ initial guess of <img class="math" src="../_images/math/914b2d4b6659b86d3153d551
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-/home/louis/miniconda3/lib/python3.8/site-packages/scipy/optimize/minpack.py:828: OptimizeWarning: Covariance of the parameters could not be estimated
-  warnings.warn(&#39;Covariance of the parameters could not be estimated&#39;,
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_error_estimation_21_1.png" src="../_images/tut_advanced_error_estimation_21_1.png" />
+<img alt="../_images/tut_advanced_error_estimation_22_0.png" src="../_images/tut_advanced_error_estimation_22_0.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -733,7 +711,7 @@ Fitted (integrated) correlation time: 2*tau =  4.000 timesteps
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_error_estimation_23_0.png" src="../_images/tut_advanced_error_estimation_23_0.png" />
+<img alt="../_images/tut_advanced_error_estimation_24_0.png" src="../_images/tut_advanced_error_estimation_24_0.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -747,7 +725,7 @@ Fitted (integrated) correlation time: 2*tau =  1191.743 timesteps
 <p>Which now indeed represents a much better fit. The above discussion is included here to highlight what might happen when computing correlation times and how to try and adress those issues. In the present case, however, the default settings of n_nested_enveloppe=1 and p0=[1] is just fine and we therefore proceed with those default settings.</p>
 </section>
 <section id="Constructing-the-FEP-with-correlated-error-estimate">
-<h2>Constructing the FEP with correlated error estimate<a class="headerlink" href="#Constructing-the-FEP-with-correlated-error-estimate" title="Permalink to this heading"></a></h2>
+<h2>Constructing the FEP with correlated error estimate<a class="headerlink" href="#Constructing-the-FEP-with-correlated-error-estimate" title="Link to this heading"></a></h2>
 <p>Let us now compute the correlation time for each trajectory. This can be done using the <code class="docutils literal notranslate"><span class="pre">decorrelate</span></code> routine. In this routine, we can also adjust the parameters for the enveloppe and the initial conditions by specifying respectively the <code class="docutils literal notranslate"><span class="pre">n_nested_envelopes</span></code> and <code class="docutils literal notranslate"><span class="pre">p0</span></code> arguments. However, in the following we can use the default values.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
@@ -760,24 +738,16 @@ Fitted (integrated) correlation time: 2*tau =  1191.743 timesteps
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu Sans.
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Figure size 432x288 with 0 Axes&gt;
+&lt;Figure size 640x480 with 0 Axes&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_error_estimation_27_2.png" src="../_images/tut_advanced_error_estimation_27_2.png" />
+<img alt="../_images/tut_advanced_error_estimation_28_1.png" src="../_images/tut_advanced_error_estimation_28_1.png" />
 </div>
 </div>
 <p>The above routine returns the correlation times for each simulation (i.e. each umbrella). As the error estimation is based on the Fisher information matrix of the maximum likelihood estimator, we can reconstruct the free energy profile using all original samples, but now we also parse the correlation times to the <code class="docutils literal notranslate"><span class="pre">from_wham</span></code> routine to obtain a more reliable error estimation by accounting for the reduced information due to correlation (i.e. only <img class="math" src="../_images/math/29008284107fe3cab6e7cee4be7a7e33a6364755.png" alt="\frac{N}{2\cdot\tau-1}"/> independent
@@ -802,11 +772,11 @@ SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 01.391s
-  bias poten. : 00h 00m 00.017s
-  solve scf   : 00h 00m 00.387s
-  error est.  : 00h 00m 01.210s
-  TOTAL       : 00h 00m 03.008s
+  histograms  : 00h 00m 00.160s
+  bias poten. : 00h 00m 00.011s
+  solve scf   : 00h 00m 00.192s
+  error est.  : 00h 00m 00.459s
+  TOTAL       : 00h 00m 00.823s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -823,20 +793,20 @@ TIMING SUMMARY
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Figure size 432x288 with 0 Axes&gt;
+&lt;Figure size 640x480 with 0 Axes&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_error_estimation_30_1.png" src="../_images/tut_advanced_error_estimation_30_1.png" />
+<img alt="../_images/tut_advanced_error_estimation_31_1.png" src="../_images/tut_advanced_error_estimation_31_1.png" />
 </div>
 </div>
 <p>We indeed see that the error bar increases from almost zero (for the case of assuming all samples to be independent, i.e. correlation time equal to 0) to a value of around 1-2 kJ/mol based on the correlation time.</p>
 </section>
 <section id="Evaluating-the-correlated-error-estimate">
-<h2>Evaluating the correlated error estimate<a class="headerlink" href="#Evaluating-the-correlated-error-estimate" title="Permalink to this heading"></a></h2>
+<h2>Evaluating the correlated error estimate<a class="headerlink" href="#Evaluating-the-correlated-error-estimate" title="Link to this heading"></a></h2>
 <p>In order to test the above error estimation, we are now going to generate profiles from various sources of subsets of the original trajectories and investigate whether the WHAM profile generated by each subset indeed falls within the predicted error bar. In order to make a fair comparison in terms of the error bar, we will make sure that each method uses trajectories that have approximately a number of samples equal to <img class="math" src="../_images/math/e48dcd7d817b1a38586969390e269921fa776810.png" alt="\frac{N}{2\cdot\tau-1}\approx\frac{200000}{1000}=200"/>, i.e. the
 previously estimated number of uncorrelated samples in a trajectory. The various methods for generating subsets of data are:</p>
 <ol class="arabic simple">
@@ -845,9 +815,9 @@ previously estimated number of uncorrelated samples in a trajectory. The various
 <li><p>Bootstrapped profiles: subsets each containing 200 random samples</p></li>
 </ol>
 <section id="Delayed-strided-WHAM-profiles">
-<h3>Delayed-strided WHAM profiles<a class="headerlink" href="#Delayed-strided-WHAM-profiles" title="Permalink to this heading"></a></h3>
+<h3>Delayed-strided WHAM profiles<a class="headerlink" href="#Delayed-strided-WHAM-profiles" title="Link to this heading"></a></h3>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">starts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span>
@@ -856,7 +826,7 @@ previously estimated number of uncorrelated samples in a trajectory. The various
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Constructing WHAM FEP for start=</span><span class="si">%i</span><span class="s2">&quot;</span> <span class="o">%</span><span class="k">start</span>)
     <span class="n">colvar_reader</span> <span class="o">=</span> <span class="n">ColVarReader</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="n">units</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;au&#39;</span><span class="p">],</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
     <span class="n">temp</span><span class="p">,</span> <span class="n">biasses</span><span class="p">,</span> <span class="n">trajectories</span> <span class="o">=</span> <span class="n">read_wham_input</span><span class="p">(</span>
-        <span class="n">fn_meta</span><span class="p">,</span> <span class="n">colvar_reader</span><span class="p">,</span> <span class="s1">&#39;trajectories_correlated/COLVAR_</span><span class="si">%s</span><span class="s1">.dat&#39;</span><span class="p">,</span>
+        <span class="n">fn_meta</span><span class="p">,</span> <span class="n">colvar_reader</span><span class="p">,</span> <span class="s1">&#39;colvars/correlated/COLVAR_</span><span class="si">%s</span><span class="s1">.dat&#39;</span><span class="p">,</span>
         <span class="n">bias_potential</span><span class="o">=</span><span class="s1">&#39;Parabola1D&#39;</span><span class="p">,</span> <span class="n">q01_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">kappa1_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">hist</span> <span class="o">=</span> <span class="n">Histogram1D</span><span class="o">.</span><span class="n">from_wham</span><span class="p">(</span><span class="n">bins</span><span class="p">,</span> <span class="n">trajectories</span><span class="p">,</span> <span class="n">biasses</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">Nscf</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
@@ -876,115 +846,115 @@ SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.007s
-  bias poten. : 00h 00m 00.014s
-  solve scf   : 00h 00m 00.993s
+  histograms  : 00h 00m 00.001s
+  bias poten. : 00h 00m 00.007s
+  solve scf   : 00h 00m 00.456s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 01.014s
+  TOTAL       : 00h 00m 00.465s
 ---------------------------------------------------------------------
 Constructing WHAM FEP for start=100
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.005s
-  bias poten. : 00h 00m 00.015s
-  solve scf   : 00h 00m 00.872s
+  histograms  : 00h 00m 00.001s
+  bias poten. : 00h 00m 00.006s
+  solve scf   : 00h 00m 00.384s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.893s
+  TOTAL       : 00h 00m 00.392s
 ---------------------------------------------------------------------
 Constructing WHAM FEP for start=200
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.004s
-  bias poten. : 00h 00m 00.014s
-  solve scf   : 00h 00m 00.819s
+  histograms  : 00h 00m 00.001s
+  bias poten. : 00h 00m 00.005s
+  solve scf   : 00h 00m 00.393s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.838s
+  TOTAL       : 00h 00m 00.401s
 ---------------------------------------------------------------------
 Constructing WHAM FEP for start=300
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.005s
-  bias poten. : 00h 00m 00.015s
-  solve scf   : 00h 00m 01.029s
+  histograms  : 00h 00m 00.001s
+  bias poten. : 00h 00m 00.006s
+  solve scf   : 00h 00m 00.470s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 01.049s
+  TOTAL       : 00h 00m 00.479s
 ---------------------------------------------------------------------
 Constructing WHAM FEP for start=400
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.008s
-  bias poten. : 00h 00m 00.019s
-  solve scf   : 00h 00m 00.299s
+  histograms  : 00h 00m 00.001s
+  bias poten. : 00h 00m 00.007s
+  solve scf   : 00h 00m 00.155s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.327s
+  TOTAL       : 00h 00m 00.164s
 ---------------------------------------------------------------------
 Constructing WHAM FEP for start=500
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.004s
-  bias poten. : 00h 00m 00.013s
-  solve scf   : 00h 00m 00.669s
+  histograms  : 00h 00m 00.001s
+  bias poten. : 00h 00m 00.006s
+  solve scf   : 00h 00m 00.341s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.687s
+  TOTAL       : 00h 00m 00.349s
 ---------------------------------------------------------------------
 Constructing WHAM FEP for start=600
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.006s
-  bias poten. : 00h 00m 00.013s
-  solve scf   : 00h 00m 00.980s
+  histograms  : 00h 00m 00.002s
+  bias poten. : 00h 00m 00.006s
+  solve scf   : 00h 00m 00.482s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 01.000s
+  TOTAL       : 00h 00m 00.490s
 ---------------------------------------------------------------------
 Constructing WHAM FEP for start=700
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.004s
-  bias poten. : 00h 00m 00.014s
-  solve scf   : 00h 00m 00.844s
+  histograms  : 00h 00m 00.001s
+  bias poten. : 00h 00m 00.006s
+  solve scf   : 00h 00m 00.425s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.863s
+  TOTAL       : 00h 00m 00.433s
 ---------------------------------------------------------------------
 Constructing WHAM FEP for start=800
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.004s
-  bias poten. : 00h 00m 00.012s
-  solve scf   : 00h 00m 00.572s
+  histograms  : 00h 00m 00.001s
+  bias poten. : 00h 00m 00.005s
+  solve scf   : 00h 00m 00.287s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.589s
+  TOTAL       : 00h 00m 00.294s
 ---------------------------------------------------------------------
 Constructing WHAM FEP for start=900
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.005s
-  bias poten. : 00h 00m 00.014s
-  solve scf   : 00h 00m 00.751s
+  histograms  : 00h 00m 00.001s
+  bias poten. : 00h 00m 00.006s
+  solve scf   : 00h 00m 00.367s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.770s
+  TOTAL       : 00h 00m 00.375s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fep_delstr</span> <span class="o">=</span> <span class="n">SimpleFreeEnergyProfile</span><span class="o">.</span><span class="n">from_average</span><span class="p">(</span><span class="n">feps</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="s1">&#39;std&#39;</span><span class="p">)</span>
@@ -1000,23 +970,23 @@ TIMING SUMMARY
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Figure size 432x288 with 0 Axes&gt;
+&lt;Figure size 640x480 with 0 Axes&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_error_estimation_36_1.png" src="../_images/tut_advanced_error_estimation_36_1.png" />
+<img alt="../_images/tut_advanced_error_estimation_37_1.png" src="../_images/tut_advanced_error_estimation_37_1.png" />
 </div>
 </div>
 <p>All profiles indeed fall within the predicted 2-sigma error bar.</p>
 </section>
 <section id="Blocked-WHAM-profile">
-<h3>Blocked WHAM profile<a class="headerlink" href="#Blocked-WHAM-profile" title="Permalink to this heading"></a></h3>
+<h3>Blocked WHAM profile<a class="headerlink" href="#Blocked-WHAM-profile" title="Link to this heading"></a></h3>
 <p>Here, for each original trajectory, a new trajectory is constructed in which each subsequent block of 1000 samples is replaced by its average.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">blocksize</span> <span class="o">=</span> <span class="mi">1000</span>
@@ -1041,16 +1011,16 @@ SCF did not converge!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.005s
-  bias poten. : 00h 00m 00.013s
-  solve scf   : 00h 00m 00.112s
+  histograms  : 00h 00m 00.001s
+  bias poten. : 00h 00m 00.006s
+  solve scf   : 00h 00m 00.056s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.131s
+  TOTAL       : 00h 00m 00.064s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plot_profiles</span><span class="p">([</span><span class="n">fep_decor</span><span class="p">,</span><span class="n">fep_block</span><span class="p">],</span> <span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;MLE-decor&#39;</span><span class="p">,</span><span class="s1">&#39;block&#39;</span><span class="p">],</span> <span class="n">flims</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">40</span><span class="p">],</span>
@@ -1063,19 +1033,19 @@ TIMING SUMMARY
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Figure size 432x288 with 0 Axes&gt;
+&lt;Figure size 640x480 with 0 Axes&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_error_estimation_41_1.png" src="../_images/tut_advanced_error_estimation_41_1.png" />
+<img alt="../_images/tut_advanced_error_estimation_42_1.png" src="../_images/tut_advanced_error_estimation_42_1.png" />
 </div>
 </div>
 <p>We see that the block profile is within the error predicted by the decorrelated profile, except for the many spikes. These spikes are due to the severaly overlap between subsequant umbrella trajectories after averaging. To illustrate lets consider the histograms of 3 subsequent original trajectories as well their blocked counterparts:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">bins2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mf">0.25</span><span class="p">,</span><span class="mf">0.251</span><span class="p">,</span><span class="mf">0.01</span><span class="p">)</span>
@@ -1094,19 +1064,19 @@ TIMING SUMMARY
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Figure size 432x288 with 0 Axes&gt;
+&lt;Figure size 640x480 with 0 Axes&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_error_estimation_43_1.png" src="../_images/tut_advanced_error_estimation_43_1.png" />
+<img alt="../_images/tut_advanced_error_estimation_44_1.png" src="../_images/tut_advanced_error_estimation_44_1.png" />
 </div>
 </div>
 <p>The above plot clearly shows sufficient overlap in the original trajectories.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hists</span> <span class="o">=</span> <span class="p">[</span>
@@ -1124,23 +1094,23 @@ TIMING SUMMARY
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Figure size 432x288 with 0 Axes&gt;
+&lt;Figure size 640x480 with 0 Axes&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_error_estimation_45_1.png" src="../_images/tut_advanced_error_estimation_45_1.png" />
+<img alt="../_images/tut_advanced_error_estimation_46_1.png" src="../_images/tut_advanced_error_estimation_46_1.png" />
 </div>
 </div>
 <p>The above plot clearly shows a lack of overlap in the new trajectories.</p>
 </section>
 <section id="Bootstrapped-WHAM-profiles">
-<h3>Bootstrapped WHAM profiles<a class="headerlink" href="#Bootstrapped-WHAM-profiles" title="Permalink to this heading"></a></h3>
+<h3>Bootstrapped WHAM profiles<a class="headerlink" href="#Bootstrapped-WHAM-profiles" title="Link to this heading"></a></h3>
 <p>Finally, we again reconstruct various FEPS, but know using bootstrapping applied to each of the original biased simulations. Again, we consider 10 trajectories.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">Nboot</span> <span class="o">=</span> <span class="mi">10</span>
@@ -1167,107 +1137,106 @@ SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.007s
-  bias poten. : 00h 00m 00.046s
-  solve scf   : 00h 00m 00.848s
+  histograms  : 00h 00m 00.001s
+  bias poten. : 00h 00m 00.011s
+  solve scf   : 00h 00m 00.203s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.901s
+  TOTAL       : 00h 00m 00.216s
 ---------------------------------------------------------------------
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.005s
-  bias poten. : 00h 00m 00.013s
-  solve scf   : 00h 00m 00.885s
+  histograms  : 00h 00m 00.002s
+  bias poten. : 00h 00m 00.006s
+  solve scf   : 00h 00m 00.384s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.904s
----------------------------------------------------------------------
-WARNING: the CV range you specified for the histogram does not cover the entire simulation range in trajectory 127. Simulation samples outside the given CV range were cropped out.
-SCF Converged!
----------------------------------------------------------------------
-TIMING SUMMARY
-  initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.004s
-  bias poten. : 00h 00m 00.014s
-  solve scf   : 00h 00m 00.724s
-  error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.743s
+  TOTAL       : 00h 00m 00.393s
 ---------------------------------------------------------------------
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.004s
-  bias poten. : 00h 00m 00.013s
-  solve scf   : 00h 00m 00.827s
+  histograms  : 00h 00m 00.001s
+  bias poten. : 00h 00m 00.007s
+  solve scf   : 00h 00m 00.364s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.845s
+  TOTAL       : 00h 00m 00.373s
 ---------------------------------------------------------------------
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.005s
-  bias poten. : 00h 00m 00.013s
-  solve scf   : 00h 00m 00.926s
+  histograms  : 00h 00m 00.001s
+  bias poten. : 00h 00m 00.006s
+  solve scf   : 00h 00m 00.414s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.946s
+  TOTAL       : 00h 00m 00.421s
 ---------------------------------------------------------------------
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.005s
-  bias poten. : 00h 00m 00.014s
-  solve scf   : 00h 00m 00.907s
+  histograms  : 00h 00m 00.001s
+  bias poten. : 00h 00m 00.006s
+  solve scf   : 00h 00m 00.376s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.927s
+  TOTAL       : 00h 00m 00.384s
 ---------------------------------------------------------------------
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.005s
-  bias poten. : 00h 00m 00.014s
-  solve scf   : 00h 00m 00.809s
+  histograms  : 00h 00m 00.002s
+  bias poten. : 00h 00m 00.006s
+  solve scf   : 00h 00m 00.446s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.829s
+  TOTAL       : 00h 00m 00.455s
 ---------------------------------------------------------------------
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.005s
-  bias poten. : 00h 00m 00.013s
-  solve scf   : 00h 00m 00.932s
+  histograms  : 00h 00m 00.001s
+  bias poten. : 00h 00m 00.006s
+  solve scf   : 00h 00m 00.399s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.951s
+  TOTAL       : 00h 00m 00.407s
 ---------------------------------------------------------------------
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.004s
-  bias poten. : 00h 00m 00.015s
-  solve scf   : 00h 00m 00.545s
+  histograms  : 00h 00m 00.001s
+  bias poten. : 00h 00m 00.006s
+  solve scf   : 00h 00m 00.314s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.565s
+  TOTAL       : 00h 00m 00.321s
 ---------------------------------------------------------------------
 SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.009s
-  bias poten. : 00h 00m 00.018s
-  solve scf   : 00h 00m 00.906s
+  histograms  : 00h 00m 00.001s
+  bias poten. : 00h 00m 00.006s
+  solve scf   : 00h 00m 00.243s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 00.934s
+  TOTAL       : 00h 00m 00.252s
+---------------------------------------------------------------------
+SCF Converged!
+---------------------------------------------------------------------
+TIMING SUMMARY
+  initializing: 00h 00m 00.000s
+  histograms  : 00h 00m 00.001s
+  bias poten. : 00h 00m 00.006s
+  solve scf   : 00h 00m 00.151s
+  error est.  : 00h 00m 00.000s
+  TOTAL       : 00h 00m 00.159s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fep_boot</span> <span class="o">=</span> <span class="n">SimpleFreeEnergyProfile</span><span class="o">.</span><span class="n">from_average</span><span class="p">(</span><span class="n">feps3</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="s1">&#39;std&#39;</span><span class="p">)</span>
@@ -1283,27 +1252,27 @@ TIMING SUMMARY
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Figure size 432x288 with 0 Axes&gt;
+&lt;Figure size 640x480 with 0 Axes&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_error_estimation_50_1.png" src="../_images/tut_advanced_error_estimation_50_1.png" />
+<img alt="../_images/tut_advanced_error_estimation_51_1.png" src="../_images/tut_advanced_error_estimation_51_1.png" />
 </div>
 </div>
 <p>We clearly see that all free energy profiles from the bootstrapped subtrajectories all fall well within the error bar computed by the MLE procedure using the decorrelated data.</p>
 </section>
 </section>
 <section id="Covariance-between-different-points-on-FEP">
-<h2>Covariance between different points on FEP<a class="headerlink" href="#Covariance-between-different-points-on-FEP" title="Permalink to this heading"></a></h2>
+<h2>Covariance between different points on FEP<a class="headerlink" href="#Covariance-between-different-points-on-FEP" title="Link to this heading"></a></h2>
 <p>It is important to realize that the free energy at <img class="math" src="../_images/math/690d77563c4babc4ea9f0cf597771cdf8b353a0a.png" alt="q_1"/> is not independent from the free energy at <img class="math" src="../_images/math/eeffde4b510c8320fd2429e9086cc15f36e87f19.png" alt="q_2"/>, in other words that the covariance between these points is not negligible. This is not only the case for close neighbors (large positive correlation), but in the present case of a profile with two equistable minima, also between points from these equistable minima (i.e. reactant and product state). The main reason for this the fact that the free energy is derived from a
 normalized probability and this normalization introduces a strong negative correlation between these two equistable minima, because decreased free energy (i.e. increased probability) for reactant implies increased free energy (i.e. decreased probality) for product.</p>
 <p>To illustrate the importance of this, we first plot samples of the full free energy profile according to error bars without covariance (using <code class="docutils literal notranslate"><span class="pre">error_estimate=mle_f</span></code>) and show the difference with the scenario where we redo the error estimation with explicit covariance using <code class="docutils literal notranslate"><span class="pre">error_estimate=mle_f_cov</span></code>.</p>
 <p>Considering first the free energy profile without covariance, we can plot samples using the plot routine as follows:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fep_decor</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
@@ -1316,25 +1285,17 @@ normalized probability and this normalization introduces a strong negative corre
 </pre></div>
 </div>
 </div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu Sans.
-</pre></div></div>
-</div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_error_estimation_54_1.png" src="../_images/tut_advanced_error_estimation_54_1.png" />
+<img alt="../_images/tut_advanced_error_estimation_55_0.png" src="../_images/tut_advanced_error_estimation_55_0.png" />
 </div>
 </div>
 <p>As we can see, the error just corresponds to normally random fluctuations on all points individually without any correlation between fluctuations.</p>
 <p>We now reconstruct the error on the fep by explicitly taking the covariance into account.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hist_cov</span> <span class="o">=</span> <span class="n">Histogram1D</span><span class="o">.</span><span class="n">from_wham</span><span class="p">(</span><span class="n">bins</span><span class="p">,</span> <span class="n">trajectories_1</span><span class="p">,</span> <span class="n">biasses</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="s1">&#39;mle_f_cov&#39;</span><span class="p">,</span> <span class="n">corrtimes</span><span class="o">=</span><span class="n">corrtimes</span><span class="p">,</span> <span class="n">Nscf</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
@@ -1353,17 +1314,22 @@ SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 01.357s
-  bias poten. : 00h 00m 00.037s
-  solve scf   : 00h 00m 00.396s
-  error est.  : 00h 00m 00.032s
-  TOTAL       : 00h 00m 01.824s
+  histograms  : 00h 00m 00.161s
+  bias poten. : 00h 00m 00.008s
+  solve scf   : 00h 00m 00.185s
+  error est.  : 00h 00m 00.562s
+  TOTAL       : 00h 00m 00.919s
 ---------------------------------------------------------------------
+WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
+WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
+WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
+WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
+WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
 </pre></div></div>
 </div>
 <p>As can be seen in the free energy profile below, the 2-sigma error bar on the entire profile is identical with or without accounting for covariance:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plot_profiles</span><span class="p">([</span><span class="n">fep_decor</span><span class="p">,</span><span class="n">fep_cov</span><span class="p">],</span> <span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;no cov&#39;</span><span class="p">,</span> <span class="s1">&#39;with cov&#39;</span><span class="p">],</span> <span class="n">flims</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">40</span><span class="p">])</span>
@@ -1375,19 +1341,19 @@ TIMING SUMMARY
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Figure size 432x288 with 0 Axes&gt;
+&lt;Figure size 640x480 with 0 Axes&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_error_estimation_58_1.png" src="../_images/tut_advanced_error_estimation_58_1.png" />
+<img alt="../_images/tut_advanced_error_estimation_59_1.png" src="../_images/tut_advanced_error_estimation_59_1.png" />
 </div>
 </div>
 <p>However, the coviarance is clearly non neglible as seen in the matrix plot below of the correlation matrix between the various points on the fep. This correlation ranges from 1 (perfect correlation), to 0 (completely uncorrelated) and -1 (perfect anticorrelation).</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fep_cov</span><span class="o">.</span><span class="n">plot_corr_matrix</span><span class="p">()</span>
@@ -1399,19 +1365,19 @@ TIMING SUMMARY
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Figure size 432x288 with 0 Axes&gt;
+&lt;Figure size 640x480 with 0 Axes&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_error_estimation_60_1.png" src="../_images/tut_advanced_error_estimation_60_1.png" />
+<img alt="../_images/tut_advanced_error_estimation_61_1.png" src="../_images/tut_advanced_error_estimation_61_1.png" />
 </div>
 </div>
 <p>Therefore, the error model in fep_cov generates much more reliable ‘samples’ of the full free energy profile by taking into account the full covariance matrix. This can again be plotted using the <code class="docutils literal notranslate"><span class="pre">fep_cov.plot_samples</span></code> routine:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fep_cov</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
@@ -1424,20 +1390,35 @@ TIMING SUMMARY
 </pre></div>
 </div>
 </div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
+WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
+WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
+WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
+WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
+WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
+WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
+WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
+</pre></div></div>
+</div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_error_estimation_62_0.png" src="../_images/tut_advanced_error_estimation_62_0.png" />
+<img alt="../_images/tut_advanced_error_estimation_63_1.png" src="../_images/tut_advanced_error_estimation_63_1.png" />
 </div>
 </div>
 <p>This figure clearly illustrates that higher free energy for reactant state also implies lower free energy for the product state and vice versa!</p>
 </section>
 <section id="Error-propagation">
-<h2>Error propagation<a class="headerlink" href="#Error-propagation" title="Permalink to this heading"></a></h2>
+<h2>Error propagation<a class="headerlink" href="#Error-propagation" title="Link to this heading"></a></h2>
 <p>Such correlated estimates of samples of the full free energy profile allows to do proper error propagation, i.e. to compute the free energy of integrated macrostates. To illustrate that, we compute propagate the error on the profile to that on the microstate/macrostate free energy derived from the profile for both the fep without covariance (i.e. fep_decor) and that with covariance estimate (i.e. fep_cov):</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fep_decor</span><span class="o">.</span><span class="n">process_states</span><span class="p">(</span><span class="n">lims</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">1.5</span><span class="p">,</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">1.5</span><span class="p">],</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -1452,37 +1433,37 @@ TIMING SUMMARY
 MICROSTATE ts:
 --------------
   index =  None
-  F     = 33.659 +- 0.776 kjmol
-  CV    = -0.001 +- 0.141 au
+  F     = 33.706 +- 0.803 kjmol
+  CV    = -0.003 +- 0.144 au
 
 MICROSTATE r:
 --------------
   index =  None
-  F     = 7.235 +- 0.717 kjmol
-  CV    = -1.283 +- 0.113 au
+  F     = 7.155 +- 0.995 kjmol
+  CV    = -1.284 +- 0.118 au
 
 MICROSTATE p:
 --------------
   index =  None
-  F     = 7.193 +- 0.891 kjmol
-  CV    = 1.276 +- 0.127 au
+  F     = 7.087 +- 1.023 kjmol
+  CV    = 1.278 +- 0.110 au
 
 MACROSTATE R:
 --------------
-  F       = 10.370 +- 0.289 kjmol
-  CV Mean = -1.235 +- 0.019 au
-  CV StD  = 0.146 +- 0.011 au
+  F       = 10.330 +- 0.346 kjmol
+  CV Mean = -1.238 +- 0.015 au
+  CV StD  = 0.144 +- 0.009 au
 
 MACROSTATE P:
 --------------
-  F       = 10.450 +- 0.343 kjmol
-  CV Mean = 1.233 +- 0.015 au
-  CV StD  = 0.146 +- 0.009 au
+  F       = 10.423 +- 0.311 kjmol
+  CV Mean = 1.233 +- 0.019 au
+  CV StD  = 0.145 +- 0.009 au
 
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[32]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fep_decor</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">flims</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">35</span><span class="p">])</span>
@@ -1493,14 +1474,14 @@ MACROSTATE P:
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_error_estimation_67_0.png" src="../_images/tut_advanced_error_estimation_67_0.png" />
+<img alt="../_images/tut_advanced_error_estimation_68_0.png" src="../_images/tut_advanced_error_estimation_68_0.png" />
 </div>
 </div>
 <p>Here, we clearly see that estimate of the red microstate dots representing local minima (reactant ant product) and maxima (transition state) are located on the lower/upper edge of the error bar respectively. That is because in the random samples of the full fep, the lack of correlation between neighboring points (which results in uncorrelated fluctuation on the free energy of each point) ensures that there will always be a point close to the lower/upper error bar boundary. Furthermore, we also
 see a much lower error on the blue macrostates representing the integral over reactant (left of ts) and product (right of ts) microstates. This is because the random fluctuation resulting the uncorrelated error bar is moslty filtered out by the integral.</p>
 <p>This clearly indicates the failure of uncorrelated error bars for propagation towards derived properties. Instead, we need to do such error propagation using correlated error bars coming from accounting for the full covariance matrix.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[32]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[33]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fep_cov</span><span class="o">.</span><span class="n">process_states</span><span class="p">(</span><span class="n">lims</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">1.5</span><span class="p">,</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">1.5</span><span class="p">],</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -1512,40 +1493,45 @@ see a much lower error on the blue macrostates representing the integral over re
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
+WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
 MICROSTATE ts:
 --------------
   index =  None
-  F     = 32.859 +- 1.420 kjmol
-  CV    = -0.003 +- 0.103 au
+  F     = 32.727 +- 1.604 kjmol
+  CV    = 0.008 +- 0.099 au
 
+WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
 MICROSTATE r:
 --------------
   index =  None
-  F     = 8.024 +- 1.389 kjmol
-  CV    = -1.290 +- 0.083 au
+  F     = 7.812 +- 1.517 kjmol
+  CV    = -1.275 +- 0.095 au
 
+WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
 MICROSTATE p:
 --------------
   index =  None
-  F     = 8.081 +- 1.677 kjmol
-  CV    = 1.300 +- 0.063 au
+  F     = 8.121 +- 1.710 kjmol
+  CV    = 1.279 +- 0.068 au
 
+WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
 MACROSTATE R:
 --------------
-  F       = 10.458 +- 1.245 kjmol
-  CV Mean = -1.233 +- 0.026 au
-  CV StD  = 0.147 +- 0.012 au
+  F       = 10.346 +- 1.702 kjmol
+  CV Mean = -1.239 +- 0.023 au
+  CV StD  = 0.144 +- 0.010 au
 
+WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
 MACROSTATE P:
 --------------
-  F       = 10.710 +- 1.460 kjmol
-  CV Mean = 1.232 +- 0.024 au
-  CV StD  = 0.145 +- 0.009 au
+  F       = 10.358 +- 1.353 kjmol
+  CV Mean = 1.230 +- 0.023 au
+  CV StD  = 0.146 +- 0.011 au
 
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[33]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[34]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fep_cov</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">flims</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">35</span><span class="p">])</span>
@@ -1556,7 +1542,15 @@ MACROSTATE P:
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_error_estimation_70_0.png" src="../_images/tut_advanced_error_estimation_70_0.png" />
+<img alt="../_images/tut_advanced_error_estimation_71_0.png" src="../_images/tut_advanced_error_estimation_71_0.png" />
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
 </div>
 </div>
 </section>
@@ -1573,7 +1567,7 @@ MACROSTATE P:
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Louis Vanduyfhuys.</p>
+    <p>&#169; Copyright 2026, Louis Vanduyfhuys.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

@@ -1,25 +1,23 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Computing the correlation time &mdash; ThermoLIB v1.7.2 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+  <title>Computing the correlation time &mdash; ThermoLIB v1.8.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/custom.css" />
 
   
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="_static/jquery.js?v=5d32c60e"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=131c94de"></script>
-        <script src="_static/doctools.js?v=888ff710"></script>
-        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=4eaa865d"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -39,9 +37,6 @@
             ThermoLIB
               <img src="_static/logo_thermolib_light.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                1.7
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -56,9 +51,10 @@
 <li class="toctree-l2"><a class="reference internal" href="ig.html#dependencies">Dependencies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ig.html#download-and-install-thermolib">Download and install ThermoLIB</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="ig.html#direct-install-using-pip">Direct install using pip</a></li>
-<li class="toctree-l3"><a class="reference internal" href="ig.html#developers-download">Developers download</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ig.html#source-code-download-and-install">Source code download and install</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="ig.html#update-thermolib">Update ThermoLIB</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ig.html#test-installation">Test installation</a></li>
 </ul>
 </li>
@@ -175,7 +171,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="tut/advanced_deprojection.html">Tutorial 6 - Deprojecting 1D FEP to 2D FES</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tut/advanced_deprojection.html">Tutorial 6 - Deprojection to extract energetic contribution to free energy</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="tut/advanced_deprojection.html#Introduction">Introduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tut/advanced_deprojection.html#Construct-1D-FEP">Construct 1D FEP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tut/advanced_deprojection.html#Deproject-to-2D-FES">Deproject to 2D FES</a><ul>
@@ -371,6 +367,8 @@
 <li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.interpolate_surface_2d"><code class="docutils literal notranslate"><span class="pre">interpolate_surface_2d()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.invert_fisher_to_covariance"><code class="docutils literal notranslate"><span class="pre">invert_fisher_to_covariance()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.multivariate_normal"><code class="docutils literal notranslate"><span class="pre">multivariate_normal()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.plot_histograms_1d"><code class="docutils literal notranslate"><span class="pre">plot_histograms_1d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.plot_histograms_overlap_1d"><code class="docutils literal notranslate"><span class="pre">plot_histograms_overlap_1d()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.read_wham_input"><code class="docutils literal notranslate"><span class="pre">read_wham_input()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.rolling_average"><code class="docutils literal notranslate"><span class="pre">rolling_average()</span></code></a></li>
 </ul>
@@ -416,10 +414,10 @@
            <div itemprop="articleBody">
              
   <section id="computing-the-correlation-time">
-<span id="seclab-ug-corrtime"></span><h1>Computing the correlation time<a class="headerlink" href="#computing-the-correlation-time" title="Permalink to this heading"></a></h1>
+<span id="seclab-ug-corrtime"></span><h1>Computing the correlation time<a class="headerlink" href="#computing-the-correlation-time" title="Link to this heading"></a></h1>
 <p>Whenever samples are correlated (as is the case when each subsequent step of a molecular dynamics simulation is used for the trajectory data), we cannot compute error bars without explicitly taking these correlations into account (if we don’t we will underestimate the error bars). Therefore, we need to estimate the (auto)correlation time for each trajectory used in the histogram construction. Her, we illustrate how to do this using ThermoLIB. There are several methods possible to do this, the one we illustrate here is by means of constructing the auto correlation function (acf) and fit a simple exponential decay to it as implemented in the <a class="reference internal" href="rg_tools.html#thermolib.tools.decorrelate" title="thermolib.tools.decorrelate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">decorrelate</span></code></a> routine.</p>
 <section id="fit-to-autocorrelation-function-for-single-trajectory">
-<h2>Fit to autocorrelation function for single trajectory<a class="headerlink" href="#fit-to-autocorrelation-function-for-single-trajectory" title="Permalink to this heading"></a></h2>
+<h2>Fit to autocorrelation function for single trajectory<a class="headerlink" href="#fit-to-autocorrelation-function-for-single-trajectory" title="Link to this heading"></a></h2>
 <p>To estimate the (integrated) autocorrelation time of the CV in a given trajectory, we first compute the autocorrelation function (acf) and fit a simple exponentional function to it of the form</p>
 <div class="math">
 <p><img src="_images/math/f057154ba27bee3db37b6e221a394345cad40b91.png" alt="\exp(-\frac{t}{\tau})"/></p>
@@ -428,7 +426,8 @@
 </pre></div>
 </div>
 <p>This plot could look as follows:</p>
-<a class="reference internal image-reference" href="_images/acf.png"><img alt="_images/acf.png" src="_images/acf.png" style="width: 600px;" /></a>
+<a class="reference internal image-reference" href="_images/acf.png"><img alt="_images/acf.png" src="_images/acf.png" style="width: 600px;" />
+</a>
 <p>The meaning for the various elements in this plot are:</p>
 <ul class="simple">
 <li><p>The shaded black area is resulting from very high frequency atomic oscillations (which may be absent in your plot if the trajectory comes from an MD simulation with a much larger time step, or when you only dumped the trajectory every so many time steps)</p></li>
@@ -443,7 +442,8 @@
 </pre></div>
 </div>
 <p>In the present example, this results in the following plot:</p>
-<a class="reference internal image-reference" href="_images/acf2.png"><img alt="_images/acf2.png" src="_images/acf2.png" style="width: 600px;" /></a>
+<a class="reference internal image-reference" href="_images/acf2.png"><img alt="_images/acf2.png" src="_images/acf2.png" style="width: 600px;" />
+</a>
 <p>Now we clearly see that the fit was not done properly. This is because the exponential curve tries to follow a function that oscillates very quickly from positive numbers to equally large but opposite negative numbers. As the exponential cannot follow this, it just averages to zero. This is exactly why we have set the default value of n_nested_envelopes to 1 (as this will usually be the case if MD trajectories are used with small time steps without sub sampling in the output generation).</p>
 </div>
 <div class="admonition warning">
@@ -457,17 +457,19 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">corrtime</span> <span class="o">=</span> <span class="n">corrtime_from_acf</span><span class="p">(</span><span class="n">traj</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">n_nested_envolopes</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 </pre></div>
 </div>
-<a class="reference internal image-reference" href="_images/acf3.png"><img alt="_images/acf3.png" src="_images/acf3.png" style="width: 600px;" /></a>
+<a class="reference internal image-reference" href="_images/acf3.png"><img alt="_images/acf3.png" src="_images/acf3.png" style="width: 600px;" />
+</a>
 <p>We can now see that the fit to the envelope of the envelope was not well performed, i.e. the red dashed line does not follow the red solid line. Furthermore, we also see that the resulting exponential correlation time is 1 (corresponding to an integrated correlation time of 1 as indicated in the plot legend). This value of <img class="math" src="_images/math/02d0897a6b00abcf1e0b969fad3ff0cab665995f.png" alt="\tau=1"/> actually corresponds to the initial value of the fitter, indicating the the fit routine actually immediately gave up and just returned the initial guess. To improve on this, we can provide a better initial guess through the use of the <code class="docutils literal notranslate"><span class="pre">p0</span></code> argument.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">corrtime</span> <span class="o">=</span> <span class="n">corrtime_from_acf</span><span class="p">(</span><span class="n">traj</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">n_nested_envolopes</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">p0</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
 </pre></div>
 </div>
-<a class="reference internal image-reference" href="_images/acf4.png"><img alt="_images/acf4.png" src="_images/acf4.png" style="width: 600px;" /></a>
+<a class="reference internal image-reference" href="_images/acf4.png"><img alt="_images/acf4.png" src="_images/acf4.png" style="width: 600px;" />
+</a>
 <p>The fit now indeed nicely follows the red solid line again. The choice of <code class="docutils literal notranslate"><span class="pre">p0=1000</span></code> was made just based on the previous plots of the acf which clearly indicated a decay in the order of magnitude of 1000 timesteps.</p>
 </div>
 </section>
 <section id="compute-correlation-time-for-trajectory-series">
-<h2>Compute correlation time for trajectory series<a class="headerlink" href="#compute-correlation-time-for-trajectory-series" title="Permalink to this heading"></a></h2>
+<h2>Compute correlation time for trajectory series<a class="headerlink" href="#compute-correlation-time-for-trajectory-series" title="Link to this heading"></a></h2>
 <p>Once we know a decent setup for fitting the autocorrelation function (i.e. the choice of the optional parameters discussed above), we can proceed to repeat the procedure for each trajectory in a list of trajectories (as given by <code class="docutils literal notranslate"><span class="pre">traj</span></code> below):</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">#code to compute correlation times for each trajectory in the list traj</span>
 <span class="n">corrtimes</span> <span class="o">=</span> <span class="n">decorrelate</span><span class="p">(</span><span class="n">traj</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -495,7 +497,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Louis Vanduyfhuys.</p>
+    <p>&#169; Copyright 2026, Louis Vanduyfhuys.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

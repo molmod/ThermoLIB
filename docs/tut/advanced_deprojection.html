@@ -1,26 +1,24 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tutorial 6 - Deprojecting 1D FEP to 2D FES &mdash; ThermoLIB v1.7.2 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+  <title>Tutorial 6 - Deprojection to extract energetic contribution to free energy &mdash; ThermoLIB v1.8.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
       <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../_static/jquery.js?v=5d32c60e"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=131c94de"></script>
-        <script src="../_static/doctools.js?v=888ff710"></script>
-        <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=4eaa865d"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -40,9 +38,6 @@
             ThermoLIB
               <img src="../_static/logo_thermolib_light.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                1.7
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -57,7 +52,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../ig.html#dependencies">Dependencies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../ig.html#download-and-install-thermolib">Download and install ThermoLIB</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../ig.html#direct-install-using-pip">Direct install using pip</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../ig.html#developers-download">Developers download</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../ig.html#source-code-download-and-install">Source code download and install</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../ig.html#update-thermolib">Update ThermoLIB</a></li>
@@ -177,7 +172,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Tutorial 6 - Deprojecting 1D FEP to 2D FES</a><ul>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Tutorial 6 - Deprojection to extract energetic contribution to free energy</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#Introduction">Introduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#Construct-1D-FEP">Construct 1D FEP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#Deproject-to-2D-FES">Deproject to 2D FES</a><ul>
@@ -373,6 +368,8 @@
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.interpolate_surface_2d"><code class="docutils literal notranslate"><span class="pre">interpolate_surface_2d()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.invert_fisher_to_covariance"><code class="docutils literal notranslate"><span class="pre">invert_fisher_to_covariance()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.multivariate_normal"><code class="docutils literal notranslate"><span class="pre">multivariate_normal()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.plot_histograms_1d"><code class="docutils literal notranslate"><span class="pre">plot_histograms_1d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.plot_histograms_overlap_1d"><code class="docutils literal notranslate"><span class="pre">plot_histograms_overlap_1d()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.read_wham_input"><code class="docutils literal notranslate"><span class="pre">read_wham_input()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.rolling_average"><code class="docutils literal notranslate"><span class="pre">rolling_average()</span></code></a></li>
 </ul>
@@ -407,7 +404,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../tutorials.html">Tutorials</a></li>
-      <li class="breadcrumb-item active">Tutorial 6 - Deprojecting 1D FEP to 2D FES</li>
+      <li class="breadcrumb-item active">Tutorial 6 - Deprojection to extract energetic contribution to free energy</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/tut/advanced_deprojection.ipynb.txt" rel="nofollow"> View page source</a>
       </li>
@@ -417,10 +414,10 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="Tutorial-6---Deprojecting-1D-FEP-to-2D-FES">
-<h1>Tutorial 6 - Deprojecting 1D FEP to 2D FES<a class="headerlink" href="#Tutorial-6---Deprojecting-1D-FEP-to-2D-FES" title="Permalink to this heading"></a></h1>
+  <section id="Tutorial-6---Deprojection-to-extract-energetic-contribution-to-free-energy">
+<h1>Tutorial 6 - Deprojection to extract energetic contribution to free energy<a class="headerlink" href="#Tutorial-6---Deprojection-to-extract-energetic-contribution-to-free-energy" title="Link to this heading"></a></h1>
 <section id="Introduction">
-<h2>Introduction<a class="headerlink" href="#Introduction" title="Permalink to this heading"></a></h2>
+<h2>Introduction<a class="headerlink" href="#Introduction" title="Link to this heading"></a></h2>
 <p>In this notebook we are going to show how one could construct a 2D free energy surface from the results of umbrella sampling that was only biased in 1D, i.e. along a single CV. Such ‘deprojection’ will be used/applied to first construct a F(CV,U) free energy surface and then extract the internal energy U(CV) contribution to the original free energy profile F(CV) (which also allows to extract the entropic contribution).</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
@@ -435,15 +432,14 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">thermolib.thermodynamics.fep</span> <span class="kn">import</span> <span class="n">SimpleFreeEnergyProfile</span><span class="p">,</span> <span class="n">FreeEnergySurface2D</span><span class="p">,</span> <span class="n">plot_profiles</span>
-<span class="kn">from</span> <span class="nn">thermolib.thermodynamics.histogram</span> <span class="kn">import</span> <span class="n">Histogram1D</span><span class="p">,</span> <span class="n">Histogram2D</span>
-<span class="kn">from</span> <span class="nn">thermolib.tools</span> <span class="kn">import</span> <span class="n">read_wham_input</span><span class="p">,</span> <span class="n">decorrelate</span>
-<span class="kn">from</span> <span class="nn">thermolib.thermodynamics.trajectory</span> <span class="kn">import</span> <span class="n">ColVarReader</span><span class="p">,</span> <span class="n">ASEExtendedXYZReader</span>
-<span class="kn">from</span> <span class="nn">thermolib.thermodynamics.condprob</span> <span class="kn">import</span> <span class="n">ConditionalProbability1D1D</span><span class="p">,</span> <span class="n">ConditionalProbability1D2D</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamics.fep</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleFreeEnergyProfile</span><span class="p">,</span> <span class="n">FreeEnergySurface2D</span><span class="p">,</span> <span class="n">plot_profiles</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamics.histogram</span><span class="w"> </span><span class="kn">import</span> <span class="n">Histogram1D</span><span class="p">,</span> <span class="n">Histogram2D</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_wham_input</span><span class="p">,</span> <span class="n">decorrelate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamics.trajectory</span><span class="w"> </span><span class="kn">import</span> <span class="n">ColVarReader</span><span class="p">,</span> <span class="n">ASEExtendedXYZReader</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamics.condprob</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConditionalProbability1D1D</span><span class="p">,</span> <span class="n">ConditionalProbability1D2D</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.units</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span><span class="o">,</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">pp</span><span class="o">,</span> <span class="nn">os</span>
-
-<span class="kn">from</span> <span class="nn">molmod.units</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span><span class="o">,</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span><span class="o">,</span><span class="w"> </span><span class="nn">os</span>
 </pre></div>
 </div>
 </div>
@@ -452,13 +448,13 @@
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">prefix</span> <span class="o">=</span> <span class="s1">&#39;advanced_wham1D_to_2D_&#39;</span>
-<span class="n">fn_meta</span> <span class="o">=</span> <span class="s1">&#39;data/formic_acid_dimer_link/wham_input.txt&#39;</span>
+<span class="n">fn_meta</span> <span class="o">=</span> <span class="s1">&#39;data/formic_acid_dimer/wham_input.txt&#39;</span>
 </pre></div>
 </div>
 </div>
 </section>
 <section id="Construct-1D-FEP">
-<h2>Construct 1D FEP<a class="headerlink" href="#Construct-1D-FEP" title="Permalink to this heading"></a></h2>
+<h2>Construct 1D FEP<a class="headerlink" href="#Construct-1D-FEP" title="Link to this heading"></a></h2>
 <p>We first construct the original 1D FEP by means of a regular WHAM analysis.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
@@ -486,8 +482,8 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/home/louis/miniconda3/lib/python3.8/site-packages/scipy/optimize/minpack.py:828: OptimizeWarning: Covariance of the parameters could not be estimated
-  warnings.warn(&#39;Covariance of the parameters could not be estimated&#39;,
+/home/lvduyfhu/miniconda3/envs/test/lib/python3.14/site-packages/thermolib/tools.py:960: OptimizeWarning: Covariance of the parameters could not be estimated
+  pars, pcovs = curve_fit(function, upper_envelope_indices, upper_envelope_values, **curve_fit_kwargs)
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -495,7 +491,7 @@
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Figure size 432x288 with 0 Axes&gt;
+&lt;Figure size 640x480 with 0 Axes&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -530,11 +526,11 @@ SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.055s
-  bias poten. : 00h 00m 00.006s
-  solve scf   : 00h 00m 00.648s
-  error est.  : 00h 00m 00.017s
-  TOTAL       : 00h 00m 00.728s
+  histograms  : 00h 00m 00.010s
+  bias poten. : 00h 00m 00.003s
+  solve scf   : 00h 00m 00.363s
+  error est.  : 00h 00m 00.329s
+  TOTAL       : 00h 00m 00.707s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -553,12 +549,18 @@ TIMING SUMMARY
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
-<div class="output_area stderr docutils container">
+<div class="output_area docutils container">
 <div class="highlight"><pre>
-findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu Sans.
-findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu Sans.
-findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu Sans.
-findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu Sans.
+WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
+WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
+WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
+WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
+WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
+WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
+WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
+WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
+WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
+WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -570,13 +572,16 @@ findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu S
 </div>
 </section>
 <section id="Deproject-to-2D-FES">
-<h2>Deproject to 2D FES<a class="headerlink" href="#Deproject-to-2D-FES" title="Permalink to this heading"></a></h2>
+<h2>Deproject to 2D FES<a class="headerlink" href="#Deproject-to-2D-FES" title="Link to this heading"></a></h2>
 <p>In this section, we will construct a 2D free energy surface using the original 1D-biased umbrella simulations using WHAM. The 2D FES is expressed in terms of the original collective variable CV and a new additional collective variable Q chosen as the potential energy U of the total system. This particular choice will later allow to compute the average energy (and its error) as function of the original CV. This in turn allows to interpret the original 1D FEP in terms of its energy and entropy
 contributions.</p>
-<p>Computing the 2D FES can be done in two different ways, which we will both illustrate here and show that they lead to consistent results. 1) The first, more direct, route applies a 2D WHAM analysis to the simulation data in which the originally applied 1D biasing potentials (in terms of CV) are reinterpreted as 2D bias potentials (in terms of CV and Q) that are invariant under the new collective variable Q. 2) The second route starts from the original 1D FEP and applies a deprojection using the
-conditional probability distribution p(Q|CV) of the new collective variable Q (i.e. the internal energy) conditional on the old collective variable CV.</p>
+<p>Computing the 2D FES can be done in two different ways, which we will both illustrate here and show that they lead to consistent results.</p>
+<ol class="arabic simple">
+<li><p>The first, more direct, route applies a 2D WHAM analysis to the simulation data in which the originally applied 1D biasing potentials (in terms of CV) are reinterpreted as 2D bias potentials (in terms of CV and Q) that are invariant under the new collective variable Q.</p></li>
+<li><p>The second route starts from the original 1D FEP and applies a deprojection using the conditional probability distribution p(Q|CV) of the new collective variable Q (i.e. the internal energy) conditional on the old collective variable CV.</p></li>
+</ol>
 <section id="Direct-route---2D-WHAM">
-<h3>Direct route - 2D WHAM<a class="headerlink" href="#Direct-route---2D-WHAM" title="Permalink to this heading"></a></h3>
+<h3>Direct route - 2D WHAM<a class="headerlink" href="#Direct-route---2D-WHAM" title="Link to this heading"></a></h3>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
@@ -615,25 +620,16 @@ conditional probability distribution p(Q|CV) of the new collective variable Q (i
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-/home/louis/miniconda3/lib/python3.8/site-packages/scipy/optimize/minpack.py:828: OptimizeWarning: Covariance of the parameters could not be estimated
-  warnings.warn(&#39;Covariance of the parameters could not be estimated&#39;,
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Figure size 432x288 with 0 Axes&gt;
+&lt;Figure size 640x480 with 0 Axes&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_deprojection_22_2.png" src="../_images/tut_advanced_deprojection_22_2.png" />
+<img alt="../_images/tut_advanced_deprojection_22_1.png" src="../_images/tut_advanced_deprojection_22_1.png" />
 </div>
 </div>
 <p>We could also approximate the correlation time by that of only one of the collective variables (and hence neglect correlation times of the other collective variable) by using the keyword argument <code class="docutils literal notranslate"><span class="pre">decorrelate_only</span></code>. However, here we proceed with the max of both as computed above.</p>
@@ -656,7 +652,7 @@ conditional probability distribution p(Q|CV) of the new collective variable Q (i
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
--32.31289121089313 50.24649344792951
+-32.31289121104237 50.24649344778027
 </pre></div></div>
 </div>
 <p>Based on this range, we bin the energy within [-30,50] kjmol.</p>
@@ -665,7 +661,7 @@ conditional probability distribution p(Q|CV) of the new collective variable Q (i
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">bins_cv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mf">1.55</span><span class="p">,</span> <span class="mf">1.55</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">)</span>
-<span class="n">bins_u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mi">30</span><span class="p">,</span> <span class="mf">52.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">)</span><span class="o">*</span><span class="n">kjmol</span>
+<span class="n">bins_u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mi">20</span><span class="p">,</span> <span class="mf">52.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">)</span><span class="o">*</span><span class="n">kjmol</span>
 <span class="n">hist2d1</span> <span class="o">=</span> <span class="n">Histogram2D</span><span class="o">.</span><span class="n">from_wham</span><span class="p">([</span><span class="n">bins_cv</span><span class="p">,</span> <span class="n">bins_u</span><span class="p">],</span> <span class="n">traj2d</span><span class="p">,</span> <span class="n">bias2d</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="s1">&#39;mle_f_cov&#39;</span><span class="p">,</span> <span class="n">corrtimes</span><span class="o">=</span><span class="n">corrtimes_2d</span><span class="p">,</span> <span class="n">convergence</span><span class="o">=</span><span class="mf">1e-7</span><span class="p">,</span> <span class="n">Nscf</span><span class="o">=</span><span class="mi">50000</span><span class="p">,</span> <span class="n">cv2_output_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">cv1_label</span><span class="o">=</span><span class="s1">&#39;CV&#39;</span><span class="p">,</span> <span class="n">cv2_label</span><span class="o">=</span><span class="s1">&#39;U&#39;</span><span class="p">)</span>
 <span class="n">fes1</span> <span class="o">=</span> <span class="n">FreeEnergySurface2D</span><span class="o">.</span><span class="n">from_histogram</span><span class="p">(</span><span class="n">hist2d1</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span>
 <span class="n">fes1</span><span class="o">.</span><span class="n">set_ref</span><span class="p">(</span><span class="n">ref</span><span class="o">=</span><span class="s1">&#39;min&#39;</span><span class="p">)</span>
@@ -778,12 +774,12 @@ WARNING: Histogram of trajectory 106 should have total count of 10000 (=number o
 WARNING: Histogram of trajectory 107 should have total count of 10000 (=number of simulation steps), but found 9987.000000 (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.
 WARNING: Histogram of trajectory 108 should have total count of 10000 (=number of simulation steps), but found 9998.000000 (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.
 WARNING: Histogram of trajectory 109 should have total count of 10000 (=number of simulation steps), but found 9995.000000 (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.
-WARNING: Histogram of trajectory 111 should have total count of 10000 (=number of simulation steps), but found 9998.000000 (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.
+WARNING: Histogram of trajectory 111 should have total count of 10000 (=number of simulation steps), but found 9997.000000 (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.
 WARNING: Histogram of trajectory 112 should have total count of 10000 (=number of simulation steps), but found 9991.000000 (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.
 WARNING: Histogram of trajectory 113 should have total count of 10000 (=number of simulation steps), but found 9997.000000 (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.
 WARNING: Histogram of trajectory 114 should have total count of 10000 (=number of simulation steps), but found 9990.000000 (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.
-WARNING: Histogram of trajectory 115 should have total count of 10000 (=number of simulation steps), but found 9968.000000 (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.
-WARNING: Histogram of trajectory 116 should have total count of 10000 (=number of simulation steps), but found 9998.000000 (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.
+WARNING: Histogram of trajectory 115 should have total count of 10000 (=number of simulation steps), but found 9967.000000 (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.
+WARNING: Histogram of trajectory 116 should have total count of 10000 (=number of simulation steps), but found 9997.000000 (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.
 WARNING: Histogram of trajectory 118 should have total count of 10000 (=number of simulation steps), but found 9998.000000 (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.
 WARNING: Histogram of trajectory 119 should have total count of 10000 (=number of simulation steps), but found 9995.000000 (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.
 WARNING: Histogram of trajectory 120 should have total count of 10000 (=number of simulation steps), but found 9987.000000 (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.
@@ -799,11 +795,11 @@ WARNING: Histogram of trajectory 127 should have total count of 10000 (=number o
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.064s
-  bias poten. : 00h 00m 00.991s
-  solve scf   : 00h 00m 04.861s
-  error est.  : 00h 00m 01.966s
-  TOTAL       : 00h 00m 07.883s
+  histograms  : 00h 00m 00.046s
+  bias poten. : 00h 00m 00.344s
+  solve scf   : 00h 00m 03.066s
+  error est.  : 00h 00m 02.577s
+  TOTAL       : 00h 00m 06.035s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -820,29 +816,20 @@ TIMING SUMMARY
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:2157: MatplotlibDeprecationWarning: The &#39;extend&#39; parameter to Colorbar has no effect because it is overridden by the mappable; it is deprecated since 3.3 and will be removed two minor releases later.
-  cbar = pp.colorbar(contourf, ax=ax, extend=&#39;both&#39;)
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Figure size 432x288 with 0 Axes&gt;
+&lt;Figure size 640x480 with 0 Axes&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_deprojection_30_2.png" src="../_images/tut_advanced_deprojection_30_2.png" />
+<img alt="../_images/tut_advanced_deprojection_30_1.png" src="../_images/tut_advanced_deprojection_30_1.png" />
 </div>
 </div>
 <section id="Deal-with-the-unsufficiently-sampled-edges-of-phase-space-in-FES-projection">
-<h4>Deal with the unsufficiently sampled edges of phase space in FES projection<a class="headerlink" href="#Deal-with-the-unsufficiently-sampled-edges-of-phase-space-in-FES-projection" title="Permalink to this heading"></a></h4>
+<h4>Deal with the unsufficiently sampled edges of phase space in FES projection<a class="headerlink" href="#Deal-with-the-unsufficiently-sampled-edges-of-phase-space-in-FES-projection" title="Link to this heading"></a></h4>
 <p>The error (see middle plot) in the region for <img class="math" src="../_images/math/c47c6ab4625db7b8d9025bf7dc8be02f85157f18.png" alt="U&gt;40\ \text{kJ}.\text{mol}^{-1}"/> and <img class="math" src="../_images/math/d9fecc6b794e1897b03e3fdd4c6498ac682f2ee7.png" alt="|CV|&gt;0.5"/> is so high (more than <img class="math" src="../_images/math/e1888e7df313c76d088b7156b92fedaa98bc14c4.png" alt="20\ \text{kJ}.\text{mol}^{-1}"/>) that it gives rise to a lower bound for the error interval (see right plot) that is lower than the actual stable reactant state (i.e. lower than <img class="math" src="../_images/math/c757a2578635fc39cfe41b705863ad3178a0dfcb.png" alt="0\ \text{kJ}.\text{mol}^{-1}"/>). This can poison error propagation as these states will (wrongly) become the dominating states. To prevent this, we can clip off states which almost
 not sampled in any of the biased simulations by setting the <code class="docutils literal notranslate"><span class="pre">error_p_thresshold</span></code> argument as is done below. Setting <code class="docutils literal notranslate"><span class="pre">error_p_threshold=0.001</span></code> means that any bin in the FES for which there is no single biased simulation in which the biased probability greater than 0.001, will be deactivated for error calculation (i.e. error will not be computed).</p>
 <div class="nbinput docutils container">
@@ -850,7 +837,7 @@ not sampled in any of the biased simulations by setting the <code class="docutil
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">bins_cv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mf">1.55</span><span class="p">,</span> <span class="mf">1.55</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">)</span>
-<span class="n">bins_u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mi">30</span><span class="p">,</span> <span class="mf">52.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">)</span><span class="o">*</span><span class="n">kjmol</span>
+<span class="n">bins_u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mi">20</span><span class="p">,</span> <span class="mf">52.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">)</span><span class="o">*</span><span class="n">kjmol</span>
 <span class="n">hist2d1</span> <span class="o">=</span> <span class="n">Histogram2D</span><span class="o">.</span><span class="n">from_wham</span><span class="p">([</span><span class="n">bins_cv</span><span class="p">,</span> <span class="n">bins_u</span><span class="p">],</span> <span class="n">traj2d</span><span class="p">,</span> <span class="n">bias2d</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="s1">&#39;mle_f_cov&#39;</span><span class="p">,</span> <span class="n">error_p_threshold</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">corrtimes</span><span class="o">=</span><span class="n">corrtimes_2d</span><span class="p">,</span> <span class="n">convergence</span><span class="o">=</span><span class="mf">1e-7</span><span class="p">,</span> <span class="n">Nscf</span><span class="o">=</span><span class="mi">50000</span><span class="p">,</span> <span class="n">cv2_output_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">cv1_label</span><span class="o">=</span><span class="s1">&#39;CV&#39;</span><span class="p">,</span> <span class="n">cv2_label</span><span class="o">=</span><span class="s1">&#39;U&#39;</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="s1">&#39;medium&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -963,12 +950,12 @@ WARNING: Histogram of trajectory 106 should have total count of 10000 (=number o
 WARNING: Histogram of trajectory 107 should have total count of 10000 (=number of simulation steps), but found 9987.000000 (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.
 WARNING: Histogram of trajectory 108 should have total count of 10000 (=number of simulation steps), but found 9998.000000 (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.
 WARNING: Histogram of trajectory 109 should have total count of 10000 (=number of simulation steps), but found 9995.000000 (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.
-WARNING: Histogram of trajectory 111 should have total count of 10000 (=number of simulation steps), but found 9998.000000 (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.
+WARNING: Histogram of trajectory 111 should have total count of 10000 (=number of simulation steps), but found 9997.000000 (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.
 WARNING: Histogram of trajectory 112 should have total count of 10000 (=number of simulation steps), but found 9991.000000 (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.
 WARNING: Histogram of trajectory 113 should have total count of 10000 (=number of simulation steps), but found 9997.000000 (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.
 WARNING: Histogram of trajectory 114 should have total count of 10000 (=number of simulation steps), but found 9990.000000 (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.
-WARNING: Histogram of trajectory 115 should have total count of 10000 (=number of simulation steps), but found 9968.000000 (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.
-WARNING: Histogram of trajectory 116 should have total count of 10000 (=number of simulation steps), but found 9998.000000 (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.
+WARNING: Histogram of trajectory 115 should have total count of 10000 (=number of simulation steps), but found 9967.000000 (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.
+WARNING: Histogram of trajectory 116 should have total count of 10000 (=number of simulation steps), but found 9997.000000 (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.
 WARNING: Histogram of trajectory 118 should have total count of 10000 (=number of simulation steps), but found 9998.000000 (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.
 WARNING: Histogram of trajectory 119 should have total count of 10000 (=number of simulation steps), but found 9995.000000 (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.
 WARNING: Histogram of trajectory 120 should have total count of 10000 (=number of simulation steps), but found 9987.000000 (are you sure the CV range is sufficient?). Number of simulation steps adjusted to match total histogram count.
@@ -984,7 +971,7 @@ Solving WHAM equations (SCF loop) ...
   SCF Converged!
 Estimating error ...
   defining zero-mask ...
-    deactivated 771 bins
+    deactivated 527 bins
     deactivated 0 sims
   applying zero-mask ...
   inverting Fisher matrix ...
@@ -992,11 +979,11 @@ Estimating error ...
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.061s
-  bias poten. : 00h 00m 01.049s
-  solve scf   : 00h 00m 04.486s
-  error est.  : 00h 00m 01.918s
-  TOTAL       : 00h 00m 07.515s
+  histograms  : 00h 00m 00.045s
+  bias poten. : 00h 00m 00.353s
+  solve scf   : 00h 00m 03.128s
+  error est.  : 00h 00m 02.267s
+  TOTAL       : 00h 00m 05.795s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -1016,7 +1003,7 @@ TIMING SUMMARY
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Figure size 432x288 with 0 Axes&gt;
+&lt;Figure size 640x480 with 0 Axes&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -1029,7 +1016,7 @@ TIMING SUMMARY
 <p>In the plot above, you can now clearly see that the states that previously had a lower error bound below 0 kJ/mol are now no longer included in error calculation and hence also no longer have a lower error bound associated to it (it is blanck in the plot).</p>
 </section>
 <section id="Some-additional-1D-plots-of-slices">
-<h4>Some additional 1D plots of slices<a class="headerlink" href="#Some-additional-1D-plots-of-slices" title="Permalink to this heading"></a></h4>
+<h4>Some additional 1D plots of slices<a class="headerlink" href="#Some-additional-1D-plots-of-slices" title="Link to this heading"></a></h4>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
@@ -1108,7 +1095,7 @@ TIMING SUMMARY
 </section>
 </section>
 <section id="Indirect-route---deproject-1D-FEP">
-<h3>Indirect route - deproject 1D FEP<a class="headerlink" href="#Indirect-route---deproject-1D-FEP" title="Permalink to this heading"></a></h3>
+<h3>Indirect route - deproject 1D FEP<a class="headerlink" href="#Indirect-route---deproject-1D-FEP" title="Link to this heading"></a></h3>
 <p>In the indirect route, we start from the 1D FEP F(CV) and extract the 2D FES F(CV,U) by means of the following deprojection formula that can be derived from Bayes theorem:</p>
 <dl class="simple">
 <dt>:nbsphinx-math:<a href="#id1"><span class="problematic" id="id2">`</span></a>begin{align}</dt><dd><p>P(CV,U) &amp;= P(U|CV)cdot P(CV) \
@@ -1154,7 +1141,7 @@ F(CV,U) &amp;= -k_B T logleft(P(CV,U)right) = F(CV) -k_BT logleft(P(U|CV)right)<
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#finish conditional probability using the specified bin range for U and CV</span>
 <span class="n">bins_cv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mf">1.55</span><span class="p">,</span> <span class="mf">1.55</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">)</span>
-<span class="n">bins_u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mi">25</span><span class="p">,</span> <span class="mf">52.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">)</span><span class="o">*</span><span class="n">kjmol</span>
+<span class="n">bins_u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mi">20</span><span class="p">,</span> <span class="mf">52.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">)</span><span class="o">*</span><span class="n">kjmol</span>
 <span class="n">condprob</span><span class="o">.</span><span class="n">finish</span><span class="p">([</span><span class="n">bins_u</span><span class="p">],</span> <span class="p">[</span><span class="n">bins_cv</span><span class="p">],</span> <span class="n">error_estimate</span><span class="o">=</span><span class="s1">&#39;mle_f_cov&#39;</span><span class="p">,</span> <span class="n">error_p_threshold</span><span class="o">=</span><span class="mf">0.001</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1172,7 +1159,7 @@ F(CV,U) &amp;= -k_B T logleft(P(CV,U)right) = F(CV) -k_BT logleft(P(U|CV)right)<
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Figure size 432x288 with 0 Axes&gt;
+&lt;Figure size 640x480 with 0 Axes&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -1241,30 +1228,21 @@ WARNING: multivariate normal sampling failed using Cholesky decomposition, switc
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:2157: MatplotlibDeprecationWarning: The &#39;extend&#39; parameter to Colorbar has no effect because it is overridden by the mappable; it is deprecated since 3.3 and will be removed two minor releases later.
-  cbar = pp.colorbar(contourf, ax=ax, extend=&#39;both&#39;)
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Figure size 432x288 with 0 Axes&gt;
+&lt;Figure size 640x480 with 0 Axes&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_deprojection_50_2.png" src="../_images/tut_advanced_deprojection_50_2.png" />
+<img alt="../_images/tut_advanced_deprojection_50_1.png" src="../_images/tut_advanced_deprojection_50_1.png" />
 </div>
 </div>
 <p>This looks indeed as essentially the same 2D FES as before, except for a (slight) shift in the U values due to slightly different reference that was applied.</p>
 <section id="Alternative-deprojection-using-ConditionalProbability1D2D-class">
-<h4>Alternative deprojection using ConditionalProbability1D2D class<a class="headerlink" href="#Alternative-deprojection-using-ConditionalProbability1D2D-class" title="Permalink to this heading"></a></h4>
+<h4>Alternative deprojection using ConditionalProbability1D2D class<a class="headerlink" href="#Alternative-deprojection-using-ConditionalProbability1D2D-class" title="Link to this heading"></a></h4>
 <p>The previous deprojection method was applicable as we wanted to deproject from F(CV) to F(CV,Q), i.e. the original CV was still a CV for the 2D FES. If one wanted to project from F(CV) to F(Q1,Q2), the previous method was not applicable. In that case, one could still do the deprojection using the ConditionalProbability1D2D class. We will illustrate how to use this for the present case as an alternative for the above outlined deprojection method.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
@@ -1301,7 +1279,7 @@ WARNING: multivariate normal sampling failed using Cholesky decomposition, switc
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">bins_cv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mf">1.55</span><span class="p">,</span> <span class="mf">1.55</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">)</span>
-<span class="n">bins_u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mi">25</span><span class="p">,</span> <span class="mf">52.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">)</span><span class="o">*</span><span class="n">kjmol</span>
+<span class="n">bins_u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mi">20</span><span class="p">,</span> <span class="mf">52.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">)</span><span class="o">*</span><span class="n">kjmol</span>
 <span class="n">condprob_alt</span><span class="o">.</span><span class="n">finish</span><span class="p">([</span><span class="n">bins_cv</span><span class="p">,</span><span class="n">bins_u</span><span class="p">],[</span><span class="n">bins_cv</span><span class="p">])</span>
 </pre></div>
 </div>
@@ -1319,7 +1297,7 @@ WARNING: multivariate normal sampling failed using Cholesky decomposition, switc
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Figure size 432x288 with 0 Axes&gt;
+&lt;Figure size 640x480 with 0 Axes&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -1383,7 +1361,7 @@ WARNING: multivariate normal sampling failed using Cholesky decomposition, switc
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Figure size 432x288 with 0 Axes&gt;
+&lt;Figure size 640x480 with 0 Axes&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -1396,7 +1374,7 @@ WARNING: multivariate normal sampling failed using Cholesky decomposition, switc
 </section>
 </section>
 <section id="CONSISTENCY-CHECK:-project-2D-FES-to-1D-FEP">
-<h3>CONSISTENCY CHECK: project 2D FES to 1D FEP<a class="headerlink" href="#CONSISTENCY-CHECK:-project-2D-FES-to-1D-FEP" title="Permalink to this heading"></a></h3>
+<h3>CONSISTENCY CHECK: project 2D FES to 1D FEP<a class="headerlink" href="#CONSISTENCY-CHECK:-project-2D-FES-to-1D-FEP" title="Link to this heading"></a></h3>
 <p>As a consistency check, we project the newly constructed 2D FES in terms of CV and U back towards a 1D FEP in terms of CV and compare the results with the original 1D FEP, these should be the same.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[32]:
@@ -1466,7 +1444,7 @@ WARNING: multivariate normal sampling failed using Cholesky decomposition, switc
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Figure size 432x288 with 0 Axes&gt;
+&lt;Figure size 640x480 with 0 Axes&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -1480,13 +1458,13 @@ WARNING: multivariate normal sampling failed using Cholesky decomposition, switc
 </section>
 </section>
 <section id="U(CV)-profile">
-<h2>U(CV) profile<a class="headerlink" href="#U(CV)-profile" title="Permalink to this heading"></a></h2>
+<h2>U(CV) profile<a class="headerlink" href="#U(CV)-profile" title="Link to this heading"></a></h2>
 <p>In this section, we will construct the internal energy contribution to the previously determined Free energy profile. This can again be done in one of two fashions, either by starting from the 2D FES <img class="math" src="../_images/math/4640a0e2eb098085ff77350bfd908b943bd59617.png" alt="F(CV,U)"/> or by starting from the conditional probability <img class="math" src="../_images/math/383f7456c4f0c9fec82966516c65f8a5cd5ed0e5.png" alt="P(U|CV)"/></p>
 <section id="Method-1---from-2D-FES">
-<h3>Method 1 - from 2D FES<a class="headerlink" href="#Method-1---from-2D-FES" title="Permalink to this heading"></a></h3>
+<h3>Method 1 - from 2D FES<a class="headerlink" href="#Method-1---from-2D-FES" title="Link to this heading"></a></h3>
 <p>In this first method, we compute the average energy as function of the origal CV from the 2D histogram using the routine <code class="docutils literal notranslate"><span class="pre">average_cv_constraint_other</span></code>, in which we compute the average of one CV (in this case the internal energy U) while constraining the other (in this case the original CV). For this method, we can use either one of the two previously illustrated method to construct the 2D FES, as they were identical. We choose to use the FES resulting from the direct method, i.e. <code class="docutils literal notranslate"><span class="pre">fes2d1</span></code>
 and corresponding histogram <code class="docutils literal notranslate"><span class="pre">hist2d1</span></code>.</p>
-<div class="nbinput docutils container">
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[35]:
 </pre></div>
 </div>
@@ -1496,17 +1474,9 @@ and corresponding histogram <code class="docutils literal notranslate"><span cla
 </pre></div>
 </div>
 </div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
-</pre></div></div>
-</div>
 </section>
 <section id="Method-2---from-conditional-probability">
-<h3>Method 2 - from conditional probability<a class="headerlink" href="#Method-2---from-conditional-probability" title="Permalink to this heading"></a></h3>
+<h3>Method 2 - from conditional probability<a class="headerlink" href="#Method-2---from-conditional-probability" title="Link to this heading"></a></h3>
 <p>In the second method, we use the conditional probability directly to again compute the average energy as function of the origal CV using the routine <code class="docutils literal notranslate"><span class="pre">average</span></code>.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[36]:
@@ -1553,12 +1523,11 @@ WARNING: multivariate normal sampling failed using Cholesky decomposition, switc
 WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
 WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
 WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
-WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
 </pre></div></div>
 </div>
 </section>
 <section id="comparison">
-<h3>comparison<a class="headerlink" href="#comparison" title="Permalink to this heading"></a></h3>
+<h3>comparison<a class="headerlink" href="#comparison" title="Link to this heading"></a></h3>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[37]:
 </pre></div>
@@ -1572,7 +1541,7 @@ WARNING: multivariate normal sampling failed using Cholesky decomposition, switc
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Figure size 432x288 with 0 Axes&gt;
+&lt;Figure size 640x480 with 0 Axes&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -1598,7 +1567,7 @@ WARNING: multivariate normal sampling failed using Cholesky decomposition, switc
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Louis Vanduyfhuys.</p>
+    <p>&#169; Copyright 2026, Louis Vanduyfhuys.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

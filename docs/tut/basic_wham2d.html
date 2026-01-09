@@ -1,26 +1,24 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tutorial 3 - Construction of 2D free energy surface using WHAM &mdash; ThermoLIB v1.7.2 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+  <title>Tutorial 3 - Construction of 2D free energy surface using WHAM &mdash; ThermoLIB v1.8.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
       <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../_static/jquery.js?v=5d32c60e"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=131c94de"></script>
-        <script src="../_static/doctools.js?v=888ff710"></script>
-        <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=4eaa865d"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -40,9 +38,6 @@
             ThermoLIB
               <img src="../_static/logo_thermolib_light.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                1.7
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -57,7 +52,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../ig.html#dependencies">Dependencies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../ig.html#download-and-install-thermolib">Download and install ThermoLIB</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../ig.html#direct-install-using-pip">Direct install using pip</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../ig.html#developers-download">Developers download</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../ig.html#source-code-download-and-install">Source code download and install</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../ig.html#update-thermolib">Update ThermoLIB</a></li>
@@ -177,7 +172,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="advanced_deprojection.html">Tutorial 6 - Deprojecting 1D FEP to 2D FES</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="advanced_deprojection.html">Tutorial 6 - Deprojection to extract energetic contribution to free energy</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="advanced_deprojection.html#Introduction">Introduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="advanced_deprojection.html#Construct-1D-FEP">Construct 1D FEP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="advanced_deprojection.html#Deproject-to-2D-FES">Deproject to 2D FES</a><ul>
@@ -373,6 +368,8 @@
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.interpolate_surface_2d"><code class="docutils literal notranslate"><span class="pre">interpolate_surface_2d()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.invert_fisher_to_covariance"><code class="docutils literal notranslate"><span class="pre">invert_fisher_to_covariance()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.multivariate_normal"><code class="docutils literal notranslate"><span class="pre">multivariate_normal()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.plot_histograms_1d"><code class="docutils literal notranslate"><span class="pre">plot_histograms_1d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.plot_histograms_overlap_1d"><code class="docutils literal notranslate"><span class="pre">plot_histograms_overlap_1d()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.read_wham_input"><code class="docutils literal notranslate"><span class="pre">read_wham_input()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.rolling_average"><code class="docutils literal notranslate"><span class="pre">rolling_average()</span></code></a></li>
 </ul>
@@ -418,10 +415,10 @@
            <div itemprop="articleBody">
              
   <section id="Tutorial-3---Construction-of-2D-free-energy-surface-using-WHAM">
-<h1>Tutorial 3 - Construction of 2D free energy surface using WHAM<a class="headerlink" href="#Tutorial-3---Construction-of-2D-free-energy-surface-using-WHAM" title="Permalink to this heading"></a></h1>
+<h1>Tutorial 3 - Construction of 2D free energy surface using WHAM<a class="headerlink" href="#Tutorial-3---Construction-of-2D-free-energy-surface-using-WHAM" title="Link to this heading"></a></h1>
 <section id="Introduction">
-<h2>Introduction<a class="headerlink" href="#Introduction" title="Permalink to this heading"></a></h2>
-<p>This notebook illustrates the basic usage of ThermoLIB to construct a 2D free energy profile from umbrella sampling simulations with 2D bias potentials using the WHAM methodology, including error estimation from the theory of the maximum likelihood estimator (MLE). We will also illustrate how we can project the 2D FES onto a 1D FEP. This notebook uses data from simulations for XXX previously published in XXX.</p>
+<h2>Introduction<a class="headerlink" href="#Introduction" title="Link to this heading"></a></h2>
+<p>This notebook illustrates the basic usage of ThermoLIB to construct a 2D free energy profile from umbrella sampling simulations with 2D bias potentials using the WHAM methodology, including error estimation from the theory of the maximum likelihood estimator (MLE). We will also illustrate how we can project the 2D FES onto a 1D FEP. This notebook uses data from simulations for an ethylation reactoin in H-ZSM-5 previously published in XXX.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
@@ -435,14 +432,13 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">thermolib.thermodynamics.fep</span> <span class="kn">import</span> <span class="n">FreeEnergySurface2D</span><span class="p">,</span> <span class="n">SimpleFreeEnergyProfile</span>
-<span class="kn">from</span> <span class="nn">thermolib.thermodynamics.histogram</span> <span class="kn">import</span> <span class="n">Histogram2D</span>
-<span class="kn">from</span> <span class="nn">thermolib.tools</span> <span class="kn">import</span> <span class="n">read_wham_input</span><span class="p">,</span> <span class="n">decorrelate</span>
-<span class="kn">from</span> <span class="nn">thermolib.thermodynamics.trajectory</span> <span class="kn">import</span> <span class="n">ColVarReader</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamics.fep</span><span class="w"> </span><span class="kn">import</span> <span class="n">FreeEnergySurface2D</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamics.histogram</span><span class="w"> </span><span class="kn">import</span> <span class="n">Histogram2D</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_wham_input</span><span class="p">,</span> <span class="n">decorrelate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamics.trajectory</span><span class="w"> </span><span class="kn">import</span> <span class="n">ColVarReader</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.units</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span><span class="o">,</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">pp</span><span class="o">,</span> <span class="nn">time</span>
-
-<span class="kn">from</span> <span class="nn">molmod.units</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 </pre></div>
 </div>
 </div>
@@ -452,13 +448,13 @@
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">prefix</span> <span class="o">=</span> <span class="s1">&#39;basic_wham2d_&#39;</span> <span class="c1">#will be added to all figures made in this notebook</span>
-<span class="n">fn_meta</span> <span class="o">=</span> <span class="s1">&#39;data/HZSM5_link/wham_input_2D.txt&#39;</span> <span class="c1">#location of the plumed metadata file containing all information of the umbrella sampling</span>
+<span class="n">fn_meta</span> <span class="o">=</span> <span class="s1">&#39;/home/lvduyfhu/hpc/data_vo/shared/massimo/for_Louis/H-ZSM-5_ethylation/wham_input_2D.txt&#39;</span> <span class="c1">#location of the plumed metadata file containing all information of the umbrella sampling</span>
 </pre></div>
 </div>
 </div>
 </section>
 <section id="2D-WHAM-without-error-estimation">
-<h2>2D WHAM without error estimation<a class="headerlink" href="#2D-WHAM-without-error-estimation" title="Permalink to this heading"></a></h2>
+<h2>2D WHAM without error estimation<a class="headerlink" href="#2D-WHAM-without-error-estimation" title="Link to this heading"></a></h2>
 <p>First read the input trajectories and define the corresponding bias potentials of each biased simulations included in the metadata file. This is done using the <code class="docutils literal notranslate"><span class="pre">read_wham_input</span></code> routine in the code block below. Assuming a metadata file with lines in the form of:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>U14 2.85 -1.4 2000.0 1000.0
 </pre></div>
@@ -502,11 +498,11 @@ WARNING: could not converge WHAM equations to convergence of 1.000e-06 in 1000 s
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.034s
-  bias poten. : 00h 00m 02.363s
-  solve scf   : 00h 00m 00.645s
+  histograms  : 00h 00m 00.020s
+  bias poten. : 00h 00m 00.825s
+  solve scf   : 00h 00m 00.322s
   error est.  : 00h 00m 00.000s
-  TOTAL       : 00h 00m 03.043s
+  TOTAL       : 00h 00m 01.168s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
@@ -524,30 +520,21 @@ TIMING SUMMARY
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:2157: MatplotlibDeprecationWarning: The &#39;extend&#39; parameter to Colorbar has no effect because it is overridden by the mappable; it is deprecated since 3.3 and will be removed two minor releases later.
-  cbar = pp.colorbar(contourf, ax=ax, extend=&#39;both&#39;)
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Figure size 432x288 with 0 Axes&gt;
+&lt;Figure size 640x480 with 0 Axes&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_basic_wham2d_13_2.png" src="../_images/tut_basic_wham2d_13_2.png" />
+<img alt="../_images/tut_basic_wham2d_13_1.png" src="../_images/tut_basic_wham2d_13_1.png" />
 </div>
 </div>
 </section>
 <section id="2D-WHAM-with-error-estimate">
-<h2>2D WHAM with error estimate<a class="headerlink" href="#2D-WHAM-with-error-estimate" title="Permalink to this heading"></a></h2>
+<h2>2D WHAM with error estimate<a class="headerlink" href="#2D-WHAM-with-error-estimate" title="Link to this heading"></a></h2>
 <p>We can now redo the above procedure of construction of the 2D FES including and MLE-F error estimation. However, we therefore, first require the correlation times.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
@@ -562,8 +549,8 @@ TIMING SUMMARY
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/home/louis/miniconda3/lib/python3.8/site-packages/scipy/optimize/minpack.py:828: OptimizeWarning: Covariance of the parameters could not be estimated
-  warnings.warn(&#39;Covariance of the parameters could not be estimated&#39;,
+/home/lvduyfhu/miniconda3/envs/test/lib/python3.14/site-packages/thermolib/tools.py:960: OptimizeWarning: Covariance of the parameters could not be estimated
+  pars, pcovs = curve_fit(function, upper_envelope_indices, upper_envelope_values, **curve_fit_kwargs)
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -571,7 +558,7 @@ TIMING SUMMARY
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Figure size 432x288 with 0 Axes&gt;
+&lt;Figure size 640x480 with 0 Axes&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -601,52 +588,49 @@ TIMING SUMMARY
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.027s
-  bias poten. : 00h 00m 02.248s
-  solve scf   : 00h 00m 01.161s
-  error est.  : 00h 00m 16.750s
-  TOTAL       : 00h 00m 20.187s
+  histograms  : 00h 00m 00.018s
+  bias poten. : 00h 00m 00.779s
+  solve scf   : 00h 00m 00.477s
+  error est.  : 00h 00m 13.697s
+  TOTAL       : 00h 00m 14.972s
 ---------------------------------------------------------------------
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fes_err</span> <span class="o">=</span> <span class="n">FreeEnergySurface2D</span><span class="o">.</span><span class="n">from_histogram</span><span class="p">(</span><span class="n">hist_err</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span>
 <span class="n">fes_err</span><span class="o">.</span><span class="n">set_ref</span><span class="p">(</span><span class="n">ref</span><span class="o">=</span><span class="s1">&#39;min&#39;</span><span class="p">)</span>
-<span class="n">fes_err</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">obss</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="s1">&#39;lower&#39;</span><span class="p">,</span> <span class="s1">&#39;upper&#39;</span><span class="p">],</span> <span class="n">flims</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">40</span><span class="p">,</span><span class="mi">200</span><span class="p">],</span> <span class="n">ncolors</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;rainbow&#39;</span><span class="p">)</span>
+<span class="n">fes_err</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">obss</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="s1">&#39;lower&#39;</span><span class="p">,</span> <span class="s1">&#39;upper&#39;</span><span class="p">],</span> <span class="n">flims</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">50</span><span class="p">,</span><span class="mi">200</span><span class="p">],</span> <span class="n">ncolors</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;rainbow&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-/home/louis/miniconda3/lib/python3.8/site-packages/thermolib/thermodynamics/fep.py:2157: MatplotlibDeprecationWarning: The &#39;extend&#39; parameter to Colorbar has no effect because it is overridden by the mappable; it is deprecated since 3.3 and will be removed two minor releases later.
-  cbar = pp.colorbar(contourf, ax=ax, extend=&#39;both&#39;)
-</pre></div></div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Figure size 432x288 with 0 Axes&gt;
+&lt;Figure size 640x480 with 0 Axes&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_basic_wham2d_19_2.png" src="../_images/tut_basic_wham2d_19_2.png" />
+<img alt="../_images/tut_basic_wham2d_19_1.png" src="../_images/tut_basic_wham2d_19_1.png" />
 </div>
 </div>
-<p>In this figure, the various panes represent the following: - upper left: mean free energy <img class="math" src="../_images/math/aa9c614de567802057dd3fe630c1c13456d89813.png" alt="\langle F\rangle"/> - upper right: two times the standard deviation according the error distribution: <img class="math" src="../_images/math/8eca67b2a770724dc59d8bce40172ea52fce032f.png" alt="2\sigma"/> - lower left: lower limit of the 2-sigma error interval <img class="math" src="../_images/math/70e1e052c81e44b04ab63c79469074ee3f52a11f.png" alt="\langle F\rangle-2\sigma"/> - lower right: upper limit of the 2-sigma error interval <img class="math" src="../_images/math/75bdbecf0fa0b0834cd76a1645b2c6df2f1aa353.png" alt="\langle F\rangle+2\sigma"/></p>
+<p>In this figure, the various panes represent the following:</p>
+<ul class="simple">
+<li><p>upper left: mean free energy <img class="math" src="../_images/math/aa9c614de567802057dd3fe630c1c13456d89813.png" alt="\langle F\rangle"/></p></li>
+<li><p>upper right: two times the standard deviation according the error distribution: <img class="math" src="../_images/math/8eca67b2a770724dc59d8bce40172ea52fce032f.png" alt="2\sigma"/></p></li>
+<li><p>lower left: lower limit of the 2-sigma error interval <img class="math" src="../_images/math/70e1e052c81e44b04ab63c79469074ee3f52a11f.png" alt="\langle F\rangle-2\sigma"/></p></li>
+<li><p>lower right: upper limit of the 2-sigma error interval <img class="math" src="../_images/math/75bdbecf0fa0b0834cd76a1645b2c6df2f1aa353.png" alt="\langle F\rangle+2\sigma"/></p></li>
+</ul>
 </section>
 <section id="Alternative-plotting">
-<h2>Alternative plotting<a class="headerlink" href="#Alternative-plotting" title="Permalink to this heading"></a></h2>
+<h2>Alternative plotting<a class="headerlink" href="#Alternative-plotting" title="Link to this heading"></a></h2>
 <p>We can also make a plot of the mean and a sample taken randomly from the error distribution:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
@@ -661,22 +645,14 @@ TIMING SUMMARY
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-&lt;Figure size 432x288 with 0 Axes&gt;
+&lt;Figure size 640x480 with 0 Axes&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_basic_wham2d_23_2.png" src="../_images/tut_basic_wham2d_23_2.png" />
+<img alt="../_images/tut_basic_wham2d_23_1.png" src="../_images/tut_basic_wham2d_23_1.png" />
 </div>
 </div>
 <p>We can also make a plot of a slice along 1 of the CVs, in which we take the other fixed to a value at a given index. For example, lets make a 1D plot of the free energy (its mean as well as a random sample) as function of CV1 for a fixed value of CV2 at its 50-th value:</p>
@@ -688,27 +664,11 @@ WARNING: multivariate normal sampling failed using Cholesky decomposition, switc
 </pre></div>
 </div>
 </div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-WARNING: multivariate normal sampling failed using Cholesky decomposition, switching to method eigh.
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu Sans.
-</pre></div></div>
-</div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_basic_wham2d_25_2.png" src="../_images/tut_basic_wham2d_25_2.png" />
+<img alt="../_images/tut_basic_wham2d_25_0.png" src="../_images/tut_basic_wham2d_25_0.png" />
 </div>
 </div>
 </section>
@@ -725,7 +685,7 @@ findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu S
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Louis Vanduyfhuys.</p>
+    <p>&#169; Copyright 2026, Louis Vanduyfhuys.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

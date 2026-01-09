@@ -1,0 +1,818 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tools – thermolib.tools &mdash; ThermoLIB v1.7.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=6b3927aa"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Extensions – thermolib.ext" href="rg_ext.html" />
+    <link rel="prev" title="Error distributions – thermolib.error" href="rg_error.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            ThermoLIB
+              <img src="_static/logo_thermolib_light.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="ig.html">Installation Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ig.html#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ig.html#download-and-install-thermolib">Download and install ThermoLIB</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ig.html#direct-install-using-pip">Direct install using pip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ig.html#source-code-download-and-install">Source code download and install</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ig.html#update-thermolib">Update ThermoLIB</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ig.html#test-installation">Test installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ug.html">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ug_1DFEP.html">Constructing 1D histograms &amp; free energy profiles</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ug_1DFEP.html#construct-a-1d-histrogam">Construct a 1D histrogam …</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ug_1DFEP.html#from-a-single-simulation">… from a single simulation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ug_1DFEP.html#from-multiple-simulations-using-wham">… from multiple simulations using WHAM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ug_1DFEP.html#constructing-a-1d-free-energy-profile">Constructing a 1D free energy profile …</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ug_1DFEP.html#using-the-constructor">… using the constructor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ug_1DFEP.html#reading-from-a-text-file">… reading from a text file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ug_1DFEP.html#from-a-histogram">… from a histogram</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ug_2DFES.html">Constructing 2D histograms &amp; free energy surfaces</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ug_2DFES.html#constructing-a-2d-histogram">Constructing a 2D histogram …</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ug_2DFES.html#from-single-simulation">… from single simulation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ug_2DFES.html#from-multiple-simulations-using-wham">… from multiple simulations using WHAM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ug_2DFES.html#constructing-a-2d-free-energy-surface">Constructing a 2D free energy surface …</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ug_2DFES.html#using-the-constructor">… using the constructor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ug_2DFES.html#reading-from-a-text-file">… reading from a text file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ug_2DFES.html#from-a-histogram">… from a histogram</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ug_corrtime.html">Computing the correlation time</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ug_corrtime.html#fit-to-autocorrelation-function-for-single-trajectory">Fit to autocorrelation function for single trajectory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ug_corrtime.html#compute-correlation-time-for-trajectory-series">Compute correlation time for trajectory series</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ug_error.html">Error estimation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ug_error.html#without-correlations">Without correlations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ug_error.html#with-correlations">With correlations</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ug_plotting.html">Plotting histograms and FEP/FES</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ug_plotting.html#d-histograms-free-energy-profile">1D Histograms &amp; free energy profile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ug_plotting.html#d-histograms-free-energy-surfaces">2D Histograms &amp; free energy surfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ug_micromacro.html">Extracting micro- and macrostate free energy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ug_kinetics.html">Computing the reaction rate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ug_transformation.html">Transformations of the FEP/FES</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ug_transformation.html#deterministic-transformation">Deterministic transformation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ug_transformation.html#dimensional">1 dimensional</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ug_transformation.html#id1">2 dimensional</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ug_transformation.html#probabilistic-transformation">Probabilistic transformation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ug_projection.html">(De)projections of the FEP/FES</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ug_projection.html#projecting-2d-fes-to-1d-fep">Projecting 2D FES to 1D FEP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ug_projection.html#deprojecting-1d-fep-to-2d-fes">Deprojecting 1D FEP to 2D FES</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tut/basic_wham1d.html">Tutorial 1 - Construction of 1D free energy profile using WHAM</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tut/basic_wham1d.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/basic_wham1d.html#WHAM-without-error-estimation">WHAM without error estimation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/basic_wham1d.html#WHAM-with-error-estimation">WHAM with error estimation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/basic_wham1d.html#Defining-macrostates-and-microstates">Defining macrostates and microstates</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tut/basic_kinetics.html">Tutorial 2 - Extracting kinetic reaction rates in 1D</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tut/basic_kinetics.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/basic_kinetics.html#Construct-free-energy-profile">Construct free energy profile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/basic_kinetics.html#Compute-rate-prefactor">Compute rate prefactor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/basic_kinetics.html#Add-kinetic-information-to-FEP-plot">Add kinetic information to FEP plot</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tut/basic_wham2d.html">Tutorial 3 - Construction of 2D free energy surface using WHAM</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tut/basic_wham2d.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/basic_wham2d.html#2D-WHAM-without-error-estimation">2D WHAM without error estimation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/basic_wham2d.html#2D-WHAM-with-error-estimate">2D WHAM with error estimate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/basic_wham2d.html#Alternative-plotting">Alternative plotting</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tut/advanced_error_estimation.html">Tutorial 4 - Advanced techniques in error estimation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_error_estimation.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_error_estimation.html#Impact-correlation-between-samples-on-FEP">Impact correlation between samples on FEP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_error_estimation.html#Estimating-the-autocorrelation-time">Estimating the autocorrelation time</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_error_estimation.html#Constructing-the-FEP-with-correlated-error-estimate">Constructing the FEP with correlated error estimate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_error_estimation.html#Evaluating-the-correlated-error-estimate">Evaluating the correlated error estimate</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="tut/advanced_error_estimation.html#Delayed-strided-WHAM-profiles">Delayed-strided WHAM profiles</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tut/advanced_error_estimation.html#Blocked-WHAM-profile">Blocked WHAM profile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tut/advanced_error_estimation.html#Bootstrapped-WHAM-profiles">Bootstrapped WHAM profiles</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_error_estimation.html#Covariance-between-different-points-on-FEP">Covariance between different points on FEP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_error_estimation.html#Error-propagation">Error propagation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tut/advanced_projection.html">Tutorial 5 - Projection of 2D FES to 1D FEP with error propagation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_projection.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_projection.html#Constructing-2D-FES">Constructing 2D FES</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_projection.html#Projection-onto-1D-profile">Projection onto 1D profile</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="tut/advanced_projection.html#Along-predefined-direction">Along predefined direction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tut/advanced_projection.html#Along-any-custom-direction">Along any custom direction</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_projection.html#Error-propagation">Error propagation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="tut/advanced_projection.html#Deal-with-the-unsufficiently-sampled-edges-of-phase-space-in-FES-projection">Deal with the unsufficiently sampled edges of phase space in FES projection</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tut/advanced_deprojection.html">Tutorial 6 - Deprojection to extract energetic contribution to free energy</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_deprojection.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_deprojection.html#Construct-1D-FEP">Construct 1D FEP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_deprojection.html#Deproject-to-2D-FES">Deproject to 2D FES</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="tut/advanced_deprojection.html#Direct-route---2D-WHAM">Direct route - 2D WHAM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tut/advanced_deprojection.html#Indirect-route---deproject-1D-FEP">Indirect route - deproject 1D FEP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tut/advanced_deprojection.html#CONSISTENCY-CHECK:-project-2D-FES-to-1D-FEP">CONSISTENCY CHECK: project 2D FES to 1D FEP</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_deprojection.html#U(CV)-profile">U(CV) profile</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="tut/advanced_deprojection.html#Method-1---from-2D-FES">Method 1 - from 2D FES</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tut/advanced_deprojection.html#Method-2---from-conditional-probability">Method 2 - from conditional probability</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tut/advanced_deprojection.html#comparison">comparison</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tut/advanced_transformations.html">Tutorial 7 - Transformations of 1D FEP and kinetics</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_transformations.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_transformations.html#FEP-and-rate-with-original-CV">FEP and rate with original CV</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_transformations.html#FEP-and-rate-in-terms-of-alternative-CV">FEP and rate in terms of alternative CV</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tut/advanced_transformations_2D.html">Tutorial 8 - Transformation of 2D free energy surfaces</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_transformations_2D.html#Introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_transformations_2D.html#Construction-of-original-2D-FES">Construction of original 2D FES</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_transformations_2D.html#Transformation-to-new-CVs">Transformation to new CVs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tut/advanced_transformations_2D.html#Projection-comparison">Projection comparison</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="rg.html">Reference Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="rg_thermo.html">Thermodynamics – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rg_thermo.html#module-thermolib.thermodynamics.fep">Free energy profiles – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.fep</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.fep.BaseFreeEnergyProfile"><code class="docutils literal notranslate"><span class="pre">BaseFreeEnergyProfile</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.fep.BaseProfile"><code class="docutils literal notranslate"><span class="pre">BaseProfile</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.fep.FreeEnergySurface2D"><code class="docutils literal notranslate"><span class="pre">FreeEnergySurface2D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.fep.SimpleFreeEnergyProfile"><code class="docutils literal notranslate"><span class="pre">SimpleFreeEnergyProfile</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.fep.plot_profiles"><code class="docutils literal notranslate"><span class="pre">plot_profiles()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rg_thermo.html#module-thermolib.thermodynamics.histogram">Histograms – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.histogram</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.histogram.Histogram1D"><code class="docutils literal notranslate"><span class="pre">Histogram1D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.histogram.Histogram2D"><code class="docutils literal notranslate"><span class="pre">Histogram2D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.histogram.plot_histograms"><code class="docutils literal notranslate"><span class="pre">plot_histograms()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rg_thermo.html#module-thermolib.thermodynamics.trajectory">Trajectory readers – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.trajectory</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.trajectory.ASEExtendedXYZReader"><code class="docutils literal notranslate"><span class="pre">ASEExtendedXYZReader</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.trajectory.CVComputer"><code class="docutils literal notranslate"><span class="pre">CVComputer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.trajectory.ColVarReader"><code class="docutils literal notranslate"><span class="pre">ColVarReader</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.trajectory.HDF5Reader"><code class="docutils literal notranslate"><span class="pre">HDF5Reader</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rg_thermo.html#module-thermolib.thermodynamics.bias">Bias potentials – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.bias</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.bias.BiasPotential1D"><code class="docutils literal notranslate"><span class="pre">BiasPotential1D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.bias.BiasPotential2D"><code class="docutils literal notranslate"><span class="pre">BiasPotential2D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.bias.MultipleBiasses1D"><code class="docutils literal notranslate"><span class="pre">MultipleBiasses1D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.bias.Parabola1D"><code class="docutils literal notranslate"><span class="pre">Parabola1D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.bias.Parabola2D"><code class="docutils literal notranslate"><span class="pre">Parabola2D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.bias.PlumedSplinePotential1D"><code class="docutils literal notranslate"><span class="pre">PlumedSplinePotential1D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.bias.Polynomial1D"><code class="docutils literal notranslate"><span class="pre">Polynomial1D</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rg_thermo.html#module-thermolib.thermodynamics.cv">Collective variables – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.cv</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.Average"><code class="docutils literal notranslate"><span class="pre">Average</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.CenterOfMass"><code class="docutils literal notranslate"><span class="pre">CenterOfMass</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.CenterOfPosition"><code class="docutils literal notranslate"><span class="pre">CenterOfPosition</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.CoordinationNumber"><code class="docutils literal notranslate"><span class="pre">CoordinationNumber</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.Difference"><code class="docutils literal notranslate"><span class="pre">Difference</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.DistOrthProjOrig"><code class="docutils literal notranslate"><span class="pre">DistOrthProjOrig</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.Distance"><code class="docutils literal notranslate"><span class="pre">Distance</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.DistanceCOP"><code class="docutils literal notranslate"><span class="pre">DistanceCOP</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.DotProduct"><code class="docutils literal notranslate"><span class="pre">DotProduct</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.LinearCombination"><code class="docutils literal notranslate"><span class="pre">LinearCombination</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.Minimum"><code class="docutils literal notranslate"><span class="pre">Minimum</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.NormalToPlane"><code class="docutils literal notranslate"><span class="pre">NormalToPlane</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.NormalizedAxis"><code class="docutils literal notranslate"><span class="pre">NormalizedAxis</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.cv.OrthogonalDistanceToPore"><code class="docutils literal notranslate"><span class="pre">OrthogonalDistanceToPore</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rg_thermo.html#module-thermolib.thermodynamics.state">State – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.state</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.state.Integrate"><code class="docutils literal notranslate"><span class="pre">Integrate</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.state.Maximum"><code class="docutils literal notranslate"><span class="pre">Maximum</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.state.Minimum"><code class="docutils literal notranslate"><span class="pre">Minimum</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rg_thermo.html#module-thermolib.thermodynamics.condprob">Conditional probability – <code class="docutils literal notranslate"><span class="pre">thermolib.thermodynamics.condprob</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.condprob.ConditionalProbability1D1D"><code class="docutils literal notranslate"><span class="pre">ConditionalProbability1D1D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.condprob.ConditionalProbability1D2D"><code class="docutils literal notranslate"><span class="pre">ConditionalProbability1D2D</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rg_kin.html">Kinetics – <code class="docutils literal notranslate"><span class="pre">thermolib.kinetics</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rg_kin.html#module-thermolib.kinetics.rate">Rate constant – <code class="docutils literal notranslate"><span class="pre">thermolib.kinetics.rate</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_kin.html#thermolib.kinetics.rate.BaseRateFactor"><code class="docutils literal notranslate"><span class="pre">BaseRateFactor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_kin.html#thermolib.kinetics.rate.RateFactorEquilibrium"><code class="docutils literal notranslate"><span class="pre">RateFactorEquilibrium</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rg_error.html">Error distributions – <code class="docutils literal notranslate"><span class="pre">thermolib.error</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rg_error.html#thermolib.error.ErrorArray"><code class="docutils literal notranslate"><span class="pre">ErrorArray</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.ErrorArray.mean"><code class="docutils literal notranslate"><span class="pre">ErrorArray.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.ErrorArray.nsigma_conf_int"><code class="docutils literal notranslate"><span class="pre">ErrorArray.nsigma_conf_int()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.ErrorArray.sample"><code class="docutils literal notranslate"><span class="pre">ErrorArray.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.ErrorArray.std"><code class="docutils literal notranslate"><span class="pre">ErrorArray.std()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution.copy"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution.from_samples"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.from_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution.log_from_loggaussian"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.log_from_loggaussian()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution.mean"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution.nsigma_conf_int"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.nsigma_conf_int()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution.print"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.print()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution.sample"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution.set_ref"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.set_ref()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution.shift"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.shift()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.GaussianDistribution.std"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.std()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rg_error.html#thermolib.error.LogGaussianDistribution"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.LogGaussianDistribution.copy"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.LogGaussianDistribution.exp_from_gaussian"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.exp_from_gaussian()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.LogGaussianDistribution.from_samples"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.from_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.LogGaussianDistribution.mean"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.LogGaussianDistribution.nsigma_conf_int"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.nsigma_conf_int()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.LogGaussianDistribution.sample"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.LogGaussianDistribution.set_ref"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.set_ref()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.LogGaussianDistribution.shift"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.shift()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.LogGaussianDistribution.std"><code class="docutils literal notranslate"><span class="pre">LogGaussianDistribution.std()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rg_error.html#thermolib.error.MultiDistribution"><code class="docutils literal notranslate"><span class="pre">MultiDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiDistribution.corr"><code class="docutils literal notranslate"><span class="pre">MultiDistribution.corr()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution.copy"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution.cov"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.cov()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution.from_samples"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.from_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution.log_from_loggaussian"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.log_from_loggaussian()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution.mean"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution.nsigma_conf_int"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.nsigma_conf_int()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution.plot_corr_matrix"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.plot_corr_matrix()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution.sample"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution.set_ref"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.set_ref()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiGaussianDistribution.std"><code class="docutils literal notranslate"><span class="pre">MultiGaussianDistribution.std()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rg_error.html#thermolib.error.MultiLogGaussianDistribution"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiLogGaussianDistribution.copy"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiLogGaussianDistribution.cov"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.cov()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiLogGaussianDistribution.exp_from_gaussian"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.exp_from_gaussian()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiLogGaussianDistribution.from_samples"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.from_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiLogGaussianDistribution.mean"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiLogGaussianDistribution.nsigma_conf_int"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.nsigma_conf_int()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiLogGaussianDistribution.plot_corr_matrix"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.plot_corr_matrix()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiLogGaussianDistribution.sample"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.MultiLogGaussianDistribution.std"><code class="docutils literal notranslate"><span class="pre">MultiLogGaussianDistribution.std()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rg_error.html#thermolib.error.Propagator"><code class="docutils literal notranslate"><span class="pre">Propagator</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.Propagator.calc_fun_values"><code class="docutils literal notranslate"><span class="pre">Propagator.calc_fun_values()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.Propagator.gen_args_samples"><code class="docutils literal notranslate"><span class="pre">Propagator.gen_args_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.Propagator.get_distribution"><code class="docutils literal notranslate"><span class="pre">Propagator.get_distribution()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.Propagator.reset"><code class="docutils literal notranslate"><span class="pre">Propagator.reset()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rg_error.html#thermolib.error.SampleDistribution"><code class="docutils literal notranslate"><span class="pre">SampleDistribution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.SampleDistribution.from_samples"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.from_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.SampleDistribution.mean"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.SampleDistribution.sample"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.SampleDistribution.set_ref"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.set_ref()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.SampleDistribution.shift"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.shift()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rg_error.html#thermolib.error.SampleDistribution.std"><code class="docutils literal notranslate"><span class="pre">SampleDistribution.std()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Tools – <code class="docutils literal notranslate"><span class="pre">thermolib.tools</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#thermolib.tools.blav"><code class="docutils literal notranslate"><span class="pre">blav()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#thermolib.tools.corrtime_from_acf"><code class="docutils literal notranslate"><span class="pre">corrtime_from_acf()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#thermolib.tools.decorrelate"><code class="docutils literal notranslate"><span class="pre">decorrelate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#thermolib.tools.extract_polynomial_bias_info"><code class="docutils literal notranslate"><span class="pre">extract_polynomial_bias_info()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#thermolib.tools.fisher_matrix_mle_probdens"><code class="docutils literal notranslate"><span class="pre">fisher_matrix_mle_probdens()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#thermolib.tools.format_scientific"><code class="docutils literal notranslate"><span class="pre">format_scientific()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#thermolib.tools.h5_read_dataset"><code class="docutils literal notranslate"><span class="pre">h5_read_dataset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#thermolib.tools.integrate"><code class="docutils literal notranslate"><span class="pre">integrate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#thermolib.tools.integrate2d"><code class="docutils literal notranslate"><span class="pre">integrate2d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#thermolib.tools.interpolate_surface_2d"><code class="docutils literal notranslate"><span class="pre">interpolate_surface_2d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#thermolib.tools.invert_fisher_to_covariance"><code class="docutils literal notranslate"><span class="pre">invert_fisher_to_covariance()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#thermolib.tools.multivariate_normal"><code class="docutils literal notranslate"><span class="pre">multivariate_normal()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#thermolib.tools.plot_histograms_1d"><code class="docutils literal notranslate"><span class="pre">plot_histograms_1d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#thermolib.tools.plot_histograms_overlap_1d"><code class="docutils literal notranslate"><span class="pre">plot_histograms_overlap_1d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#thermolib.tools.read_wham_input"><code class="docutils literal notranslate"><span class="pre">read_wham_input()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#thermolib.tools.rolling_average"><code class="docutils literal notranslate"><span class="pre">rolling_average()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rg_ext.html">Extensions – <code class="docutils literal notranslate"><span class="pre">thermolib.ext</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rg_ext.html#thermolib.ext.wham1d_bias"><code class="docutils literal notranslate"><span class="pre">wham1d_bias()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_ext.html#thermolib.ext.wham1d_error"><code class="docutils literal notranslate"><span class="pre">wham1d_error()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_ext.html#thermolib.ext.wham1d_hs"><code class="docutils literal notranslate"><span class="pre">wham1d_hs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_ext.html#thermolib.ext.wham1d_scf"><code class="docutils literal notranslate"><span class="pre">wham1d_scf()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_ext.html#thermolib.ext.wham2d_bias"><code class="docutils literal notranslate"><span class="pre">wham2d_bias()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_ext.html#thermolib.ext.wham2d_error"><code class="docutils literal notranslate"><span class="pre">wham2d_error()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_ext.html#thermolib.ext.wham2d_hs"><code class="docutils literal notranslate"><span class="pre">wham2d_hs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_ext.html#thermolib.ext.wham2d_scf"><code class="docutils literal notranslate"><span class="pre">wham2d_scf()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ThermoLIB</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="rg.html">Reference Guide</a></li>
+      <li class="breadcrumb-item active">Tools – <code class="docutils literal notranslate"><span class="pre">thermolib.tools</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/rg_tools.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-thermolib.tools">
+<span id="tools-thermolib-tools"></span><h1>Tools – <code class="docutils literal notranslate"><span class="pre">thermolib.tools</span></code><a class="headerlink" href="#module-thermolib.tools" title="Link to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="thermolib.tools.blav">
+<span class="sig-prename descclassname"><span class="pre">thermolib.tools.</span></span><span class="sig-name descname"><span class="pre">blav</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blocksizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitrange</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[1,</span> <span class="pre">inf]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_function</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn_plot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_ylims</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'au'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">blav_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/tools.html#blav"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.tools.blav" title="Link to this definition"></a></dt>
+<dd><p>Wrapper routine around <cite>_blav</cite> to apply block averaging and estimate the correlated error bar as well as the corresponding integrated correlation time on the average of the given data series. For more details on the procedure as well as the meaning of the arguments <cite>data</cite>, <cite>blocksizes</cite>, <cite>fitrange</cite>, and <cite>model_function</cite>, see documentation of the routine <code class="xref py py-meth docutils literal notranslate"><span class="pre">_wrap</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>plot</strong> (<em>bool</em><em>, </em><em>optional</em><em>, </em><em>default=False</em>) – If True, a plot of the samples and error estimates will be generated. Ignored if fn_plot is not None. Defaults to False.</p></li>
+<li><p><strong>fn_plot</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em><em>, </em><em>default=None</em>) – file name to which to write the plot. If None is given, either no plot is made (if plot=False) or the plot is not saved (if plot=True)</p></li>
+<li><p><strong>plot_ylims</strong> (<em>list</em><em> or </em><em>None</em><em>, </em><em>optional</em><em>, </em><em>default=None</em>) – Limits for the y-axis in the error plot.</p></li>
+<li><p><strong>unit</strong> (<em>str</em><em>, </em><em>optional</em><em>, </em><em>default='au'</em>) – unit in which to plot the data</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>mean</strong> (<em>float</em>)- the sample mean.</p></li>
+<li><p><strong>error</strong> (<em>float</em>) - the error on the sample mean.</p></li>
+<li><p><strong>corrtime</strong> (<em>float</em>) - the correlation time (in units of the timestep) of the original sample data.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="thermolib.tools.corrtime_from_acf">
+<span class="sig-prename descclassname"><span class="pre">thermolib.tools.</span></span><span class="sig-name descname"><span class="pre">corrtime_from_acf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nblocks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn_plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylims</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[-0.25,</span> <span class="pre">1.05]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_nested_envelopes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">curve_fit_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/tools.html#corrtime_from_acf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.tools.corrtime_from_acf" title="Link to this definition"></a></dt>
+<dd><p>Routine to compute the integrated autocorrelation time as follows:</p>
+<ul class="simple">
+<li><p>Compute the autocorrelation function (possibly after blocking data for noise suppression) using the routine <code class="xref py py-meth docutils literal notranslate"><span class="pre">_acf</span></code>.</p></li>
+<li><p>Optionally extract the upper envelope of the autocorrelation function to eliminate short time oscillations (when n_nested_envelopes&gt;1).</p></li>
+<li><p>Fit a single decaying exponential function of the form <img class="math" src="_images/math/ff49f1cba5829bed4bc3331f6cc18c78cf61eec1.png" alt="\exp(-\frac{t}{\tau_exp})"/> to the acf (or its upper envelope) to extract the exponential correlation time.</p></li>
+<li><p>Translate the exponential correlation time to the integrated correlation time as: <img class="math" src="_images/math/721c3e8caaf4fb4a80371ac96d6ef9e4873c093a.png" alt="\tau_\text{int} = 2\tau_\text{exp}"/>.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>np.ndarray</em>) – 1D array representing the time series for which the correlation time needs to be computed</p></li>
+<li><p><strong>nblocks</strong> (<em>int</em><em> or </em><em>None</em><em>, </em><em>optional</em><em>, </em><em>default=None</em>) – If not None, the data will be blocked (in a number of blocks given to nblocks) prior to constructing the acf. This is usefull for surpressing noise.</p></li>
+<li><p><strong>norm</strong> (<em>bool</em><em>, </em><em>optional</em><em>, </em><em>default=True</em>) – If True, normalize the autocorrelation function such that acf(0)=1</p></li>
+<li><p><strong>plot</strong> (<em>bool</em><em>, </em><em>optional</em><em>, </em><em>default=False</em>) – If True, generate a plot of the acf and resulting fit. This parameter is ignored if fn_plot is not None.</p></li>
+<li><p><strong>fn_plot</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em><em>, </em><em>default=None</em>) – If not None, a plot will be made of the acf and resulting fit and stored to a file with the given file name</p></li>
+<li><p><strong>xlims</strong> (<em>list</em><em> or </em><em>None</em><em>, </em><em>optional</em><em>, </em><em>default=None</em>) – Limits for the x-axis in the plot.</p></li>
+<li><p><strong>ylims</strong> (<em>list</em><em>, </em><em>optional</em><em>, </em><em>default=</em><em>[</em><em>-0.25</em><em>, </em><em>1.05</em><em>]</em>) – Limits for the y-axis in the plot.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The integrated autocorrelation time</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="thermolib.tools.decorrelate">
+<span class="sig-prename descclassname"><span class="pre">thermolib.tools.</span></span><span class="sig-name descname"><span class="pre">decorrelate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trajectories</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'acf'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decorrelate_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn_plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_decorrelated_trajectories</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">method_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/tools.html#decorrelate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.tools.decorrelate" title="Link to this definition"></a></dt>
+<dd><p>Function to compute correlation times for a list of trajectories and optionally decorrelate the trajectories by averaging over a number of samples equal to the correlation time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>trajectories</strong> (<em>list</em>) – List of trajectories to be decorrelated.</p></li>
+<li><p><strong>method</strong> (<em>str</em><em>, </em><em>optional</em><em>, </em><em>default='acf'</em>) – Method to compute correlation time, either ‘acf’ for fit to autocorrelation function or ‘blav’ for block averaging. Keyword arguments specific to the chosen method can be parsed to that method by specifyinng them at the end of the argument list. For example <code class="docutils literal notranslate"><span class="pre">decorrelate(traj,</span> <span class="pre">method='acf',</span> <span class="pre">plot=True,</span> <span class="pre">n_nested_enveloppes=2,</span> <span class="pre">p0=[1000])</span></code> will correctly parse the <code class="docutils literal notranslate"><span class="pre">n_nested_enveloppes</span></code> and <code class="docutils literal notranslate"><span class="pre">p0</span></code> parameters to the <code class="docutils literal notranslate"><span class="pre">corrtime_from_acf</span></code> routine.</p></li>
+<li><p><strong>decorrelate_only</strong> (<em>int</em><em> or </em><em>None</em><em>, </em><em>optional</em><em>, </em><em>default=None</em>) – Index of the collective variable (CV) to be used for decorrelation when multiple CVs are present in the trajectories. If set to None, all CVs will be decorrelated simultaneously which generally leads to higher correlation times.</p></li>
+<li><p><strong>plot</strong> (<em>bool</em><em>, </em><em>optional</em><em>, </em><em>default=False</em>) – If True, generate a plot showing the correlation times for each trajectory and collective variable. Ignored if fn_plot is not None.</p></li>
+<li><p><strong>fn_plot</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – File name to which to write the plot, defaults to None which means no plot is made (if plot=False) or the plot is not saved (if plot=True).</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em><em>, </em><em>default=False</em>) – If True, print additional information during computation.</p></li>
+<li><p><strong>return_decorrelated_trajectories</strong> (<em>bool</em><em>, </em><em>optional</em><em>, </em><em>default=False</em>) – If True, also return the decorrelated trajectories which have been block averaged with a block size given by the correlation time</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>correlation time, optionally (if <code class="docutils literal notranslate"><span class="pre">return_decorrelated_trajectories=True</span></code>) also the decorrelated trajectories are returned</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray or (if <code class="docutils literal notranslate"><span class="pre">return_decorrelated_trajectories=True</span></code>) [np.ndarray, list]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="thermolib.tools.extract_polynomial_bias_info">
+<span class="sig-prename descclassname"><span class="pre">thermolib.tools.</span></span><span class="sig-name descname"><span class="pre">extract_polynomial_bias_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn_plumed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'plumed.dat'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/tools.html#extract_polynomial_bias_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.tools.extract_polynomial_bias_info" title="Link to this definition"></a></dt>
+<dd><p>Extracts polynomial bias coefficients from a PLUMED input file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fn_plumed</strong> (<em>str</em><em>, </em><em>optional</em><em>, </em><em>default='plumed.dat'</em>) – The filename of the PLUMED input file.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of polynomial coefficients for the bias potential.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="thermolib.tools.fisher_matrix_mle_probdens">
+<span class="sig-prename descclassname"><span class="pre">thermolib.tools.</span></span><span class="sig-name descname"><span class="pre">fisher_matrix_mle_probdens</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mle_f'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/tools.html#fisher_matrix_mle_probdens"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.tools.fisher_matrix_mle_probdens" title="Link to this definition"></a></dt>
+<dd><p>Computes the Fisher information matrix for the maximum likelihood estimation (MLE) of probability distribution parameters given in argument ps.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ps</strong> (<em>np.ndarray</em>) – Probability histogram values</p></li>
+<li><p><strong>method</strong> (<em>str</em><em>, </em><em>optional</em><em>, </em><em>default='mle_f'</em>) – Method used for computing the Fisher information matrix. Options include ‘mle_p’, ‘mle_p_cov’, ‘mle_f’, and ‘mle_f_cov’.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em><em>, </em><em>default=False</em>) – If <cite>True</cite>, prints additional information when no Fisher information is found.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Fisher information matrix computed for the maximum likelihood estimation of probability distribution parameters.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="thermolib.tools.format_scientific">
+<span class="sig-prename descclassname"><span class="pre">thermolib.tools.</span></span><span class="sig-name descname"><span class="pre">format_scientific</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">latex</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/tools.html#format_scientific"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.tools.format_scientific" title="Link to this definition"></a></dt>
+<dd><p>Format a numerical value in scientific notation with optional precision and LaTeX formatting.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>float</em>) – The numerical value to be formatted in scientific notation.</p></li>
+<li><p><strong>prec</strong> (<em>int</em>) – (optional, default=3) The precision of the scientific notation, i.e., the number of decimal places to be displayed.</p></li>
+<li><p><strong>latex</strong> (<em>bool</em>) – (optional, default=True) If set to <code class="docutils literal notranslate"><span class="pre">True</span></code>, the function will return a LaTeX-formatted string; otherwise, it will return a regular string.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A formatted string representing the input value in scientific notation.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="thermolib.tools.h5_read_dataset">
+<span class="sig-prename descclassname"><span class="pre">thermolib.tools.</span></span><span class="sig-name descname"><span class="pre">h5_read_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/tools.html#h5_read_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.tools.h5_read_dataset" title="Link to this definition"></a></dt>
+<dd><p>Read a dataset from an HDF5 file and return the data as a NumPy array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fn</strong> (<em>str</em>) – The filename (including the path) of the HDF5 file.</p></li>
+<li><p><strong>dset</strong> (<em>str</em>) – The name of the dataset within the HDF5 file to be read.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A NumPy array containing the data from the specified dataset.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="thermolib.tools.integrate">
+<span class="sig-prename descclassname"><span class="pre">thermolib.tools.</span></span><span class="sig-name descname"><span class="pre">integrate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yerrs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/tools.html#integrate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.tools.integrate" title="Link to this definition"></a></dt>
+<dd><p>Perform numerical integration of a dataset using the trapezoidal rule and return the integrated value. Optionally, analytically compute the error in the integration if uncertainties (<cite>yerrs</cite>) are provided (uncorrelated error bars are assumed).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xs</strong> (<em>list</em><em> or </em><em>numpy.ndarray</em>) – A list or NumPy array representing the x-values of the dataset.</p></li>
+<li><p><strong>ys</strong> (<em>list</em><em> or </em><em>numpy.ndarray</em>) – A list or NumPy array representing the y-values of the dataset.</p></li>
+<li><p><strong>yerrs</strong> (<em>list</em><em> or </em><em>numpy.ndarray</em>) – (optional) A list or NumPy array representing the uncertainties in the y-values. If not provided (default), only the integration result is returned.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>If <cite>yerrs</cite> is not provided, the integrated value of the dataset using the trapezoidal rule. If <cite>yerrs</cite> is provided, a tuple containing the integrated value and the error in the integration.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float or tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="thermolib.tools.integrate2d">
+<span class="sig-prename descclassname"><span class="pre">thermolib.tools.</span></span><span class="sig-name descname"><span class="pre">integrate2d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/tools.html#integrate2d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.tools.integrate2d" title="Link to this definition"></a></dt>
+<dd><p>Perform numerical integration of a regularly spaced two-dimensional dataset using the midpoint rule and return the integrated value. The function allows the specification of grid spacings (<cite>dx</cite> and <cite>dy</cite>) or infers them from the provided coordinate arrays (<cite>x</cite> and <cite>y</cite>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>z</strong> (<em>numpy.ndarray</em>) – A two-dimensional array representing the values of the dataset.</p></li>
+<li><p><strong>x</strong> (<em>numpy.ndarray</em><em> or </em><em>None</em>) – (optional) The x-coordinate array. If provided, the function will infer the grid spacing <cite>dx</cite>.</p></li>
+<li><p><strong>y</strong> (<em>numpy.ndarray</em><em> or </em><em>None</em>) – (optional) The y-coordinate array. If provided, the function will infer the grid spacing <cite>dy</cite>.</p></li>
+<li><p><strong>dx</strong> (<em>float</em>) – (optional, default=1.0) The grid spacing in the x-direction. Ignored if <cite>x</cite> is provided.</p></li>
+<li><p><strong>dy</strong> (<em>float</em>) – (optional, default=1.0) The grid spacing in the y-direction. Ignored if <cite>y</cite> is provided.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The integrated value of the two-dimensional dataset using the midpoint rule.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="thermolib.tools.interpolate_surface_2d">
+<span class="sig-prename descclassname"><span class="pre">thermolib.tools.</span></span><span class="sig-name descname"><span class="pre">interpolate_surface_2d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cv1s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cv2s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation_depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/tools.html#interpolate_surface_2d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.tools.interpolate_surface_2d" title="Link to this definition"></a></dt>
+<dd><p>Routine to perform interpolation of F(CV1,CV2) defined by cv1s,cv2,fs grid. For all grid points where fs is np.nan, do interpolation using its right/left/up/down neighbors that are not np.nan. This routine will detect which grid points have fs=np.nan, search for neighbours valid for interpolation, collect there f value and parse to the <code class="xref py py-meth docutils literal notranslate"><span class="pre">interpolate_between_points_2D</span> <span class="pre">&lt;thermolib.tools.interpolate_between_points_2D&gt;`()</span></code> routine to do the actual interpolation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>interpolation_depth</strong> (<em>int</em><em>, </em><em>optional</em><em>, </em><em>default=3</em>) – when interpolating at a certain bin from the neighbouring bins, go at max a number of neighbours far equal to interpolation_depth in each direction to try and find free energy data that is not np.nan</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="thermolib.tools.invert_fisher_to_covariance">
+<span class="sig-prename descclassname"><span class="pre">thermolib.tools.</span></span><span class="sig-name descname"><span class="pre">invert_fisher_to_covariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">F</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/tools.html#invert_fisher_to_covariance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.tools.invert_fisher_to_covariance" title="Link to this definition"></a></dt>
+<dd><p>Inverts the Fisher information matrix to obtain the covariance matrix, handling specified thresholds.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>F</strong> (<em>np.ndarray</em>) – Fisher information matrix.</p></li>
+<li><p><strong>ps</strong> (<em>np.ndarray</em>) – Array of probabilities used to apply the threshold.</p></li>
+<li><p><strong>threshold</strong> (<em>float</em><em>, </em><em>optional</em><em>, </em><em>default=0.0</em>) – Threshold value for removing columns and rows corresponding with a probability lower than the threshold from the Fisher information matrix.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em><em>, </em><em>default=False</em>) – If <cite>True</cite>, print information about removed columns and rows.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Covariance matrix obtained by inverting the Fisher information matrix.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="thermolib.tools.multivariate_normal">
+<span class="sig-prename descclassname"><span class="pre">thermolib.tools.</span></span><span class="sig-name descname"><span class="pre">multivariate_normal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">means</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">covariance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/tools.html#multivariate_normal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.tools.multivariate_normal" title="Link to this definition"></a></dt>
+<dd><p>Wrapper around <a class="reference external" href="https://numpy.org/doc/stable/reference/random/generated/numpy.random.multivariate_normal.html">numpy.random.multivariate_normal</a> to handle <cite>np.nan</cite> columns in the covariance matrix. It also enforces symmetry on the covariance matrix to filter out non-symmetric noise. To generate the samples, Iit will first try the cholesky method in np.random.multivariate_normal as it is much faster. If that fails, the function tries again with the eigh setting and informs the user.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>means</strong> (<em>np.ndarray</em>) – Means of the multivariate normal distribution.</p></li>
+<li><p><strong>covariance</strong> (<em>np.ndarray</em>) – Covariance matrix of the multivariate normal distribution.</p></li>
+<li><p><strong>size</strong> (<em>int</em><em>, </em><em>list</em><em>, </em><em>np.ndarray</em><em> or </em><em>None</em><em>, </em><em>optional</em><em>, </em><em>default=None</em>) – Number of samples to generate. If None, a single sample is generated</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the generated samples from the multivariate normal distribution</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="thermolib.tools.plot_histograms_1d">
+<span class="sig-prename descclassname"><span class="pre">thermolib.tools.</span></span><span class="sig-name descname"><span class="pre">plot_histograms_1d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trajs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cv_unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'au'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/tools.html#plot_histograms_1d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.tools.plot_histograms_1d" title="Link to this definition"></a></dt>
+<dd><p>Routine to plot 1d histograms of all trajectories to check overlap. This is usefull to check the choice of umbrellas in an umbrella simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>trajs</strong> (<em>list</em><em>(</em><em>np.ndarray</em><em>)</em>) – List of all trajectories for which the histogram needs to be plotted.</p></li>
+<li><p><strong>bins</strong> (<em>int</em><em> or </em><em>np.ndarray</em><em>, </em><em>optional</em><em>, </em><em>default=200</em>) – Specification of the bins for histograming. Can either be an integer specifying the number of bins over all CV range of all simulations or a numpy array explicitly defining all bins (in atomic units). Either bins or width needs to be specified, but not both.</p></li>
+<li><p><strong>width</strong> (<em>float</em><em>, </em><em>optional</em><em>, </em><em>default=None</em>) – Specification of the width of the bins to be used in the histogramming (in atomic units). Either bins or width needs to be specified, but not both.</p></li>
+<li><p><strong>cv_unit</strong> (<em>str</em><em>, </em><em>optional</em><em>, </em><em>default='au'</em>) – unit of the CV to be used in the plot</p></li>
+<li><p><strong>alpha</strong> (<em>float</em><em>, </em><em>optional</em><em>, </em><em>default=0.8</em>) – transparancy value of each histogram to allow visualizing overlap</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="thermolib.tools.plot_histograms_overlap_1d">
+<span class="sig-prename descclassname"><span class="pre">thermolib.tools.</span></span><span class="sig-name descname"><span class="pre">plot_histograms_overlap_1d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trajs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/tools.html#plot_histograms_overlap_1d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.tools.plot_histograms_overlap_1d" title="Link to this definition"></a></dt>
+<dd><p>Routine to compute and plot overlap between all pairs of given trajectories. The overlap metric used is the one suggested by Borgmans et al. [J. Chem. Theory Comput. 2023, 19, 9032-9048], which expressed overlap <img class="math" src="_images/math/f5100bf1c50ee7b35d781346d7ced6f333473483.png" alt="O_{ij}"/> between probability distribution <img class="math" src="_images/math/5247131b3b1b9cc457d29a9b08a19c2062ed3d16.png" alt="p_i"/> and <img class="math" src="_images/math/c975c0ce699f1ada89a3ca5d97ed4a050bd67d74.png" alt="p_j"/> as:</p>
+<div class="math">
+<p><img src="_images/math/ab7532573d4b7866ac564b9c994e7780c8db9f48.png" alt="O_{ij} = \int_{-\infty}^{+\infty} \min(p_i(q),p_j(q))dq"/></p>
+</div><p>Three plots will be generated:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>left</strong>   – CV mean for each trajectory. This should be monotonically increasing in order to adequately interpret the right pane. If this is not the case, set sort=True</p></li>
+<li><p><strong>center</strong> – matrix of overlap between each pair of trajectories. In a well sorted set, this matrix should be dominant along the diagonal. All diagonal values are 1, as those elements represent overlap of a trajectory with itself.</p></li>
+<li><p><strong>right</strong> – Overlap of each simulation with its right neighbor (as well as right second neighbor). In a good umbrella simulation set, this line should be consistingly high (e.g. above 0.33 as suggested by Borgmans et al. [J. Chem. Theory Comput. 2023, 19, 9032-9048]).</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>trajs</strong> (<em>list</em><em>(</em><em>np.ndarray</em><em>)</em>) – List of all trajectories for which the histogram needs to be plotted.</p></li>
+<li><p><strong>bins</strong> (<em>int</em><em> or </em><em>np.ndarray</em><em>, </em><em>optional</em><em>, </em><em>default=200</em>) – Specification of the bins in order to construct the probability distributions through histogramming. Can either be an integer specifying the number of bins over all CV range of all simulations or a numpy array explicitly defining all bins.</p></li>
+<li><p><strong>sort</strong> (<em>bool</em><em>, </em><em>optional</em><em>, </em><em>default=False</em>) – If set to True and it is detected that the trajectories are not sorted according to increasing mean, the routine will first do so. This is crucial in order to properly interpret the ‘overlap with right neighbor’ plot generated by this routine.</p></li>
+<li><p><strong>fn</strong> (<em>str</em><em>, </em><em>optional</em><em>, </em><em>default=None</em>) – File name to write plot to. Plot will not be saved to file if fn=None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="thermolib.tools.read_wham_input">
+<span class="sig-prename descclassname"><span class="pre">thermolib.tools.</span></span><span class="sig-name descname"><span class="pre">read_wham_input</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trajectory_readers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trajectory_path_templates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bias_potential</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'None'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q01_unit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'au'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kappa1_unit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'au'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q02_unit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'au'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kappa2_unit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'au'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse_cv1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse_cv2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additional_bias</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additional_bias_dimension</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'cv1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_bias_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/tools.html#read_wham_input"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.tools.read_wham_input" title="Link to this definition"></a></dt>
+<dd><p>Read a WHAM input file (metadata file) to read the simulation temperature, trajectories (CV samples) and bias potentials.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fn</strong> (<em>str</em>) – <p>The path to the WHAM input file, i.e. the metadata file. This file should be in the following format:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">T</span> <span class="o">=</span> <span class="n">XXXK</span>
+<span class="n">NAME_1</span> <span class="n">Q0_1_1</span> <span class="n">KAPPA_1_1</span> <span class="p">[</span><span class="n">Q0_2_1</span> <span class="n">KAPPA_2_1</span> <span class="p">[</span><span class="o">...</span><span class="p">]]</span>
+<span class="n">NAME_2</span> <span class="n">Q0_1_2</span> <span class="n">KAPPA_1_2</span> <span class="p">[</span><span class="n">Q0_2_2</span> <span class="n">KAPPA_2_2</span> <span class="p">[</span><span class="o">...</span><span class="p">]]</span>
+<span class="n">NAME_3</span> <span class="n">Q0_1_3</span> <span class="n">KAPPA_1_3</span> <span class="p">[</span><span class="n">Q0_2_3</span> <span class="n">KAPPA_2_3</span> <span class="p">[</span><span class="o">...</span><span class="p">]]</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>where NAME_i is a label for the i-th simulation that will be used to identify the location of its trajectory file (see parameter <code class="docutils literal notranslate"><span class="pre">trajectory_path_templates</span></code> below), (Q0_j_i, KAPPA_j_i) is the Q0 and KAPPA value of the j-th CV in the i-th bias potential (.i.e. of the i-th biased simulation). As a first example, a line <code class="docutils literal notranslate"><span class="pre">W0</span> <span class="pre">0.5</span> <span class="pre">100</span></code> would indicate a simulation labeled W0 with a bias applied along a single CV (1D bias) centered around CV=0.5 and with force constant 100 (the units of which can be further specified in the <code class="docutils literal notranslate"><span class="pre">q01_unit</span></code> and <code class="docutils literal notranslate"><span class="pre">kappa1_unit</span></code> arguments). As a second example, a line <code class="docutils literal notranslate"><span class="pre">sim3</span> <span class="pre">0.5</span> <span class="pre">100</span> <span class="pre">-1.0</span> <span class="pre">150</span></code> would indicate a simulation labeled sim3 with a bias applied along two CVs (2D bias) centered around (CV1,CV2)=(0.5,-1.0) and with force constant 100 along CV1 and 150 along CV2.</p>
+</p></li>
+<li><p><strong>trajectory_readers</strong> (instance (or list of instances) of the <a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.trajectory.CVComputer" title="thermolib.thermodynamics.trajectory.CVComputer"><code class="xref py py-class docutils literal notranslate"><span class="pre">CVComputer</span></code></a>, <a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.trajectory.HDF5Reader" title="thermolib.thermodynamics.trajectory.HDF5Reader"><code class="xref py py-class docutils literal notranslate"><span class="pre">HDF5Reader</span></code></a>, <a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.trajectory.ColVarReader" title="thermolib.thermodynamics.trajectory.ColVarReader"><code class="xref py py-class docutils literal notranslate"><span class="pre">ColVarReader</span></code></a>, <a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.trajectory.ASEExtendedXYZReader" title="thermolib.thermodynamics.trajectory.ASEExtendedXYZReader"><code class="xref py py-class docutils literal notranslate"><span class="pre">ASEExtendedXYZReader</span></code></a> classes) – implements how to read the CV values from the trajectory file of a simulation. If a list of readers is given, each reader should have its corresponding trajectory_path_template defined in the list of trajectory_path_templates. For information on how these trajectory files are determined, see description of the parameter <code class="docutils literal notranslate"><span class="pre">trajectory_path_templates</span></code>.</p></li>
+<li><p><strong>trajectory_path_templates</strong> (<em>str</em><em> or </em><em>list</em><em> of </em><em>strings</em><em>, </em><em>optional</em><em>, </em><em>default='%s'</em>) – template (or list of templates) for defining the path (relative to the directory containing <code class="docutils literal notranslate"><span class="pre">fn</span></code>) to the trajectory file corresponding to each simulation. Such template argument should be a string containing a single ‘%s’ substring which gets replaced with the label of the simulation defined in fn (i.e. NAME_j in the code block above). For example, if trajectory_path_templates is given by <code class="docutils literal notranslate"><span class="pre">trajectories/%s/colvar</span></code>, then the trajectory for the simulation labeled NAME_2 in fn is located at <code class="docutils literal notranslate"><span class="pre">trajectories/NAME_2/colvar</span></code> relative to the directory containing fn. If a list of templates is given, each template corresponds to a given trajectory reader defined in the <code class="docutils literal notranslate"><span class="pre">trajectory_readers</span></code> argument.</p></li>
+<li><p><strong>bias_potential</strong> (<em>str</em><em>, </em><em>optional</em><em>, </em><em>allowed_values=</em><em>[</em><em>'Parabola1D'</em><em>,</em><em>'Parabola2D'</em><em>,</em><em>'None'</em><em>]</em><em>, </em><em>default='None'</em>) – <p>The type of bias potential, currently allowed values are ‘Parabola1D’, ‘Parabola2D’, or ‘None’.</p>
+<ul>
+<li><p><strong>Parabola1D</strong> – harmonic bias of the form 0.5*kappa1*(q1-q01)**2</p></li>
+<li><p><strong>Parabola2D</strong> – harmonic bias of the form 0.5*kappa1*(q1-q01)**2 + 0.5*kappa2*(q2-q02)**2</p></li>
+</ul>
+</p></li>
+<li><p><strong>q01_unit</strong> (<em>str</em><em>, </em><em>optional</em><em>, </em><em>default='au'</em>) – The unit for the q01 value for each bias potential, q01 corresponds to the minimum in CV (or CV1 in case of a 2D bias) of the harmonic bias potential.</p></li>
+<li><p><strong>kappa1_unit</strong> (<em>str</em><em>, </em><em>optional</em><em>, </em><em>default='au'</em>) – The unit for kappa1 value for each bias potential, kappa1 corresponds to the force constant along CV (or CV1 in case of a 2D bias) of the harmonic bias potential.</p></li>
+<li><p><strong>q02_unit</strong> (<em>str</em><em>, </em><em>optional</em><em>, </em><em>default='au'</em>) – The unit for the q02 value for each bias potential, q02 corresponds to the minimum in CV2 of the SD harmonic bias potential. This argument is ignored in case of a 1D bias.</p></li>
+<li><p><strong>kappa2_unit</strong> (<em>str</em><em>, </em><em>optional</em><em>, </em><em>default='au'</em>) – The unit for kappa2 value for each bias potential, kappa2 corresponds to the force constant along CV2 of the harmonic bias potential. This argument is ignored in case of a 1D bias.</p></li>
+<li><p><strong>inverse_cv1</strong> (<em>bool</em><em>, </em><em>optional</em><em>, </em><em>default=False</em>) – If <cite>True</cite>, the CV1-axis will be inverted prior to bias evaluation. WARNING: the rest value parameter q01 of the potential will not be multiplied with -1!</p></li>
+<li><p><strong>inverse_cv2</strong> (<em>bool</em><em>, </em><em>optional</em><em>, </em><em>default=False</em>) – If <cite>True</cite>, the CV2-axis will be inverted prior to bias evaluation. WARNING: the rest value parameter q01 of the potential will not be multiplied with -1! This argument is ignored in case of a 2D bias.</p></li>
+<li><p><strong>additional_bias</strong> (<em>object</em><em> or </em><em>None</em><em>, </em><em>optional</em><em>, </em><em>default=None</em>) – Additional bias potential to be added for each simulation on top of the  bias potential defined in fn</p></li>
+<li><p><strong>additional_bias_dimension</strong> (<em>str</em><em>, </em><em>optional</em><em>, </em><em>default='cv1'</em>) – The dimension in which the additional bias potential operates (‘cv1’/’q1’ or ‘cv2’/’q2’).</p></li>
+<li><p><strong>skip_bias_names</strong> (<em>list</em><em>, </em><em>optional</em><em>, </em><em>default=</em><em>[</em><em>]</em>) – A list of bias names to be skipped during processing.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em><em>, </em><em>default=False</em>) – If <cite>True</cite>, print additional information during the reading process.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple containing temperature, a list of bias potentials, and a list of trajectories.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="thermolib.tools.rolling_average">
+<span class="sig-prename descclassname"><span class="pre">thermolib.tools.</span></span><span class="sig-name descname"><span class="pre">rolling_average</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yerrs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/tools.html#rolling_average"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.tools.rolling_average" title="Link to this definition"></a></dt>
+<dd><p>Compute a rolling average of a given dataset, optionally accompanied by error bars. The rolling average is calculated by dividing the dataset into windows of a specified width and averaging the values within each window. Optionally also compute the error bar on the rolling average if the input <code class="docutils literal notranslate"><span class="pre">yerrs</span></code> is provided.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ys</strong> (<em>list</em><em> or </em><em>numpy.ndarray</em>) – The input dataset for which the rolling average is calculated.</p></li>
+<li><p><strong>width</strong> (<em>int</em>) – The width of the rolling average window. Must be an integer, and at least 2.</p></li>
+<li><p><strong>yerrs</strong> (<em>list</em><em> or </em><em>numpy.ndarray</em><em> or </em><em>None</em>) – (optional) Error bars associated with the input dataset. If provided, the function will compute corresponding error bars for the rolling averages using standard error propagation.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>If <cite>yerrs</cite> is not provided, a NumPy array containing the rolling averages of the input dataset. If <cite>yerrs</cite> is provided, a tuple containing a NumPy array with the rolling averages and a NumPy array with the corresponding error bars.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray or tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="rg_error.html" class="btn btn-neutral float-left" title="Error distributions – thermolib.error" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="rg_ext.html" class="btn btn-neutral float-right" title="Extensions – thermolib.ext" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Louis Vanduyfhuys.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

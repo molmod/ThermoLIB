@@ -1,24 +1,22 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>thermolib.tools &mdash; ThermoLIB v1.7.2 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+  <title>thermolib.tools &mdash; ThermoLIB v1.8.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../../_static/jquery.js?v=5d32c60e"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=131c94de"></script>
-        <script src="../../_static/doctools.js?v=888ff710"></script>
-        <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=4eaa865d"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -36,9 +34,6 @@
             ThermoLIB
               <img src="../../_static/logo_thermolib_light.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                1.7
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -53,7 +48,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../ig.html#dependencies">Dependencies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../ig.html#download-and-install-thermolib">Download and install ThermoLIB</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../ig.html#direct-install-using-pip">Direct install using pip</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../ig.html#developers-download">Developers download</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ig.html#source-code-download-and-install">Source code download and install</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../ig.html#update-thermolib">Update ThermoLIB</a></li>
@@ -173,7 +168,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../tut/advanced_deprojection.html">Tutorial 6 - Deprojecting 1D FEP to 2D FES</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../tut/advanced_deprojection.html">Tutorial 6 - Deprojection to extract energetic contribution to free energy</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_deprojection.html#Introduction">Introduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_deprojection.html#Construct-1D-FEP">Construct 1D FEP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_deprojection.html#Deproject-to-2D-FES">Deproject to 2D FES</a><ul>
@@ -428,20 +423,18 @@
 <span class="c1"># Vanduyfhuys or prof. Van Speybroeck.</span>
 
 
-<span class="kn">from</span> <span class="nn">re</span> <span class="kn">import</span> <span class="n">I</span>
-<span class="kn">from</span> <span class="nn">molmod.units</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">molmod.constants</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">molmod.io.xyz</span> <span class="kn">import</span> <span class="n">XYZReader</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">re</span><span class="w"> </span><span class="kn">import</span> <span class="n">I</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.units</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.constants</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="n">np</span><span class="o">.</span><span class="n">seterr</span><span class="p">(</span><span class="n">divide</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">invalid</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
 
-<span class="kn">import</span> <span class="nn">h5py</span> <span class="k">as</span> <span class="nn">h5</span>
-<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">curve_fit</span>
-<span class="kn">from</span> <span class="nn">inspect</span> <span class="kn">import</span> <span class="n">signature</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">pp</span>
-<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">h5py</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">h5</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">curve_fit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">inspect</span><span class="w"> </span><span class="kn">import</span> <span class="n">signature</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s1">&#39;format_scientific&#39;</span><span class="p">,</span> <span class="s1">&#39;h5_read_dataset&#39;</span><span class="p">,</span>
@@ -453,7 +446,9 @@
 
 <span class="c1">#Miscellaneous utility routines</span>
 
-<div class="viewcode-block" id="format_scientific"><a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.format_scientific">[docs]</a><span class="k">def</span> <span class="nf">format_scientific</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">prec</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">latex</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="format_scientific">
+<a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.format_scientific">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">format_scientific</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">prec</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">latex</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Format a numerical value in scientific notation with optional precision and LaTeX formatting.</span>
 
@@ -471,13 +466,19 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
         <span class="k">return</span> <span class="sa">r</span><span class="s1">&#39;nan&#39;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">MaskedArray</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        
     <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;{:.</span><span class="si">%i</span><span class="s1">E}&#39;</span> <span class="o">%</span><span class="n">prec</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;E&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">latex</span><span class="p">:</span>
         <span class="k">return</span> <span class="sa">r</span><span class="s1">&#39;$</span><span class="si">%s</span><span class="s1">\cdot 10^{</span><span class="si">%s</span><span class="s1">}$&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> 10^</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="h5_read_dataset"><a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.h5_read_dataset">[docs]</a><span class="k">def</span> <span class="nf">h5_read_dataset</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">dset</span><span class="p">):</span>
+
+<div class="viewcode-block" id="h5_read_dataset">
+<a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.h5_read_dataset">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">h5_read_dataset</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">dset</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Read a dataset from an HDF5 file and return the data as a NumPy array.</span>
 
@@ -494,9 +495,12 @@
         <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">dset</span><span class="p">])</span>
     <span class="k">return</span> <span class="n">data</span></div>
 
+
 <span class="c1">#Routines related to integration, interpolation and recollection</span>
 
-<div class="viewcode-block" id="integrate"><a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.integrate">[docs]</a><span class="k">def</span> <span class="nf">integrate</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">yerrs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="integrate">
+<a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.integrate">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">integrate</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">yerrs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Perform numerical integration of a dataset using the trapezoidal rule and return the integrated value. Optionally, analytically compute the error in the integration if uncertainties (`yerrs`) are provided (uncorrelated error bars are assumed).</span>
 
@@ -529,7 +533,10 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">result</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">error2</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="integrate2d"><a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.integrate2d">[docs]</a><span class="k">def</span> <span class="nf">integrate2d</span><span class="p">(</span><span class="n">z</span><span class="p">,</span><span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">dx</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span><span class="n">dy</span><span class="o">=</span><span class="mf">1.</span><span class="p">):</span>
+
+<div class="viewcode-block" id="integrate2d">
+<a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.integrate2d">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">integrate2d</span><span class="p">(</span><span class="n">z</span><span class="p">,</span><span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">dx</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span><span class="n">dy</span><span class="o">=</span><span class="mf">1.</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Perform numerical integration of a regularly spaced two-dimensional dataset using the midpoint rule and return the integrated value. The function allows the specification of grid spacings (`dx` and `dy`) or infers them from the provided coordinate arrays (`x` and `y`).</span>
 
@@ -560,7 +567,10 @@
     <span class="n">s3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">z</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
     <span class="k">return</span> <span class="mf">0.25</span><span class="o">*</span><span class="n">dx</span><span class="o">*</span><span class="n">dy</span><span class="o">*</span><span class="p">(</span><span class="n">s1</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">s2</span> <span class="o">+</span> <span class="mi">4</span><span class="o">*</span><span class="n">s3</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="rolling_average"><a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.rolling_average">[docs]</a><span class="k">def</span> <span class="nf">rolling_average</span><span class="p">(</span><span class="n">ys</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">yerrs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="rolling_average">
+<a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.rolling_average">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rolling_average</span><span class="p">(</span><span class="n">ys</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">yerrs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute a rolling average of a given dataset, optionally accompanied by error bars. The rolling average is calculated by dividing the dataset into windows of a specified width and averaging the values within each window. Optionally also compute the error bar on the rolling average if the input ``yerrs`` is provided.</span>
 
@@ -596,7 +606,8 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">new_ys</span></div>
 
-<span class="k">def</span> <span class="nf">interpolate_between_points_2D</span><span class="p">(</span><span class="n">datapoints</span><span class="p">,</span> <span class="n">evalpoint</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;SVDLinear&#39;</span><span class="p">):</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">interpolate_between_points_2D</span><span class="p">(</span><span class="n">datapoints</span><span class="p">,</span> <span class="n">evalpoint</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;SVDLinear&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Routine to perform a 2D interpolation to estimate the z-value at the given evalpoint :math:`(x,y)` based on the given datapoints :math:`[(x_0,y_0,z_0),(x_1,y_1,z_1),...]`. Currently only one method of interpolation is supported: ``SVDLinear``, which is described in detail below:</span>
 
@@ -675,7 +686,7 @@
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
             <span class="k">assert</span> <span class="nb">abs</span><span class="p">(</span><span class="n">dev</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">&lt;</span><span class="mf">1e-12</span><span class="p">,</span> <span class="s1">&#39;Obtained solution did not satisfy datapoint </span><span class="si">%i</span><span class="s1">: zi-f(xi,yi)=</span><span class="si">%.3e</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">dev</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
         <span class="c1">#define function to compute z value of interpolation at given evalpoint</span>
-        <span class="k">def</span> <span class="nf">interpol</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">interpol</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">P</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">P</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">x</span><span class="o">*</span><span class="n">y</span> <span class="o">+</span> <span class="n">P</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">y</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">P</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">P</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">*</span><span class="n">y</span> <span class="o">+</span> <span class="n">P</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
     <span class="k">elif</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">==</span><span class="s1">&#39;svdlinear&#39;</span><span class="p">:</span>
         <span class="n">Z</span> <span class="o">=</span> <span class="n">datapoints</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]</span>
@@ -683,13 +694,15 @@
         <span class="n">X</span><span class="p">[:,</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">datapoints</span><span class="p">[:,</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
         <span class="n">A</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">svals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">Z</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span>
         <span class="c1">#define function to compute z value of interpolation at given evalpoint</span>
-        <span class="k">def</span> <span class="nf">interpol</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">interpol</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">A</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">x</span><span class="o">+</span><span class="n">A</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">y</span><span class="o">+</span><span class="n">A</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Interpolation method </span><span class="si">%s</span><span class="s2"> not supported, should be either &#39;QuasiLinear&#39; or &#39;SVDLinear&#39;.&quot;</span> <span class="o">%</span><span class="n">method</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">interpol</span><span class="p">(</span><span class="n">evalpoint</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">evalpoint</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 
-<div class="viewcode-block" id="interpolate_surface_2d"><a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.interpolate_surface_2d">[docs]</a><span class="k">def</span> <span class="nf">interpolate_surface_2d</span><span class="p">(</span><span class="n">cv1s</span><span class="p">,</span> <span class="n">cv2s</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">interpolation_depth</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="interpolate_surface_2d">
+<a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.interpolate_surface_2d">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">interpolate_surface_2d</span><span class="p">(</span><span class="n">cv1s</span><span class="p">,</span> <span class="n">cv2s</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">interpolation_depth</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Routine to perform interpolation of F(CV1,CV2) defined by cv1s,cv2,fs grid. For all grid points where fs is np.nan, do interpolation using its right/left/up/down neighbors that are not np.nan. This routine will detect which grid points have fs=np.nan, search for neighbours valid for interpolation, collect there f value and parse to the :py:meth:`interpolate_between_points_2D &lt;thermolib.tools.interpolate_between_points_2D&gt;`` routine to do the actual interpolation.</span>
 
@@ -747,7 +760,8 @@
         <span class="n">fs_new</span><span class="p">[</span><span class="n">k</span><span class="p">,</span><span class="n">l</span><span class="p">]</span> <span class="o">=</span> <span class="n">f_int</span>
     <span class="k">return</span> <span class="n">fs_new</span></div>
 
-<span class="k">def</span> <span class="nf">recollect_surface_2d</span><span class="p">(</span><span class="n">cv1s_old</span><span class="p">,</span> <span class="n">cv2s_old</span><span class="p">,</span> <span class="n">fs_old</span><span class="p">,</span> <span class="n">q1s_new</span><span class="p">,</span> <span class="n">q2s_new</span><span class="p">):</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">recollect_surface_2d</span><span class="p">(</span><span class="n">cv1s_old</span><span class="p">,</span> <span class="n">cv2s_old</span><span class="p">,</span> <span class="n">fs_old</span><span class="p">,</span> <span class="n">q1s_new</span><span class="p">,</span> <span class="n">q2s_new</span><span class="p">):</span>
     <span class="n">CV1s</span><span class="p">,</span> <span class="n">CV2s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">cv1s_old</span><span class="p">,</span> <span class="n">cv2s_old</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s1">&#39;ij&#39;</span><span class="p">)</span>
     <span class="n">fs_new</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">q1s_new</span><span class="p">),</span><span class="nb">len</span><span class="p">(</span><span class="n">q2s_new</span><span class="p">)])</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span>
     <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">q1s_new</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
@@ -785,7 +799,9 @@
 
 <span class="c1">#Routines for reading WHAM input</span>
 
-<div class="viewcode-block" id="read_wham_input"><a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.read_wham_input">[docs]</a><span class="k">def</span> <span class="nf">read_wham_input</span><span class="p">(</span><span class="n">fn</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">trajectory_readers</span><span class="p">,</span> <span class="n">trajectory_path_templates</span><span class="p">,</span> <span class="n">bias_potential</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="n">q01_unit</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">kappa1_unit</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">q02_unit</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">kappa2_unit</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">inverse_cv1</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">inverse_cv2</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">additional_bias</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">additional_bias_dimension</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;cv1&#39;</span><span class="p">,</span> <span class="n">skip_bias_names</span><span class="o">=</span><span class="p">[],</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="read_wham_input">
+<a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.read_wham_input">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_wham_input</span><span class="p">(</span><span class="n">fn</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">trajectory_readers</span><span class="p">,</span> <span class="n">trajectory_path_templates</span><span class="p">,</span> <span class="n">bias_potential</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="n">q01_unit</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">kappa1_unit</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">q02_unit</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">kappa2_unit</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">inverse_cv1</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">inverse_cv2</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">additional_bias</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">additional_bias_dimension</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;cv1&#39;</span><span class="p">,</span> <span class="n">skip_bias_names</span><span class="o">=</span><span class="p">[],</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Read a WHAM input file (metadata file) to read the simulation temperature, trajectories (CV samples) and bias potentials.</span>
 
@@ -849,7 +865,7 @@
 <span class="sd">        :returns: A tuple containing temperature, a list of bias potentials, and a list of trajectories.</span>
 <span class="sd">        :rtype: tuple</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="kn">from</span> <span class="nn">thermolib.thermodynamics.bias</span> <span class="kn">import</span> <span class="n">Parabola1D</span><span class="p">,</span> <span class="n">Parabola2D</span><span class="p">,</span> <span class="n">MultipleBiasses1D</span><span class="p">,</span> <span class="n">MultipleBiasses2D</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamics.bias</span><span class="w"> </span><span class="kn">import</span> <span class="n">Parabola1D</span><span class="p">,</span> <span class="n">Parabola2D</span><span class="p">,</span> <span class="n">MultipleBiasses1D</span><span class="p">,</span> <span class="n">MultipleBiasses2D</span>
     <span class="c1">#some argument dressing</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">trajectory_readers</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">trajectory_path_templates</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
         <span class="n">trajectory_readers</span> <span class="o">=</span> <span class="p">[</span><span class="n">trajectory_readers</span><span class="p">]</span>
@@ -972,7 +988,10 @@
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;WARNING: temperature could not be read from </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">fn</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">temp</span><span class="p">,</span> <span class="n">biasses</span><span class="p">,</span> <span class="n">trajectories</span></div>
 
-<div class="viewcode-block" id="extract_polynomial_bias_info"><a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.extract_polynomial_bias_info">[docs]</a><span class="k">def</span> <span class="nf">extract_polynomial_bias_info</span><span class="p">(</span><span class="n">fn_plumed</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;plumed.dat&#39;</span><span class="p">):</span>
+
+<div class="viewcode-block" id="extract_polynomial_bias_info">
+<a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.extract_polynomial_bias_info">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">extract_polynomial_bias_info</span><span class="p">(</span><span class="n">fn_plumed</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;plumed.dat&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Extracts polynomial bias coefficients from a PLUMED input file.</span>
 
@@ -994,17 +1013,20 @@
                 <span class="k">break</span>
     <span class="k">return</span> <span class="n">poly_coef</span></div>
 
-<div class="viewcode-block" id="plot_histograms_1d"><a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.plot_histograms_1d">[docs]</a><span class="k">def</span> <span class="nf">plot_histograms_1d</span><span class="p">(</span><span class="n">trajs</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.8</span><span class="p">):</span>
+
+<div class="viewcode-block" id="plot_histograms_1d">
+<a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.plot_histograms_1d">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_histograms_1d</span><span class="p">(</span><span class="n">trajs</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.8</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Routine to plot 1d histograms of all trajectories to check overlap. This is usefull to check the choice of umbrellas in an umbrella simulation.</span>
 
 <span class="sd">        :param trajs: List of all trajectories for which the histogram needs to be plotted.</span>
 <span class="sd">        :type trajs: list(np.ndarray)</span>
 
-<span class="sd">        :param bins: Specification of the bins for histograming. Can either be an integer specifying the number of bins over all CV range of all simulations or a numpy array explicitly defining all bins. Either bins or width needs to be specified, but not both.</span>
+<span class="sd">        :param bins: Specification of the bins for histograming. Can either be an integer specifying the number of bins over all CV range of all simulations or a numpy array explicitly defining all bins (in atomic units). Either bins or width needs to be specified, but not both.</span>
 <span class="sd">        :type bins: int or np.ndarray, optional, default=200</span>
 
-<span class="sd">        :param width: Specification of the width of the bins to be used in the histogramming. Either bins or width needs to be specified, but not both.</span>
+<span class="sd">        :param width: Specification of the width of the bins to be used in the histogramming (in atomic units). Either bins or width needs to be specified, but not both.</span>
 <span class="sd">        :type width: float, optional, default=None</span>
 
 <span class="sd">        :param cv_unit: unit of the CV to be used in the plot</span>
@@ -1030,18 +1052,22 @@
         <span class="k">if</span> <span class="n">bins</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">current_bins</span> <span class="o">=</span> <span class="n">bins</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="nb">min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">traj</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="o">/</span><span class="n">width</span><span class="p">)</span><span class="o">*</span><span class="n">width</span>
-            <span class="nb">max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">traj</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">/</span><span class="n">width</span><span class="p">)</span><span class="o">*</span><span class="n">width</span>
-            <span class="n">current_bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">min</span><span class="p">,</span> <span class="nb">max</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span>
+            <span class="n">min_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">traj</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="o">/</span><span class="n">width</span><span class="p">)</span><span class="o">*</span><span class="n">width</span>
+            <span class="n">max_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">traj</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">/</span><span class="n">width</span><span class="p">)</span><span class="o">*</span><span class="n">width</span>
+            <span class="n">current_bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">min_val</span><span class="p">,</span> <span class="n">max_val</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span>
         <span class="n">hist</span><span class="p">,</span> <span class="n">bin_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="n">traj</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">current_bins</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">bin_centers</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">bin_edges</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">bin_edges</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
-        <span class="n">pp</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">bin_centers</span><span class="o">/</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">cv_unit</span><span class="p">),</span> <span class="n">hist</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">)</span>
+        <span class="n">unit_scale</span> <span class="o">=</span> <span class="n">parse_unit</span><span class="p">(</span><span class="n">cv_unit</span><span class="p">)</span>
+        <span class="n">pp</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">bin_centers</span><span class="o">/</span><span class="n">unit_scale</span><span class="p">,</span> <span class="n">hist</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="o">/</span><span class="n">unit_scale</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">)</span>
     <span class="n">pp</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;CV [</span><span class="si">%s</span><span class="s1">]&#39;</span> <span class="o">%</span><span class="n">cv_unit</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
     <span class="n">pp</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Prob [a.u.]&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
     <span class="n">fig</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
     <span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">([</span><span class="mi">8</span><span class="p">,</span><span class="mi">8</span><span class="p">])</span></div>
 
-<div class="viewcode-block" id="plot_histograms_overlap_1d"><a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.plot_histograms_overlap_1d">[docs]</a><span class="k">def</span> <span class="nf">plot_histograms_overlap_1d</span><span class="p">(</span><span class="n">trajs</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fn</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="plot_histograms_overlap_1d">
+<a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.plot_histograms_overlap_1d">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_histograms_overlap_1d</span><span class="p">(</span><span class="n">trajs</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fn</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Routine to compute and plot overlap between all pairs of given trajectories. The overlap metric used is the one suggested by Borgmans et al. [J. Chem. Theory Comput. 2023, 19, 9032-9048], which expressed overlap :math:`O_{ij}` between probability distribution :math:`p_i` and :math:`p_j` as:</span>
 
@@ -1129,9 +1155,10 @@
         <span class="n">pp</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span></div>
 
 
+
 <span class="c1">#Routines related to (de)correlation</span>
 
-<span class="k">def</span> <span class="nf">_next_pow_two</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_next_pow_two</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Utility routine required in _acf routine to find the clostest power of two that is larger than the argument n.</span>
 <span class="sd">        (Taken from https://dfm.io/posts/autocorr/)</span>
@@ -1144,7 +1171,7 @@
         <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">&lt;&lt;</span> <span class="mi">1</span>
     <span class="k">return</span> <span class="n">i</span>
 
-<span class="k">def</span> <span class="nf">_hl_envelopes_idx</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">dmin</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dmax</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_hl_envelopes_idx</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">dmin</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dmax</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Utility routine required in acf routine to determine upper and lower envolopes.</span>
 <span class="sd">        Taken from https://stackoverflow.com/questions/34235530/how-to-get-high-and-low-envelope-of-a-signal</span>
@@ -1181,7 +1208,7 @@
     <span class="n">lmax</span> <span class="o">=</span> <span class="n">lmax</span><span class="p">[[</span><span class="n">i</span><span class="o">+</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="n">lmax</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">dmax</span><span class="p">]])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">lmax</span><span class="p">),</span><span class="n">dmax</span><span class="p">)]]</span>
     <span class="k">return</span> <span class="n">lmin</span><span class="p">,</span><span class="n">lmax</span>
 
-<span class="k">def</span> <span class="nf">_blav</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">blocksizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fitrange</span><span class="p">:</span> <span class="nb">list</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">],</span> <span class="n">model_function</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_blav</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">blocksizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fitrange</span><span class="p">:</span> <span class="nb">list</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">],</span> <span class="n">model_function</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Routine to implement block averaging in order to estimate the correlated error bar on the average of the data series as well as the corresponding integrated correlation time. This proceeds as follows:</span>
 
@@ -1214,7 +1241,7 @@
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="c1">#define model function for naive errors if not specified</span>
     <span class="k">if</span> <span class="n">model_function</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">def</span> <span class="nf">model_function</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">TE</span><span class="p">,</span> <span class="n">tau</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">model_function</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">TE</span><span class="p">,</span> <span class="n">tau</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">TE</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">B</span><span class="o">/</span><span class="p">(</span><span class="n">B</span><span class="o">+</span><span class="n">tau</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
     <span class="c1">#compute naive errors (=errors) on block averages</span>
     <span class="n">errors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">blocksizes</span><span class="p">))</span>
@@ -1233,12 +1260,20 @@
     <span class="n">lbounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="c1">#lower bound of true error</span>
     <span class="n">lbounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="c1">#lower bound of correlation time</span>
     <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">fitrange</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;=</span><span class="n">blocksizes</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">blocksizes</span><span class="o">&lt;=</span><span class="n">fitrange</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-    <span class="n">pars</span><span class="p">,</span> <span class="n">pcov</span> <span class="o">=</span> <span class="n">curve_fit</span><span class="p">(</span><span class="n">model_function</span><span class="p">,</span> <span class="n">blocksizes</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="n">errors</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="n">lbounds</span><span class="p">,</span><span class="n">ubounds</span><span class="p">))</span>
+    <span class="n">masked_errors</span> <span class="o">=</span> <span class="n">errors</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+    <span class="c1"># scale the data to facilitate curve_fit convergence</span>
+    <span class="n">scale_factor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">masked_errors</span><span class="p">)</span>
+    <span class="n">scaled_errors</span> <span class="o">=</span> <span class="n">masked_errors</span> <span class="o">/</span> <span class="n">scale_factor</span>
+    <span class="n">p0</span> <span class="o">=</span> <span class="p">[</span><span class="n">scaled_errors</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="mf">5.0</span><span class="p">]</span>
+    <span class="n">pars</span><span class="p">,</span> <span class="n">pcov</span> <span class="o">=</span> <span class="n">curve_fit</span><span class="p">(</span><span class="n">model_function</span><span class="p">,</span> <span class="n">blocksizes</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="n">scaled_errors</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="n">lbounds</span><span class="p">,</span><span class="n">ubounds</span><span class="p">),</span> <span class="n">p0</span><span class="o">=</span><span class="n">p0</span><span class="p">)</span>
+    <span class="n">pars</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*=</span> <span class="n">scale_factor</span>
     <span class="n">true_error</span><span class="p">,</span> <span class="n">corrtime</span> <span class="o">=</span> <span class="n">pars</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pars</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">model_fitted</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">B</span><span class="p">:</span> <span class="n">model_function</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="o">*</span><span class="nb">list</span><span class="p">(</span><span class="n">pars</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">errors</span><span class="p">,</span> <span class="n">true_error</span><span class="p">,</span> <span class="n">corrtime</span><span class="p">,</span> <span class="n">model_fitted</span>
 
-<div class="viewcode-block" id="blav"><a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.blav">[docs]</a><span class="k">def</span> <span class="nf">blav</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">blocksizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fitrange</span><span class="p">:</span> <span class="nb">list</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">],</span> <span class="n">model_function</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plot</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fn_plot</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plot_ylims</span><span class="p">:</span> <span class="nb">list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">blav_kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="blav">
+<a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.blav">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">blav</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">blocksizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fitrange</span><span class="p">:</span> <span class="nb">list</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">],</span> <span class="n">model_function</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plot</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fn_plot</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plot_ylims</span><span class="p">:</span> <span class="nb">list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">blav_kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Wrapper routine around `_blav` to apply block averaging and estimate the correlated error bar as well as the corresponding integrated correlation time on the average of the given data series. For more details on the procedure as well as the meaning of the arguments `data`, `blocksizes`, `fitrange`, and `model_function`, see documentation of the routine :py:meth:`_wrap &lt;thermolib.tools._blav&gt;`.</span>
 
@@ -1263,7 +1298,7 @@
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">100</span><span class="p">,</span> <span class="s1">&#39;I will not apply block averaging on data series with only 100 or less samples&#39;</span>
     <span class="k">if</span> <span class="n">blocksizes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">blocksizes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">/</span><span class="mi">10</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">errors</span><span class="p">,</span> <span class="n">true_error</span><span class="p">,</span> <span class="n">corrtime</span><span class="p">,</span> <span class="n">model_fitted</span> <span class="o">=</span> <span class="n">_blav</span><span class="p">(</span><span class="n">data</span><span class="o">/</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">unit</span><span class="p">),</span> <span class="n">blocksizes</span><span class="p">,</span> <span class="n">fitrange</span><span class="p">,</span> <span class="n">model_function</span><span class="o">=</span><span class="n">model_function</span><span class="p">,</span> <span class="o">**</span><span class="n">blav_kwargs</span><span class="p">)</span>
+    <span class="n">errors</span><span class="p">,</span> <span class="n">true_error</span><span class="p">,</span> <span class="n">corrtime</span><span class="p">,</span> <span class="n">model_fitted</span> <span class="o">=</span> <span class="n">_blav</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">blocksizes</span><span class="p">,</span> <span class="n">fitrange</span><span class="p">,</span> <span class="n">model_function</span><span class="o">=</span><span class="n">model_function</span><span class="p">,</span> <span class="o">**</span><span class="n">blav_kwargs</span><span class="p">)</span>
     <span class="c1">#make plot</span>
     <span class="k">if</span> <span class="n">plot</span> <span class="ow">or</span> <span class="n">fn_plot</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">pp</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
@@ -1273,8 +1308,8 @@
         <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Samples&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
         <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Time [timestep]&#39;</span><span class="p">)</span>
         <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Sample [</span><span class="si">%s</span><span class="s1">]&#39;</span> <span class="o">%</span><span class="n">unit</span><span class="p">)</span>          
-        <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">blocksizes</span><span class="p">,</span> <span class="n">errors</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">blocksizes</span><span class="p">,</span> <span class="n">model_fitted</span><span class="p">(</span><span class="n">blocksizes</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">blocksizes</span><span class="p">,</span> <span class="n">errors</span><span class="o">/</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">unit</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">blocksizes</span><span class="p">,</span> <span class="n">model_fitted</span><span class="p">(</span><span class="n">blocksizes</span><span class="p">)</span><span class="o">/</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">unit</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="c1">#axs[0,1].axhline(y=true_error/parse_unit(unit), color=&#39;k&#39;, linestyle=&#39;--&#39;, linewidth=1)</span>
         <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Error of the estimate on the sample mean&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
         <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Block size [timestep]&#39;</span><span class="p">)</span>
@@ -1286,9 +1321,10 @@
             <span class="n">pp</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fn_plot</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">pp</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">true_error</span><span class="o">*</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">unit</span><span class="p">),</span> <span class="n">corrtime</span></div>
+    <span class="k">return</span> <span class="n">true_error</span><span class="p">,</span> <span class="n">corrtime</span></div>
 
-<span class="k">def</span> <span class="nf">_acf</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_acf</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Compute autocorrelation function (taken from https://dfm.io/posts/autocorr/)</span>
 
@@ -1311,7 +1347,9 @@
         <span class="n">acf</span> <span class="o">/=</span> <span class="n">acf</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">acf</span>
 
-<div class="viewcode-block" id="corrtime_from_acf"><a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.corrtime_from_acf">[docs]</a><span class="k">def</span> <span class="nf">corrtime_from_acf</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">nblocks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">norm</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">plot</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fn_plot</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="p">:</span> <span class="nb">list</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">0.25</span><span class="p">,</span> <span class="mf">1.05</span><span class="p">],</span> <span class="n">n_nested_envelopes</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">curve_fit_kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="corrtime_from_acf">
+<a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.corrtime_from_acf">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">corrtime_from_acf</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">nblocks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">norm</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">plot</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fn_plot</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="p">:</span> <span class="nb">list</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">0.25</span><span class="p">,</span> <span class="mf">1.05</span><span class="p">],</span> <span class="n">n_nested_envelopes</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">curve_fit_kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Routine to compute the integrated autocorrelation time as follows:</span>
 
@@ -1364,10 +1402,10 @@
         <span class="n">upper_envelope_indices</span> <span class="o">=</span> <span class="n">upper_envelope_indices</span><span class="p">[</span><span class="n">indices_upper</span><span class="p">]</span>
         <span class="n">i_nested_envelope</span> <span class="o">+=</span> <span class="mi">1</span>
     <span class="c1">#fit exponential to upper_envelope and extract integrated correlation time</span>
-    <span class="k">def</span> <span class="nf">function</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">tau</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">function</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">tau</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">t</span><span class="o">/</span><span class="n">tau</span><span class="p">)</span>
     <span class="n">pars</span><span class="p">,</span> <span class="n">pcovs</span> <span class="o">=</span> <span class="n">curve_fit</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="n">upper_envelope_indices</span><span class="p">,</span> <span class="n">upper_envelope_values</span><span class="p">,</span> <span class="o">**</span><span class="n">curve_fit_kwargs</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">fitted_exp</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fitted_exp</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">function</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">pars</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
     <span class="n">corrtime</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">pars</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="c1">#pars[0] is the exp correlation time, corrtime is the integrated correlation time</span>
     <span class="c1">#Plot</span>
@@ -1396,7 +1434,10 @@
             <span class="n">pp</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">corrtime</span></div>
 
-<div class="viewcode-block" id="decorrelate"><a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.decorrelate">[docs]</a><span class="k">def</span> <span class="nf">decorrelate</span><span class="p">(</span><span class="n">trajectories</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;acf&#39;</span><span class="p">,</span> <span class="n">decorrelate_only</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plot</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fn_plot</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_decorrelated_trajectories</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">method_kwargs</span><span class="p">):</span>
+
+<div class="viewcode-block" id="decorrelate">
+<a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.decorrelate">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">decorrelate</span><span class="p">(</span><span class="n">trajectories</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;acf&#39;</span><span class="p">,</span> <span class="n">decorrelate_only</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plot</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fn_plot</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_decorrelated_trajectories</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">method_kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Function to compute correlation times for a list of trajectories and optionally decorrelate the trajectories by averaging over a number of samples equal to the correlation time.</span>
 
@@ -1433,7 +1474,7 @@
     <span class="c1">#set default function to compute correlation time to blav</span>
     <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span> <span class="s1">&#39;Method argument should be string, either acf or blav&#39;</span>
     <span class="k">if</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">==</span><span class="s1">&#39;acf&#39;</span><span class="p">:</span>
-        <span class="k">def</span> <span class="nf">method_correlation_time</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">method_correlation_time</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
             <span class="n">corrtime</span> <span class="o">=</span> <span class="n">corrtime_from_acf</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">method_kwargs</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">corrtime</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Trajectory had corrtime smaller than 1, was set to 1!&#39;</span><span class="p">)</span>
@@ -1441,7 +1482,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">corrtime</span>
     <span class="k">elif</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">==</span><span class="s1">&#39;blav&#39;</span><span class="p">:</span>
-        <span class="k">def</span> <span class="nf">method_correlation_time</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">method_correlation_time</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
             <span class="n">corrtime</span> <span class="o">=</span> <span class="n">blav</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">method_kwargs</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">corrtime</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Trajectory had corrtime smaller than 1, was set to 1!&#39;</span><span class="p">)</span>
@@ -1508,7 +1549,10 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">corrtimes</span></div>
 
-<div class="viewcode-block" id="multivariate_normal"><a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.multivariate_normal">[docs]</a><span class="k">def</span> <span class="nf">multivariate_normal</span><span class="p">(</span><span class="n">means</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">covariance</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="multivariate_normal">
+<a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.multivariate_normal">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">multivariate_normal</span><span class="p">(</span><span class="n">means</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">covariance</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Wrapper around `numpy.random.multivariate_normal &lt;https://numpy.org/doc/stable/reference/random/generated/numpy.random.multivariate_normal.html&gt;`_ to handle `np.nan` columns in the covariance matrix. It also enforces symmetry on the covariance matrix to filter out non-symmetric noise. To generate the samples, Iit will first try the cholesky method in np.random.multivariate_normal as it is much faster. If that fails, the function tries again with the eigh setting and informs the user.</span>
 
@@ -1550,9 +1594,12 @@
         <span class="n">samples</span><span class="p">[:,</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">samples_cropped</span>
     <span class="k">return</span> <span class="n">samples</span></div>
 
+
 <span class="c1"># Routines related to computing and inverting the fisher information matrix</span>
 
-<div class="viewcode-block" id="invert_fisher_to_covariance"><a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.invert_fisher_to_covariance">[docs]</a><span class="k">def</span> <span class="nf">invert_fisher_to_covariance</span><span class="p">(</span><span class="n">F</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ps</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">threshold</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="invert_fisher_to_covariance">
+<a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.invert_fisher_to_covariance">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">invert_fisher_to_covariance</span><span class="p">(</span><span class="n">F</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ps</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">threshold</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Inverts the Fisher information matrix to obtain the covariance matrix, handling specified thresholds.</span>
 
@@ -1585,7 +1632,10 @@
     <span class="n">cov</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">F_mask</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">N_mask2</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">cov</span></div>
 
-<div class="viewcode-block" id="fisher_matrix_mle_probdens"><a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.fisher_matrix_mle_probdens">[docs]</a><span class="k">def</span> <span class="nf">fisher_matrix_mle_probdens</span><span class="p">(</span><span class="n">ps</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;mle_f&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+<div class="viewcode-block" id="fisher_matrix_mle_probdens">
+<a class="viewcode-back" href="../../rg_tools.html#thermolib.tools.fisher_matrix_mle_probdens">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">fisher_matrix_mle_probdens</span><span class="p">(</span><span class="n">ps</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;mle_f&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Computes the Fisher information matrix for the maximum likelihood estimation (MLE) of probability distribution parameters given in argument ps.</span>
 
@@ -1620,100 +1670,6 @@
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;      No Fisher information found!&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">F</span></div>
 
-<span class="c1">#Set of old depricated routines that are only kept in ThermoLIB for backward compatibility. These routines will be removed in the near future, please use read_wham_input routine.</span>
-
-<span class="k">def</span> <span class="nf">trajectory_xyz_to_CV</span><span class="p">(</span><span class="n">fns</span><span class="p">,</span> <span class="n">CV</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        .. deprecated:: 1.7</span>
-<span class="sd">        </span>
-<span class="sd">            Use :py:class:`CVComputer &lt;thermolib.trajectory.CVComputer&gt;` class instead. This old function is still included for backward compatibility, but it will be removed in the near future.</span>
-<span class="sd">        </span>
-<span class="sd">        Compute the CV along an XYZ trajectory. The XYZ trajectory is assumed to be defined in a (list of subsequent) XYZ file(s).</span>
-
-<span class="sd">        :param fns: (list of) names of XYZ trajectory file(s) containing the xyz coordinates of the system</span>
-<span class="sd">        :type fns: str or list(str)</span>
-
-<span class="sd">        :param CV: collective variable defining how to compute the collective variable along the trajectory</span>
-<span class="sd">        :type CV: one from thermolib.thermodynamics.cv.__all__</span>
-
-<span class="sd">        :return: array containing the CV value along the trajectory</span>
-<span class="sd">        :rtype: np.ndarray(flt)</span>
-<span class="sd">    &#39;&#39;&#39;</span>
-    <span class="n">cvs</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">fns</span><span class="p">:</span>
-        <span class="n">xyz</span> <span class="o">=</span> <span class="n">XYZReader</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">title</span><span class="p">,</span> <span class="n">coords</span> <span class="ow">in</span> <span class="n">xyz</span><span class="p">:</span>
-            <span class="n">cv</span> <span class="o">=</span> <span class="n">CV</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="n">cvs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cv</span><span class="p">)</span>
-        <span class="k">del</span> <span class="n">xyz</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cvs</span><span class="p">)</span>
-
-<span class="k">def</span> <span class="nf">read_wham_input_old</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">path_template_colvar_fns</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">colvar_cv_column_index</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">kappa_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">q0_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">end</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bias_potential</span><span class="o">=</span><span class="s1">&#39;Parabola1D&#39;</span><span class="p">,</span> <span class="n">additional_bias</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">inverse_cv</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        .. deprecated:: 1.7</span>
-<span class="sd">        </span>
-<span class="sd">            Use :py:meth:`read_wham_input &lt;thermolib.tools.read_wham_input&gt;` instead. This old function is still included for backward compatibility, but it will be removed in the near future.</span>
-<span class="sd">    &#39;&#39;&#39;</span>
-    <span class="kn">from</span> <span class="nn">thermolib.thermodynamics.trajectory</span> <span class="kn">import</span> <span class="n">ColVarReader</span>
-    <span class="n">trajectory_reader</span> <span class="o">=</span> <span class="n">ColVarReader</span><span class="p">([</span><span class="n">colvar_cv_column_index</span><span class="p">],</span> <span class="n">units</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;au&#39;</span><span class="p">],</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="n">stride</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">read_wham_input</span><span class="p">(</span>
-        <span class="n">fn</span><span class="p">,</span> 
-        <span class="n">trajectory_reader</span><span class="p">,</span> <span class="n">trajectory_path_template</span><span class="o">=</span><span class="n">path_template_colvar_fns</span><span class="p">,</span> 
-        <span class="n">bias_potential</span><span class="o">=</span><span class="n">bias_potential</span><span class="p">,</span> <span class="n">q01_unit</span><span class="o">=</span><span class="n">q0_unit</span><span class="p">,</span> <span class="n">kappa1_unit</span><span class="o">=</span><span class="n">kappa_unit</span><span class="p">,</span> <span class="n">inverse_cv1</span><span class="o">=</span><span class="n">inverse_cv</span><span class="p">,</span> 
-        <span class="n">additional_bias</span><span class="o">=</span><span class="n">additional_bias</span><span class="p">,</span> 
-        <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span>
-    <span class="p">)</span>
-
-<span class="k">def</span> <span class="nf">read_wham_input_h5_old</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">h5_cv_path</span><span class="p">,</span> <span class="n">path_template_h5_fns</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">kappa_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">q0_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">end</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bias_potential</span><span class="o">=</span><span class="s1">&#39;Parabola1D&#39;</span><span class="p">,</span> <span class="n">additional_bias</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">inverse_cv</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        .. deprecated:: 1.7</span>
-<span class="sd">        </span>
-<span class="sd">            Use :py:meth:`read_wham_input &lt;thermolib.tools.read_wham_input&gt;` instead. This old function is still included for backward compatibility, but it will be removed in the near future.</span>
-<span class="sd">    &#39;&#39;&#39;</span>
-    <span class="kn">from</span> <span class="nn">thermolib.thermodynamics.trajectory</span> <span class="kn">import</span> <span class="n">HDF5Reader</span>
-    <span class="n">trajectory_reader</span> <span class="o">=</span> <span class="n">HDF5Reader</span><span class="p">([</span><span class="n">h5_cv_path</span><span class="p">],</span> <span class="n">units</span><span class="o">=</span><span class="p">[</span><span class="n">cv_unit</span><span class="p">],</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="n">stride</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">read_wham_input</span><span class="p">(</span>
-        <span class="n">fn</span><span class="p">,</span> 
-        <span class="n">trajectory_reader</span><span class="p">,</span> <span class="n">trajectory_path_template</span><span class="o">=</span><span class="n">path_template_h5_fns</span><span class="p">,</span> 
-        <span class="n">bias_potential</span><span class="o">=</span><span class="n">bias_potential</span><span class="p">,</span> <span class="n">q01_unit</span><span class="o">=</span><span class="n">q0_unit</span><span class="p">,</span> <span class="n">kappa1_unit</span><span class="o">=</span><span class="n">kappa_unit</span><span class="p">,</span> <span class="n">inverse_cv1</span><span class="o">=</span><span class="n">inverse_cv</span><span class="p">,</span> 
-        <span class="n">additional_bias</span><span class="o">=</span><span class="n">additional_bias</span><span class="p">,</span> 
-        <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span>
-    <span class="p">)</span>
-
-<span class="k">def</span> <span class="nf">read_wham_input_2D_old</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">path_template_colvar_fns</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">colvar_cv1_column_index</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">colvar_cv2_column_index</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">kappa1_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">kappa2_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">q01_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">q02_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">end</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bias_potential</span><span class="o">=</span><span class="s1">&#39;Parabola2D&#39;</span><span class="p">,</span><span class="n">additional_bias</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">additional_bias_dimension</span><span class="o">=</span><span class="s1">&#39;q1&#39;</span><span class="p">,</span><span class="n">inverse_cv1</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">inverse_cv2</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        .. deprecated:: 1.7</span>
-<span class="sd">        </span>
-<span class="sd">            Use :py:meth:`read_wham_input &lt;thermolib.tools.read_wham_input&gt;` instead. This old function is still included for backward compatibility, but it will be removed in the near future.</span>
-<span class="sd">    &#39;&#39;&#39;</span>
-    <span class="kn">from</span> <span class="nn">thermolib.thermodynamics.trajectory</span> <span class="kn">import</span> <span class="n">ColVarReader</span>
-    <span class="n">trajectory_reader</span> <span class="o">=</span> <span class="n">ColVarReader</span><span class="p">([</span><span class="n">colvar_cv1_column_index</span><span class="p">,</span> <span class="n">colvar_cv2_column_index</span><span class="p">],</span> <span class="n">units</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;au&#39;</span><span class="p">,</span><span class="s1">&#39;au&#39;</span><span class="p">],</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="n">stride</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">read_wham_input</span><span class="p">(</span>
-        <span class="n">fn</span><span class="p">,</span> 
-        <span class="n">trajectory_reader</span><span class="p">,</span> <span class="n">trajectory_path_template</span><span class="o">=</span><span class="n">path_template_colvar_fns</span><span class="p">,</span> 
-        <span class="n">bias_potential</span><span class="o">=</span><span class="n">bias_potential</span><span class="p">,</span> <span class="n">q01_unit</span><span class="o">=</span><span class="n">q01_unit</span><span class="p">,</span> <span class="n">q02_unit</span><span class="o">=</span><span class="n">q02_unit</span><span class="p">,</span> <span class="n">kappa1_unit</span><span class="o">=</span><span class="n">kappa1_unit</span><span class="p">,</span> <span class="n">kappa2_unit</span><span class="o">=</span><span class="n">kappa2_unit</span><span class="p">,</span> 
-        <span class="n">inverse_cv1</span><span class="o">=</span><span class="n">inverse_cv1</span><span class="p">,</span> <span class="n">inverse_cv2</span><span class="o">=</span><span class="n">inverse_cv2</span><span class="p">,</span>
-        <span class="n">additional_bias</span><span class="o">=</span><span class="n">additional_bias</span><span class="p">,</span> <span class="n">additional_bias_dimension</span><span class="o">=</span><span class="n">additional_bias_dimension</span><span class="p">,</span>
-        <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span>
-    <span class="p">)</span>
-
-<span class="k">def</span> <span class="nf">read_wham_input_2D_h5_old</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">h5_cv1_path</span><span class="p">,</span> <span class="n">h5_cv2_path</span><span class="p">,</span> <span class="n">path_template_h5_fns</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">kappa1_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">kappa2_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">q01_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">q02_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv1_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv2_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">end</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bias_potential</span><span class="o">=</span><span class="s1">&#39;Parabola2D&#39;</span><span class="p">,</span> <span class="n">additional_bias</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">additional_bias_dimension</span><span class="o">=</span><span class="s1">&#39;q1&#39;</span><span class="p">,</span> <span class="n">inverse_cv1</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">inverse_cv2</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        .. deprecated:: 1.7</span>
-<span class="sd">        </span>
-<span class="sd">            Use :py:meth:`read_wham_input &lt;thermolib.tools.read_wham_input&gt;` instead. This old function is still included for backward compatibility, but it will be removed in the near future.</span>
-<span class="sd">    &#39;&#39;&#39;</span>
-    <span class="kn">from</span> <span class="nn">thermolib.thermodynamics.trajectory</span> <span class="kn">import</span> <span class="n">HDF5Reader</span>
-    <span class="n">trajectory_reader</span> <span class="o">=</span> <span class="n">HDF5Reader</span><span class="p">([</span><span class="n">h5_cv1_path</span><span class="p">,</span> <span class="n">h5_cv2_path</span><span class="p">],</span> <span class="n">units</span><span class="o">=</span><span class="p">[</span><span class="n">cv1_unit</span><span class="p">,</span><span class="n">cv2_unit</span><span class="p">],</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="n">stride</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">read_wham_input</span><span class="p">(</span>
-        <span class="n">fn</span><span class="p">,</span> 
-        <span class="n">trajectory_reader</span><span class="p">,</span> <span class="n">trajectory_path_template</span><span class="o">=</span><span class="n">path_template_h5_fns</span><span class="p">,</span> 
-        <span class="n">bias_potential</span><span class="o">=</span><span class="n">bias_potential</span><span class="p">,</span> <span class="n">q01_unit</span><span class="o">=</span><span class="n">q01_unit</span><span class="p">,</span> <span class="n">q02_unit</span><span class="o">=</span><span class="n">q02_unit</span><span class="p">,</span> <span class="n">kappa1_unit</span><span class="o">=</span><span class="n">kappa1_unit</span><span class="p">,</span> <span class="n">kappa2_unit</span><span class="o">=</span><span class="n">kappa2_unit</span><span class="p">,</span> 
-        <span class="n">inverse_cv1</span><span class="o">=</span><span class="n">inverse_cv1</span><span class="p">,</span> <span class="n">inverse_cv2</span><span class="o">=</span><span class="n">inverse_cv2</span><span class="p">,</span>
-        <span class="n">additional_bias</span><span class="o">=</span><span class="n">additional_bias</span><span class="p">,</span> <span class="n">additional_bias_dimension</span><span class="o">=</span><span class="n">additional_bias_dimension</span><span class="p">,</span>
-        <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span>
-    <span class="p">)</span>
-
 </pre></div>
 
            </div>
@@ -1723,7 +1679,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Louis Vanduyfhuys.</p>
+    <p>&#169; Copyright 2026, Louis Vanduyfhuys.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

@@ -1,25 +1,23 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kinetics – thermolib.kinetics &mdash; ThermoLIB v1.7.2 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+  <title>Kinetics – thermolib.kinetics &mdash; ThermoLIB v1.8.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/custom.css" />
 
   
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="_static/jquery.js?v=5d32c60e"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=131c94de"></script>
-        <script src="_static/doctools.js?v=888ff710"></script>
-        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=4eaa865d"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -39,9 +37,6 @@
             ThermoLIB
               <img src="_static/logo_thermolib_light.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                1.7
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -56,7 +51,7 @@
 <li class="toctree-l2"><a class="reference internal" href="ig.html#dependencies">Dependencies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ig.html#download-and-install-thermolib">Download and install ThermoLIB</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="ig.html#direct-install-using-pip">Direct install using pip</a></li>
-<li class="toctree-l3"><a class="reference internal" href="ig.html#developers-download">Developers download</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ig.html#source-code-download-and-install">Source code download and install</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="ig.html#update-thermolib">Update ThermoLIB</a></li>
@@ -176,7 +171,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="tut/advanced_deprojection.html">Tutorial 6 - Deprojecting 1D FEP to 2D FES</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tut/advanced_deprojection.html">Tutorial 6 - Deprojection to extract energetic contribution to free energy</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="tut/advanced_deprojection.html#Introduction">Introduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tut/advanced_deprojection.html#Construct-1D-FEP">Construct 1D FEP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tut/advanced_deprojection.html#Deproject-to-2D-FES">Deproject to 2D FES</a><ul>
@@ -419,12 +414,12 @@
            <div itemprop="articleBody">
              
   <section id="kinetics-thermolib-kinetics">
-<h1>Kinetics – <code class="docutils literal notranslate"><span class="pre">thermolib.kinetics</span></code><a class="headerlink" href="#kinetics-thermolib-kinetics" title="Permalink to this heading"></a></h1>
+<h1>Kinetics – <code class="docutils literal notranslate"><span class="pre">thermolib.kinetics</span></code><a class="headerlink" href="#kinetics-thermolib-kinetics" title="Link to this heading"></a></h1>
 <section id="module-thermolib.kinetics.rate">
-<span id="rate-constant-thermolib-kinetics-rate"></span><h2>Rate constant – <code class="docutils literal notranslate"><span class="pre">thermolib.kinetics.rate</span></code><a class="headerlink" href="#module-thermolib.kinetics.rate" title="Permalink to this heading"></a></h2>
+<span id="rate-constant-thermolib-kinetics-rate"></span><h2>Rate constant – <code class="docutils literal notranslate"><span class="pre">thermolib.kinetics.rate</span></code><a class="headerlink" href="#module-thermolib.kinetics.rate" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="thermolib.kinetics.rate.BaseRateFactor">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">thermolib.kinetics.rate.</span></span><span class="sig-name descname"><span class="pre">BaseRateFactor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">CV</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CV_TS_lims</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CV_unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'au'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/kinetics/rate.html#BaseRateFactor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.kinetics.rate.BaseRateFactor" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">thermolib.kinetics.rate.</span></span><span class="sig-name descname"><span class="pre">BaseRateFactor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">CV</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CV_TS_lims</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CV_unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'au'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/kinetics/rate.html#BaseRateFactor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.kinetics.rate.BaseRateFactor" title="Link to this definition"></a></dt>
 <dd><p>An abstract class for inheriting child classes to compute the prefactor <img class="math" src="_images/math/211284f68205c3e66773eaf026f32a0acdd3dfb3.png" alt="A"/> required for the computation of the rate constant of the process of crossing a transition state:</p>
 <div class="math">
 <p><img src="_images/math/c44bc15b31d9224f8131f813b3cbea91015c6ba6.png" alt="k &amp;= A\cdot\frac{ e^{-\beta F(q_{TS})} }{ \int_{-\infty}^{q_{TS}}e^{-\beta F(q)}dq } \\
@@ -441,7 +436,7 @@ A &amp;= \frac{1}{2}\left\langle|\dot{Q}|\right\rangle_{TS}"/></p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.kinetics.rate.BaseRateFactor.compute_rate">
-<span class="sig-name descname"><span class="pre">compute_rate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fep</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">propagator=&lt;thermolib.error.Propagator</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/kinetics/rate.html#BaseRateFactor.compute_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.kinetics.rate.BaseRateFactor.compute_rate" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">compute_rate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fep</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">propagator=&lt;thermolib.error.Propagator</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/kinetics/rate.html#BaseRateFactor.compute_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.kinetics.rate.BaseRateFactor.compute_rate" title="Link to this definition"></a></dt>
 <dd><p>Combine the kinetic information of the rate factor encoded in the current instance with the thermodynamic information encoded in the free energy profile fep to obtain a rate constant according to the formula</p>
 <div class="math">
 <p><img src="_images/math/c44bc15b31d9224f8131f813b3cbea91015c6ba6.png" alt="k &amp;= A\cdot\frac{ e^{-\beta F(q_{TS})} }{ \int_{-\infty}^{q_{TS}}e^{-\beta F(q)}dq } \\
@@ -465,7 +460,7 @@ A &amp;= \frac{1}{2}\left\langle|\dot{Q}|\right\rangle_{TS}"/></p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.kinetics.rate.BaseRateFactor.finish">
-<span class="sig-name descname"><span class="pre">finish</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/kinetics/rate.html#BaseRateFactor.finish"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.kinetics.rate.BaseRateFactor.finish" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">finish</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/kinetics/rate.html#BaseRateFactor.finish"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.kinetics.rate.BaseRateFactor.finish" title="Link to this definition"></a></dt>
 <dd><p>Finish extracting/reading samples of the A property and optionally write all samples to a given file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -476,13 +471,13 @@ A &amp;= \frac{1}{2}\left\langle|\dot{Q}|\right\rangle_{TS}"/></p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.kinetics.rate.BaseRateFactor.process_trajectory">
-<span class="sig-name descname"><span class="pre">process_trajectory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/kinetics/rate.html#BaseRateFactor.process_trajectory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.kinetics.rate.BaseRateFactor.process_trajectory" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">process_trajectory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/kinetics/rate.html#BaseRateFactor.process_trajectory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.kinetics.rate.BaseRateFactor.process_trajectory" title="Link to this definition"></a></dt>
 <dd><p>To be implemented in a child class</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.kinetics.rate.BaseRateFactor.read_results">
-<span class="sig-name descname"><span class="pre">read_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A_unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'au/s'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/kinetics/rate.html#BaseRateFactor.read_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.kinetics.rate.BaseRateFactor.read_results" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">read_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A_unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'au/s'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/kinetics/rate.html#BaseRateFactor.read_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.kinetics.rate.BaseRateFactor.read_results" title="Link to this definition"></a></dt>
 <dd><p>Read the samples for the A property from the given file</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -496,7 +491,7 @@ A &amp;= \frac{1}{2}\left\langle|\dot{Q}|\right\rangle_{TS}"/></p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.kinetics.rate.BaseRateFactor.result_blav">
-<span class="sig-name descname"><span class="pre">result_blav</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blocksizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitrange</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[1,</span> <span class="pre">inf]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_function</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_ylims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/kinetics/rate.html#BaseRateFactor.result_blav"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.kinetics.rate.BaseRateFactor.result_blav" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">result_blav</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blocksizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitrange</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[1,</span> <span class="pre">inf]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_function</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_ylims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/kinetics/rate.html#BaseRateFactor.result_blav"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.kinetics.rate.BaseRateFactor.result_blav" title="Link to this definition"></a></dt>
 <dd><p>Store and return the error distribution of the stored A samples. Error is estimated using the block averaging (blav) method. For more details on this blav procedure as well as the meaning of the arguments <cite>blocksizes</cite>, <cite>fitrange</cite>, and <cite>model_function</cite>, see documentation of the routine <code class="xref py py-meth docutils literal notranslate"><span class="pre">_wrap</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -518,7 +513,7 @@ A &amp;= \frac{1}{2}\left\langle|\dot{Q}|\right\rangle_{TS}"/></p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.kinetics.rate.BaseRateFactor.result_bootstrapping">
-<span class="sig-name descname"><span class="pre">result_bootstrapping</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nboot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/kinetics/rate.html#BaseRateFactor.result_bootstrapping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.kinetics.rate.BaseRateFactor.result_bootstrapping" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">result_bootstrapping</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nboot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/kinetics/rate.html#BaseRateFactor.result_bootstrapping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.kinetics.rate.BaseRateFactor.result_bootstrapping" title="Link to this definition"></a></dt>
 <dd><p>Store and return the error distribution of the stored A samples. Error is estimated using the bootstrapping method.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -538,7 +533,7 @@ A &amp;= \frac{1}{2}\left\langle|\dot{Q}|\right\rangle_{TS}"/></p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.kinetics.rate.BaseRateFactor.result_no_statistics">
-<span class="sig-name descname"><span class="pre">result_no_statistics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/kinetics/rate.html#BaseRateFactor.result_no_statistics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.kinetics.rate.BaseRateFactor.result_no_statistics" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">result_no_statistics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/kinetics/rate.html#BaseRateFactor.result_no_statistics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.kinetics.rate.BaseRateFactor.result_no_statistics" title="Link to this definition"></a></dt>
 <dd><p>Store and return the mean A value from the stored samples</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -554,7 +549,7 @@ A &amp;= \frac{1}{2}\left\langle|\dot{Q}|\right\rangle_{TS}"/></p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="thermolib.kinetics.rate.RateFactorEquilibrium">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">thermolib.kinetics.rate.</span></span><span class="sig-name descname"><span class="pre">RateFactorEquilibrium</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">CV</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CV_TS_lims</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CV_unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'au'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/kinetics/rate.html#RateFactorEquilibrium"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.kinetics.rate.RateFactorEquilibrium" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">thermolib.kinetics.rate.</span></span><span class="sig-name descname"><span class="pre">RateFactorEquilibrium</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">CV</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CV_TS_lims</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CV_unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'au'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/kinetics/rate.html#RateFactorEquilibrium"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.kinetics.rate.RateFactorEquilibrium" title="Link to this definition"></a></dt>
 <dd><p>Class to compute the factor <img class="math" src="_images/math/211284f68205c3e66773eaf026f32a0acdd3dfb3.png" alt="A"/> required for the computation of the rate constant <img class="math" src="_images/math/9630132210b904754c9ab272b61cb527d12263ca.png" alt="k"/> of the process of crossing a transition state:</p>
 <div class="math">
 <p><img src="_images/math/1f1616747f4531f54974f014e3ae450a72ca831a.png" alt="\begin{aligned}
@@ -600,13 +595,13 @@ A &amp;= \frac{1}{2}\left\langle|\dot{Q}|\right\rangle_{TS}"/></p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.kinetics.rate.RateFactorEquilibrium.process_trajectory">
-<span class="sig-name descname"><span class="pre">process_trajectory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn_xyz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sub</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">slice(None,</span> <span class="pre">None,</span> <span class="pre">None)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">finish</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">momenta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'analytical'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Nmomenta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/kinetics/rate.html#RateFactorEquilibrium.process_trajectory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.kinetics.rate.RateFactorEquilibrium.process_trajectory" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">process_trajectory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn_xyz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sub</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">slice(None,</span> <span class="pre">None,</span> <span class="pre">None)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">finish</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">momenta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'analytical'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Nmomenta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/kinetics/rate.html#RateFactorEquilibrium.process_trajectory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.kinetics.rate.RateFactorEquilibrium.process_trajectory" title="Link to this definition"></a></dt>
 <dd><p>Process the given XYZ trajectory to compute and store A samples.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>fn_xyz</strong> (<em>str</em>) – filename of the trajectory from which the rate factor will be computed.</p></li>
-<li><p><strong>sub</strong> (<em>slice</em><em>, </em><em>optional</em><em>, </em><em>default=</em><em>(</em><em>None</em><em>,</em><em>None</em><em>,</em><em>None</em><em>)</em>) – slice object to subsample the xyz trajectory. For more information see <a class="reference external" href="https://molmod.github.io/molmod/reference/io.html#module-molmod.io.xyz">https://molmod.github.io/molmod/reference/io.html#module-molmod.io.xyz</a></p></li>
+<li><p><strong>sub</strong> (<em>slice</em><em>, </em><em>optional</em><em>, </em><em>default=</em><em>(</em><em>None</em><em>,</em><em>None</em><em>,</em><em>None</em><em>)</em>) – slice object to subsample the xyz trajectory. For more information see <a class="reference external" href="https://wiki.fysik.dtu.dk/ase/ase/io/io.html">https://wiki.fysik.dtu.dk/ase/ase/io/io.html</a></p></li>
 <li><p><strong>finish</strong> (<em>bool</em><em>, </em><em>optional</em><em>, </em><em>default=True</em>) – when set to True, the finish routine will be called after processing the trajectory, which will finalize storing the data. If multiple trajectory from different files need to be read, set finish to False for all but the last trajectory.</p></li>
 <li><p><strong>fn_samples</strong> (<em>str</em><em>, </em><em>optional</em><em>, </em><em>default=None</em>) – write the rate factor samples (i.e. the As array) to the given file. This feature is switched off by specifying None.</p></li>
 <li><p><strong>momenta</strong> (<em>string</em><em>, </em><em>optional</em><em>, </em><em>default=analytical</em>) – <p>specify how to compute the momentum part of the phase space integral in computing the As samples (see description above). The following options are available:</p>
@@ -624,13 +619,13 @@ A &amp;= \frac{1}{2}\left\langle|\dot{Q}|\right\rangle_{TS}"/></p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="thermolib.kinetics.rate.RateFactorEquilibrium.process_trajectory_h5">
-<span class="sig-name descname"><span class="pre">process_trajectory_h5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn_h5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sub</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">slice(None,</span> <span class="pre">None,</span> <span class="pre">None)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">finish</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">momenta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'analytical'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Nmomenta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/kinetics/rate.html#RateFactorEquilibrium.process_trajectory_h5"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.kinetics.rate.RateFactorEquilibrium.process_trajectory_h5" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">process_trajectory_h5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn_h5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sub</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">slice(None,</span> <span class="pre">None,</span> <span class="pre">None)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">finish</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">momenta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'analytical'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Nmomenta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/thermolib/kinetics/rate.html#RateFactorEquilibrium.process_trajectory_h5"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#thermolib.kinetics.rate.RateFactorEquilibrium.process_trajectory_h5" title="Link to this definition"></a></dt>
 <dd><p>Process the given XYZ trajectory to compute and store A samples.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>fn_h5</strong> (<em>str</em>) – filename of the trajectory from which the rate factor will be computed.</p></li>
-<li><p><strong>sub</strong> (<em>slice</em><em>, </em><em>optional</em><em>, </em><em>default=</em><em>(</em><em>None</em><em>,</em><em>None</em><em>,</em><em>None</em><em>)</em>) – slice object to subsample the xyz trajectory. For more information see <a class="reference external" href="https://molmod.github.io/molmod/reference/io.html#module-molmod.io.xyz">https://molmod.github.io/molmod/reference/io.html#module-molmod.io.xyz</a></p></li>
+<li><p><strong>sub</strong> (<em>slice</em><em>, </em><em>optional</em><em>, </em><em>default=</em><em>(</em><em>None</em><em>,</em><em>None</em><em>,</em><em>None</em><em>)</em>) – slice object to subsample the xyz trajectory.</p></li>
 <li><p><strong>finish</strong> (<em>bool</em><em>, </em><em>optional</em><em>, </em><em>default=True</em>) – when set to True, the finish routine will be called after processing the trajectory, which will finalize storing the data. If multiple trajectory from different files need to be read, set finish to False for all but the last trajectory.</p></li>
 <li><p><strong>fn_samples</strong> (<em>str</em><em>, </em><em>optional</em><em>, </em><em>default=None</em>) – write the rate factor samples (i.e. the As array) to the given file. This feature is switched off by specifying None.</p></li>
 <li><p><strong>momenta</strong> (<em>string</em><em>, </em><em>optional</em><em>, </em><em>default=analytical</em>) – <p>specify how to compute the momentum part of the phase space integral in computing the As samples (see description above). The following options are available:</p>
@@ -662,7 +657,7 @@ A &amp;= \frac{1}{2}\left\langle|\dot{Q}|\right\rangle_{TS}"/></p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Louis Vanduyfhuys.</p>
+    <p>&#169; Copyright 2026, Louis Vanduyfhuys.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
