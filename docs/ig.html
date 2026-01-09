@@ -1,25 +1,23 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Installation Guide &mdash; ThermoLIB v1.7.2 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+  <title>Installation Guide &mdash; ThermoLIB v1.8.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/custom.css" />
 
   
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="_static/jquery.js?v=5d32c60e"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=131c94de"></script>
-        <script src="_static/doctools.js?v=888ff710"></script>
-        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=4eaa865d"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -39,9 +37,6 @@
             ThermoLIB
               <img src="_static/logo_thermolib_light.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                1.7
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -56,7 +51,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#dependencies">Dependencies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#download-and-install-thermolib">Download and install ThermoLIB</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#direct-install-using-pip">Direct install using pip</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#developers-download">Developers download</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#source-code-download-and-install">Source code download and install</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#update-thermolib">Update ThermoLIB</a></li>
@@ -176,7 +171,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="tut/advanced_deprojection.html">Tutorial 6 - Deprojecting 1D FEP to 2D FES</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tut/advanced_deprojection.html">Tutorial 6 - Deprojection to extract energetic contribution to free energy</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="tut/advanced_deprojection.html#Introduction">Introduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tut/advanced_deprojection.html#Construct-1D-FEP">Construct 1D FEP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tut/advanced_deprojection.html#Deproject-to-2D-FES">Deproject to 2D FES</a><ul>
@@ -372,6 +367,8 @@
 <li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.interpolate_surface_2d"><code class="docutils literal notranslate"><span class="pre">interpolate_surface_2d()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.invert_fisher_to_covariance"><code class="docutils literal notranslate"><span class="pre">invert_fisher_to_covariance()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.multivariate_normal"><code class="docutils literal notranslate"><span class="pre">multivariate_normal()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.plot_histograms_1d"><code class="docutils literal notranslate"><span class="pre">plot_histograms_1d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.plot_histograms_overlap_1d"><code class="docutils literal notranslate"><span class="pre">plot_histograms_overlap_1d()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.read_wham_input"><code class="docutils literal notranslate"><span class="pre">read_wham_input()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.rolling_average"><code class="docutils literal notranslate"><span class="pre">rolling_average()</span></code></a></li>
 </ul>
@@ -416,38 +413,21 @@
            <div itemprop="articleBody">
              
   <section id="installation-guide">
-<span id="seclab-ig"></span><h1>Installation Guide<a class="headerlink" href="#installation-guide" title="Permalink to this heading"></a></h1>
+<span id="seclab-ig"></span><h1>Installation Guide<a class="headerlink" href="#installation-guide" title="Link to this heading"></a></h1>
 <p>Here you can find information on the packages required for a successfull installation of ThermoLIB as well as details on how to download and install ThermoLIB on a Linux system. On Windows 11, ThermoLIB was tested for <a class="reference external" href="https://learn.microsoft.com/en-us/windows/wsl/install">Windows Subsystem for Linux - version 2</a>. For a pure Windows-based installation, we cannot garantue any assistance but we are of course interested to hear about your adventures.</p>
 <section id="dependencies">
-<h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this heading"></a></h2>
+<h2>Dependencies<a class="headerlink" href="#dependencies" title="Link to this heading"></a></h2>
 <p>Some software packages should be installed before ThermoLIB can be installed and/or used. It is recommended to use the software package management of your Linux distribution to install these dependencies. The following software must be installed:</p>
 <ul class="simple">
-<li><p>Python3 &lt;= 3.8 (including the development files): <a class="reference external" href="http://www.python.org/">http://www.python.org/</a></p></li>
+<li><p>Python3 (including the development files): <a class="reference external" href="http://www.python.org/">http://www.python.org/</a></p></li>
 <li><p>Cython: <a class="reference external" href="http://cython.org/">http://cython.org/</a></p></li>
 <li><p>Numpy: <a class="reference external" href="http://numpy.org/">http://numpy.org/</a></p></li>
 <li><p>Scipy: <a class="reference external" href="http://www.scipy.org/">http://www.scipy.org/</a></p></li>
 <li><p>matplotlib: <a class="reference external" href="http://matplotlib.sourceforge.net">http://matplotlib.sourceforge.net</a></p></li>
 <li><p>scikit-learn: <a class="reference external" href="https://scikit-learn.org/">https://scikit-learn.org/</a></p></li>
-<li><p>Atomic Simulation environment (ASE): <a class="reference external" href="https://wiki.fysik.dtu.dk/ase/">https://wiki.fysik.dtu.dk/ase/</a></p></li>
+<li><p>Atomic Simulation environment (ASE): <a class="reference external" href="https://wiki.fysik.dtu.dk/ase/">https://wiki.fysik.dtu.dk/ase/</a> (Version 3.23.0 or newer)</p></li>
 <li><p>h5py: <a class="reference external" href="https://www.h5py.org/">https://www.h5py.org/</a></p></li>
 </ul>
-<p>Finally, ThermoLIB currently also requires a working build of the <a class="reference external" href="http://molmod.github.com/molmod/">MolMod</a> pacakge, which could normally be installed using pip as follows:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/molmod/molmod.git
-</pre></div>
-</div>
-<p>Unfortunately, MolMod is no longer maintained and updated, which might give rise to conflicts when installing molmod on top of recent versions of the packages given above. Therefore, we give below instructions on how to create a working conda environment with specific versions of these packages that should all be compatible with each other and with molmod and ThermoLIB:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>thermolib<span class="w"> </span><span class="nv">python</span><span class="o">==</span><span class="m">3</span>.8.5
-conda<span class="w"> </span>activate<span class="w"> </span>thermolib
-pip<span class="w"> </span>install<span class="w"> </span><span class="nv">numpy</span><span class="o">==</span><span class="m">1</span>.22.0
-pip<span class="w"> </span>install<span class="w"> </span><span class="nv">matplotlib</span><span class="o">==</span><span class="m">3</span>.3.4
-pip<span class="w"> </span>install<span class="w"> </span><span class="nv">scipy</span><span class="o">==</span><span class="m">1</span>.6.3
-pip<span class="w"> </span>install<span class="w"> </span>scikit-learn<span class="o">==</span><span class="m">0</span>.24.2
-pip<span class="w"> </span>install<span class="w"> </span><span class="nv">cython</span><span class="o">==</span><span class="m">0</span>.29.23
-pip<span class="w"> </span>install<span class="w"> </span><span class="nv">h5py</span><span class="o">==</span><span class="m">2</span>.10.0
-pip<span class="w"> </span>install<span class="w"> </span><span class="nv">ase</span><span class="o">==</span><span class="m">3</span>.22.1
-pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/molmod/molmod.git
-</pre></div>
-</div>
 <p>In order to get the LaTeX support in the plots made by ThermoLIB, you also need the following packages installed</p>
 <ul class="simple">
 <li><p>latex: <a class="reference external" href="https://www.latex-project.org/">https://www.latex-project.org/</a></p></li>
@@ -459,20 +439,25 @@ pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com
 </div>
 </section>
 <section id="download-and-install-thermolib">
-<h2>Download and install ThermoLIB<a class="headerlink" href="#download-and-install-thermolib" title="Permalink to this heading"></a></h2>
+<h2>Download and install ThermoLIB<a class="headerlink" href="#download-and-install-thermolib" title="Link to this heading"></a></h2>
 <section id="direct-install-using-pip">
-<h3>Direct install using pip<a class="headerlink" href="#direct-install-using-pip" title="Permalink to this heading"></a></h3>
-<p>You can directly install ThermoLIB (e.g. in the conda environment detailed above) using pip. <strong>Researchers of Ghent University</strong> can access it through <a class="reference external" href="https://github.ugent.be">https://github.ugent.be</a> as follows:</p>
+<h3>Direct install using pip<a class="headerlink" href="#direct-install-using-pip" title="Link to this heading"></a></h3>
+<p>You can install ThermoLIB directly in a conda environment using pip. If you want to create a new conda environment for ThermoLIB, you can do so as follows:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>thermolib<span class="w"> </span>python
+conda<span class="w"> </span>activate<span class="w"> </span>thermolib
+</pre></div>
+</div>
+<p><strong>Researchers of Ghent University</strong> can then access and install <strong>the latest development version</strong> of ThermoLIB through <a class="reference external" href="https://github.ugent.be">https://github.ugent.be</a> as follows:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.ugent.be/lvduyfhu/ThermoLIB.git
 </pre></div>
 </div>
-<p><strong>Researchers outside Ghent University</strong> can access it through github.com as follows (TODO):</p>
+<p>(<strong>TODO</strong>) Everybody can access and install <strong>the latest stable release</strong> of ThermoLIB through github.com as follows:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/XXX/XXX.git
 </pre></div>
 </div>
 </section>
-<section id="developers-download">
-<h3>Developers download<a class="headerlink" href="#developers-download" title="Permalink to this heading"></a></h3>
+<section id="source-code-download-and-install">
+<h3>Source code download and install<a class="headerlink" href="#source-code-download-and-install" title="Link to this heading"></a></h3>
 <p>If you want to have a copy of the source code for further implementation and advanced testing, you can clone the Git repository. This also allows you to upload your own changes in the form of a pull request. Git is free and open-source distributed revision control system to easily handle programming projects shared between several people. Further information about git (including downloads and tutorials) can be found <a class="reference external" href="http://git-scm.com/">here</a>. To clone the ThermoLIB repository, go to your favorite directory for source code (e.g. <code class="docutils literal notranslate"><span class="pre">~/build</span></code>) and execute the following commands.</p>
 <p><strong>For researchers of Ghent University</strong>:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.ugent.be/lvduyfhu/ThermoLIB.git
@@ -488,24 +473,20 @@ pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>pull
 </pre></div>
 </div>
-<p>Once you downloaded the source code and installed all required packages, ThermoLIB can be installed. To install ThermoLIB irrespective of any (conda) environment, simply go to the directory in which you extracted the ThermoLIB source files (the directory containing the file <code class="docutils literal notranslate"><span class="pre">setup.py</span></code>) and run the following command:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>setup.py<span class="w"> </span>install
-</pre></div>
-</div>
-<p>If you want to install ThermoLIB only in the current conda environment, you can use pip. For that just go into the ThermoLIB main directory (e.g. <code class="docutils literal notranslate"><span class="pre">~/build/ThermoLIB`</span></code>) and run:</p>
+<p>Once you downloaded the source code and installed all required packages, ThermoLIB can be installed. To install ThermoLIB in the active conda environment, you can use pip. For that just go into the ThermoLIB main directory (e.g. <code class="docutils literal notranslate"><span class="pre">~/build/ThermoLIB`</span></code>) and run:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>.
 </pre></div>
 </div>
 </section>
 </section>
 <section id="update-thermolib">
-<h2>Update ThermoLIB<a class="headerlink" href="#update-thermolib" title="Permalink to this heading"></a></h2>
+<h2>Update ThermoLIB<a class="headerlink" href="#update-thermolib" title="Link to this heading"></a></h2>
 <p>To update ThermoLIB to the latest version, either go to your conda environment and run the pip install command again:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.ugent.be/lvduyfhu/ThermoLIB.git<span class="w"> </span><span class="c1">#for Ugent users only</span>
 pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/XXX/XXX.git<span class="w"> </span><span class="c1">#for all users</span>
 </pre></div>
 </div>
-<p>or pull the git repository and install again</p>
+<p>or go to your local copy of the source code, pull the latest changes from the git repository and install:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>thermolib
 git<span class="w"> </span>pull
 pip<span class="w"> </span>install<span class="w"> </span>.
@@ -513,10 +494,10 @@ pip<span class="w"> </span>install<span class="w"> </span>.
 </div>
 </section>
 <section id="test-installation">
-<h2>Test installation<a class="headerlink" href="#test-installation" title="Permalink to this heading"></a></h2>
+<h2>Test installation<a class="headerlink" href="#test-installation" title="Link to this heading"></a></h2>
 <p>To test if you successfully installed ThermoLIB, fire up a python terminal and try to import the ThermoLIB package. In a Linux-based operating system, you can open a terminal and type (might be different for other operating systems):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">thermolib</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span><span class="w"> </span><span class="nn">thermolib</span>
 </pre></div>
 </div>
 <p>A more elaborate test is to run one or more of the tutorials. If you do not get an error, you have (probably) successfully installed ThermoLIB!</p>
@@ -534,7 +515,7 @@ pip<span class="w"> </span>install<span class="w"> </span>.
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Louis Vanduyfhuys.</p>
+    <p>&#169; Copyright 2026, Louis Vanduyfhuys.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

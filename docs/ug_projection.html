@@ -1,30 +1,28 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>(De)projections of the FEP/FES &mdash; ThermoLIB v1.7.2 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+  <title>(De)projections of the FEP/FES &mdash; ThermoLIB v1.8.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/custom.css" />
 
   
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="_static/jquery.js?v=5d32c60e"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=131c94de"></script>
-        <script src="_static/doctools.js?v=888ff710"></script>
-        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=4eaa865d"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Tutorials" href="tutorials.html" />
-    <link rel="prev" title="Transformations" href="ug_transformation.html" /> 
+    <link rel="prev" title="Transformations of the FEP/FES" href="ug_transformation.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -39,9 +37,6 @@
             ThermoLIB
               <img src="_static/logo_thermolib_light.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                1.7
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -56,9 +51,10 @@
 <li class="toctree-l2"><a class="reference internal" href="ig.html#dependencies">Dependencies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ig.html#download-and-install-thermolib">Download and install ThermoLIB</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="ig.html#direct-install-using-pip">Direct install using pip</a></li>
-<li class="toctree-l3"><a class="reference internal" href="ig.html#developers-download">Developers download</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ig.html#source-code-download-and-install">Source code download and install</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="ig.html#update-thermolib">Update ThermoLIB</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ig.html#test-installation">Test installation</a></li>
 </ul>
 </li>
@@ -108,7 +104,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="ug_micromacro.html">Extracting micro- and macrostate free energy</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ug_kinetics.html">Computing the reaction rate</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ug_transformation.html">Transformations</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ug_transformation.html">Transformations of the FEP/FES</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="ug_transformation.html#deterministic-transformation">Deterministic transformation</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="ug_transformation.html#dimensional">1 dimensional</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ug_transformation.html#id1">2 dimensional</a></li>
@@ -175,7 +171,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="tut/advanced_deprojection.html">Tutorial 6 - Deprojecting 1D FEP to 2D FES</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tut/advanced_deprojection.html">Tutorial 6 - Deprojection to extract energetic contribution to free energy</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="tut/advanced_deprojection.html#Introduction">Introduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tut/advanced_deprojection.html#Construct-1D-FEP">Construct 1D FEP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tut/advanced_deprojection.html#Deproject-to-2D-FES">Deproject to 2D FES</a><ul>
@@ -371,6 +367,8 @@
 <li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.interpolate_surface_2d"><code class="docutils literal notranslate"><span class="pre">interpolate_surface_2d()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.invert_fisher_to_covariance"><code class="docutils literal notranslate"><span class="pre">invert_fisher_to_covariance()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.multivariate_normal"><code class="docutils literal notranslate"><span class="pre">multivariate_normal()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.plot_histograms_1d"><code class="docutils literal notranslate"><span class="pre">plot_histograms_1d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.plot_histograms_overlap_1d"><code class="docutils literal notranslate"><span class="pre">plot_histograms_overlap_1d()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.read_wham_input"><code class="docutils literal notranslate"><span class="pre">read_wham_input()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rg_tools.html#thermolib.tools.rolling_average"><code class="docutils literal notranslate"><span class="pre">rolling_average()</span></code></a></li>
 </ul>
@@ -416,9 +414,9 @@
            <div itemprop="articleBody">
              
   <section id="de-projections-of-the-fep-fes">
-<span id="seclab-ug-projection"></span><h1>(De)projections of the FEP/FES<a class="headerlink" href="#de-projections-of-the-fep-fes" title="Permalink to this heading"></a></h1>
+<span id="seclab-ug-projection"></span><h1>(De)projections of the FEP/FES<a class="headerlink" href="#de-projections-of-the-fep-fes" title="Link to this heading"></a></h1>
 <section id="projecting-2d-fes-to-1d-fep">
-<h2>Projecting 2D FES to 1D FEP<a class="headerlink" href="#projecting-2d-fes-to-1d-fep" title="Permalink to this heading"></a></h2>
+<h2>Projecting 2D FES to 1D FEP<a class="headerlink" href="#projecting-2d-fes-to-1d-fep" title="Link to this heading"></a></h2>
 <p>A projection of a 2D Free energy surface towards a 1D free energy profile can be one of the following cases:</p>
 <ul class="simple">
 <li><p>Projecting out one of the collective variables, e.g. going from <img class="math" src="_images/math/e0ecbc7270243607431c856802437fe405f65041.png" alt="F_{12}(CV_1,CV_2)"/> towards <img class="math" src="_images/math/8db2d596d11e1c72b04af5334ffd28cdeb58c41a.png" alt="F_1(CV_1)"/></p></li>
@@ -432,7 +430,7 @@
 </div>
 <p>The second case can be done by application of the <a class="reference internal" href="rg_thermo.html#thermolib.thermodynamics.fep.FreeEnergySurface2D.project_function" title="thermolib.thermodynamics.fep.FreeEnergySurface2D.project_function"><code class="xref py py-meth docutils literal notranslate"><span class="pre">project_function</span></code></a> routine which requires the definition of the function <img class="math" src="_images/math/9c8392f50a6bc6a0898ebd0d2339e9dc49ed9a78.png" alt="Q=f(CV_1,CV_2)"/> in a similar fashion as was the case in transformations:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">#define function</span>
-<span class="k">def</span> <span class="nf">function</span><span class="p">(</span><span class="n">cv1</span><span class="p">,</span> <span class="n">cv2</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">function</span><span class="p">(</span><span class="n">cv1</span><span class="p">,</span> <span class="n">cv2</span><span class="p">):</span>
     <span class="k">return</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">cv2</span><span class="o">-</span><span class="n">cv1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
 
 <span class="c1">#define range of bins of new collective variable</span>
@@ -450,7 +448,7 @@
 </div>
 </section>
 <section id="deprojecting-1d-fep-to-2d-fes">
-<h2>Deprojecting 1D FEP to 2D FES<a class="headerlink" href="#deprojecting-1d-fep-to-2d-fes" title="Permalink to this heading"></a></h2>
+<h2>Deprojecting 1D FEP to 2D FES<a class="headerlink" href="#deprojecting-1d-fep-to-2d-fes" title="Link to this heading"></a></h2>
 <p>To do a deprojection of a 1D FEP <img class="math" src="_images/math/1566b81bc1b85b2253b2bbfaba40df6d4593a668.png" alt="F_1(CV)"/> towards a 2D free energy surface <img class="math" src="_images/math/f1b528a798c7ce7e72fbcd981ad7f06c62ad0caf.png" alt="F_{12}(Q_1,Q_2)"/>, knowledge of only <img class="math" src="_images/math/1566b81bc1b85b2253b2bbfaba40df6d4593a668.png" alt="F_1(CV)"/> is insufficient and additional information from the original simulation is required. Depending on the situation, multiple approaches to do this are possible. The first, most general, approach is based on Bayes rule</p>
 <div class="math">
 <p><img src="_images/math/550856391b820bda8959fd28f6d9fde84d9f53d3.png" alt="F_{12}(Q_1,Q_2) &amp;= -k_BT\log\left[\int P(Q_1,Q_2|CV)\cdot e^{-\beta F_1(CV)} dCV\right]"/></p>
@@ -519,14 +517,14 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="ug_transformation.html" class="btn btn-neutral float-left" title="Transformations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ug_transformation.html" class="btn btn-neutral float-left" title="Transformations of the FEP/FES" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="tutorials.html" class="btn btn-neutral float-right" title="Tutorials" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Louis Vanduyfhuys.</p>
+    <p>&#169; Copyright 2026, Louis Vanduyfhuys.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

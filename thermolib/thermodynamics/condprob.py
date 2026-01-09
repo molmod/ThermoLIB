@@ -10,9 +10,8 @@
 # Van Speybroeck. Usage of this package should be authorized by prof. Van
 # Vanduyfhuys or prof. Van Speybroeck.
 
-from molmod.units import *
-from molmod.constants import *
-from molmod.io.xyz import XYZReader
+from ..units import *
+from ..constants import *
 
 from ase.io import read
 
@@ -25,8 +24,8 @@ from ..flatten import Flattener
 
 import matplotlib.pyplot as pp
 from matplotlib import rc
-rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
-rc('text', usetex=True)
+#rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
+#rc('text', usetex=True)
 
 import numpy as np
 np.seterr(divide='ignore', invalid='ignore')
@@ -611,7 +610,7 @@ class ConditionalProbability1D1D(ConditionalProbability):
             :param CV: collective variable used to compute the CV value from a trajectory file
             :type CV: CollectiveVariable
 
-            :param sub: python slice instance to subsample the trajectory
+            :param index: python slice instance to subsample the trajectory
             :type sub: slice, optional, default=slice(None, None, None)
 
             :param verbose: set to True to increase verbosity of the CVComputer to compute CV values from the trajectories

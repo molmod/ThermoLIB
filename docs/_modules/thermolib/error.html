@@ -1,24 +1,22 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>thermolib.error &mdash; ThermoLIB v1.7.2 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+  <title>thermolib.error &mdash; ThermoLIB v1.8.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../../_static/jquery.js?v=5d32c60e"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=131c94de"></script>
-        <script src="../../_static/doctools.js?v=888ff710"></script>
-        <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=4eaa865d"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -36,9 +34,6 @@
             ThermoLIB
               <img src="../../_static/logo_thermolib_light.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                1.7
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -53,7 +48,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../ig.html#dependencies">Dependencies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../ig.html#download-and-install-thermolib">Download and install ThermoLIB</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../ig.html#direct-install-using-pip">Direct install using pip</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../ig.html#developers-download">Developers download</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ig.html#source-code-download-and-install">Source code download and install</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../ig.html#update-thermolib">Update ThermoLIB</a></li>
@@ -173,7 +168,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../tut/advanced_deprojection.html">Tutorial 6 - Deprojecting 1D FEP to 2D FES</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../tut/advanced_deprojection.html">Tutorial 6 - Deprojection to extract energetic contribution to free energy</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_deprojection.html#Introduction">Introduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_deprojection.html#Construct-1D-FEP">Construct 1D FEP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../tut/advanced_deprojection.html#Deproject-to-2D-FES">Deproject to 2D FES</a><ul>
@@ -427,17 +422,17 @@
 <span class="c1"># Van Speybroeck. Usage of this package should be authorized by prof. Van</span>
 <span class="c1"># Vanduyfhuys or prof. Van Speybroeck.</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span><span class="o">,</span> <span class="nn">numpy.ma</span> <span class="k">as</span> <span class="nn">ma</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span><span class="o">,</span><span class="w"> </span><span class="nn">numpy.ma</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ma</span>
 <span class="n">np</span><span class="o">.</span><span class="n">seterr</span><span class="p">(</span><span class="n">divide</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">invalid</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
 
-<span class="kn">from</span> <span class="nn">molmod.units</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.units</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
 
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">pp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
 
-<span class="kn">from</span> <span class="nn">.tools</span> <span class="kn">import</span> <span class="n">format_scientific</span><span class="p">,</span> <span class="n">multivariate_normal</span>
-<span class="kn">from</span> <span class="nn">.flatten</span> <span class="kn">import</span> <span class="n">DummyFlattener</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">format_scientific</span><span class="p">,</span> <span class="n">multivariate_normal</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.flatten</span><span class="w"> </span><span class="kn">import</span> <span class="n">DummyFlattener</span>
 
-<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s1">&#39;SampleDistribution&#39;</span><span class="p">,</span> <span class="s1">&#39;GaussianDistribution&#39;</span><span class="p">,</span> <span class="s1">&#39;LogGaussianDistribution&#39;</span><span class="p">,</span> 
@@ -449,11 +444,11 @@
 <span class="n">ncycles_default</span> <span class="o">=</span> <span class="mi">50</span>
 
 
-<span class="k">class</span> <span class="nc">Distribution</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Distribution</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Abstract parent class for probability distributions used for error propagation. Most of the routines here are implemented in the child classes.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            :param shape: the dimensions of the property for which the distribution is stored</span>
 <span class="sd">            :type shape: list of integers</span>
@@ -464,29 +459,29 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">shape</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">flattener</span> <span class="o">=</span> <span class="n">flattener</span>
 
-    <span class="k">def</span> <span class="nf">shift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">shift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
-    <span class="k">def</span> <span class="nf">set_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
-    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
     
-    <span class="k">def</span> <span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
-    <span class="k">def</span> <span class="nf">std</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">std</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
-    <span class="k">def</span> <span class="nf">nsigma_conf_int</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsigma</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">nsigma_conf_int</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsigma</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
     
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_samples</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">samples</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_samples</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">samples</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
     
-    <span class="k">def</span> <span class="nf">print</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%.3f</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">do_scientific</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">nsigma</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">print</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%.3f</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">do_scientific</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">nsigma</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Routine to print the statistical properties of a scalar quantity.</span>
 
@@ -507,10 +502,19 @@
         <span class="n">lower</span> <span class="o">/=</span> <span class="n">parse_unit</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
         <span class="n">upper</span> <span class="o">/=</span> <span class="n">parse_unit</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
         <span class="n">mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">/</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span> 
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">lower</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Can&#39;t print information for multiple statistical variables&quot;</span>
+            <span class="n">lower</span> <span class="o">=</span> <span class="n">lower</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">upper</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span> 
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">upper</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Can&#39;t print information for multiple statistical variables&quot;</span>
+            <span class="n">upper</span> <span class="o">=</span> <span class="n">upper</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span> 
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">mean</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Can&#39;t print information for multiple statistical variables&quot;</span>
+            <span class="n">mean</span> <span class="o">=</span> <span class="n">mean</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">do_scientific</span><span class="p">:</span>
-            <span class="n">lower</span> <span class="o">=</span> <span class="n">format_scientific</span><span class="p">(</span><span class="n">lower</span><span class="p">)</span>
-            <span class="n">upper</span> <span class="o">=</span> <span class="n">format_scientific</span><span class="p">(</span><span class="n">upper</span><span class="p">)</span>
-            <span class="n">mean</span> <span class="o">=</span> <span class="n">format_scientific</span><span class="p">(</span><span class="n">mean</span><span class="p">)</span>
+            <span class="n">lower</span> <span class="o">=</span> <span class="n">format_scientific</span><span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="n">latex</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">upper</span> <span class="o">=</span> <span class="n">format_scientific</span><span class="p">(</span><span class="n">upper</span><span class="p">,</span> <span class="n">latex</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">mean</span> <span class="o">=</span> <span class="n">format_scientific</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">latex</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">lower</span> <span class="o">=</span> <span class="n">fmt</span> <span class="o">%</span> <span class="n">lower</span>
             <span class="n">upper</span> <span class="o">=</span> <span class="n">fmt</span> <span class="o">%</span> <span class="n">upper</span>
@@ -518,11 +522,13 @@
         <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> &lt;= </span><span class="si">%s</span><span class="s1"> &lt;= </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">upper</span><span class="p">,</span> <span class="n">unit</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="SampleDistribution"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.SampleDistribution">[docs]</a><span class="k">class</span> <span class="nc">SampleDistribution</span><span class="p">(</span><span class="n">Distribution</span><span class="p">):</span>
+<div class="viewcode-block" id="SampleDistribution">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.SampleDistribution">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SampleDistribution</span><span class="p">(</span><span class="n">Distribution</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Define the distribution by explicitly supplying it with a population of samples. All statistical properties will be derived from this population.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">samples</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">samples</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            :param samples: the samples that define the population</span>
 <span class="sd">            :type samples: np.ndarray</span>
@@ -534,7 +540,9 @@
             <span class="n">shape</span> <span class="o">=</span> <span class="n">samples</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
         <span class="n">Distribution</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>
 
-<div class="viewcode-block" id="SampleDistribution.shift"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.SampleDistribution.shift">[docs]</a>    <span class="k">def</span> <span class="nf">shift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref</span><span class="p">):</span>
+<div class="viewcode-block" id="SampleDistribution.shift">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.SampleDistribution.shift">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">shift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Shift all samples in the population with the given ref.</span>
 
@@ -542,8 +550,11 @@
 <span class="sd">            :type ref: type consistent with a sample from the population</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">samples</span> <span class="o">+=</span> <span class="n">ref</span></div>
+
     
-<div class="viewcode-block" id="SampleDistribution.set_ref"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.SampleDistribution.set_ref">[docs]</a>    <span class="k">def</span> <span class="nf">set_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="SampleDistribution.set_ref">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.SampleDistribution.set_ref">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Set reference of population samples by shifting all population samples over an amount equal to -value.</span>
 
@@ -559,8 +570,11 @@
         <span class="k">assert</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;SampleDistribution.set_ref can only be called with value keyword&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">shift</span><span class="p">(</span><span class="o">-</span><span class="n">value</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="SampleDistribution.from_samples"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.SampleDistribution.from_samples">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_samples</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">samples</span><span class="p">):</span>
+
+<div class="viewcode-block" id="SampleDistribution.from_samples">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.SampleDistribution.from_samples">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_samples</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">samples</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Defines the current SampleDistribution based on a population defined by the given samples. A trivial routine for the current class, but implemented for completeness of Distribution parent class.</span>
 
@@ -568,8 +582,11 @@
 <span class="sd">            :type samples: np.ndarray</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span></div>
+
     
-<div class="viewcode-block" id="SampleDistribution.mean"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.SampleDistribution.mean">[docs]</a>    <span class="k">def</span> <span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="SampleDistribution.mean">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.SampleDistribution.mean">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Return the distribution mean</span>
 
@@ -578,8 +595,11 @@
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">samples_ma</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">masked_invalid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">samples_ma</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span></div>
+
     
-<div class="viewcode-block" id="SampleDistribution.std"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.SampleDistribution.std">[docs]</a>    <span class="k">def</span> <span class="nf">std</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="SampleDistribution.std">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.SampleDistribution.std">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">std</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Return the distribution standard deviation</span>
 
@@ -588,22 +608,29 @@
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">samples_ma</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">masked_invalid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">samples_ma</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span></div>
+
     
-<div class="viewcode-block" id="SampleDistribution.sample"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.SampleDistribution.sample">[docs]</a>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="SampleDistribution.sample">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.SampleDistribution.sample">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Returns a random sample from the population given at initialization</span>
 
 <span class="sd">            :return: a random sample from the population</span>
 <span class="sd">            :rtype: np.ndarray or float</span>
 <span class="sd">        &#39;&#39;&#39;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random_integers</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random_integers</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span></div>
+</div>
 
 
-<div class="viewcode-block" id="GaussianDistribution"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.GaussianDistribution">[docs]</a><span class="k">class</span> <span class="nc">GaussianDistribution</span><span class="p">(</span><span class="n">Distribution</span><span class="p">):</span>
+
+<div class="viewcode-block" id="GaussianDistribution">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.GaussianDistribution">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">GaussianDistribution</span><span class="p">(</span><span class="n">Distribution</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Implementation of a Gaussian distribution defined by its mean and standard deviation.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">means</span><span class="p">,</span> <span class="n">stds</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">means</span><span class="p">,</span> <span class="n">stds</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            :param means: mean (or means if multidimensional) of the Gaussian distribution</span>
 <span class="sd">            :type means: int, float or np.ndarray</span>
@@ -628,13 +655,18 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Means in GaussianDistribution should be int, float or np.ndarray, got </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">means</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">))</span>
         <span class="n">Distribution</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>
 
-<div class="viewcode-block" id="GaussianDistribution.copy"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.GaussianDistribution.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="GaussianDistribution.copy">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.GaussianDistribution.copy">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Return a hard copy of the Gaussian distribution</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="n">GaussianDistribution</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">means</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stds</span><span class="p">)</span></div>
+
     
-<div class="viewcode-block" id="GaussianDistribution.shift"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.GaussianDistribution.shift">[docs]</a>    <span class="k">def</span> <span class="nf">shift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref</span><span class="p">):</span>
+<div class="viewcode-block" id="GaussianDistribution.shift">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.GaussianDistribution.shift">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">shift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Shift the distribution means with the given ref.</span>
 
@@ -642,8 +674,11 @@
 <span class="sd">            :type ref: type consistent with means</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">means</span> <span class="o">+=</span> <span class="n">ref</span></div>
+
     
-<div class="viewcode-block" id="GaussianDistribution.set_ref"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.GaussianDistribution.set_ref">[docs]</a>    <span class="k">def</span> <span class="nf">set_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="GaussianDistribution.set_ref">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.GaussianDistribution.set_ref">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Set reference of distribution means by shifting them over an amount equal to -value or -self.means[index].</span>
 
@@ -661,8 +696,11 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">means</span> <span class="o">-=</span> <span class="n">value</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;In GaussianDistribution.set_ref either index or value keyword argument should be defined&#39;</span><span class="p">)</span></div>
+
     
-<div class="viewcode-block" id="GaussianDistribution.sample"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.GaussianDistribution.sample">[docs]</a>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsamples</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="GaussianDistribution.sample">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.GaussianDistribution.sample">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsamples</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Returns a number of random samples from the population defined by the Gaussian distribution</span>
 
@@ -677,8 +715,11 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">means</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">stds</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nsamples</span><span class="p">)],</span> <span class="n">axis</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">means</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
             <span class="k">return</span> <span class="n">result</span></div>
+
     
-<div class="viewcode-block" id="GaussianDistribution.mean"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.GaussianDistribution.mean">[docs]</a>    <span class="k">def</span> <span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="GaussianDistribution.mean">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.GaussianDistribution.mean">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Return the distribution mean</span>
 
@@ -686,8 +727,11 @@
 <span class="sd">            :rtype: np.ndarray</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">means</span></div>
+
     
-<div class="viewcode-block" id="GaussianDistribution.std"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.GaussianDistribution.std">[docs]</a>    <span class="k">def</span> <span class="nf">std</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="GaussianDistribution.std">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.GaussianDistribution.std">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">std</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Return the distribution standard deviation</span>
 
@@ -696,7 +740,10 @@
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">stds</span></div>
 
-<div class="viewcode-block" id="GaussianDistribution.nsigma_conf_int"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.GaussianDistribution.nsigma_conf_int">[docs]</a>    <span class="k">def</span> <span class="nf">nsigma_conf_int</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsigma</span><span class="p">):</span>
+
+<div class="viewcode-block" id="GaussianDistribution.nsigma_conf_int">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.GaussianDistribution.nsigma_conf_int">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">nsigma_conf_int</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsigma</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Compute the n-sigma confidence interval, i.e. :math:`\\mu \\pm n\\cdot\\sigma`</span>
 <span class="sd">        </span>
@@ -706,9 +753,12 @@
         <span class="n">lower</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">means</span> <span class="o">-</span> <span class="n">nsigma</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">stds</span>
         <span class="n">upper</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">means</span> <span class="o">+</span> <span class="n">nsigma</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">stds</span>
         <span class="k">return</span> <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span></div>
+
     
-<div class="viewcode-block" id="GaussianDistribution.from_samples"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.GaussianDistribution.from_samples">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_samples</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">samples</span><span class="p">):</span>
+<div class="viewcode-block" id="GaussianDistribution.from_samples">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.GaussianDistribution.from_samples">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_samples</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">samples</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Defines a GaussianDistribution based on a population defined by the given samples. The routine will derive the mean and std from the population and use that to define the Gaussian Distribution.</span>
 
@@ -719,9 +769,12 @@
         <span class="n">means</span> <span class="o">=</span> <span class="n">samples_ma</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">stds</span> <span class="o">=</span> <span class="n">samples_ma</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">means</span><span class="o">.</span><span class="n">filled</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">),</span> <span class="n">stds</span><span class="o">.</span><span class="n">filled</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">))</span></div>
+
     
-<div class="viewcode-block" id="GaussianDistribution.log_from_loggaussian"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.GaussianDistribution.log_from_loggaussian">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">log_from_loggaussian</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">logdist</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+<div class="viewcode-block" id="GaussianDistribution.log_from_loggaussian">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.GaussianDistribution.log_from_loggaussian">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">log_from_loggaussian</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">logdist</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Define the Gaussian distribution of a variable :math:`Y=log(X)` in which :math:`X` has a given LogGaussian distribution, potential after imposing a shift and rescaling.</span>
 
@@ -738,8 +791,11 @@
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">logdist</span><span class="p">,</span> <span class="n">LogGaussianDistribution</span><span class="p">),</span> <span class="s1">&#39;Can only make Gaussian distribution from logarithm of LogGaussianDistribution&#39;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">scale</span><span class="o">*</span><span class="n">logdist</span><span class="o">.</span><span class="n">lmeans</span><span class="o">+</span><span class="n">shift</span><span class="p">,</span> <span class="nb">abs</span><span class="p">(</span><span class="n">scale</span><span class="p">)</span><span class="o">*</span><span class="n">logdist</span><span class="o">.</span><span class="n">lstds</span><span class="p">)</span></div>
+
     
-<div class="viewcode-block" id="GaussianDistribution.print"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.GaussianDistribution.print">[docs]</a>    <span class="k">def</span> <span class="nf">print</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%.3f</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">do_scientific</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">nsigma</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+<div class="viewcode-block" id="GaussianDistribution.print">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.GaussianDistribution.print">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">print</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%.3f</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">do_scientific</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">nsigma</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Routine to print the statistical properties of a scalar quantity.</span>
 
@@ -759,20 +815,30 @@
         <span class="n">error</span> <span class="o">=</span> <span class="p">(</span><span class="n">upper</span><span class="o">-</span><span class="n">lower</span><span class="p">)</span><span class="o">/</span><span class="mf">2.0</span>
         <span class="n">error</span> <span class="o">/=</span> <span class="n">parse_unit</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
         <span class="n">mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">/</span><span class="n">parse_unit</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span> 
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">error</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Can&#39;t print information for multiple statistical variables&quot;</span>
+            <span class="n">error</span> <span class="o">=</span> <span class="n">error</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span> 
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">mean</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Can&#39;t print information for multiple statistical variables&quot;</span>
+            <span class="n">mean</span> <span class="o">=</span> <span class="n">mean</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">do_scientific</span><span class="p">:</span>
-            <span class="n">error</span> <span class="o">=</span> <span class="n">format_scientific</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
-            <span class="n">mean</span> <span class="o">=</span> <span class="n">format_scientific</span><span class="p">(</span><span class="n">mean</span><span class="p">)</span>
+            <span class="n">error</span> <span class="o">=</span> <span class="n">format_scientific</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">latex</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">mean</span> <span class="o">=</span> <span class="n">format_scientific</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">latex</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">error</span> <span class="o">=</span> <span class="n">fmt</span> <span class="o">%</span> <span class="n">error</span>
             <span class="n">mean</span>  <span class="o">=</span> <span class="n">fmt</span> <span class="o">%</span> <span class="n">mean</span>
-        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> +- </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">error</span><span class="p">,</span> <span class="n">unit</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> +- </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">error</span><span class="p">,</span> <span class="n">unit</span><span class="p">)</span></div>
+</div>
 
 
-<div class="viewcode-block" id="LogGaussianDistribution"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.LogGaussianDistribution">[docs]</a><span class="k">class</span> <span class="nc">LogGaussianDistribution</span><span class="p">(</span><span class="n">Distribution</span><span class="p">):</span>
+
+<div class="viewcode-block" id="LogGaussianDistribution">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.LogGaussianDistribution">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LogGaussianDistribution</span><span class="p">(</span><span class="n">Distribution</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Implementation of a Log-Gaussian distribution, i.e. variable X is Log-Gaussian with mean lmu and std lsigma if variable log(X) is Gaussian distributed with mean lmu and std lsigma.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lmeans</span><span class="p">,</span> <span class="n">lstds</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lmeans</span><span class="p">,</span> <span class="n">lstds</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            :param lmeans: mean (or means if multidimensional) of the corresponding Gaussian distribution of log(X)</span>
 <span class="sd">            :type means: int, float or np.ndarray</span>
@@ -801,7 +867,9 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;lmeans should be int, float or np.ndarray, got </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">lmeans</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">))</span>
         <span class="n">Distribution</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>
 
-<div class="viewcode-block" id="LogGaussianDistribution.shift"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.LogGaussianDistribution.shift">[docs]</a>    <span class="k">def</span> <span class="nf">shift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref</span><span class="p">):</span>
+<div class="viewcode-block" id="LogGaussianDistribution.shift">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.LogGaussianDistribution.shift">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">shift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Shift the distribution lmeans (NOT THE DISTRIBUTION MEAN!!) with the given ref.</span>
 
@@ -810,7 +878,10 @@
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lmeans</span> <span class="o">+=</span> <span class="n">ref</span></div>
 
-<div class="viewcode-block" id="LogGaussianDistribution.set_ref"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.LogGaussianDistribution.set_ref">[docs]</a>    <span class="k">def</span> <span class="nf">set_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="LogGaussianDistribution.set_ref">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.LogGaussianDistribution.set_ref">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Set reference of distribution lmeans (NOT THE DISTRIBUTION MEANS!!) by shifting them over an amount equal to -value or -self.lmeans[index].</span>
 
@@ -829,7 +900,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;In LogGaussianDistribution.set_ref either index or value keyword argument should be defined&#39;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="LogGaussianDistribution.mean"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.LogGaussianDistribution.mean">[docs]</a>    <span class="k">def</span> <span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="LogGaussianDistribution.mean">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.LogGaussianDistribution.mean">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Return the distribution mean</span>
 
@@ -838,7 +912,10 @@
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lmeans</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lstds</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="LogGaussianDistribution.std"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.LogGaussianDistribution.std">[docs]</a>    <span class="k">def</span> <span class="nf">std</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="LogGaussianDistribution.std">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.LogGaussianDistribution.std">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">std</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Return the distribution standard deviation</span>
 
@@ -847,13 +924,19 @@
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lstds</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="LogGaussianDistribution.copy"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.LogGaussianDistribution.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="LogGaussianDistribution.copy">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.LogGaussianDistribution.copy">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Return a hard copy of the LogGaussian distribution</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="n">LogGaussianDistribution</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lmeans</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lstds</span><span class="p">)</span></div>
+
     
-<div class="viewcode-block" id="LogGaussianDistribution.sample"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.LogGaussianDistribution.sample">[docs]</a>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsamples</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="LogGaussianDistribution.sample">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.LogGaussianDistribution.sample">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsamples</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Returns a number of random samples from the population defined by the distribution</span>
 
@@ -866,10 +949,13 @@
         <span class="k">if</span> <span class="n">nsamples</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lmeans</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lstds</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lmeans</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lstds</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nsamples</span><span class="p">)],</span> <span class="n">axis</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lmeans</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lmeans</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lstds</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nsamples</span><span class="p">)],</span> <span class="n">axis</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
             <span class="k">return</span> <span class="n">result</span></div>
+
     
-<div class="viewcode-block" id="LogGaussianDistribution.nsigma_conf_int"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.LogGaussianDistribution.nsigma_conf_int">[docs]</a>    <span class="k">def</span> <span class="nf">nsigma_conf_int</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsigma</span><span class="p">):</span>
+<div class="viewcode-block" id="LogGaussianDistribution.nsigma_conf_int">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.LogGaussianDistribution.nsigma_conf_int">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">nsigma_conf_int</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsigma</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Compute the n-sigma confidence interval, i.e. :math:`\\exp\\left(\\mu \\pm n\\cdot\\sigma\\right)`</span>
 <span class="sd">        </span>
@@ -879,9 +965,12 @@
         <span class="n">lower</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lmeans</span> <span class="o">-</span> <span class="n">nsigma</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lstds</span>
         <span class="n">upper</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lmeans</span> <span class="o">+</span> <span class="n">nsigma</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lstds</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">lower</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">upper</span><span class="p">)</span></div>
+
     
-<div class="viewcode-block" id="LogGaussianDistribution.from_samples"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.LogGaussianDistribution.from_samples">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_samples</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">samples</span><span class="p">):</span>
+<div class="viewcode-block" id="LogGaussianDistribution.from_samples">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.LogGaussianDistribution.from_samples">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_samples</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">samples</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Defines a LogGaussianDistribution based on a population defined by the given samples. The routine will derive lmean and lstd from the log of the given population samples and use that to define the LogGaussian Distribution.</span>
 
@@ -892,9 +981,12 @@
         <span class="n">lmeans</span> <span class="o">=</span> <span class="n">lsamples</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">lstds</span> <span class="o">=</span> <span class="n">lsamples</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">lmeans</span><span class="p">,</span> <span class="n">lstds</span><span class="p">)</span></div>
+
     
-<div class="viewcode-block" id="LogGaussianDistribution.exp_from_gaussian"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.LogGaussianDistribution.exp_from_gaussian">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">exp_from_gaussian</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">gaussdist</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+<div class="viewcode-block" id="LogGaussianDistribution.exp_from_gaussian">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.LogGaussianDistribution.exp_from_gaussian">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">exp_from_gaussian</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">gaussdist</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Define the LogGaussian distribution of a variable :math:`Y=exp(X)` in which :math:`X` has a given Gaussian distribution, potential after imposing a shift and rescaling.</span>
 
@@ -910,14 +1002,16 @@
 <span class="sd">            :raises AssertionError: if the given gaussdist is not an instance of :py:class:`GaussianDistribution &lt;thermolib.error.GaussianDistribution&gt;`</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gaussdist</span><span class="p">,</span> <span class="n">GaussianDistribution</span><span class="p">),</span> <span class="s1">&#39;Can only make LogGaussian distribution from exponent of GaussianDistribution&#39;</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">scale</span><span class="o">*</span><span class="n">gaussdist</span><span class="o">.</span><span class="n">means</span><span class="o">+</span><span class="n">shift</span><span class="p">,</span> <span class="nb">abs</span><span class="p">(</span><span class="n">scale</span><span class="p">)</span><span class="o">*</span><span class="n">gaussdist</span><span class="o">.</span><span class="n">stds</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">scale</span><span class="o">*</span><span class="n">gaussdist</span><span class="o">.</span><span class="n">means</span><span class="o">+</span><span class="n">shift</span><span class="p">,</span> <span class="nb">abs</span><span class="p">(</span><span class="n">scale</span><span class="p">)</span><span class="o">*</span><span class="n">gaussdist</span><span class="o">.</span><span class="n">stds</span><span class="p">)</span></div>
+</div>
+
     
 
-<span class="k">class</span> <span class="nc">FunctionDistribution</span><span class="p">(</span><span class="n">Distribution</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FunctionDistribution</span><span class="p">(</span><span class="n">Distribution</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Class to implement the distribution of a variable Y=f(X) with a known distribution for X</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fun</span><span class="p">,</span> <span class="n">dist</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fun</span><span class="p">,</span> <span class="n">dist</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            :param fun: function defining variable Y in the expression above.</span>
 <span class="sd">            :type fun: callable</span>
@@ -939,7 +1033,7 @@
     <span class="c1">#    assert isinstance(self, ErrorArray)</span>
     <span class="c1">#    self.dist.crop(indexes)</span>
     
-    <span class="k">def</span> <span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsamples</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsamples</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Return the distribution mean through numerical estimation</span>
 
@@ -951,7 +1045,7 @@
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">fun</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dist</span><span class="o">.</span><span class="n">sample</span><span class="p">())</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nsamples</span><span class="p">)])</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     
-    <span class="k">def</span> <span class="nf">std</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsamples</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">std</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsamples</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Return the distribution standard deviation through numerical estimation</span>
 <span class="sd">            </span>
@@ -963,7 +1057,7 @@
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">fun</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dist</span><span class="o">.</span><span class="n">sample</span><span class="p">())</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nsamples</span><span class="p">)])</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsamples</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsamples</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Returns a number of random samples from the population defined by the distribution</span>
 
@@ -975,7 +1069,7 @@
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fun</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dist</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">nsamples</span><span class="o">=</span><span class="n">nsamples</span><span class="p">))</span>
     
-    <span class="k">def</span> <span class="nf">nsigma_conf_int</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsigma</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">nsigma_conf_int</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsigma</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Compute the n-sigma confidence interval, i.e. :math:`[f(l),f(u)]` with ``l,u=self.dist.nsigma_conf_int(nsigma)``</span>
 <span class="sd">        </span>
@@ -990,11 +1084,13 @@
             <span class="k">return</span> <span class="n">fun_upper</span><span class="p">,</span> <span class="n">fun_lower</span>
 
 
-<div class="viewcode-block" id="MultiDistribution"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiDistribution">[docs]</a><span class="k">class</span> <span class="nc">MultiDistribution</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="MultiDistribution">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiDistribution">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MultiDistribution</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Abstract parent class for probability distributions of multidimensional stochastic properties used for error propagation. This class will explicitly account for correlation across the dimensions, as such it can be used to account for the correlation between the free energy at two different points in a FEP. Most of the routines here are implemented in the child classes.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="n">DummyFlattener</span><span class="p">()):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="n">DummyFlattener</span><span class="p">()):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            :param shape: the dimensions of the property for which the distribution is stored</span>
 <span class="sd">            :type shape: list of integers</span>
@@ -1005,22 +1101,24 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">shape</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">flattener</span> <span class="o">=</span> <span class="n">flattener</span>
 
-    <span class="k">def</span> <span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unflatten</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unflatten</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
     
-    <span class="k">def</span> <span class="nf">std</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unflatten</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">std</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unflatten</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
     
-    <span class="k">def</span> <span class="nf">cov</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cov</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
     
-    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsamples</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unflatten</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsamples</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unflatten</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
-    <span class="k">def</span> <span class="nf">nsigma_conf_int</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsigma</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">unflatten</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">nsigma_conf_int</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsigma</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">unflatten</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="k">return</span> <span class="ne">NotImplementedError</span>
 
-<div class="viewcode-block" id="MultiDistribution.corr"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiDistribution.corr">[docs]</a>    <span class="k">def</span> <span class="nf">corr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unflatten</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="MultiDistribution.corr">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiDistribution.corr">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">corr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unflatten</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Routine that will convert the covariance matrix computed with self.cov to a correlation matrix according to the formula</span>
 
@@ -1044,22 +1142,26 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">flattener</span><span class="o">.</span><span class="n">unflatten_matrix</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">corr</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">corr</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span></div>
+
     
-    <span class="k">def</span> <span class="nf">set_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
     
-    <span class="k">def</span> <span class="nf">shift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">shift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
-    <span class="k">def</span> <span class="nf">from_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">samples</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="n">DummyFlattener</span><span class="p">(),</span> <span class="n">flattened</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">samples</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="n">DummyFlattener</span><span class="p">(),</span> <span class="n">flattened</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 
-<div class="viewcode-block" id="MultiGaussianDistribution"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiGaussianDistribution">[docs]</a><span class="k">class</span> <span class="nc">MultiGaussianDistribution</span><span class="p">(</span><span class="n">MultiDistribution</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiGaussianDistribution">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiGaussianDistribution">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MultiGaussianDistribution</span><span class="p">(</span><span class="n">MultiDistribution</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Implementation of a multivariate normal distribution for a given vector of means and a given covariance matrix</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">means</span><span class="p">,</span> <span class="n">covariance</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="n">DummyFlattener</span><span class="p">()):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">means</span><span class="p">,</span> <span class="n">covariance</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="n">DummyFlattener</span><span class="p">()):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            :param means: means of the multivariate normal distribution</span>
 <span class="sd">            :type means: np.ndarray</span>
@@ -1081,13 +1183,18 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">stds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">covariance</span><span class="o">.</span><span class="n">diagonal</span><span class="p">())</span>
         <span class="n">MultiDistribution</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">means</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="n">flattener</span><span class="p">)</span>
 
-<div class="viewcode-block" id="MultiGaussianDistribution.copy"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiGaussianDistribution.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="MultiGaussianDistribution.copy">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiGaussianDistribution.copy">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Return a hard copy of the MultiGaussian distribution</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="n">MultiGaussianDistribution</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">means</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">covariance</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">flattener</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="MultiGaussianDistribution.mean"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiGaussianDistribution.mean">[docs]</a>    <span class="k">def</span> <span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unflatten</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiGaussianDistribution.mean">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiGaussianDistribution.mean">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unflatten</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Return the distribution mean</span>
 
@@ -1102,7 +1209,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">means</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="MultiGaussianDistribution.std"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiGaussianDistribution.std">[docs]</a>    <span class="k">def</span> <span class="nf">std</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unflatten</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiGaussianDistribution.std">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiGaussianDistribution.std">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">std</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unflatten</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Return the distribution standard deviation (std)</span>
 
@@ -1116,8 +1226,11 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">flattener</span><span class="o">.</span><span class="n">unflatten_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stds</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">stds</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span></div>
+
     
-<div class="viewcode-block" id="MultiGaussianDistribution.cov"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiGaussianDistribution.cov">[docs]</a>    <span class="k">def</span> <span class="nf">cov</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unflatten</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="MultiGaussianDistribution.cov">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiGaussianDistribution.cov">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cov</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unflatten</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Return the covariance matrix of the MultiGaussian distribution.</span>
 
@@ -1129,7 +1242,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">covariance</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="MultiGaussianDistribution.sample"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiGaussianDistribution.sample">[docs]</a>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsamples</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unflatten</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiGaussianDistribution.sample">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiGaussianDistribution.sample">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsamples</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unflatten</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Returns a number of random samples from the population defined by the distribution</span>
 
@@ -1153,8 +1269,11 @@
             <span class="k">return</span> <span class="n">samples_unflattened</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">samples_flattened</span></div>
+
     
-<div class="viewcode-block" id="MultiGaussianDistribution.nsigma_conf_int"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiGaussianDistribution.nsigma_conf_int">[docs]</a>    <span class="k">def</span> <span class="nf">nsigma_conf_int</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsigma</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">unflatten</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="MultiGaussianDistribution.nsigma_conf_int">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiGaussianDistribution.nsigma_conf_int">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">nsigma_conf_int</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsigma</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">unflatten</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Compute the n-sigma confidence interval, i.e. :math:`\\mu \\pm n\\cdot\\sigma`</span>
 <span class="sd">        </span>
@@ -1168,7 +1287,10 @@
         <span class="n">upper</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">unflatten</span><span class="o">=</span><span class="n">unflatten</span><span class="p">)</span> <span class="o">+</span> <span class="n">nsigma</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">unflatten</span><span class="o">=</span><span class="n">unflatten</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span></div>
 
-<div class="viewcode-block" id="MultiGaussianDistribution.set_ref"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiGaussianDistribution.set_ref">[docs]</a>    <span class="k">def</span> <span class="nf">set_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiGaussianDistribution.set_ref">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiGaussianDistribution.set_ref">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Set reference of distribution means by shifting them over an amount equal to -value or -self.means[index].</span>
 
@@ -1190,8 +1312,11 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;In MultiGaussianDistribution.set_ref either index or value keyword argument should be defined&#39;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="MultiGaussianDistribution.from_samples"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiGaussianDistribution.from_samples">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_samples</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">samples</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="n">DummyFlattener</span><span class="p">(),</span> <span class="n">flattened</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiGaussianDistribution.from_samples">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiGaussianDistribution.from_samples">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_samples</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">samples</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="n">DummyFlattener</span><span class="p">(),</span> <span class="n">flattened</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; </span>
 <span class="sd">            Defines a MultiGaussianDistribution based on a population defined by the given samples. The routine will derive the mean and std from the population and use that to define the Gaussian Distribution.</span>
 
@@ -1222,8 +1347,11 @@
         <span class="k">assert</span> <span class="n">cov</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="nb">len</span><span class="p">(</span><span class="n">means</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">means</span><span class="p">,</span> <span class="n">cov</span><span class="p">,</span> <span class="n">flattener</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="MultiGaussianDistribution.log_from_loggaussian"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiGaussianDistribution.log_from_loggaussian">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">log_from_loggaussian</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">logdist</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiGaussianDistribution.log_from_loggaussian">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiGaussianDistribution.log_from_loggaussian">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">log_from_loggaussian</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">logdist</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Define the MultiGaussian distribution of a variable :math:`Y=log(X)` in which :math:`X` has a given MultiLogGaussian distribution, potential after imposing a shift and rescaling.</span>
 
@@ -1241,7 +1369,10 @@
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">logdist</span><span class="p">,</span> <span class="n">MultiLogGaussianDistribution</span><span class="p">),</span> <span class="s1">&#39;Can only make multivariate Gaussian distribution from logarithm of Multivariate LogGaussianDistribution&#39;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">scale</span><span class="o">*</span><span class="n">logdist</span><span class="o">.</span><span class="n">lmeans</span><span class="o">+</span><span class="n">shift</span><span class="p">,</span> <span class="p">(</span><span class="n">scale</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">logdist</span><span class="o">.</span><span class="n">lcovariance</span><span class="p">,</span> <span class="n">logdist</span><span class="o">.</span><span class="n">flattener</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="MultiGaussianDistribution.plot_corr_matrix"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiGaussianDistribution.plot_corr_matrix">[docs]</a>    <span class="k">def</span> <span class="nf">plot_corr_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fig_size_inches</span><span class="o">=</span><span class="p">[</span><span class="mi">8</span><span class="p">,</span><span class="mi">8</span><span class="p">],</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;bwr&#39;</span><span class="p">,</span> <span class="n">logscale</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cvs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nticks</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiGaussianDistribution.plot_corr_matrix">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiGaussianDistribution.plot_corr_matrix">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot_corr_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fig_size_inches</span><span class="o">=</span><span class="p">[</span><span class="mi">8</span><span class="p">,</span><span class="mi">8</span><span class="p">],</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;bwr&#39;</span><span class="p">,</span> <span class="n">logscale</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cvs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nticks</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            gMake a plot of the correlation matrix of the current multivariate Gaussian distribution</span>
 
@@ -1269,7 +1400,7 @@
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">corr</span><span class="p">(</span><span class="n">unflatten</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span>
         <span class="k">if</span> <span class="n">logscale</span><span class="p">:</span>
-            <span class="k">def</span> <span class="nf">special_log</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">special_log</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
                 <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
                 <span class="n">result</span><span class="p">[</span><span class="n">x</span><span class="o">&gt;</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">a</span><span class="o">/</span><span class="mi">100</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">100.0</span>
                 <span class="n">result</span><span class="p">[</span><span class="n">x</span><span class="o">&lt;-</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">a</span><span class="o">/</span><span class="mi">100</span><span class="p">)]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">100.0</span>
@@ -1293,14 +1424,18 @@
         <span class="k">if</span> <span class="n">fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">pp</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">pp</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div></div>
+            <span class="n">pp</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+</div>
 
 
-<div class="viewcode-block" id="MultiLogGaussianDistribution"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiLogGaussianDistribution">[docs]</a><span class="k">class</span> <span class="nc">MultiLogGaussianDistribution</span><span class="p">(</span><span class="n">MultiDistribution</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiLogGaussianDistribution">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiLogGaussianDistribution">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MultiLogGaussianDistribution</span><span class="p">(</span><span class="n">MultiDistribution</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Implementation of a multivariate log-normal distribution for a given vector of means and a given covariance matrix</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lmeans</span><span class="p">,</span> <span class="n">lcovariance</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="n">DummyFlattener</span><span class="p">()):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lmeans</span><span class="p">,</span> <span class="n">lcovariance</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="n">DummyFlattener</span><span class="p">()):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            :param means: lmeans of the multivariate log-normal distribution, i.e. means of the underlying normal distribution of log(X)</span>
 <span class="sd">            :type means: np.ndarray</span>
@@ -1323,13 +1458,18 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">lstds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">lcovariance</span><span class="o">.</span><span class="n">diagonal</span><span class="p">())</span>
         <span class="n">MultiDistribution</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="n">flattener</span><span class="p">)</span>
 
-<div class="viewcode-block" id="MultiLogGaussianDistribution.copy"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiLogGaussianDistribution.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="MultiLogGaussianDistribution.copy">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiLogGaussianDistribution.copy">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Return a hard copy of the MultiLogGaussian distribution</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="n">MultiLogGaussianDistribution</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lmeans</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lcovariance</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">flattener</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="MultiLogGaussianDistribution.mean"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiLogGaussianDistribution.mean">[docs]</a>    <span class="k">def</span> <span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unflatten</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiLogGaussianDistribution.mean">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiLogGaussianDistribution.mean">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unflatten</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Return the distribution mean</span>
 
@@ -1345,7 +1485,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">means</span></div>
 
-<div class="viewcode-block" id="MultiLogGaussianDistribution.std"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiLogGaussianDistribution.std">[docs]</a>    <span class="k">def</span> <span class="nf">std</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unflatten</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiLogGaussianDistribution.std">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiLogGaussianDistribution.std">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">std</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unflatten</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Return the distribution standard deviation (std)</span>
 
@@ -1360,8 +1503,11 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">flattener</span><span class="o">.</span><span class="n">unflatten_array</span><span class="p">(</span><span class="n">stds</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">stds</span></div>
+
     
-<div class="viewcode-block" id="MultiLogGaussianDistribution.cov"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiLogGaussianDistribution.cov">[docs]</a>    <span class="k">def</span> <span class="nf">cov</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unflatten</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="MultiLogGaussianDistribution.cov">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiLogGaussianDistribution.cov">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cov</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unflatten</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Compute and and return the covariance matrix of the MultiLogGaussian distribution.</span>
 
@@ -1378,8 +1524,11 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">flattener</span><span class="o">.</span><span class="n">unflatten_matrix</span><span class="p">(</span><span class="n">cov</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">cov</span></div>
+
     
-<div class="viewcode-block" id="MultiLogGaussianDistribution.sample"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiLogGaussianDistribution.sample">[docs]</a>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsamples</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unflatten</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="MultiLogGaussianDistribution.sample">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiLogGaussianDistribution.sample">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsamples</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unflatten</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Returns a number of random samples from the population defined by the distribution</span>
 
@@ -1403,8 +1552,11 @@
             <span class="k">return</span> <span class="n">samples_unflattened</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">samples_flattened</span></div>
+
     
-<div class="viewcode-block" id="MultiLogGaussianDistribution.nsigma_conf_int"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiLogGaussianDistribution.nsigma_conf_int">[docs]</a>    <span class="k">def</span> <span class="nf">nsigma_conf_int</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsigma</span><span class="p">,</span> <span class="n">unflatten</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="MultiLogGaussianDistribution.nsigma_conf_int">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiLogGaussianDistribution.nsigma_conf_int">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">nsigma_conf_int</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsigma</span><span class="p">,</span> <span class="n">unflatten</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Compute the n-sigma confidence interval, i.e. :math:`\\exp\\left(\\mu \\pm n\\cdot\\sigma\\right)`</span>
 <span class="sd">        </span>
@@ -1422,9 +1574,12 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">flattener</span><span class="o">.</span><span class="n">unflatten_array</span><span class="p">(</span><span class="n">lower</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">flattener</span><span class="o">.</span><span class="n">unflatten_array</span><span class="p">(</span><span class="n">upper</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span></div>
+
     
-<div class="viewcode-block" id="MultiLogGaussianDistribution.from_samples"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiLogGaussianDistribution.from_samples">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_samples</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">samples</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="n">DummyFlattener</span><span class="p">(),</span> <span class="n">flattened</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="MultiLogGaussianDistribution.from_samples">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiLogGaussianDistribution.from_samples">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_samples</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">samples</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="n">DummyFlattener</span><span class="p">(),</span> <span class="n">flattened</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; </span>
 <span class="sd">            Defines a MultiLogGaussianDistribution based on a population defined by the given samples. The routine will derive the lmean and lcovariance from the population and use that to define the MultiLogGaussian Distribution.</span>
 
@@ -1455,8 +1610,11 @@
         <span class="k">assert</span> <span class="n">lcov</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="nb">len</span><span class="p">(</span><span class="n">lmeans</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">lmeans</span><span class="p">,</span> <span class="n">lcov</span><span class="p">,</span> <span class="n">flattener</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="MultiLogGaussianDistribution.exp_from_gaussian"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiLogGaussianDistribution.exp_from_gaussian">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">exp_from_gaussian</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">gaussdist</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiLogGaussianDistribution.exp_from_gaussian">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiLogGaussianDistribution.exp_from_gaussian">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">exp_from_gaussian</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">gaussdist</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Define the MultiLogGaussian distribution of a variable :math:`Y=exp(X)` in which :math:`X` has a given MultiGaussian distribution, potential after imposing a shift and rescaling.</span>
 
@@ -1474,7 +1632,10 @@
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gaussdist</span><span class="p">,</span> <span class="n">MultiGaussianDistribution</span><span class="p">),</span> <span class="s1">&#39;Can only make MultiLogGaussian distribution from exponent of MultiGaussianDistribution&#39;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">scale</span><span class="o">*</span><span class="n">gaussdist</span><span class="o">.</span><span class="n">means</span><span class="o">+</span><span class="n">shift</span><span class="p">,</span> <span class="p">(</span><span class="n">scale</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">gaussdist</span><span class="o">.</span><span class="n">covariance</span><span class="p">,</span> <span class="n">gaussdist</span><span class="o">.</span><span class="n">flattener</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="MultiLogGaussianDistribution.plot_corr_matrix"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiLogGaussianDistribution.plot_corr_matrix">[docs]</a>    <span class="k">def</span> <span class="nf">plot_corr_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fig_size_inches</span><span class="o">=</span><span class="p">[</span><span class="mi">8</span><span class="p">,</span><span class="mi">8</span><span class="p">],</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;bwr&#39;</span><span class="p">,</span> <span class="n">logscale</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cvs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nticks</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MultiLogGaussianDistribution.plot_corr_matrix">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.MultiLogGaussianDistribution.plot_corr_matrix">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot_corr_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fig_size_inches</span><span class="o">=</span><span class="p">[</span><span class="mi">8</span><span class="p">,</span><span class="mi">8</span><span class="p">],</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;bwr&#39;</span><span class="p">,</span> <span class="n">logscale</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cvs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nticks</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            gMake a plot of the correlation matrix of the current multivariate Gaussian distribution</span>
 
@@ -1502,7 +1663,7 @@
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">corr</span><span class="p">(</span><span class="n">unflatten</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span>
         <span class="k">if</span> <span class="n">logscale</span><span class="p">:</span>
-            <span class="k">def</span> <span class="nf">special_log</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">special_log</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
                 <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
                 <span class="n">result</span><span class="p">[</span><span class="n">x</span><span class="o">&gt;</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">a</span><span class="o">/</span><span class="mi">100</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">100.0</span>
                 <span class="n">result</span><span class="p">[</span><span class="n">x</span><span class="o">&lt;-</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">a</span><span class="o">/</span><span class="mi">100</span><span class="p">)]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">100.0</span>
@@ -1526,14 +1687,18 @@
         <span class="k">if</span> <span class="n">fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">pp</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">pp</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div></div>
+            <span class="n">pp</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+</div>
 
 
-<div class="viewcode-block" id="ErrorArray"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.ErrorArray">[docs]</a><span class="k">class</span> <span class="nc">ErrorArray</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+<div class="viewcode-block" id="ErrorArray">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.ErrorArray">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ErrorArray</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        A class to represent an array of independent error distributions. This class is used to store the distributiosn for errors on the conditional probabilities, i.e. for each value of cv in p(q|cv) there is an error distribution. The error distribution on p(q|cv1) is assumed uncorrelated with that of p(q|cv2), but we still want to store the distribution for the errors for each cv value in one object.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">errors</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">errors</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            :param errors: list of error distirbutions to be stored</span>
 <span class="sd">            :type errors: list of instances of :py:class:`Distribution &lt;thermolib.error.Distribution&gt;`</span>
@@ -1554,7 +1719,9 @@
     <span class="c1">#    for error in self.errors:</span>
     <span class="c1">#        error.crop(indexes)</span>
 
-<div class="viewcode-block" id="ErrorArray.mean"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.ErrorArray.mean">[docs]</a>    <span class="k">def</span> <span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ErrorArray.mean">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.ErrorArray.mean">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Return the distribution mean for each element in the errors list</span>
 
@@ -1562,8 +1729,11 @@
 <span class="sd">            :rtype: np.ndarray</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">error</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="k">for</span> <span class="n">error</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">errors</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">)</span></div>
+
     
-<div class="viewcode-block" id="ErrorArray.std"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.ErrorArray.std">[docs]</a>    <span class="k">def</span> <span class="nf">std</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ErrorArray.std">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.ErrorArray.std">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">std</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Return the distribution standard deviation for each element in the errors list</span>
 
@@ -1572,7 +1742,10 @@
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">error</span><span class="o">.</span><span class="n">std</span><span class="p">()</span> <span class="k">for</span> <span class="n">error</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">errors</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="ErrorArray.nsigma_conf_int"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.ErrorArray.nsigma_conf_int">[docs]</a>    <span class="k">def</span> <span class="nf">nsigma_conf_int</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsigma</span><span class="p">):</span>
+
+<div class="viewcode-block" id="ErrorArray.nsigma_conf_int">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.ErrorArray.nsigma_conf_int">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">nsigma_conf_int</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsigma</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Compute the n-sigma confidence interval, i.e. :math:`\\mu \\pm n\\cdot\\sigma`, for each element in the errors list</span>
 
@@ -1587,7 +1760,10 @@
             <span class="n">uppers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">upper</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">lowers</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">uppers</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="ErrorArray.sample"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.ErrorArray.sample">[docs]</a>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsamples</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="ErrorArray.sample">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.ErrorArray.sample">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsamples</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Returns a number of random samples taken according to the error distribution for each element in the error list</span>
 
@@ -1613,14 +1789,18 @@
             <span class="k">for</span> <span class="n">error</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">errors</span><span class="p">:</span>
                 <span class="n">samples</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">sample</span><span class="p">())</span>
             <span class="n">samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">samples</span></div></div>
+        <span class="k">return</span> <span class="n">samples</span></div>
+</div>
 
 
-<div class="viewcode-block" id="Propagator"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.Propagator">[docs]</a><span class="k">class</span> <span class="nc">Propagator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Propagator">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.Propagator">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Propagator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        A class to propagate the error distribution on a set of arguments towards the error distribution on a given function of those arguments. This routine uses the ``sample`` routine of each of its distrubution arguments, meaning that the resulting error is stochastic (will not give the same repeated result).</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ncycles</span><span class="o">=</span><span class="n">ncycles_default</span><span class="p">,</span> <span class="n">target_distribution</span><span class="o">=</span><span class="n">GaussianDistribution</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="n">DummyFlattener</span><span class="p">(),</span> <span class="n">samples_are_flattened</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ncycles</span><span class="o">=</span><span class="n">ncycles_default</span><span class="p">,</span> <span class="n">target_distribution</span><span class="o">=</span><span class="n">GaussianDistribution</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="n">DummyFlattener</span><span class="p">(),</span> <span class="n">samples_are_flattened</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            :param ncycles: the number of cycles for which a random sample is taken for each argument and corresponding function value is computed.</span>
 <span class="sd">            :type ncycles: int, optional, default given by value of global variable ncycles_default</span>
@@ -1645,7 +1825,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">samples_are_flattened</span> <span class="o">=</span> <span class="n">samples_are_flattened</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
     
-<div class="viewcode-block" id="Propagator.reset"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.Propagator.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_distribution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">samples_are_flattened</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Propagator.reset">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.Propagator.reset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_distribution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">samples_are_flattened</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Reinitialize argsamples  for future reuse. For more info on arguments target_distribution, flattener or samples_are_flattened, see documentation in the initializer. Only if such an argument is explicitly specified (i.e. is not None), will it be overwritten with the given value.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -1658,7 +1840,10 @@
         <span class="k">if</span> <span class="n">samples_are_flattened</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">samples_are_flattened</span> <span class="o">=</span> <span class="n">samples_are_flattened</span></div>
 
-<div class="viewcode-block" id="Propagator.gen_args_samples"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.Propagator.gen_args_samples">[docs]</a>    <span class="k">def</span> <span class="nf">gen_args_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Propagator.gen_args_samples">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.Propagator.gen_args_samples">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">gen_args_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Routine that will generate random samples for each of the given arguments. The total number of samples per argument is defined in self.ncycles. </span>
 <span class="sd">            </span>
@@ -1672,8 +1857,11 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  ... for argument </span><span class="si">%i</span><span class="s1"> (=</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">iarg</span><span class="p">,</span><span class="n">arg</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">argsamples</span><span class="p">[</span><span class="n">iarg</span><span class="p">]</span> <span class="o">=</span> <span class="n">arg</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">nsamples</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ncycles</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  ..... resulted in argsamples[</span><span class="si">%i</span><span class="s1">].shape=&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">iarg</span><span class="p">),</span><span class="bp">self</span><span class="o">.</span><span class="n">argsamples</span><span class="p">[</span><span class="n">iarg</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span></div>
+
     
-<div class="viewcode-block" id="Propagator.calc_fun_values"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.Propagator.calc_fun_values">[docs]</a>    <span class="k">def</span> <span class="nf">calc_fun_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fun</span><span class="p">):</span>
+<div class="viewcode-block" id="Propagator.calc_fun_values">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.Propagator.calc_fun_values">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calc_fun_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fun</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Routine to compute the function value for each set of random samples stored for the arguments during execution of the ``gen_args_samples`` routine.</span>
 
@@ -1698,7 +1886,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">funsamples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">funsamples</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;funsamples.shape=&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">funsamples</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Propagator.get_distribution"><a class="viewcode-back" href="../../rg_error.html#thermolib.error.Propagator.get_distribution">[docs]</a>    <span class="k">def</span> <span class="nf">get_distribution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_distribution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">samples_are_flattened</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Propagator.get_distribution">
+<a class="viewcode-back" href="../../rg_error.html#thermolib.error.Propagator.get_distribution">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_distribution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_distribution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">samples_are_flattened</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Routine to construct the error distribution of the function value from a population generated by the routines ``gen_args_samples`` and ``calc_fun_values``. For more info on arguments target_distribution, flattener or samples_are_flattened, see documentation in the initializer. Only if such an argument is explicitly specified (i.e. is not None), will it be overwritten with the given value.</span>
 
@@ -1713,8 +1904,9 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">distr</span> <span class="o">=</span> <span class="n">target_distribution</span><span class="o">.</span><span class="n">from_samples</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">funsamples</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">distr</span></div>
+
     
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fun</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">target_distribution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">samples_are_flattened</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fun</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">target_distribution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">samples_are_flattened</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Default calling sequence of the various Propagator routines.  For more info on arguments target_distribution, flattener or samples_are_flattened, see documentation of :py:meth:`Propagator.__init__ &lt;thermolib.error.Propoagator.__init__&gt;`. Only if such an argument is explicitly specified (i.e. is not None), will it be overwritten with the given value.</span>
 
@@ -1732,6 +1924,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">gen_args_samples</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">calc_fun_values</span><span class="p">(</span><span class="n">fun</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_distribution</span><span class="p">(</span><span class="n">target_distribution</span><span class="o">=</span><span class="n">target_distribution</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="n">flattener</span><span class="p">,</span> <span class="n">samples_are_flattened</span><span class="o">=</span><span class="n">samples_are_flattened</span><span class="p">)</span></div>
+
 </pre></div>
 
            </div>
@@ -1741,7 +1934,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Louis Vanduyfhuys.</p>
+    <p>&#169; Copyright 2026, Louis Vanduyfhuys.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

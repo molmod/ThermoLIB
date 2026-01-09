@@ -38,9 +38,8 @@ setup(
                       'scipy',
                       'scikit-learn>=0.24.2',
                       'matplotlib',
-                      'molmod',
                       'h5py',
-                      'ase',
+                      'ase>=3.23.0',
                       ],
     ext_modules = cythonize("thermolib/ext.pyx"),
     include_dirs=[numpy.get_include()]

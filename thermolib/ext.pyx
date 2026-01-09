@@ -12,7 +12,7 @@
 #
 #cython: embedsignature=True
 
-from molmod.units import parse_unit
+from .units import parse_unit
 
 import matplotlib.pyplot as pp
 import warnings, sys

@@ -15,7 +15,7 @@ from __future__ import annotations
 from thermolib.error import Propagator, GaussianDistribution, LogGaussianDistribution
 from thermolib.tools import integrate
 
-from molmod.units import *
+from ..units import *
 
 import numpy as np
 from numpy.ma import masked_array

@@ -1,24 +1,22 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>thermolib.thermodynamics.state &mdash; ThermoLIB v1.7.2 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+  <title>thermolib.thermodynamics.state &mdash; ThermoLIB v1.8.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../../_static/custom.css" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=131c94de"></script>
-        <script src="../../../_static/doctools.js?v=888ff710"></script>
-        <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=4eaa865d"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -36,9 +34,6 @@
             ThermoLIB
               <img src="../../../_static/logo_thermolib_light.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                1.7
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -53,7 +48,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../ig.html#dependencies">Dependencies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ig.html#download-and-install-thermolib">Download and install ThermoLIB</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../ig.html#direct-install-using-pip">Direct install using pip</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../ig.html#developers-download">Developers download</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../ig.html#source-code-download-and-install">Source code download and install</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ig.html#update-thermolib">Update ThermoLIB</a></li>
@@ -173,7 +168,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../../tut/advanced_deprojection.html">Tutorial 6 - Deprojecting 1D FEP to 2D FES</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../tut/advanced_deprojection.html">Tutorial 6 - Deprojection to extract energetic contribution to free energy</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../tut/advanced_deprojection.html#Introduction">Introduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../tut/advanced_deprojection.html#Construct-1D-FEP">Construct 1D FEP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../tut/advanced_deprojection.html#Deproject-to-2D-FES">Deproject to 2D FES</a><ul>
@@ -427,26 +422,26 @@
 <span class="c1"># Van Speybroeck. Usage of this package should be authorized by prof. Van</span>
 <span class="c1"># Vanduyfhuys or prof. Van Speybroeck.</span>
 
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">from</span> <span class="nn">thermolib.error</span> <span class="kn">import</span> <span class="n">Propagator</span><span class="p">,</span> <span class="n">GaussianDistribution</span><span class="p">,</span> <span class="n">LogGaussianDistribution</span>
-<span class="kn">from</span> <span class="nn">thermolib.tools</span> <span class="kn">import</span> <span class="n">integrate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.error</span><span class="w"> </span><span class="kn">import</span> <span class="n">Propagator</span><span class="p">,</span> <span class="n">GaussianDistribution</span><span class="p">,</span> <span class="n">LogGaussianDistribution</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">integrate</span>
 
-<span class="kn">from</span> <span class="nn">molmod.units</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..units</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">numpy.ma</span> <span class="kn">import</span> <span class="n">masked_array</span>
-<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy.ma</span><span class="w"> </span><span class="kn">import</span> <span class="n">masked_array</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Minimum&#39;</span><span class="p">,</span> <span class="s1">&#39;Maximum&#39;</span><span class="p">,</span> <span class="s1">&#39;Integrate&#39;</span><span class="p">]</span>
 
 
 
-<span class="k">class</span> <span class="nc">State</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">State</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Abstract class serving as a parent for Microstate and Macrostate classes</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">cv_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">f_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">propagator</span><span class="o">=</span><span class="n">Propagator</span><span class="p">()):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">cv_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">f_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">propagator</span><span class="o">=</span><span class="n">Propagator</span><span class="p">()):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            :param name: a name for the state to be used in printing/loging</span>
 <span class="sd">            :type name: str</span>
@@ -469,7 +464,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">f_unit</span> <span class="o">=</span> <span class="n">f_unit</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">propagator</span> <span class="o">=</span> <span class="n">propagator</span>
     
-    <span class="k">def</span> <span class="nf">get_cv</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_cv</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            If computation of the state value(s) is done on a FEP which doesn&#39;t have error bars, then the cv value of the current state will be stored in self.cv. If the FEP includes error bars, then the cv value and its propagated error bar will be stored as a distribution in self.cv_dist. The get_cv routine allows to extract the cv value itself (not its error bar) from the proper internal attribute indepedent on the error bar was propagated or not.</span>
 
@@ -485,7 +480,7 @@
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span> <span class="n">r</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="k">return</span> <span class="n">r</span>
 
-    <span class="k">def</span> <span class="nf">get_F</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_F</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            If computation of the state value(s) is done on a FEP which doesn&#39;t have error bars, then the free energy value of the current state will be stored in self.F. If the FEP includes error bars, then the F value and its propagated error bar will be stored as a distribution in self.F_dist. The get_F routine allows to extract the F value itself (not its error bar) from the proper internal attribute indepedent on the error bar was propagated or not.</span>
 
@@ -501,7 +496,7 @@
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span> <span class="n">r</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="k">return</span> <span class="n">r</span>
     
-    <span class="k">def</span> <span class="nf">text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%.3f</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">do_scientific</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%.3f</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">do_scientific</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Routine to format the observable defined in obs (cv or f) into text for printing.</span>
 
@@ -539,11 +534,11 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid definition for obs, should be f or cv, received </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">obs</span><span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">Microstate</span><span class="p">(</span><span class="n">State</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Microstate</span><span class="p">(</span><span class="n">State</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Abstract parent class for defining microstates on a free energy profile (fep), i.e. a single point on the fep. The routine _get_index_fep needs to be implemented in child classes.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">cv_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">f_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">propagator</span><span class="o">=</span><span class="n">Propagator</span><span class="p">()):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">cv_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">f_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">propagator</span><span class="o">=</span><span class="n">Propagator</span><span class="p">()):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            :param name: a name for the state to be used in printing/loging</span>
 <span class="sd">            :type name: str</span>
@@ -560,13 +555,13 @@
         <span class="n">State</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">cv_unit</span><span class="o">=</span><span class="n">cv_unit</span><span class="p">,</span> <span class="n">f_unit</span><span class="o">=</span><span class="n">f_unit</span><span class="p">,</span> <span class="n">propagator</span><span class="o">=</span><span class="n">propagator</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="kc">None</span>
 
-    <span class="k">def</span> <span class="nf">_get_index_fep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cvs</span><span class="p">,</span> <span class="n">fs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_index_fep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cvs</span><span class="p">,</span> <span class="n">fs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Routine for computing the index of the current microstate cv. This routine needs to be implemented in the child classes.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
-    <span class="k">def</span> <span class="nf">_get_state_fep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cvs</span><span class="p">,</span> <span class="n">fs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_state_fep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cvs</span><span class="p">,</span> <span class="n">fs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Routine that will use the index defining the current microstate as obtained by the _get_index_fep routine and compute the corresponding cv and f value.</span>
 
@@ -585,7 +580,7 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f</span> <span class="p">,</span> <span class="n">masked_array</span><span class="p">):</span> <span class="n">f</span>  <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">filled</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">index</span><span class="p">,</span> <span class="n">cv</span><span class="p">,</span> <span class="n">f</span>
     
-    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fep</span><span class="p">,</span> <span class="n">dist_prop</span><span class="o">=</span><span class="s1">&#39;montecarlo&#39;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fep</span><span class="p">,</span> <span class="n">dist_prop</span><span class="o">=</span><span class="s1">&#39;montecarlo&#39;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Routine to compute the current microstate values for the given profile (fep).</span>
 
@@ -605,9 +600,9 @@
         <span class="k">if</span> <span class="n">fep</span><span class="o">.</span><span class="n">error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">F</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
             <span class="k">if</span> <span class="n">dist_prop</span><span class="o">==</span><span class="s1">&#39;montecarlo&#39;</span><span class="p">:</span>
-                <span class="k">def</span> <span class="nf">fun_cv</span><span class="p">(</span><span class="n">fs</span><span class="p">):</span>
+                <span class="k">def</span><span class="w"> </span><span class="nf">fun_cv</span><span class="p">(</span><span class="n">fs</span><span class="p">):</span>
                     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_state_fep</span><span class="p">(</span><span class="n">fep</span><span class="o">.</span><span class="n">cvs</span><span class="p">,</span> <span class="n">fs</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
-                <span class="k">def</span> <span class="nf">fun_F</span><span class="p">(</span><span class="n">fs</span><span class="p">):</span>
+                <span class="k">def</span><span class="w"> </span><span class="nf">fun_F</span><span class="p">(</span><span class="n">fs</span><span class="p">):</span>
                     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_state_fep</span><span class="p">(</span><span class="n">fep</span><span class="o">.</span><span class="n">cvs</span><span class="p">,</span> <span class="n">fs</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">propagator</span><span class="o">.</span><span class="n">gen_args_samples</span><span class="p">(</span><span class="n">fep</span><span class="o">.</span><span class="n">error</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">propagator</span><span class="o">.</span><span class="n">calc_fun_values</span><span class="p">(</span><span class="n">fun_cv</span><span class="p">)</span>
@@ -624,7 +619,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">F</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_state_fep</span><span class="p">(</span><span class="n">fep</span><span class="o">.</span><span class="n">cvs</span><span class="p">,</span> <span class="n">fep</span><span class="o">.</span><span class="n">fs</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">cv_dist</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">F_dist</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
 
-    <span class="k">def</span> <span class="nf">print</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">print</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Print the current thermodynamic microstate properties</span>
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -641,11 +636,13 @@
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="Minimum"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.state.Minimum">[docs]</a><span class="k">class</span> <span class="nc">Minimum</span><span class="p">(</span><span class="n">Microstate</span><span class="p">):</span>
+<div class="viewcode-block" id="Minimum">
+<a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.state.Minimum">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Minimum</span><span class="p">(</span><span class="n">Microstate</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Microstate class that identifies the minimum in a certain range defined by either cv values, indexes or other microstates.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">cv_range</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">],</span> <span class="n">cv_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">f_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">propagator</span><span class="o">=</span><span class="n">Propagator</span><span class="p">()):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">cv_range</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">],</span> <span class="n">cv_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">f_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">propagator</span><span class="o">=</span><span class="n">Propagator</span><span class="p">()):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            :param name: a name for the state to be used in printing/loging</span>
 <span class="sd">            :type name: str</span>
@@ -665,7 +662,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">cv_range</span> <span class="o">=</span> <span class="n">cv_range</span>
         <span class="n">Microstate</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">cv_unit</span><span class="o">=</span><span class="n">cv_unit</span><span class="p">,</span> <span class="n">f_unit</span><span class="o">=</span><span class="n">f_unit</span><span class="p">,</span> <span class="n">propagator</span><span class="o">=</span><span class="n">propagator</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_get_index_fep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cvs</span><span class="p">,</span> <span class="n">fs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_index_fep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cvs</span><span class="p">,</span> <span class="n">fs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Routine for computing the index of the current microstate cv for the profile defined by cvs and fs.</span>
 <span class="sd">        </span>
@@ -693,11 +690,14 @@
         <span class="k">return</span> <span class="n">index</span></div>
 
 
-<div class="viewcode-block" id="Maximum"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.state.Maximum">[docs]</a><span class="k">class</span> <span class="nc">Maximum</span><span class="p">(</span><span class="n">Microstate</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Maximum">
+<a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.state.Maximum">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Maximum</span><span class="p">(</span><span class="n">Microstate</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Microstate class that identifies the maximum in a certain range defined by either cv values, indexes or other microstates.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">cv_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">f_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">propagator</span><span class="o">=</span><span class="n">Propagator</span><span class="p">()):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">cv_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">f_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">propagator</span><span class="o">=</span><span class="n">Propagator</span><span class="p">()):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            :param name: a name for the state to be used in printing/loging</span>
 <span class="sd">            :type name: str</span>
@@ -717,7 +717,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">cv_range</span> <span class="o">=</span> <span class="n">cv_range</span>
         <span class="n">Microstate</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">cv_unit</span><span class="o">=</span><span class="n">cv_unit</span><span class="p">,</span> <span class="n">f_unit</span><span class="o">=</span><span class="n">f_unit</span><span class="p">,</span> <span class="n">propagator</span><span class="o">=</span><span class="n">propagator</span><span class="p">)</span>
     
-    <span class="k">def</span> <span class="nf">_get_index_fep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cvs</span><span class="p">,</span> <span class="n">fs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_index_fep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cvs</span><span class="p">,</span> <span class="n">fs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Routine for computing the index of the current microstate cv for the profile defined by cvs and fs.</span>
 <span class="sd">        </span>
@@ -745,11 +745,12 @@
         <span class="k">return</span> <span class="n">index</span></div>
 
 
-<span class="k">class</span> <span class="nc">Macrostate</span><span class="p">(</span><span class="n">State</span><span class="p">):</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Macrostate</span><span class="p">(</span><span class="n">State</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Abstract parent class for defining macrostates on a free energy profile. The routine _get_state_fep needs to be implemented in child classes.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">cv_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">f_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">propagator</span><span class="o">=</span><span class="n">Propagator</span><span class="p">()):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">cv_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">f_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">propagator</span><span class="o">=</span><span class="n">Propagator</span><span class="p">()):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            :param name: a name for the state to be used in printing/loging</span>
 <span class="sd">            :type name: str</span>
@@ -769,13 +770,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">Z</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Z_dist</span> <span class="o">=</span> <span class="kc">None</span>
 
-    <span class="k">def</span> <span class="nf">_get_state_fep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cvs</span><span class="p">,</span> <span class="n">fs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_state_fep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cvs</span><span class="p">,</span> <span class="n">fs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Routine to compute the macrostate properties for the profile defined by cvs and fs. This routine needs to be implementd in the child classes.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
-    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fep</span><span class="p">,</span> <span class="n">dist_prop</span><span class="o">=</span><span class="s1">&#39;montecarlo&#39;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fep</span><span class="p">,</span> <span class="n">dist_prop</span><span class="o">=</span><span class="s1">&#39;montecarlo&#39;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Routine to compute the current macrostate properties values for the given profile (fep).</span>
 
@@ -793,13 +794,13 @@
         <span class="k">if</span> <span class="n">fep</span><span class="o">.</span><span class="n">error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">dist_prop</span><span class="o">==</span><span class="s1">&#39;montecarlo&#39;</span><span class="p">:</span>
                 <span class="c1">#method below underestimates error because of neglect of covariance between free energy values of neighboring points and the &#39;filtering&#39; behavior of the integral.</span>
-                <span class="k">def</span> <span class="nf">fun_cv</span><span class="p">(</span><span class="n">fs</span><span class="p">):</span>
+                <span class="k">def</span><span class="w"> </span><span class="nf">fun_cv</span><span class="p">(</span><span class="n">fs</span><span class="p">):</span>
                     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_state_fep</span><span class="p">(</span><span class="n">fep</span><span class="o">.</span><span class="n">cvs</span><span class="p">,</span> <span class="n">fs</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="k">def</span> <span class="nf">fun_cvstd</span><span class="p">(</span><span class="n">fs</span><span class="p">):</span>
+                <span class="k">def</span><span class="w"> </span><span class="nf">fun_cvstd</span><span class="p">(</span><span class="n">fs</span><span class="p">):</span>
                     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_state_fep</span><span class="p">(</span><span class="n">fep</span><span class="o">.</span><span class="n">cvs</span><span class="p">,</span> <span class="n">fs</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
-                <span class="k">def</span> <span class="nf">fun_Z</span><span class="p">(</span><span class="n">fs</span><span class="p">):</span>
+                <span class="k">def</span><span class="w"> </span><span class="nf">fun_Z</span><span class="p">(</span><span class="n">fs</span><span class="p">):</span>
                     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_state_fep</span><span class="p">(</span><span class="n">fep</span><span class="o">.</span><span class="n">cvs</span><span class="p">,</span> <span class="n">fs</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span>
-                <span class="k">def</span> <span class="nf">fun_F</span><span class="p">(</span><span class="n">fs</span><span class="p">):</span>
+                <span class="k">def</span><span class="w"> </span><span class="nf">fun_F</span><span class="p">(</span><span class="n">fs</span><span class="p">):</span>
                     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_state_fep</span><span class="p">(</span><span class="n">fep</span><span class="o">.</span><span class="n">cvs</span><span class="p">,</span> <span class="n">fs</span><span class="p">)[</span><span class="mi">3</span><span class="p">]</span>
                 <span class="c1">#init propagator</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">propagator</span><span class="o">.</span><span class="n">gen_args_samples</span><span class="p">(</span><span class="n">fep</span><span class="o">.</span><span class="n">error</span><span class="p">)</span>
@@ -820,7 +821,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">cv</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cvstd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Z</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">F</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_state_fep</span><span class="p">(</span><span class="n">fep</span><span class="o">.</span><span class="n">cvs</span><span class="p">,</span> <span class="n">fep</span><span class="o">.</span><span class="n">fs</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">print</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">print</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Print the current thermodynamic macrostate properties</span>
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -836,7 +837,7 @@
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  CV StD  = </span><span class="si">%.3f</span><span class="s1">  </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cvstd</span><span class="o">/</span><span class="n">parse_unit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cv_unit</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv_unit</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%.3f</span><span class="s1">&#39;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%.3f</span><span class="s1">&#39;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Routine to format the observable defined in obs (cv, cvstd f) into text for printing.</span>
 
@@ -873,7 +874,9 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid definition for obs, should be f, cv or cvstd, received </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">obs</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="Integrate"><a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.state.Integrate">[docs]</a><span class="k">class</span> <span class="nc">Integrate</span><span class="p">(</span><span class="n">Macrostate</span><span class="p">):</span>
+<div class="viewcode-block" id="Integrate">
+<a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.state.Integrate">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Integrate</span><span class="p">(</span><span class="n">Macrostate</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Definie macrostate as the boltzmann weighted integral over a range of microstates (i.e. range of points on the fep). The macrostate properties (mean cv, cvstd and macrostate free energy) are defined as follows</span>
 
@@ -886,7 +889,7 @@
 <span class="sd">        Herein, all integrals are done over a given cv range.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">cv_range</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">cv_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">f_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">propagator</span><span class="o">=</span><span class="n">Propagator</span><span class="p">()):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">cv_range</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">cv_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">f_unit</span><span class="o">=</span><span class="s1">&#39;kjmol&#39;</span><span class="p">,</span> <span class="n">propagator</span><span class="o">=</span><span class="n">Propagator</span><span class="p">()):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            :param name: a name for the state to be used in printing/loging</span>
 <span class="sd">            :type name: str</span>
@@ -910,7 +913,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="n">beta</span>
         <span class="n">Macrostate</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">cv_unit</span><span class="o">=</span><span class="n">cv_unit</span><span class="p">,</span> <span class="n">f_unit</span><span class="o">=</span><span class="n">f_unit</span><span class="p">,</span> <span class="n">propagator</span><span class="o">=</span><span class="n">propagator</span><span class="p">)</span>
     
-    <span class="k">def</span> <span class="nf">_get_state_fep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cvs</span><span class="p">,</span> <span class="n">fs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_state_fep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cvs</span><span class="p">,</span> <span class="n">fs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            Routine to compute the macrostate properties for the profile defined by cvs and fs.</span>
 
@@ -946,6 +949,7 @@
         <span class="n">mean</span> <span class="o">=</span> <span class="n">integrate</span><span class="p">(</span><span class="n">cvs_indexed</span><span class="p">[</span><span class="n">mask2</span><span class="p">],</span> <span class="n">ps_indexed</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span><span class="o">*</span><span class="n">cvs_indexed</span><span class="p">[</span><span class="n">mask2</span><span class="p">])</span><span class="o">/</span><span class="n">P</span>
         <span class="n">std</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">integrate</span><span class="p">(</span><span class="n">cvs_indexed</span><span class="p">[</span><span class="n">mask2</span><span class="p">],</span> <span class="n">ps_indexed</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">cvs_indexed</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span><span class="o">-</span><span class="n">mean</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="n">P</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">F</span><span class="p">,</span></div>
+
 </pre></div>
 
            </div>
@@ -955,7 +959,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Louis Vanduyfhuys.</p>
+    <p>&#169; Copyright 2026, Louis Vanduyfhuys.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

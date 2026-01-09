@@ -1,31 +1,29 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tutorial 7 - Transformations of 1D FEP and kinetics &mdash; ThermoLIB v1.7.2 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+  <title>Tutorial 7 - Transformations of 1D FEP and kinetics &mdash; ThermoLIB v1.8.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
       <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../_static/jquery.js?v=5d32c60e"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=131c94de"></script>
-        <script src="../_static/doctools.js?v=888ff710"></script>
-        <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=4eaa865d"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Tutorial 8 - Transformation of 2D free energy surfaces" href="advanced_transformations_2D.html" />
-    <link rel="prev" title="Tutorial 6 - Deprojecting 1D FEP to 2D FES" href="advanced_deprojection.html" /> 
+    <link rel="prev" title="Tutorial 6 - Deprojection to extract energetic contribution to free energy" href="advanced_deprojection.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -40,9 +38,6 @@
             ThermoLIB
               <img src="../_static/logo_thermolib_light.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                1.7
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -57,7 +52,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../ig.html#dependencies">Dependencies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../ig.html#download-and-install-thermolib">Download and install ThermoLIB</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../ig.html#direct-install-using-pip">Direct install using pip</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../ig.html#developers-download">Developers download</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../ig.html#source-code-download-and-install">Source code download and install</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../ig.html#update-thermolib">Update ThermoLIB</a></li>
@@ -177,7 +172,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="advanced_deprojection.html">Tutorial 6 - Deprojecting 1D FEP to 2D FES</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="advanced_deprojection.html">Tutorial 6 - Deprojection to extract energetic contribution to free energy</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="advanced_deprojection.html#Introduction">Introduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="advanced_deprojection.html#Construct-1D-FEP">Construct 1D FEP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="advanced_deprojection.html#Deproject-to-2D-FES">Deproject to 2D FES</a><ul>
@@ -373,6 +368,8 @@
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.interpolate_surface_2d"><code class="docutils literal notranslate"><span class="pre">interpolate_surface_2d()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.invert_fisher_to_covariance"><code class="docutils literal notranslate"><span class="pre">invert_fisher_to_covariance()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.multivariate_normal"><code class="docutils literal notranslate"><span class="pre">multivariate_normal()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.plot_histograms_1d"><code class="docutils literal notranslate"><span class="pre">plot_histograms_1d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.plot_histograms_overlap_1d"><code class="docutils literal notranslate"><span class="pre">plot_histograms_overlap_1d()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.read_wham_input"><code class="docutils literal notranslate"><span class="pre">read_wham_input()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../rg_tools.html#thermolib.tools.rolling_average"><code class="docutils literal notranslate"><span class="pre">rolling_average()</span></code></a></li>
 </ul>
@@ -418,9 +415,9 @@
            <div itemprop="articleBody">
              
   <section id="Tutorial-7---Transformations-of-1D-FEP-and-kinetics">
-<h1>Tutorial 7 - Transformations of 1D FEP and kinetics<a class="headerlink" href="#Tutorial-7---Transformations-of-1D-FEP-and-kinetics" title="Permalink to this heading"></a></h1>
+<h1>Tutorial 7 - Transformations of 1D FEP and kinetics<a class="headerlink" href="#Tutorial-7---Transformations-of-1D-FEP-and-kinetics" title="Link to this heading"></a></h1>
 <section id="Introduction">
-<h2>Introduction<a class="headerlink" href="#Introduction" title="Permalink to this heading"></a></h2>
+<h2>Introduction<a class="headerlink" href="#Introduction" title="Link to this heading"></a></h2>
 <p>In this notebook, we investigate the impact of the choice of the collective variable on the free energy profile as well as the kinetics. The main conclusion of this notebook will be that the shape of the free energy profile depends on the choice of the CV (as well as for example the difference in free energy between the reactant state minimum and the transition state maximum), however, the derived kinetic rate constant (and hence also the related phenomenological free energy barrier) will not
 depend on this choice.</p>
 <div class="nbinput nblast docutils container">
@@ -436,16 +433,15 @@ depend on this choice.</p>
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">thermolib.thermodynamics.fep</span> <span class="kn">import</span> <span class="n">SimpleFreeEnergyProfile</span><span class="p">,</span> <span class="n">plot_profiles</span>
-<span class="kn">from</span> <span class="nn">thermolib.thermodynamics.histogram</span> <span class="kn">import</span> <span class="n">Histogram1D</span>
-<span class="kn">from</span> <span class="nn">thermolib.tools</span> <span class="kn">import</span> <span class="n">read_wham_input</span><span class="p">,</span> <span class="n">blav</span><span class="p">,</span> <span class="n">decorrelate</span>
-<span class="kn">from</span> <span class="nn">thermolib.thermodynamics.trajectory</span> <span class="kn">import</span> <span class="n">ColVarReader</span>
-<span class="kn">from</span> <span class="nn">thermolib.thermodynamics.cv</span> <span class="kn">import</span> <span class="n">CoordinationNumber</span><span class="p">,</span> <span class="n">LinearCombination</span><span class="p">,</span> <span class="n">FunctionCV</span>
-<span class="kn">from</span> <span class="nn">thermolib.kinetics.rate</span> <span class="kn">import</span> <span class="n">RateFactorEquilibrium</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamics.fep</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleFreeEnergyProfile</span><span class="p">,</span> <span class="n">plot_profiles</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamics.histogram</span><span class="w"> </span><span class="kn">import</span> <span class="n">Histogram1D</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_wham_input</span><span class="p">,</span> <span class="n">blav</span><span class="p">,</span> <span class="n">decorrelate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamics.trajectory</span><span class="w"> </span><span class="kn">import</span> <span class="n">ColVarReader</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamics.cv</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoordinationNumber</span><span class="p">,</span> <span class="n">LinearCombination</span><span class="p">,</span> <span class="n">FunctionCV</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.kinetics.rate</span><span class="w"> </span><span class="kn">import</span> <span class="n">RateFactorEquilibrium</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.units</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span><span class="o">,</span> <span class="nn">os</span>
-
-<span class="kn">from</span> <span class="nn">molmod.units</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span><span class="o">,</span><span class="w"> </span><span class="nn">os</span>
 </pre></div>
 </div>
 </div>
@@ -459,14 +455,14 @@ depend on this choice.</p>
 </div>
 </section>
 <section id="FEP-and-rate-with-original-CV">
-<h2>FEP and rate with original CV<a class="headerlink" href="#FEP-and-rate-with-original-CV" title="Permalink to this heading"></a></h2>
+<h2>FEP and rate with original CV<a class="headerlink" href="#FEP-and-rate-with-original-CV" title="Link to this heading"></a></h2>
 <p>We start be constructing the reference FEP in terms of the original CV, i.e. the CV along which the biasing was performed.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mf">1.7</span><span class="p">,</span> <span class="mf">1.7</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">)</span>
-<span class="n">fn_meta</span> <span class="o">=</span> <span class="s1">&#39;data/formic_acid_dimer_link/wham_input.txt&#39;</span>
+<span class="n">fn_meta</span> <span class="o">=</span> <span class="s1">&#39;data/formic_acid_dimer/wham_input.txt&#39;</span>
 </pre></div>
 </div>
 </div>
@@ -496,8 +492,8 @@ depend on this choice.</p>
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/home/louis/miniconda3/lib/python3.8/site-packages/scipy/optimize/minpack.py:828: OptimizeWarning: Covariance of the parameters could not be estimated
-  warnings.warn(&#39;Covariance of the parameters could not be estimated&#39;,
+/home/lvduyfhu/miniconda3/envs/test/lib/python3.14/site-packages/thermolib/tools.py:960: OptimizeWarning: Covariance of the parameters could not be estimated
+  pars, pcovs = curve_fit(function, upper_envelope_indices, upper_envelope_values, **curve_fit_kwargs)
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -505,7 +501,7 @@ depend on this choice.</p>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Figure size 432x288 with 0 Axes&gt;
+&lt;Figure size 640x480 with 0 Axes&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -537,30 +533,19 @@ SCF Converged!
 ---------------------------------------------------------------------
 TIMING SUMMARY
   initializing: 00h 00m 00.000s
-  histograms  : 00h 00m 00.270s
-  bias poten. : 00h 00m 00.046s
-  solve scf   : 00h 00m 01.186s
-  error est.  : 00h 00m 01.553s
-  TOTAL       : 00h 00m 03.057s
+  histograms  : 00h 00m 00.011s
+  bias poten. : 00h 00m 00.006s
+  solve scf   : 00h 00m 00.165s
+  error est.  : 00h 00m 00.518s
+  TOTAL       : 00h 00m 00.702s
 ---------------------------------------------------------------------
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu Sans.
-findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu Sans.
-findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu Sans.
-findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu Sans.
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tut_advanced_transformations_13_2.png" src="../_images/tut_advanced_transformations_13_2.png" />
+<img alt="../_images/tut_advanced_transformations_13_1.png" src="../_images/tut_advanced_transformations_13_1.png" />
 </div>
 </div>
 <p>We now also proceed by computing the rate constant according to this CV choice. For this we use all settings as discussed in the <a class="reference external" href="basic_kinetics.html">tutorial on basic kinetics</a>.</p>
@@ -614,7 +599,7 @@ findfont: Font family [&#39;sans-serif&#39;] not found. Falling back to DejaVu S
 <div class="highlight"><pre>
 Rate factor with block averaging:
 ---------------------------------
-  A = 17.457 +- 0.011 1e12*au/s (8847 TS samples, int. autocorr. time = 22.916 timesteps)
+  A = 1.745 10^+13 +- 1.224 10^+10 au/s (9591 TS samples, int. autocorr. time = 49.423 timesteps)
 
 </pre></div></div>
 </div>
@@ -627,16 +612,16 @@ Rate factor with block averaging:
 </div>
 </section>
 <section id="FEP-and-rate-in-terms-of-alternative-CV">
-<h2>FEP and rate in terms of alternative CV<a class="headerlink" href="#FEP-and-rate-in-terms-of-alternative-CV" title="Permalink to this heading"></a></h2>
+<h2>FEP and rate in terms of alternative CV<a class="headerlink" href="#FEP-and-rate-in-terms-of-alternative-CV" title="Link to this heading"></a></h2>
 <p>We are going to transform the FEP from <img class="math" src="../_images/math/b9ec4309e2f5046075de8b94d22ce7d41983d684.png" alt="F(CV)"/> towards <img class="math" src="../_images/math/a013ec8a56040cb066860fa6850deed2cd2aec68.png" alt="F(Q)"/> with <img class="math" src="../_images/math/3ed510a1bf511c172985d7f59978ef2f700ad5b9.png" alt="Q=\frac{1}{0.9}e^{0.9\cdot CV}"/>. This can be done using the <code class="docutils literal notranslate"><span class="pre">transform</span></code> routine of the BaseFreeEnergyProfile class (as well as it child class SimpleFreeEnergyProfile). For that, we first derive the transformation function as well as its derivative:</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">function</span><span class="p">(</span><span class="n">cv</span><span class="p">):</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">function</span><span class="p">(</span><span class="n">cv</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mf">0.9</span><span class="o">*</span><span class="n">cv</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">derivative</span><span class="p">(</span><span class="n">cv</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">derivative</span><span class="p">(</span><span class="n">cv</span><span class="p">):</span>
     <span class="k">return</span> <span class="mf">0.9</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mf">0.9</span><span class="o">*</span><span class="n">cv</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -761,7 +746,7 @@ dQ &amp;= f’(CV^{TS})cdot dCV</p>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[0.9765345395236245, 1.065792416154268]
+[np.float64(1.0002116225025508), np.float64(1.0909272526572253)]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -779,7 +764,7 @@ dQ &amp;= f’(CV^{TS})cdot dCV</p>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Estimating rate factor from trajectory data/formic_acid_dimer_link/colvars/u64.xyz for TS=[0.977,1.066] au using analytical momentum integration
+Estimating rate factor from trajectory data/formic_acid_dimer/colvars/u64.xyz for TS=[1.000,1.091] au using analytical momentum integration
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -799,7 +784,7 @@ Estimating rate factor from trajectory data/formic_acid_dimer_link/colvars/u64.x
 <div class="highlight"><pre>
 Rate factor with block averaging:
 ---------------------------------
-  A = 15.919 +- 0.016 1e12*au/s (9375 TS samples, int. autocorr. time = 20.036 timesteps)
+  A = 1.605 10^+13 +- 2.160 10^+10 au/s (7070 TS samples, int. autocorr. time = 1.202 timesteps)
 
 </pre></div></div>
 </div>
@@ -818,14 +803,14 @@ Rate factor with block averaging:
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="advanced_deprojection.html" class="btn btn-neutral float-left" title="Tutorial 6 - Deprojecting 1D FEP to 2D FES" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="advanced_deprojection.html" class="btn btn-neutral float-left" title="Tutorial 6 - Deprojection to extract energetic contribution to free energy" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="advanced_transformations_2D.html" class="btn btn-neutral float-right" title="Tutorial 8 - Transformation of 2D free energy surfaces" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Louis Vanduyfhuys.</p>
+    <p>&#169; Copyright 2026, Louis Vanduyfhuys.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

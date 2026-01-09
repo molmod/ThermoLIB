@@ -11,7 +11,8 @@
 # Vanduyfhuys or prof. Van Speybroeck.
 
 from typing import List
-from molmod.units import *
+from ..units import *
+from ..constants import *
 from scipy import interpolate
 
 import numpy as np
@@ -369,7 +370,7 @@ class BiasPotential2D(object):
             obs_unit = e_unit
             obs_label = 'Bias energy [%s]' %e_unit
         else:
-            beta = 1.0/(botlzmann*temp)
+            beta = 1.0/(boltzmann*temp)
             obs = np.exp(-beta*self(CV1,CV2))
             obs_unit = 'au'
             obs_label = 'Bias boltzmann factor [-]'
