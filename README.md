@@ -1,5 +1,5 @@
-<img src='https://github.ugent.be/lvduyfhu/ThermoLIB/blob/master/logo_thermolib_light.png#gh-light-mode-only' width='200'>
-<img src='https://github.ugent.be/lvduyfhu/ThermoLIB/blob/master/logo_thermolib_dark.png#gh-dark-mode-only' width='200'>
+<img src='https://github.com/molmod/ThermoLIB/blob/master/logo_thermolib_light.png#gh-light-mode-only' width='200'>
+<img src='https://github.com/molmod/ThermoLIB/blob/master/logo_thermolib_dark.png#gh-dark-mode-only' width='200'>
 
 [![License](https://flat.badgen.net/static/LICENSE/GNU%20GPL%20(v3)/red)](https://github.ugent.be/lvduyfhu/ThermoLIB/blob/master/LICENSE)
 ![Python](https://flat.badgen.net/static/Python/3.8/blue)
@@ -23,7 +23,7 @@ ThermoLIB is a library developed at the [Center for Molecular Modeling (CMM)](ht
 
 # Documentation
 
-More information on how to use ThermoLIB, including tutorials, can be found in its manual at [https://github.ugent.be/pages/lvduyfhu/ThermoLIB/](https://github.ugent.be/pages/lvduyfhu/ThermoLIB/).
+More information on how to use ThermoLIB, including tutorials, can be found in its manual at [https://molmod.github.io/ThermoLIB/](https://molmod.github.io/ThermoLIB/).
 
 # How to install?
 
@@ -37,13 +37,17 @@ ThermoLIB has the following dependencies:
 * [h5py](https://www.h5py.org/)
 * [ase](https://wiki.fysik.dtu.dk/ase/) (Version 3.23.0 or newer)
 
-To **install ThermoLIB** (or update it to the most recent version), just run the following pip install command:
+To **install ThermoLIB** using pip either download the master branch as zip, go to your desired pip environment and run 
 
-    pip install git+https://github.ugent.be/lvduyfhu/ThermoLIB.git
+    pip install ThermoLIB-master.zip
+
+or if you have properly configured your ssh to access GitHub.com using a key through the defined alias 'github', you can simply run:
+
+    pip install git+ssh://github/molmod/ThermoLIB.git
 
 # Terms of use
 
-ThermoLIB is developed by prof. Louis Vanduyfhuys at the Center for Molecular Modeling under supervision of prof. Veronique Van Speybroeck. Usage of ThermoLIB should be requested with prof. Van Speybroeck or prof. Vanduyfhuys.
+ThermoLIB is developed by prof. Louis Vanduyfhuys at the Center for Molecular Modeling under supervision of prof. Veronique Van Speybroeck. Usage of ThermoLIB should be requested with prof. Vanduyfhuys.
 
-Copyright (C) 2019 - 2024 Louis Vanduyfhuys <Louis.Vanduyfhuys@UGent.be>
+Copyright (C) 2019 - 2026 Louis Vanduyfhuys <Louis.Vanduyfhuys@UGent.be>
 Center for Molecular Modeling (CMM), Ghent University, Ghent, Belgium; all rights reserved unless otherwise stated.
