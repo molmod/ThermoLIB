@@ -1,9 +1,9 @@
 <img src='https://github.com/molmod/ThermoLIB/blob/master/logo_thermolib_light.png#gh-light-mode-only' width='200'>
 <img src='https://github.com/molmod/ThermoLIB/blob/master/logo_thermolib_dark.png#gh-dark-mode-only' width='200'>
 
-[![License](https://flat.badgen.net/static/LICENSE/GNU%20GPL%20(v3)/red)](https://github.ugent.be/lvduyfhu/ThermoLIB/blob/master/LICENSE)
+[![License](https://flat.badgen.net/static/LICENSE/GNU%20GPL%20(v3)/red)](https://github.com/molmod/ThermoLIB/blob/master/LICENSE)
 ![Python](https://flat.badgen.net/static/Python/3.8/blue)
-[![Documentation](https://flat.badgen.net/static/Documentation/GitHUB%20Pages/green)](https://github.ugent.be/pages/lvduyfhu/ThermoLIB/)
+[![Documentation](https://flat.badgen.net/static/Documentation/GitHUB%20Pages/green)](https://molmod.github.io/ThermoLIB/)
 # What is ThermoLIB?
 
 ThermoLIB is a library developed at the [Center for Molecular Modeling (CMM)](https://molmod.ugent.be/) for the application of Statistical Physics and/or Thermodynamics to molecular simulations. The library consists of:
