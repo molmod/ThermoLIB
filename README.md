@@ -2,7 +2,7 @@
 <img src='https://github.com/molmod/ThermoLIB/blob/master/logo_thermolib_dark.png#gh-dark-mode-only' width='200'>
 
 [![License](https://flat.badgen.net/static/LICENSE/GNU%20GPL%20(v3)/red)](https://github.com/molmod/ThermoLIB/blob/master/LICENSE)
-![Python](https://flat.badgen.net/static/Python/3.8/blue)
+![Python](https://flat.badgen.net/static/Python/3.14/blue)
 [![Documentation](https://flat.badgen.net/static/Documentation/GitHUB%20Pages/green)](https://molmod.github.io/ThermoLIB/)
 # What is ThermoLIB?
 
@@ -47,7 +47,7 @@ or if you have properly configured your ssh to access GitHub.com using a key thr
 
 # Terms of use
 
-ThermoLIB is developed by prof. Louis Vanduyfhuys at the Center for Molecular Modeling under supervision of prof. Veronique Van Speybroeck. Usage of ThermoLIB should be requested with prof. Vanduyfhuys.
+ThermoLIB is mainly developed by prof. Louis Vanduyfhuys at the Center for Molecular Modeling. Usage of ThermoLIB should be requested with prof. Vanduyfhuys.
 
 Copyright (C) 2019 - 2026 Louis Vanduyfhuys <Louis.Vanduyfhuys@UGent.be>
 Center for Molecular Modeling (CMM), Ghent University, Ghent, Belgium; all rights reserved unless otherwise stated.
