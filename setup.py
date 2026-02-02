@@ -16,7 +16,7 @@ import numpy
 
 setup(
     name='ThermoLIB',
-    version='1.7.3',
+    version='1.8.0',
     description='Python library with various sub packages related to thermodynamic and free energy profiles.',
     author='Louis Vanduyfhuys',
     author_email='Louis.Vanduyfhuys@UGent.be',

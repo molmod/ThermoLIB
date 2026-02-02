@@ -23,7 +23,13 @@ ThermoLIB is a library developed at the [Center for Molecular Modeling (CMM)](ht
 
 # Documentation
 
-More information on how to use ThermoLIB, including tutorials, can be found in its manual at [https://molmod.github.io/ThermoLIB/](https://molmod.github.io/ThermoLIB/).
+A full illustration on the use of ThermoLIB can be find in [the preprint on Arxiv](https://doi.org/10.48550/arXiv.2601.23071). More information on how to use ThermoLIB, including tutorials, can be found in its manual at [https://molmod.github.io/ThermoLIB/](https://molmod.github.io/ThermoLIB/).
+
+# How to cite ThermoLIB
+
+If you use ThermoLIB in your research, please cite it as follows:
+
+    M. Bocus, L. Vanduyfhuys, 2026, 10.48550/arXiv.2601.23071
 
 # How to install?
 
