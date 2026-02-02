@@ -47,7 +47,7 @@ To **install ThermoLIB** using pip either download the master branch as zip, go 
 
     pip install ThermoLIB-master.zip
 
-or if you have properly configured your ssh to access GitHub.com using a key through the defined alias 'github', you can simply run:
+or if you have set up your ssh config file to access github.com using key authentication through an alias defined as 'github', you can install ThermoLIB as follows:, you can simply run:
 
     pip install git+ssh://github/molmod/ThermoLIB.git
 

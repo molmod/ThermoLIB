@@ -17,9 +17,7 @@ ThermoLIB is a library developed at the `Center for Molecular Modeling <https://
 
    If you used ThermoLIB in your research, please refer to ThermoLIB as follows:
    
-
-.. todo:: Include citation to paper once paper is published.
-
+      M. Bocus, L. Vanduyfhuys, **2026**, 10.48550/arXiv.2601.23071
 
    
 .. toctree::
