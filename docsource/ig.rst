@@ -49,11 +49,17 @@ You can install ThermoLIB directly in a conda environment using pip. If you want
 
     pip install git+https://github.ugent.be/lvduyfhu/ThermoLIB.git
 
-(**TODO**) Everybody can access and install **the latest stable release** of ThermoLIB through github.com as follows:
+**Everybody** can access and install **the latest stable release** of ThermoLIB through github.com. If you have set up your ssh config file to access github.com using key authentication through an alias defined as 'github', you can install ThermoLIB as follows:
 
 .. code-block:: bash
 
-    pip install git+https://github.com/XXX/XXX.git
+    pip install git+ssh://github/molmod/ThermoLIB.git
+
+Alternatively, you can just browse to https://github.com/molmod/ThermoLIB.git, download the code as a zip file and install it in your conda environment using pip:
+
+.. code-block:: bash
+
+    pip install /path/to/zip
 
 Source code download and install
 ================================
@@ -71,7 +77,7 @@ If you want to have a copy of the source code for further implementation and adv
 
 .. code-block:: bash
 
-    git clone git://github.com/XXX/TODO.git thermolib
+    git clone https://github.com/molmod/thermolib.git
     cd thermolib
 
 The source code can be updated with the latest patches with the following command:
@@ -94,7 +100,7 @@ To update ThermoLIB to the latest version, either go to your conda environment a
 .. code-block:: bash
 
     pip install git+https://github.ugent.be/lvduyfhu/ThermoLIB.git #for Ugent users only
-    pip install git+https://github.com/XXX/XXX.git #for all users
+    pip install git+ssh://github/molmod/ThermoLIB.git #for all users
 
 or go to your local copy of the source code, pull the latest changes from the git repository and install:
 

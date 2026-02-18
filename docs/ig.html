@@ -451,8 +451,12 @@ conda<span class="w"> </span>activate<span class="w"> </span>thermolib
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.ugent.be/lvduyfhu/ThermoLIB.git
 </pre></div>
 </div>
-<p>(<strong>TODO</strong>) Everybody can access and install <strong>the latest stable release</strong> of ThermoLIB through github.com as follows:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/XXX/XXX.git
+<p><strong>Everybody</strong> can access and install <strong>the latest stable release</strong> of ThermoLIB through github.com. If you have set up your ssh config file to access github.com using key authentication through an alias defined as ‘github’, you can install ThermoLIB as follows:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+ssh://github/molmod/ThermoLIB.git
+</pre></div>
+</div>
+<p>Alternatively, you can just browse to <a class="reference external" href="https://github.com/molmod/ThermoLIB.git">https://github.com/molmod/ThermoLIB.git</a>, download the code as a zip file and install it in your conda environment using pip:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>/path/to/zip
 </pre></div>
 </div>
 </section>
@@ -465,7 +469,7 @@ conda<span class="w"> </span>activate<span class="w"> </span>thermolib
 </pre></div>
 </div>
 <p><strong>For researchers outside Ghent University</strong>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>git://github.com/XXX/TODO.git<span class="w"> </span>thermolib
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/molmod/thermolib.git
 <span class="nb">cd</span><span class="w"> </span>thermolib
 </pre></div>
 </div>
@@ -483,7 +487,7 @@ conda<span class="w"> </span>activate<span class="w"> </span>thermolib
 <h2>Update ThermoLIB<a class="headerlink" href="#update-thermolib" title="Link to this heading"></a></h2>
 <p>To update ThermoLIB to the latest version, either go to your conda environment and run the pip install command again:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.ugent.be/lvduyfhu/ThermoLIB.git<span class="w"> </span><span class="c1">#for Ugent users only</span>
-pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/XXX/XXX.git<span class="w"> </span><span class="c1">#for all users</span>
+pip<span class="w"> </span>install<span class="w"> </span>git+ssh://github/molmod/ThermoLIB.git<span class="w"> </span><span class="c1">#for all users</span>
 </pre></div>
 </div>
 <p>or go to your local copy of the source code, pull the latest changes from the git repository and install:</p>

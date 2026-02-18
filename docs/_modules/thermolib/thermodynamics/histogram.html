@@ -436,12 +436,106 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.thermodynamics.fep</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseProfile</span><span class="p">,</span> <span class="n">BaseFreeEnergyProfile</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.ext</span><span class="w"> </span><span class="kn">import</span> <span class="n">wham1d_hs</span><span class="p">,</span> <span class="n">wham1d_bias</span><span class="p">,</span> <span class="n">wham1d_scf</span><span class="p">,</span> <span class="n">wham1d_error</span><span class="p">,</span> <span class="n">wham2d_hs</span><span class="p">,</span> <span class="n">wham2d_bias</span><span class="p">,</span> <span class="n">wham2d_scf</span><span class="p">,</span> <span class="n">wham2d_error</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.error</span><span class="w"> </span><span class="kn">import</span> <span class="n">GaussianDistribution</span><span class="p">,</span> <span class="n">LogGaussianDistribution</span><span class="p">,</span> <span class="n">Propagator</span><span class="p">,</span> <span class="n">MultiGaussianDistribution</span><span class="p">,</span> <span class="n">MultiLogGaussianDistribution</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.error</span><span class="w"> </span><span class="kn">import</span> <span class="n">GaussianDistribution</span><span class="p">,</span> <span class="n">LogGaussianDistribution</span><span class="p">,</span> <span class="n">Propagator</span><span class="p">,</span> <span class="n">MultiGaussianDistribution</span><span class="p">,</span> <span class="n">MultiLogGaussianDistribution</span><span class="p">,</span> <span class="n">DummyFlattener</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">thermolib.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">fisher_matrix_mle_probdens</span><span class="p">,</span> <span class="n">invert_fisher_to_covariance</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
 	<span class="s1">&#39;Histogram1D&#39;</span><span class="p">,</span> <span class="s1">&#39;Histogram2D&#39;</span><span class="p">,</span> <span class="s1">&#39;plot_histograms&#39;</span>
 <span class="p">]</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">PeriodicBoundaryConditions</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">period</span><span class="p">,</span> <span class="n">bins</span><span class="p">):</span>
+<span class="w">		</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">			Class representing periodic boundary conditions for a 1D histogram. The histogram is assumed to be defined with the given bins and periodic with a given period.</span>
+
+<span class="sd">			:param period: the period of the histogram</span>
+<span class="sd">			:type period: float</span>
+
+<span class="sd">			:param grid: the grid on which the histogram is defined</span>
+<span class="sd">			:type grid: np.ndarray</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">period</span> <span class="o">=</span> <span class="n">period</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">bins</span> <span class="o">=</span> <span class="n">bins</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_define_wrapmask</span><span class="p">()</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">_define_wrapmask</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">		</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">			Define the wrapmask for the periodic boundary conditions. The wrapmask is a matrix that defines how to wrap the histogram values to the periodic boundary conditions. The [l,k] element of the wrapmask is 1 if the unwrappred bin k is a periodic image of wrapped bin l.</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">m</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="n">l</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">bins</span><span class="p">[</span><span class="n">l</span><span class="p">]</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;</span><span class="bp">self</span><span class="o">.</span><span class="n">period</span><span class="p">:</span>
+			<span class="n">row</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bins</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+			<span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="nb">bin</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bins</span><span class="p">):</span>
+				<span class="k">if</span> <span class="n">k</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+					<span class="k">if</span> <span class="n">l</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span> 
+						<span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="n">dq</span> <span class="o">=</span> <span class="nb">bin</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">bins</span><span class="p">[</span><span class="n">k</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+					<span class="k">if</span> <span class="p">(</span><span class="nb">bin</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">bins</span><span class="p">[</span><span class="n">l</span><span class="p">])</span><span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">period</span> <span class="o">&lt;</span> <span class="n">dq</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bins</span><span class="p">[</span><span class="n">k</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">bins</span><span class="p">[</span><span class="n">l</span><span class="p">])</span><span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">period</span> <span class="o">&gt;=</span> <span class="n">dq</span><span class="p">:</span>
+						<span class="n">row</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+			<span class="n">l</span> <span class="o">+=</span> <span class="mi">1</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">weights_wrapped</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;lk-&gt;l&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+	
+	<span class="k">def</span><span class="w"> </span><span class="nf">wrap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="w">		</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">			Wrap the given array x to the periodic boundary conditions defined by this class.</span>
+<span class="sd">			</span>
+<span class="sd">			:param x: the array to be wrapped</span>
+<span class="sd">			:type x: np.ndarray</span>
+<span class="sd">		</span>
+<span class="sd">			:return: the wrapped value</span>
+<span class="sd">			:rtype: np.ndarray</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;lk,...k-&gt;...l&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">,</span><span class="n">x</span><span class="p">)</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">unwrap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="w">		</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">			Unwrap the given array x to the periodic boundary conditions defined by this class.</span>
+<span class="sd">			</span>
+<span class="sd">			:param x: the array to be unwrapped</span>
+<span class="sd">			:type x: np.ndarray</span>
+<span class="sd">		</span>
+<span class="sd">			:return: the unwrapped value</span>
+<span class="sd">			:rtype: np.ndarray</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;lk,...l-&gt;...k&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">,</span><span class="n">x</span><span class="p">)</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">unwrap_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">error</span><span class="p">):</span>
+<span class="w">		</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">			Unwrap the given error distribution using the periodic boundary conditions defined by this class.</span>
+<span class="sd">			</span>
+<span class="sd">			:param error: the error to be unwrapped</span>
+<span class="sd">			:type error: child of :py:class:`Distribution &lt;thermolib.error.Distribution&gt;`</span>
+<span class="sd">			:rtype: child of :py:class:`Distribution &lt;thermolib.error.Distribution&gt;`</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">GaussianDistribution</span><span class="p">):</span>
+			<span class="n">means</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unwrap</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">means</span><span class="p">)</span>
+			<span class="n">stds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unwrap</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">stds</span><span class="p">)</span>
+			<span class="k">return</span> <span class="n">GaussianDistribution</span><span class="p">(</span><span class="n">means</span><span class="p">,</span> <span class="n">stds</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">LogGaussianDistribution</span><span class="p">):</span>
+			<span class="n">lmeans</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unwrap</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">lmeans</span><span class="p">)</span>
+			<span class="n">lstds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unwrap</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">lstds</span><span class="p">)</span>
+			<span class="k">return</span> <span class="n">LogGaussianDistribution</span><span class="p">(</span><span class="n">lmeans</span><span class="p">,</span> <span class="n">lstds</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">MultiGaussianDistribution</span><span class="p">):</span>
+			<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">flattener</span><span class="p">,</span> <span class="n">DummyFlattener</span><span class="p">):</span>
+				<span class="n">means</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unwrap</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">means</span><span class="p">)</span>
+				<span class="n">covariance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;lk,rs,lr-&gt;ks&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="n">error</span><span class="o">.</span><span class="n">covariance</span><span class="p">)</span>
+				<span class="k">return</span> <span class="n">MultiGaussianDistribution</span><span class="p">(</span><span class="n">means</span><span class="p">,</span> <span class="n">covariance</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="n">DummyFlattener</span><span class="p">())</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Unwrapping of error distribution not implemented for MultiDistribution with any flattener other than DummyFlattener&#39;</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">MultiLogGaussianDistribution</span><span class="p">):</span>
+			<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">flattener</span><span class="p">,</span> <span class="n">DummyFlattener</span><span class="p">):</span>
+				<span class="n">lmeans</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unwrap</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">lmeans</span><span class="p">)</span>
+				<span class="n">lcovariance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;lk,rs,lr-&gt;ks&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="n">error</span><span class="o">.</span><span class="n">lcovariance</span><span class="p">)</span>
+				<span class="k">return</span> <span class="n">MultiLogGaussianDistribution</span><span class="p">(</span><span class="n">lmeans</span><span class="p">,</span> <span class="n">lcovariance</span><span class="p">,</span> <span class="n">flattener</span><span class="o">=</span><span class="n">DummyFlattener</span><span class="p">())</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Unwrapping of error distribution not implemented for MultiDistribution with any flattener other than DummyFlattener&#39;</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Unwrapping of error distribution not implemented for this type of distribution&#39;</span><span class="p">)</span>
+
 
 <div class="viewcode-block" id="Histogram1D">
 <a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram1D">[docs]</a>
@@ -643,7 +737,7 @@
 <div class="viewcode-block" id="Histogram1D.from_wham">
 <a class="viewcode-back" href="../../../rg_thermo.html#thermolib.thermodynamics.histogram.Histogram1D.from_wham">[docs]</a>
 	<span class="nd">@classmethod</span>
-	<span class="k">def</span><span class="w"> </span><span class="nf">from_wham</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">traj_input</span><span class="p">,</span> <span class="n">biasses</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">corrtimes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">error_p_threshold</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">bias_subgrid_num</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Nscf</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">convergence</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">bias_thress</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">cv_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv_label</span><span class="o">=</span><span class="s1">&#39;CV&#39;</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="s1">&#39;low&#39;</span><span class="p">):</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">from_wham</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">traj_input</span><span class="p">,</span> <span class="n">biasses</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">pbc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">error_estimate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">corrtimes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">error_p_threshold</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">bias_subgrid_num</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Nscf</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">convergence</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">bias_thress</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">cv_output_unit</span><span class="o">=</span><span class="s1">&#39;au&#39;</span><span class="p">,</span> <span class="n">cv_label</span><span class="o">=</span><span class="s1">&#39;CV&#39;</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="s1">&#39;low&#39;</span><span class="p">):</span>
 <span class="w">		</span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">			Routine that implements the Weighted Histogram Analysis Method (WHAM) for reconstructing the overall 1D probability histogram in terms of collective variable CV from a series of molecular simulations that are (possibly) biased in terms of CV.</span>
 
@@ -658,6 +752,9 @@
 
 <span class="sd">			:param temp: the temperature at which all simulations were performed</span>
 <span class="sd">			:type temp: float</span>
+
+<span class="sd">			:param pbc: the period of the histogram. If None, no periodic boundary conditions are applied. If a float is given, the histogram is assumed to be periodic with that period.</span>
+<span class="sd">			:type pbc: float or None, optional, default=None</span>
 
 <span class="sd">			:param error_estimate: indicate if and how to perform error analysis. One of following options is available:</span>
 
@@ -737,18 +834,24 @@
 		<span class="k">assert</span> <span class="n">grid_non_uniformity</span><span class="o">&lt;</span><span class="mf">1e-6</span><span class="p">,</span> <span class="s1">&#39;CV grid defined by bins argument should be of uniform spacing!&#39;</span>
 		<span class="n">delta</span> <span class="o">=</span> <span class="n">deltas</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
 		<span class="n">Ngrid</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">bin_centers</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">pbc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">pbc</span> <span class="o">=</span> <span class="n">PeriodicBoundaryConditions</span><span class="p">(</span><span class="n">pbc</span><span class="p">,</span> <span class="n">bin_centers</span><span class="p">)</span>
 		<span class="n">timings</span><span class="p">[</span><span class="s1">&#39;init&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 
 		<span class="c1">#generate the individual histograms using numpy.histogram</span>
 		<span class="k">if</span> <span class="n">verbosity</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;medium&#39;</span><span class="p">,</span> <span class="s1">&#39;high&#39;</span><span class="p">]:</span>
 			<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Constructing individual histograms for each biased simulation ...&#39;</span><span class="p">)</span>
 		<span class="n">Hs</span> <span class="o">=</span> <span class="n">wham1d_hs</span><span class="p">(</span><span class="n">Nsims</span><span class="p">,</span> <span class="n">Ngrid</span><span class="p">,</span> <span class="n">trajectories</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">Nis</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">pbc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">Hs</span> <span class="o">=</span> <span class="n">pbc</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">Hs</span><span class="p">)</span>
 		<span class="n">timings</span><span class="p">[</span><span class="s1">&#39;hist&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 
 		<span class="c1">#compute the integrated boltzmann factors of the biases in each grid interval</span>
 		<span class="k">if</span> <span class="n">verbosity</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;medium&#39;</span><span class="p">,</span> <span class="s1">&#39;high&#39;</span><span class="p">]:</span>
 			<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Computing bias on grid ...&#39;</span><span class="p">)</span>
 		<span class="n">bs</span> <span class="o">=</span> <span class="n">wham1d_bias</span><span class="p">(</span><span class="n">Nsims</span><span class="p">,</span> <span class="n">Ngrid</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">biasses</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">bias_subgrid_num</span><span class="p">,</span> <span class="n">bin_centers</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="n">bias_thress</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">pbc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">bs</span> <span class="o">=</span> <span class="n">pbc</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">bs</span><span class="p">)</span>
 		<span class="n">timings</span><span class="p">[</span><span class="s1">&#39;bias&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 
 		<span class="c1">#some init printing</span>
@@ -765,7 +868,10 @@
 
 		<span class="k">if</span> <span class="n">verbosity</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;medium&#39;</span><span class="p">,</span> <span class="s1">&#39;high&#39;</span><span class="p">]:</span>
 			<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Solving WHAM equations (SCF loop) ...&#39;</span><span class="p">)</span>
-		<span class="n">ps</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">converged</span> <span class="o">=</span> <span class="n">wham1d_scf</span><span class="p">(</span><span class="n">Nis</span><span class="p">,</span> <span class="n">Hs</span><span class="p">,</span> <span class="n">bs</span><span class="p">,</span> <span class="n">Nscf</span><span class="o">=</span><span class="n">Nscf</span><span class="p">,</span> <span class="n">convergence</span><span class="o">=</span><span class="n">convergence</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbosity</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;high&#39;</span><span class="p">])</span>
+		<span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">bin_centers</span><span class="p">),</span> <span class="nb">float</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">pbc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">weights</span> <span class="o">=</span> <span class="n">pbc</span><span class="o">.</span><span class="n">weights_wrapped</span>
+		<span class="n">ps</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">converged</span> <span class="o">=</span> <span class="n">wham1d_scf</span><span class="p">(</span><span class="n">Nis</span><span class="p">,</span> <span class="n">Hs</span><span class="p">,</span> <span class="n">bs</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">Nscf</span><span class="o">=</span><span class="n">Nscf</span><span class="p">,</span> <span class="n">convergence</span><span class="o">=</span><span class="n">convergence</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbosity</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;high&#39;</span><span class="p">])</span>
 		<span class="k">if</span> <span class="n">verbosity</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;low&#39;</span><span class="p">,</span> <span class="s1">&#39;medium&#39;</span><span class="p">,</span> <span class="s1">&#39;high&#39;</span><span class="p">]:</span>
 			<span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="n">converged</span><span class="p">):</span>
 				<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;SCF Converged!&#39;</span><span class="p">)</span>
@@ -778,10 +884,14 @@
 			<span class="k">if</span> <span class="n">verbosity</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;medium&#39;</span><span class="p">,</span> <span class="s1">&#39;high&#39;</span><span class="p">]:</span>
 				<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Estimating error ...&#39;</span><span class="p">)</span>
 			<span class="k">if</span> <span class="n">corrtimes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">corrtimes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">traj_input</span><span class="p">),</span> <span class="nb">float</span><span class="p">)</span>
-			<span class="n">error</span> <span class="o">=</span> <span class="n">wham1d_error</span><span class="p">(</span><span class="n">Nsims</span><span class="p">,</span> <span class="n">Ngrid</span><span class="p">,</span> <span class="n">Nis</span><span class="p">,</span> <span class="n">ps</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">bs</span><span class="p">,</span> <span class="n">corrtimes</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">error_estimate</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">,</span> <span class="n">p_threshold</span><span class="o">=</span><span class="n">error_p_threshold</span><span class="p">)</span>
+			<span class="n">error</span> <span class="o">=</span> <span class="n">wham1d_error</span><span class="p">(</span><span class="n">Nsims</span><span class="p">,</span> <span class="n">Nis</span><span class="p">,</span> <span class="n">ps</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">bs</span><span class="p">,</span> <span class="n">corrtimes</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">error_estimate</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">,</span> <span class="n">p_threshold</span><span class="o">=</span><span class="n">error_p_threshold</span><span class="p">)</span>
 		<span class="k">elif</span> <span class="n">error_estimate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">error_estimate</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;None&quot;</span><span class="p">]:</span>
 			<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Received invalid value for keyword argument error_estimate, got </span><span class="si">%s</span><span class="s1">. See documentation for valid choices.&#39;</span> <span class="o">%</span><span class="n">error_estimate</span><span class="p">)</span>
 		<span class="n">timings</span><span class="p">[</span><span class="s1">&#39;error&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+		<span class="k">if</span> <span class="n">pbc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">ps</span> <span class="o">=</span> <span class="n">pbc</span><span class="o">.</span><span class="n">unwrap</span><span class="p">(</span><span class="n">ps</span><span class="p">)</span>
+			<span class="n">error</span> <span class="o">=</span> <span class="n">pbc</span><span class="o">.</span><span class="n">unwrap_error</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
 
 		<span class="k">if</span> <span class="n">verbosity</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;low&#39;</span><span class="p">,</span> <span class="s1">&#39;medium&#39;</span><span class="p">,</span> <span class="s1">&#39;high&#39;</span><span class="p">]:</span>
 			<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;---------------------------------------------------------------------&#39;</span><span class="p">)</span>
