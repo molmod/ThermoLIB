@@ -195,7 +195,7 @@ def wham1d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=2] Hs, np.ndarray[dou
 
         as_new = np.zeros(Ngrid) # if a is zero, it will be ignored in both fs and the error calculation
         as_new[grid_mask] = np.divide(nominator[grid_mask],denominator[grid_mask])
-        as_new[grid_mask] /= np.sum(weights*as_new) #enforce normalization
+        as_new[grid_mask] /= np.einsum('rs,rs',weights,as_new) #enforce normalization
 
         #check convergence
         integrated_diff = np.abs(as_new-as_old).sum()
@@ -527,7 +527,7 @@ def wham2d_bias(int Nsims, int Ngrid1, int Ngrid2, double beta, list biasses, do
 
 
 #
-def wham2d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=3] Hs, np.ndarray[double, ndim=3] bs, np.ndarray[double, ndim=2] pinit, int Nscf=1000, double convergence=1e-6, double overflow_threshold=1e-150, verbose=False):
+def wham2d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=3] Hs, np.ndarray[double, ndim=3] bs, np.ndarray[double, ndim=2] weights, np.ndarray[double, ndim=2] pinit, int Nscf=1000, double convergence=1e-6, double overflow_threshold=1e-150, verbose=False):
     '''
         Internal WHAM routine to solve the 2D WHAM equations which can, after flattening the 2D unbiased probability histogram :math:`a_{kl}` to a 1D array :math:`a_{k}`, be written as
 
@@ -547,6 +547,9 @@ def wham2d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=3] Hs, np.ndarray[dou
 
         :param bs: the biasses (for each simulation) precomputed on the 2D CV grid
         :type bs: np.ndarray[double, shape=(Nsims, Ngrid1, Ngrid2)]
+
+         :param weights: array containing the weights to be given to the probability of each bin upon enforcing normalisation. This is only relevant when periodic boundary conditions are used.
+        :type weights: np.ndarray[double, shape=(Ngrid1, Ngrid2)]
 
         :param pinit: the initial unbiased probability density
         :type pinit: np.ndarray[double, shape=(Ngrid1, Ngrid2)]
@@ -605,7 +608,7 @@ def wham2d_scf(np.ndarray[long] Nis, np.ndarray[long, ndim=3] Hs, np.ndarray[dou
 
         as_new = np.zeros((Ngrid1, Ngrid2)) # if a is zero, it will be ignored in both fs and the error calculation
         as_new[grid_mask] = np.divide(nominator[grid_mask],denominator[grid_mask])
-        as_new[grid_mask] /= np.sum(as_new) #enforce normalization
+        as_new[grid_mask] /= np.sum(weights*as_new) #enforce normalization
 
         #check convergence
         integrated_diff = np.sum(np.abs(as_new-as_old))

@@ -23,8 +23,9 @@ import time
 
 from thermolib.thermodynamics.fep import BaseProfile, BaseFreeEnergyProfile
 from thermolib.ext import wham1d_hs, wham1d_bias, wham1d_scf, wham1d_error, wham2d_hs, wham2d_bias, wham2d_scf, wham2d_error
-from thermolib.error import GaussianDistribution, LogGaussianDistribution, Propagator, MultiGaussianDistribution, MultiLogGaussianDistribution, DummyFlattener
+from thermolib.error import GaussianDistribution, LogGaussianDistribution, Propagator, MultiGaussianDistribution, MultiLogGaussianDistribution
 from thermolib.tools import fisher_matrix_mle_probdens, invert_fisher_to_covariance
+from thermolib.flatten import DummyFlattener, Flattener
 
 __all__ = [
 	'Histogram1D', 'Histogram2D', 'plot_histograms'
@@ -48,6 +49,7 @@ class PeriodicBoundaryConditions(object):
 	def _define_wrapmask(self):
 		'''
 			Define the wrapmask for the periodic boundary conditions. The wrapmask is a matrix that defines how to wrap the histogram values to the periodic boundary conditions. The [l,k] element of the wrapmask is 1 if the unwrappred bin k is a periodic image of wrapped bin l.
+
 		'''
 		self.m = []
 		l = 0
@@ -119,9 +121,120 @@ class PeriodicBoundaryConditions(object):
 				lcovariance = np.einsum('lk,rs,lr->ks', self.m, self.m, error.lcovariance)
 				return MultiLogGaussianDistribution(lmeans, lcovariance, flattener=DummyFlattener())
 			else:
-				raise NotImplementedError('Unwrapping of error distribution not implemented for MultiDistribution with any flattener other than DummyFlattener')
+				raise NotImplementedError('Unwrapping 1D periodic boundary conditions of error distribution not implemented for MultiDistribution with any flattener other than DummyFlattener')
 		else:
-			raise NotImplementedError('Unwrapping of error distribution not implemented for this type of distribution')
+			raise NotImplementedError('Unwrapping 1D periodic boundary conditions of error distribution not implemented for this type of distribution')
+
+
+class PeriodicBoundaryConditions2D(object):
+	"""
+	Class representing periodic boundary conditions for a 2D histogram.
+		
+	The histogram is assumed to be defined on bins_x and bins_y,
+	with independent periodicities period_x and period_y.
+
+	If P[k,l] is the unwrapped histogram, then
+
+		P_wrapped = Mx @ P @ My.T
+		P_unwrapped = Mx.T @ P_wrapped @ My
+	"""
+
+	def __init__(self, periods, bins):
+		self.periods = periods
+		self.bins = bins
+
+		self.Mx = self._define_wrapmask(bins[0], periods[0])
+		self.My = self._define_wrapmask(bins[1], periods[1])
+
+		self.weights_wrapped = np.array(
+			np.einsum('rl,sk->rs', self.Mx, self.My),
+			dtype=float)
+
+	def _define_wrapmask(self, bins, period):
+		"""
+		Construct 1D wrap matrix for a single axis.
+		"""
+		m = []
+		l = 0
+
+		while bins[l] - bins[0] < period:
+			row = np.zeros(len(bins), dtype=int)
+
+			for k, b in enumerate(bins):
+				if k == 0:
+					if l == 0:
+						row[0] = 1
+				else:
+					dq = bins[k] - bins[k - 1]
+
+					if ((b - bins[l]) % period < dq and
+						(bins[k - 1] - bins[l]) % period >= dq):
+						row[k] = 1
+
+			m.append(row)
+			l += 1
+
+		return np.array(m)
+
+	def wrap(self, x):
+		"""
+		Wrap a 2D array to the fundamental periodic domain.
+
+		x shape: (..., Nx, Ny)
+		Returns: (..., Nx_wrapped, Ny_wrapped)
+		"""
+		return np.einsum('ik,jl,...kl->...ij', self.Mx, self.My, x)
+
+	def unwrap(self, x):
+		"""
+		Unwrap a 2D array back to the extended domain.
+
+		x shape: (..., Nx_wrapped, Ny_wrapped)
+		Returns: (..., Nx, Ny)
+		"""
+		return np.einsum('ki,lj,...ij->...kl', self.Mx, self.My, x)
+
+	def unwrap_error(self, error):
+		'''
+			Unwrap the given error distribution using the periodic boundary conditions defined by this class.
+			
+			:param error: the error to be unwrapped
+			:type error: child of :py:class:`Distribution <thermolib.error.Distribution>`
+			
+			:rtype: child of :py:class:`Distribution <thermolib.error.Distribution>`
+		'''
+		if isinstance(error, GaussianDistribution):
+			means = self.unwrap(error.means)
+			stds = self.unwrap(error.stds)
+			return GaussianDistribution(means, stds)
+		elif isinstance(error, LogGaussianDistribution):
+			lmeans = self.unwrap(error.lmeans)
+			lstds = self.unwrap(error.lstds)
+			return LogGaussianDistribution(lmeans, lstds)
+		elif isinstance(error, MultiGaussianDistribution):
+			if isinstance(error.flattener, Flattener):
+				means_unflattened = error.flattener.unflatten_array(error.means)
+				means_unflattened_unwrapped = self.unwrap(means_unflattened)
+				means_unwrapped = error.flattener.flatten_array(means_unflattened_unwrapped)
+				covariance_unflattened = error.flattener.unflatten_matrix(error.covariance)
+				covariance_unflattened_unwrapped = np.einsum('lk,rs,lr->ks', self.Mx, self.My, covariance_unflattened)
+				covariance_unwrapped = error.flattener.flatten_matrix(covariance_unflattened_unwrapped)
+				return MultiGaussianDistribution(means_unwrapped, covariance_unwrapped, flattener=DummyFlattener())
+			else:
+				raise NotImplementedError('Unwrapping 2D periodic boundary conditions of error distribution not implemented for MultiDistribution with any flattener other than Flattener')
+		elif isinstance(error, MultiLogGaussianDistribution):
+			if isinstance(error.flattener, Flattener):
+				lmeans_unflattened = error.flattener.unflatten_array(error.lmeans)
+				lmeans_unflattened_unwrapped = self.unwrap(lmeans_unflattened)
+				lmeans_unwrapped = error.flattener.flatten_array(lmeans_unflattened_unwrapped)
+				lcovariance_unflattened = error.flattener.unflatten_matrix(error.lcovariance)
+				lcovariance_unflattened_unwrapped = np.einsum('lk,rs,lr->ks', self.Mx, self.My, lcovariance_unflattened)
+				lcovariance_unwrapped = error.flattener.flatten_matrix(lcovariance_unflattened_unwrapped)
+				return MultiLogGaussianDistribution(lmeans_unwrapped, lcovariance_unwrapped, flattener=DummyFlattener())
+			else:
+				raise NotImplementedError('Unwrapping 2D periodic boundary conditions of error distribution not implemented for MultiDistribution with any flattener other than Flattener')
+		else:
+			raise NotImplementedError('Unwrapping 2D periodic boundary conditions of error distribution not implemented for this type of distribution')
 
 
 class Histogram1D(object):
@@ -818,7 +931,7 @@ class Histogram2D(object):
 		return cls(cv1s, cv2s, ps, error=error, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, cv1_label=cv1_label, cv2_label=cv2_label)
 	
 	@classmethod
-	def from_wham(cls, bins, traj_input, biasses, temp, pinit=None, error_estimate=None, error_p_threshold=0.0, corrtimes=None, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, bias_thress=1e-3, overflow_threshold=1e-150, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2', plot_biases=False, verbosity='low'):
+	def from_wham(cls, bins, traj_input, biasses, temp, pbc=None, pinit=None, error_estimate=None, error_p_threshold=0.0, corrtimes=None, bias_subgrid_num=20, Nscf=1000, convergence=1e-6, bias_thress=1e-3, overflow_threshold=1e-150, cv1_output_unit='au', cv2_output_unit='au', cv1_label='CV1', cv2_label='CV2', plot_biases=False, verbosity='low'):
 		'''
 			Routine that implements the Weighted Histogram Analysis Method (WHAM) for reconstructing the overall 2D probability histogram in terms of two collective variables CV1 and CV2 from a series of molecular simulations that are (possibly) biased in terms of CV1 and/or CV2.
 
@@ -934,18 +1047,24 @@ class Histogram2D(object):
 		delta1, delta2 = deltas1.mean(), deltas2.mean()
 		Ngrid1, Ngrid2 = len(bin_centers1), len(bin_centers2)
 		Ngrid = Ngrid1*Ngrid2
+		if pbc is not None:
+			pbc = PeriodicBoundaryConditions2D(pbc, [bin_centers1, bin_centers2])
 		timings['init'] = time.time()
 
 		#generate the individual histograms using numpy.histogram
 		if verbosity.lower() in ['medium', 'high']:
 			print('Constructing individual histograms for each biased simulation ...')
 		Hs = wham2d_hs(Nsims, Ngrid1, Ngrid2, trajectories, bins[0], bins[1], Nis)
+		if pbc is not None:
+			Hs = pbc.wrap(Hs)
 		timings['hist'] = time.time()
 
 		#compute the boltzmann factors of the biases in each grid interval
 		if verbosity.lower() in ['medium', 'high']:
 			print('Computing bias on grid ...')
 		bs = wham2d_bias(Nsims, Ngrid1, Ngrid2, beta, biasses, delta1, delta2, bias_subgrid_num[0], bias_subgrid_num[1], bin_centers1, bin_centers2, threshold=bias_thress)
+		if pbc is not None:
+			bs = pbc.wrap(bs)
 		if plot_biases:
 			for i, bias in enumerate(biasses):
 				bias.plot('bias_%i.png' %i, bin_centers1, bin_centers2)
@@ -968,6 +1087,9 @@ class Histogram2D(object):
 			print('Solving WHAM equations (SCF loop) ...')
 
 		#self consistent loop to solve the WHAM equations
+		weights = np.ones([Ngrid1,Ngrid2], float)
+		if pbc is not None:
+			weights = pbc.weights_wrapped
 		if pinit is None:
 			pinit = np.ones([Ngrid1,Ngrid2])/Ngrid
 		else:
@@ -977,7 +1099,7 @@ class Histogram2D(object):
 			#however, this routine is written in the 'ij'-indexing convention, therefore, we transpose pinit here.
 			pinit = pinit.T
 			pinit /= pinit.sum()
-		ps, fs, converged = wham2d_scf(Nis, Hs, bs, pinit, Nscf=Nscf, convergence=convergence, verbose=verbosity.lower() in ['high'], overflow_threshold=overflow_threshold)
+		ps, fs, converged = wham2d_scf(Nis, Hs, bs, weights, pinit, Nscf=Nscf, convergence=convergence, verbose=verbosity.lower() in ['high'], overflow_threshold=overflow_threshold)
 		if verbosity.lower() in ['low', 'medium', 'high']:
 			if bool(converged):
 				print('  SCF Converged!')
@@ -994,6 +1116,10 @@ class Histogram2D(object):
 			error = wham2d_error(ps, fs, bs, Nis, corrtimes, method=error_estimate, p_threshold=error_p_threshold, verbosity=verbosity)
 
 		timings['error'] = time.time()
+
+		if pbc is not None:
+			ps = pbc.unwrap(ps)
+			error = pbc.unwrap_error(error)
 
 		if verbosity.lower() in ['low', 'medium', 'high']:
 			print()
