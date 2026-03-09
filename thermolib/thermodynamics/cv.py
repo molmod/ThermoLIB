@@ -342,7 +342,7 @@ class NormalToPlane(CollectiveVariable):
         v = np.linalg.norm(vec)
         normal = vec/v
         if not deriv:
-            return normal, None
+            return normal
         else:
             grad = np.zeros([3, len(positions), 3], float)
             tensor = (np.identity(3)-np.outer(vec, vec)/v**2)/v
