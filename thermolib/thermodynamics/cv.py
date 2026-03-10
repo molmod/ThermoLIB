@@ -57,7 +57,7 @@ class CenterOfMass(CollectiveVariable):
 
     type = 'vector'
 
-    def __init__(self, indices, masses=None, name=None):
+    def __init__(self, indices, masses=None, wrap=True, name=None):
         '''
             :param indices: indices of the atoms of which the COM needs to be computed
             :type indices: list of integers
@@ -65,11 +65,15 @@ class CenterOfMass(CollectiveVariable):
             :param masses: masses of of the atoms listed in indices. If None, the masses are retrieved based on the chemical element.
             :type masses: np.ndarray
 
+            :param wrap: whether to wrap the atoms defined by indices to be as close as possible to the first one. Useful if a molecule is broken by the PBCs.
+            :type wrap: bool, optional, default=True
+
             :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.
             :type name: str | None, optional, default=None
         '''
         self.indices = indices
         self.masses = masses
+        self.wrap = wrap
         CollectiveVariable.__init__(self, name=name)
 
     def _default_name(self):
@@ -98,8 +102,8 @@ class CenterOfMass(CollectiveVariable):
         else:
             assert len(self.masses)==len(self.indices), 'Number of masses should be equal to the number of indices'
         
-        if atoms.get_pbc().any():
-            atoms.wrap(center=atoms.get_positions()[0]) # wrap atoms to the first atom
+        if atoms.get_pbc().any() and self.wrap:
+            atoms.wrap(center=atoms.get_scaled_positions()[self.indices[0]]) # wrap atoms to the first atom
         
         positions = atoms.get_positions() * angstrom
         com = self.masses @ positions[self.indices] / self.masses.sum()
@@ -122,15 +126,19 @@ class CenterOfPosition(CollectiveVariable):
 
     type = 'vector'
 
-    def __init__(self, indices, name=None):
+    def __init__(self, indices, wrap=True, name=None):
         '''
             :param indices: indices of the atoms of which the COP needs to be computed
             :type indices: list of integers
+
+            :param wrap: whether to wrap the atoms defined by indices to be as close as possible to the first one. Useful if a molecule is broken by the PBCs.
+            :type wrap: bool, optional, default=True
 
             :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.
             :type name: str | None, optional, default=None
         '''
         self.indices = indices
+        self.wrap = wrap
         CollectiveVariable.__init__(self, name=name)
     
     def _default_name(self):
@@ -150,8 +158,8 @@ class CenterOfPosition(CollectiveVariable):
             :rtype: np.ndarray(3) or float,np.ndarray([3,Natoms,3])
         '''
         #unwrap coords of given indices with periodic boundary conditions if unit_cell is specified
-        if atoms.get_pbc().any():
-            atoms.wrap(center=atoms.get_positions()[0]) # wrap atoms to the first atom
+        if atoms.get_pbc().any() and self.wrap:
+            atoms.wrap(center=atoms.get_scaled_positions()[self.indices[0]]) # wrap atoms to the first atom
 
         positions = atoms.get_positions() * angstrom 
         cop = positions[self.indices].mean(axis=0)
@@ -171,15 +179,19 @@ class DihedralAngle(CollectiveVariable):
     '''
     type = 'scalar'
 	
-    def __init__(self, indices, name=None):
+    def __init__(self, indices, wrap=True, name=None):
         '''
             :param indices: indices of the atoms of which the dihedral angle needs to be computed
             :type indices: list of integers
+
+            :param wrap: whether to wrap the atoms defined by indices to be as close as possible to the first one. Useful if a molecule is broken by the PBCs.
+            :type wrap: bool, optional, default=True
 
             :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.
             :type name: str | None, optional, default=None
         '''
         self.indices = indices
+        self.wrap = wrap
         CollectiveVariable.__init__(self, name=name)
 
     def _default_name(self):
@@ -199,8 +211,8 @@ class DihedralAngle(CollectiveVariable):
             :rtype: float or float,np.ndarray([3,Natoms,3])
         '''
         #unwrap coords of given indices with periodic boundary conditions if unit_cell is specified
-        if atoms.get_pbc().any():
-            atoms.wrap(center=atoms.get_positions()[0]) # wrap atoms to the first atom
+        if atoms.get_pbc().any() and self.wrap:
+            atoms.wrap(center=atoms.get_scaled_positions()[self.indices[0]]) # wrap atoms to the first atom
         rs = atoms.get_positions() * angstrom
 
         #doi.org/10.1006/jmbi.1993.1624 (gradient formulas)
@@ -301,15 +313,19 @@ class NormalToPlane(CollectiveVariable):
 
     type = 'vector'
     
-    def __init__(self, indices, name=None):
+    def __init__(self, indices, wrap=True, name=None):
         '''
             :param indices: indices of the atoms in the plane for which the normal needs to be computed
             :type indices: list of integers
+
+            :param wrap: whether to wrap the atoms defined by indices to be as close as possible to the first one. Useful if a molecule is broken by the PBCs.
+            :type wrap: bool, optional, default=True
 
             :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.
             :type name: str or None, optional, default=None
         '''
         self.indices = indices
+        self.wrap = wrap
         CollectiveVariable.__init__(self, name=name)
     
     def _default_name(self):
@@ -329,8 +345,8 @@ class NormalToPlane(CollectiveVariable):
             :rtype: np.ndarray(3) or float,np.ndarray([3,Natoms,3])
         '''
         theta = 2*np.pi/len(self.indices)
-        if atoms.get_pbc().any():
-            atoms.wrap(center=atoms.get_positions()[0]) # wrap atoms to the first atom
+        if atoms.get_pbc().any() and self.wrap:
+            atoms.wrap(center=atoms.get_scaled_positions()[self.indices[0]]) # wrap atoms to the first atom
         positions = atoms.get_positions() * angstrom
         rs = positions[self.indices]
         R1 = np.zeros(3, float)
