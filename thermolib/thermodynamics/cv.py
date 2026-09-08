@@ -19,7 +19,7 @@ import numpy as np
 
 __all__ = [
     'CenterOfMass', 'CenterOfPosition', 'NormalizedAxis', 'NormalToPlane', 'Distance', 'DistanceCOP', 'CoordinationNumber', 'OrthogonalDistanceToPore',
-    'Average', 'Difference', 'Minimum', 'LinearCombination', 'DotProduct', 'DistOrthProjOrig'
+    'Average', 'Difference', 'Minimum', 'Maximum', 'LinearCombination', 'DotProduct', 'DistOrthProjOrig'
 ]
 
 class CollectiveVariable(object):
@@ -759,34 +759,38 @@ class Difference(CollectiveVariable):
 
 class Minimum(CollectiveVariable):
     '''
-        Class to implement a collective variable representing the minimum of two other collective variables:
+        Class to implement a collective variable representing the minimum of a set of collective variables. To make its definition continuous, it is implemented as:
 
-        .. math:: CV &= \\min\\left(CV_1,CV_2\\right)
+        .. math:: \\min(\\mathbf{s}) = -\\frac{1}{\\beta} \\log \\left( \\sum_i \\exp(-\\beta s_i) \\right)
+
+        This definition is consistent with the ALT_MIN function of the MULTICOLVAR Plumed module.
     '''
     
     type = 'scalar'
     
-    def __init__(self, cv1, cv2, name=None):
+    def __init__(self, cvs, beta=50.0, name=None):
         '''
-            :param cv1: first collective variable in the minimum
-            :type cv1: any child class of :py:class:`CollectiveVariable <thermolib.thermodynamics.cv.CollectiveVariable>`
+            :param cv_list: list of instances of child classes of :py:class:`CollectiveVariable <thermolib.thermodynamics.cv.CollectiveVariable>`
+            :type cv1: List
 
-            :param cv2: second collective variable in the minimum
-            :type cv2: any child class of :py:class:`CollectiveVariable <thermolib.thermodynamics.cv.CollectiveVariable>`
+            :param beta: parameter to regulate the softness of the minimum.
+            :type beta: float | optional, default=50.0
 
             :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.
             :type name: str | None, optional, default=None
         '''
-        self.cv1 = cv1
-        self.cv2 = cv2
+        self.cvs = cvs
+        for cv in cvs:
+            assert cv.type == 'scalar', "The Minimum function is only implemented for scalar collective variables."
+        self.beta = beta
         CollectiveVariable.__init__(self, name=name)
 
     def _default_name(self):
-        return 'Min(%s,%s)' %(self.cv1.name, self.cv2.name)
+        return 'Min(' + ",".join([cv.name for cv in self.cvs]) + ")"
 
     def compute(self, atoms, deriv=True):
         '''
-            Compute the minimum (and optionally gradient) of the two CVs for the given atomic coordinates
+            Compute the minimum (and optionally gradient) of the CV list for the given atomic coordinates
 
             :param atoms: ASE Atoms object on which the CV needs to be computed
             :type atoms: ase.Atoms
@@ -797,19 +801,76 @@ class Minimum(CollectiveVariable):
             :return: CV value and potentially the gradient
             :rtype: np.ndarray(3) or float,np.ndarray([3,Natoms,3])
         '''
+
         if not deriv:
-            cv1 = self.cv1.compute(atoms, deriv=False)
-            cv2 = self.cv2.compute(atoms, deriv=False)
-            return min(cv1,cv2)
+            values = [cv.compute(atoms, deriv=False) for cv in self.cvs]
+            S = sum(np.exp(-self.beta * v) for v in values)
+            return - (1.0 / self.beta) * np.log(S)
         else:
-            cv1, grad1 = self.cv1.compute(atoms, deriv=True)
-            cv2, grad2 = self.cv2.compute(atoms, deriv=True)
-            value = min(cv1,cv2)
-            if cv1<cv2: # note that right not gradient is discontinuous, can be fixed using plumed MIN CV
-                grad = grad1
-            else:
-                grad = grad2
-        return value, grad
+            vs, gs = zip(*(cv.compute(atoms, deriv=True) for cv in self.cvs))
+            weights = [np.exp(-self.beta * v) for v in vs]
+            S = sum(weights)
+            grad = sum(w * g for w, g in zip(weights, gs)) / S
+            value = - (1.0 / self.beta) * np.log(S)
+            return value, grad
+        
+
+class Maximum(CollectiveVariable):
+    '''
+        Class to implement a collective variable representing the maximum of a set of collective variables. To make its definition continuous, it is implemented as:
+
+        .. math:: \\max(\\mathbf{s}) = \\beta \\log \\left( \\sum_i \\exp(s_i / \\beta) \\right)
+
+        This definition is consistent with the MAX function of the MULTICOLVAR Plumed module.
+    '''
+    
+    type = 'scalar'
+    
+    def __init__(self, cvs, beta=50.0, name=None):
+        '''
+            :param cv_list: list of instances of child classes of :py:class:`CollectiveVariable <thermolib.thermodynamics.cv.CollectiveVariable>`
+            :type cv1: List
+
+            :param beta: parameter to regulate the softness of the maximum.
+            :type beta: float | optional, default=50.0
+
+            :param name: Name of CV for printing/logging purposes. If None, the default implemented in the ``_default_name`` routine will be used.
+            :type name: str | None, optional, default=None
+        '''
+        self.cvs = cvs
+        for cv in cvs:
+            assert cv.type == 'scalar', "The Maximum function is only implemented for scalar collective variables."
+        self.beta = beta
+        CollectiveVariable.__init__(self, name=name)
+
+    def _default_name(self):
+        return 'Max(' + ",".join([cv.name for cv in self.cvs]) + ")"
+
+    def compute(self, atoms, deriv=True):
+        '''
+            Compute the maximum (and optionally gradient) of the CV list for the given atomic coordinates
+
+            :param atoms: ASE Atoms object on which the CV needs to be computed
+            :type atoms: ase.Atoms
+
+            :param deriv: if True, also compute and return the gradient of the CV towards all atomic coordinates
+            :type deriv: bool, optional, default=True
+
+            :return: CV value and potentially the gradient
+            :rtype: np.ndarray(3) or float,np.ndarray([3,Natoms,3])
+        '''
+
+        if not deriv:
+            values = [cv.compute(atoms, deriv=False) for cv in self.cvs]
+            S = sum(np.exp(v / self.beta) for v in values)
+            return self.beta * np.log(S)
+        else:
+            vs, gs = zip(*(cv.compute(atoms, deriv=True) for cv in self.cvs))
+            weights = [np.exp(v / self.beta) for v in vs]
+            S = sum(weights)
+            grad = sum(w * g for w, g in zip(weights, gs)) / S
+            value = self.beta * np.log(S)
+            return value, grad
 
 
 class LinearCombination(CollectiveVariable):
