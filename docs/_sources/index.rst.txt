@@ -13,14 +13,14 @@ ThermoLIB is a library developed at the `Center for Molecular Modeling <https://
 
 *  **Kinetics** - Module for computing the rate constant of a process/reaction using transition state theory (TST)
 
-A full illustration on the use of ThermoLIB can be find in `the preprint on Arxiv <https://doi.org/10.48550/arXiv.2601.23071>`_.
-
 .. admonition:: Citing ThermoLIB
 
    If you used ThermoLIB in your research, please refer to ThermoLIB as follows:
    
-      M. Bocus, L. Vanduyfhuys, **2026**, 10.48550/arXiv.2601.23071
+      M. Bocus, L. Vanduyfhuys, *J. Chem. Inf. Model.*, **2026**, `10.1021/acs.jcim.6c02199 <https://doi.org/10.1021/acs.jcim.6c02199>`_
 
+
+This documentation contains instructions on how to install ThermoLIB, a user guide on all functionallities of the library as well as extensive tutorials illustrating the use of ThermoLIB in practice. Finally, there is also a reference guide included listing the call signatures of all available functions and classes. The documentation is structured as follows:
    
 .. toctree::
    :maxdepth: 2
