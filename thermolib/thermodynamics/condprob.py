@@ -784,8 +784,8 @@ class ConditionalProbability1D1D(ConditionalProbability):
         # Construct 1D FEP
         def transform(fs, pconds):
             mask = ~np.isnan(fs)
-            ps = np.trapz(pconds[:,mask]*np.exp(-fep.beta*fs[mask]), x=cvs[mask])
-            ps /= np.trapz(ps, x=qs)
+            ps = np.trapezoid(pconds[:,mask]*np.exp(-fep.beta*fs[mask]), x=cvs[mask])
+            ps /= np.trapezoid(ps, x=qs)
             fs_new = np.zeros([len(qs)], float)*np.nan
             fs_new[ps>0] = -np.log(ps[ps>0])/fep.beta
             return fs_new
@@ -991,7 +991,7 @@ class ConditionalProbability1D2D(ConditionalProbability):
         #construct 2D FES
         def transform(fs, pconds):
             mask = ~np.isnan(fs)
-            ps = np.trapz(pconds[...,mask]*np.exp(-fep.beta*fs[mask]), x=fep.cvs[mask])
+            ps = np.trapezoid(pconds[...,mask]*np.exp(-fep.beta*fs[mask]), x=fep.cvs[mask])
             ps /= integrate2d(ps, x=self.qs[0], y=self.qs[1])
             fs_new = np.zeros(ps.shape, float)*np.nan
             fs_new[ps>0] = -np.log(ps[ps>0])/fep.beta

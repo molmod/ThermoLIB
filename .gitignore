@@ -1,0 +1,3 @@
+build/
+ThermoLIB.egg-info/
+thermolib/ext.c

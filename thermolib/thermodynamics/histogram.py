@@ -810,7 +810,7 @@ class Histogram2D(object):
 		if self.error is not None:
 			error = self.error.copy()
 		return Histogram2D(
-			self.cvs1.copy(), self.cvs2.copy(), self.ps.copy(), error=error,
+			self.cv1s.copy(), self.cv2s.copy(), self.ps.copy(), error=error,
 			cv1_output_unit=self.cv1_output_unit, cv2_output_unit=self.cv2_output_unit,
 			cv1_label=self.cv1_label, cv2_label=self.cv2_label
 		)
@@ -910,7 +910,7 @@ class Histogram2D(object):
 		ps = None
 		Ntot = len(data)
 		#generate histogram using numpy.histogram routine
-		ns, cv1_edges, cv2_edges = np.histogram2d(data[0,:], data[1,:], bins=bins, density=False)
+		ns, cv1_edges, cv2_edges = np.histogram2d(data[:,0], data[:,1], bins=bins, density=False)
 		cv1s = 0.5*(cv1_edges[:-1]+cv1_edges[1:]) # bin centers vor CV1
 		cv2s = 0.5*(cv2_edges[:-1]+cv2_edges[1:]) # bin centers vor CV2
 		ps = ns/Ntot
