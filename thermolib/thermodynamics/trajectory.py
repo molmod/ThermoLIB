@@ -287,12 +287,13 @@ class HDF5Reader(TrajectoryReader):
         '''
         if len(keys)==0:
             raise ValueError('No dataset keys defined, received empty list for argument keys.')
+        TrajectoryReader.__init__(self, units=units, name=name, start=start, stride=stride, end=end, reload=reload, verbose=verbose)
         if len(units)==0:
             self.print('No units defined, set all units to au')
             units = ['au',]*len(keys)
+            self.units = units
         assert len(keys)==len(units), 'keys and units should be list of same length'
         self.keys = keys
-        TrajectoryReader.__init__(self, units=units, name=name, start=start, stride=stride, end=end, reload=reload, verbose=verbose)
 
     @property
     def ncvs(self):
@@ -361,12 +362,14 @@ class ColVarReader(TrajectoryReader):
         '''
         if len(indices)==0:
             raise ValueError('No column indices defined, received empty list for argument indices.')
+        TrajectoryReader.__init__(self, units=units, name=name, start=start, stride=stride, end=end, reload=reload, verbose=verbose)
         if len(units)==0:
             self.print('No units defined, set all units to au')
             units = ['au',]*len(indices)
+            self.units = units 
         assert len(indices)==len(units), 'indices and units should be list of same length'
         self.indices = indices
-        TrajectoryReader.__init__(self, units=units, name=name, start=start, stride=stride, end=end, reload=reload, verbose=verbose)
+        
     
     @property
     def ncvs(self):
@@ -440,12 +443,13 @@ class ASEExtendedXYZReader(TrajectoryReader):
         '''
         if len(keys)==0:
             raise ValueError('No dataset keys defined, received empty list for argument keys.')
+        TrajectoryReader.__init__(self, units=units, name=name, start=start, stride=stride, end=end, reload=reload, verbose=verbose)
         if len(units)==0:
             self.print('No units defined, set all units to au')
             units = ['au',]*len(keys)
+            self.units = units
         assert len(keys)==len(units), 'keys and units should be list of same length'
         self.keys = keys
-        TrajectoryReader.__init__(self, units=units, name=name, start=start, stride=stride, end=end, reload=reload, verbose=verbose)
 
     @property
     def ncvs(self):

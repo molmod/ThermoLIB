@@ -14,6 +14,8 @@ from __future__ import annotations
 from ..units import *
 from ..constants import *
 
+import operator
+
 import numpy as np
 np.seterr(divide='ignore', invalid='ignore')
 
@@ -70,42 +72,39 @@ class BaseProfile(object):
         self.f_label = f_label
 
     def __add__(self, other):
-        assert np.array_equal(self.cvs, other.cvs), 'Upon adding two profiles, their cvs attribute should be equal!'
-        cvs = self.cvs.copy()
-        fs = self.fs.copy()+other.fs.copy()
-        if self.error is not None:
-            if other.error is not None:
-                print('WARNING: Adding up two profiles which both feature error estimates. Current implementation of addition assumes no correlation between the two profile errors!')
-                fun = lambda f1,f2: f1+f2
-                propagator = Propagator()
-                error = propagator(fun, self.error, other.error, target_distribution=self.error.__class__)
-            else:
-                error = self.error.copy()
-        else:
-            if other.error is not None:
-                error = other.error.copy()
-            else:
-                error = None
-        return BaseProfile(cvs, fs, error=error, cv_output_unit=self.cv_output_unit, f_output_unit=self.f_output_unit, cv_label=self.cv_label, f_label=self.f_label)
-
+        return self._combine(other, operator.add, 'Adding')
+ 
     def __sub__(self, other):
-        assert np.array_equal(self.cvs, other.cvs), 'Upon subtracting two profiles, their cvs attribute should be equal!'
-        cvs = self.cvs.copy()
-        fs = self.fs.copy()-other.fs.copy()
-        if self.error is not None:
-            if other.error is not None:
-                print('WARNING: Subtracting up two profiles which both feature error estimates. Current implementation of subtraction assumes no correlation between the two profile errors!')
-                fun = lambda f1,f2: f1-f2
+        return self._combine(other, operator.sub, 'Subtracting')
+ 
+    def _combine(self, other, op, verb, propagator=None):
+        if not isinstance(other, BaseProfile):
+            return NotImplemented
+
+        assert self.cvs.shape == other.cvs.shape, 'When combining two profiles, their cvs attribute should have the same length!'
+        tol = 1e-8 * np.abs(np.diff(self.cvs)).min() if len(self.cvs) > 1 else 1e-8
+        assert np.allclose(self.cvs, other.cvs, rtol=0.0, atol=tol), 'When combining two profiles, their cvs attribute should be equal!'
+       
+        fs = op(self.fs, other.fs)
+ 
+        error = None
+        if self.error is not None or other.error is not None:
+            ref = self.error if self.error is not None else other.error
+            if propagator is None:
                 propagator = Propagator()
-                error = propagator(fun, self.error, other.error, target_distribution=self.error.__class__)
+            # Both profiles feature an error distribution
+            if self.error is not None and other.error is not None:
+                print('WARNING: %s two profiles which both feature error estimates. This assumes no correlation between the two errors!' % verb)
+                error = propagator(lambda f1, f2: op(f1, f2), self.error, other.error, target_distribution=ref.__class__)
+            # Only one of the two profiles features an error distribution
+            elif self.error is not None:
+                other_fs = other.fs.copy()
+                error = propagator(lambda f: op(f, other_fs), self.error, target_distribution=ref.__class__)
             else:
-                error = self.error.copy()
-        else:
-            if other.error is not None:
-                error = other.error.copy()
-            else:
-                error = None
-        return BaseProfile(cvs, fs, error=error, cv_output_unit=self.cv_output_unit, f_output_unit=self.f_output_unit, cv_label=self.cv_label, f_label=self.f_label)
+                self_fs = self.fs.copy()
+                error = propagator(lambda f: op(self_fs, f), other.error, target_distribution=ref.__class__)
+ 
+        return BaseProfile(self.cvs.copy(), fs, error=error, cv_output_unit=self.cv_output_unit, f_output_unit=self.f_output_unit, cv_label=self.cv_label, f_label=self.f_label)
 
     def flower(self, nsigma=2):
         '''
@@ -1226,6 +1225,46 @@ class FreeEnergySurface2D(object):
         self.cv2_label = cv2_label
         self.f_label = f_label
 
+    def __add__(self, other):
+        return self._combine(other, operator.add, 'Adding')
+ 
+    def __sub__(self, other):
+        return self._combine(other, operator.sub, 'Subtracting')
+ 
+    def _combine(self, other, op, verb, propagator=None):
+        if not isinstance(other, FreeEnergySurface2D):
+            return NotImplemented
+ 
+        if not np.isclose(self.T, other.T):
+            print('WARNING: the two surfaces are not at the same temperature. The temperature of the first surface (%s K) will be retained.' % self.T)
+ 
+        assert self.cv1s.shape == other.cv1s.shape and self.cv2s.shape == other.cv2s.shape, 'When combining two surfaces, their cv1s and cv2s attributes should have the same length!'
+        tol1 = 1e-8 * np.abs(np.diff(self.cv1s)).min() if len(self.cv1s) > 1 else 1e-8
+        tol2 = 1e-8 * np.abs(np.diff(self.cv2s)).min() if len(self.cv2s) > 1 else 1e-8
+        assert np.allclose(self.cv1s, other.cv1s, rtol=0.0, atol=tol1) and np.allclose(self.cv2s, other.cv2s, rtol=0.0, atol=tol2), 'When combining two surfaces, their cv1s and cv2s attributes should be equal!'
+ 
+        fs = op(self.fs, other.fs)
+ 
+        error = None
+        if self.error is not None or other.error is not None:
+            ref = self.error if self.error is not None else other.error
+            if propagator is None:
+                propagator = Propagator(target_distribution=ref.__class__, flattener=ref.flattener, samples_are_flattened=False)
+
+            # Both free energy surfaces feature an error distribution
+            if self.error is not None and other.error is not None:
+                print('WARNING: %s two surfaces which both feature error estimates. This assumes no correlation between the two errors!' % verb)
+                error = propagator(lambda f1, f2: op(f1, f2), self.error, other.error, target_distribution=ref.__class__)
+            # Only one free energy surface features an error distribution, treat the second one as constant
+            elif self.error is not None:
+                other_fs = other.fs.copy()
+                error = propagator(lambda f: op(f, other_fs), self.error, target_distribution=ref.__class__)
+            else:
+                self_fs = self.fs.copy()
+                error = propagator(lambda f: op(self_fs, f), other.error, target_distribution=ref.__class__)
+ 
+        return FreeEnergySurface2D(self.cv1s.copy(), self.cv2s.copy(), fs, temp=self.T, error=error, cv1_output_unit=self.cv1_output_unit, cv2_output_unit=self.cv2_output_unit, f_output_unit=self.f_output_unit, cv1_label=self.cv1_label, cv2_label=self.cv2_label, f_label=self.f_label)
+
     def flower(self, nsigma=2):
         '''
             Return the lower limit of an n-sigma error bar, i.e. :math:`\\mu - n\\sigma` with :math:`\\mu` the mean and :math:`\\sigma` the standard deviation.
@@ -1278,7 +1317,7 @@ class FreeEnergySurface2D(object):
         return fes
 
     @classmethod
-    def from_txt(cls, fn, temp, cv1_col=0, cv2_col=1, f_col=2, cv1_input_unit='au', cv1_output_unit='au', cv2_input_unit='au', cv2_output_unit='au', f_output_unit='kjmol', f_input_unit='kjmol', cv1_label='CV1', cv2_label='CV2', f_label='F', delimiter=None, verbose=False):
+    def from_txt(cls, fn, temp, cv1_col=0, cv2_col=1, f_col=2, fstd_col=None, cv1_input_unit='au', cv1_output_unit='au', cv2_input_unit='au', cv2_output_unit='au', f_output_unit='kjmol', f_input_unit='kjmol', cv1_label='CV1', cv2_label='CV2', f_label='F', delimiter=None, verbose=False):
         '''
             Read the free energy surface on a 2D grid as function of two collective variables from a txt file. 
 
@@ -1337,6 +1376,11 @@ class FreeEnergySurface2D(object):
         cv1s = data[:,cv1_col]*parse_unit(cv1_input_unit)
         cv2s = data[:,cv2_col]*parse_unit(cv2_input_unit)
         fs = data[:,f_col]*parse_unit(f_input_unit)
+
+        fstds = None
+        if fstd_col is not None:
+            fstds = data[:,fstd_col]*parse_unit(f_input_unit)
+
         #unravel data so that cv1s and cv2s are 1D arrays and fs is a 2D array
         #with F[i,j] the free energy corresponding to cv1s[i] and cv2s[j]
         cv1us = np.unique(cv1s)
@@ -1345,16 +1389,19 @@ class FreeEnergySurface2D(object):
         assert len(cv1s)==N1*N2, 'Something went wrong in unraveling input data'
         assert len(cv2s)==N1*N2, 'Something went wrong in unraveling input data'
         assert len(fs)==N1*N2, 'Something went wrong in unraveling input data'
-        fus = np.zeros([N1,N2], float)*np.nan
-        for index, (cv1, cv2, f) in enumerate(zip(cv1s,cv2s,fs)):
-            i1 = int(index//N2)
-            i2 = int(index%N2)
-            assert abs(cv1us[i1]-cv1)<1e-6, 'Internal CV consistency check failed'
-            assert abs(cv2us[i2]-cv2)<1e-6, 'Internal CV consistency check failed'
-            if np.isinf(f):
-                fus[i1,i2] = np.nan
-            else:
-                fus[i1,i2] = f
+
+        i1 = np.searchsorted(cv1us, cv1s)
+        i2 = np.searchsorted(cv2us, cv2s)
+        assert len(np.unique(i1*N2 + i2))==N1*N2, 'Duplicate or missing grid points'
+        fus = np.full((N1, N2), np.nan)
+        fus[i1, i2] = np.where(np.isinf(fs), np.nan, fs) 
+
+        error = None
+        if fstds is not None:
+            stdus = np.full((N1, N2), np.nan)
+            stdus[i1, i2] = np.where(np.isinf(fs), np.nan, fstds)
+            error = GaussianDistribution(fus.copy(), stdus)
+        
         cv1s = cv1us.copy()
         cv2s = cv2us.copy()
         fs = fus.copy()
@@ -1365,7 +1412,7 @@ class FreeEnergySurface2D(object):
             cv2_min, cv2_max, cv2_delta, cv2_num = cv2s.min(), cv2s.max(), (cv2s[1:]-cv2s[:-1]).mean(), len(cv2s)
             print('CV1 grid [%s]: start = %.3e    end = %.3e    delta = %.3e    N = %i' %(cv1_output_unit, cv1_min/parse_unit(cv1_output_unit), cv1_max/parse_unit(cv1_output_unit), cv1_delta/parse_unit(cv1_output_unit), cv1_num))
             print('CV2 grid [%s]: start = %.3e    end = %.3e    delta = %.3e    N = %i' %(cv2_output_unit, cv2_min/parse_unit(cv2_output_unit), cv2_max/parse_unit(cv2_output_unit), cv2_delta/parse_unit(cv2_output_unit), cv2_num))
-        return cls(cv1s, cv2s, fs, temp, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, f_output_unit=f_output_unit, cv1_label=cv1_label, cv2_label=cv2_label, f_label=f_label)
+        return cls(cv1s, cv2s, fs, temp, error=error, cv1_output_unit=cv1_output_unit, cv2_output_unit=cv2_output_unit, f_output_unit=f_output_unit, cv1_label=cv1_label, cv2_label=cv2_label, f_label=f_label)
 
     @classmethod
     def from_histogram(cls, histogram, temp, cv1_output_unit=None, cv2_output_unit=None, cv1_label=None, cv2_label=None, f_output_unit='kjmol', f_label='F', propagator=Propagator()):
@@ -1440,22 +1487,26 @@ class FreeEnergySurface2D(object):
     def savetxt(self, fn_txt):
         '''
             Save the free energy profile to a txt file using numpy.savetxt. The units in which the CVs and free energy are written is specified in the attributes cv1_output_unit, cv2_output_unit and f_output_unit.
+            If the error is not None, the marginal standard deviation on the free energy is written in the fourth column
 
             :param fn_txt: name of the file to write fes to
             :type fn_txt: str
         '''
         header = '%s [%s]\t %s [%s]\t Free energy [%s]' %(self.cv1_label, self.cv1_output_unit,self.cv2_label, self.cv2_output_unit, self.f_output_unit)
         yv, xv = np.meshgrid(self.cv2s, self.cv1s)
-        np.savetxt(
-            fn_txt, 
-            np.vstack((
-                xv.flatten()/parse_unit(self.cv1_output_unit),
-                yv.flatten()/parse_unit(self.cv2_output_unit),
-                self.fs.flatten()/parse_unit(self.f_output_unit)
-            )).T, 
-            header=header,
-            fmt='%f'
-        )
+        columns = [
+            xv.flatten()/parse_unit(self.cv1_output_unit),
+            yv.flatten()/parse_unit(self.cv2_output_unit),
+            self.fs.flatten()/parse_unit(self.f_output_unit),
+        ]
+        fmt = ['%f', '%f', '%f']
+
+        if self.error is not None:
+            header += '\t Free energy error (std) [%s]' %(self.f_output_unit)
+            columns.append(self.error.std().flatten()/parse_unit(self.f_output_unit))
+            fmt.append('%.6e') # be a bit more precise as the error can be very small
+
+        np.savetxt(fn_txt, np.vstack(columns).T, header=header, fmt=fmt)
 
     def set_ref(self, ref='min'):
         '''

@@ -19,7 +19,7 @@ import matplotlib.pyplot as pp
 
 __all__ = [
     'BiasPotential1D', 'Parabola1D', 'Polynomial1D', 'PlumedSplinePotential1D',
-    'MultipleBiasses1D', 'BiasPotential2D', 'Parabola2D'
+    'MultipleBiasses1D', 'BiasPotential2D', 'Parabola2D', 'MultipleBiasses2D', 'PlumedSplinePotential2D',
 ]
 
 class BiasPotential1D(object):
@@ -320,13 +320,13 @@ class BiasPotential2D(object):
         '''
         raise NotImplementedError
     
-    def print(self, *pars_units):
+    def print(self, **pars_units):
         '''
             Routine to return a formatted string defining the current bias for logging purposes. The keywords arguments in ``pars_units`` are defined in the ``print_pars`` routine defined in the child classes.
         '''
-        return '%s (%s): %s' %(self.__class__.__name__, self.name, self.print_pars(*pars_units))
+        return '%s (%s): %s' %(self.__class__.__name__, self.name, self.print_pars(**pars_units))
 
-    def print_pars(self, *pars_units):
+    def print_pars(self, **pars_units):
         '''
             Routine to format a string containing the parameters of the bias for printing/logging purposes. This routine needs to be implemented in each child class.
         '''
@@ -384,7 +384,8 @@ class BiasPotential2D(object):
         pp.title('Bias: %s' %(self.print()), fontsize=14)
         fig = pp.gcf()
         fig.set_size_inches([12,8])
-        pp.savefig(fn)
+        if fn is not None:
+            pp.savefig(fn)
 
 
 class Parabola2D(BiasPotential2D):
@@ -460,13 +461,13 @@ class MultipleBiasses2D(BiasPotential2D):
     '''
         A class to add multiple bias potentials (either 1D or 2D) together, possibly weighted by given coefficients.
     '''
-    def __init__(self, biasses, additional_bias_dimension='cv1', coeffs=None):
+    def __init__(self, biasses, additional_bias_dimension=None, coeffs=None):
         '''
             :param biasses: list of bias potentials to be added
             :type biasses: list(BiasPotential1D,BiasPotential2D)
 
             :param additional_bias_dimension: For each 1D potential in the list of biasses, apply the bias along the cv defined by this parameter.
-            :type additional_bias_dimension: str, optional, default='cv1'
+            :type additional_bias_dimension: str, optional, default=None
             
             :param coeffs: array of weigth coefficients. If not given, defaults to an array of ones (i.e. no weighting).
             :type coeffs: list/np.ndarray, optional
@@ -511,7 +512,7 @@ class MultipleBiasses2D(BiasPotential2D):
             :type q2: float
         '''
         result = 0.0
-        for idx,bias in enumerate(self.biasses):
+        for idx, bias in enumerate(self.biasses):
             if isinstance(bias, BiasPotential1D):
                 if self.additional_bias_dimension.lower() in ['q1', 'cv1']:
                     result += self.coeffs[idx]*bias(q1)
@@ -520,7 +521,88 @@ class MultipleBiasses2D(BiasPotential2D):
                 else:
                     raise ValueError('additional bias_dimension is either cv1(/q1) or cv2(/q2) but you specified %s' % self.additional_bias_dimension)
             elif isinstance(bias, BiasPotential2D):
-                result += self.coeffs[idx]*bias(q1,q2)
+                if self.additional_bias_dimension is not None:
+                    print("WARNING: because the additional bias is 2-dimensional, the additional_bias_dimension keyword is ignored.")
+                result += self.coeffs[idx] * bias(q1,q2)
             else:
                 raise ValueError('Additional bias is not recognized correctly')
         return result
+
+class PlumedSplinePotential2D(BiasPotential2D):
+    '''
+        A bias potential read from a PLUMED file, which is spline-interpolated. The potential can be computed for a given CV value using its ``__call__`` routine, the bias definition can be printed in a formatted way using its ``print`` routine and a plot can be made using its ``plot`` routine.
+    '''
+    def __init__(self, name, fn, inverse_cv1=False, inverse_cv2=False, cv1_col=0, cv2_col=1, bias_col=2, unit='au', scale=1.0):
+        '''
+            :param name: name for the bias which will also be given in the title of plots
+            :type name: string
+
+            :param fn: specifies the filename of an external potential written on a grid and acting on the collective variable, as used with the EXTERNAL keyword in PLUMED.
+            :type fn: str
+            
+            :param inverse_cv1: If set to True, the CV1-axis will be inverted prior to bias evaluation. WARNING: possible rest value parameters of the potential (such as the rest value q01 of the Parabola2D potential) will not be multiplied with -1!
+            :type inverse_cv1: bool, optional, defaults to False
+
+            :param inverse_cv2: If set to True, the CV2-axis will be inverted prior to bias evaluation. WARNING: possible rest value parameters of the potential (such as the rest value q02 of the Parabola2D potential) will not be multiplied with -1!
+            :type inverse_cv2: bool, optional, defaults to False
+
+            :param cv1_col: the column in which the first collective variable is stored
+            :type cv1_col: int, optional, default=0
+
+            :param cv2_col: the column in which the second collective variable is stored
+            :type cv2_col: int, optional, default=1
+
+            :param bias_col: the column in which the bias is stored
+            :type bias_col: int, optional, default=2
+            
+            :param unit: unit used to express the external potential
+            :type unit: str, optional, default='au'
+
+            :param scale: scaling factor for the bias potential (useful to invert free energy surfaces)
+            :type scale: float, optional, default=1.0
+        '''
+        BiasPotential2D.__init__(self, name, inverse_cv1=inverse_cv1, inverse_cv2=inverse_cv2)
+        pars = np.loadtxt(fn)
+        cv1_all = pars[:,cv1_col]
+        cv2_all = pars[:,cv2_col]
+        bias_all = pars[:,bias_col]
+
+        cv1s = np.unique(cv1_all)
+        cv2s = np.unique(cv2_all)
+        assert len(cv1s) * len(cv2s) == len(bias_all), '%s does not define a complete rectangular grid (%i x %i != %i rows)' % (fn, len(cv1s), len(cv2s), len(bias_all))
+        grid = np.full((len(cv1s), len(cv2s)), np.nan)
+        grid[np.searchsorted(cv1s, cv1_all), np.searchsorted(cv2s, cv2_all)] = bias_all
+
+        refine = 10
+        f1 = np.linspace(cv1s[0], cv1s[-1], (len(cv1s)-1)*refine + 1)
+        f2 = np.linspace(cv2s[0], cv2s[-1], (len(cv2s)-1)*refine + 1)
+        tmp  = interpolate.PchipInterpolator(cv1s, grid, axis=0)(f1) # pchip along CV1, all columns at once
+        fine = interpolate.PchipInterpolator(cv2s, tmp,  axis=1)(f2) # pchip along CV2, all rows at once
+
+        self.cv1s, self.cv2s = cv1s, cv2s
+        self.splint = interpolate.RegularGridInterpolator((f1, f2), fine, method='linear')
+        self.unit = unit
+        self.scale = scale
+    
+    def print_pars(self, **kwargs):
+        '''
+            Not implemented, will just return empty string.
+        '''
+        #TODO
+        return ''
+
+    def __call__(self, q1, q2):
+        '''
+            Compute the value of the bias potential for the given CV value
+
+            :param q1: CV1 value at which the bias potential will be evaluated
+            :type q1: float
+
+            :param q2: CV2 value at which the bias potential will be evaluated
+            :type q2: float
+        '''
+        q1 = np.clip(q1, self.cv1s[0], self.cv1s[-1]) * self.sign_q1 # clamp: pchip would otherwise extrapolate a cubic
+        q2 = np.clip(q2, self.cv2s[0], self.cv2s[-1]) * self.sign_q2
+
+        value = self.splint(np.stack(np.broadcast_arrays(q1, q2), axis=-1))
+        return value * self.scale * parse_unit(self.unit)

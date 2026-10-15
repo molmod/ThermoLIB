@@ -368,7 +368,7 @@ def recollect_surface_2d(cv1s_old, cv2s_old, fs_old, q1s_new, q2s_new):
 
 #Routines for reading WHAM input
 
-def read_wham_input(fn: str, trajectory_readers, trajectory_path_templates, bias_potential: str='None', order_2D: str='q01 q02 kappa1 kappa2', q01_unit: str='au', kappa1_unit: str='au', q02_unit: str='au', kappa2_unit: str='au', inverse_cv1: bool=False, inverse_cv2: bool=False, additional_bias=None, additional_bias_dimension: str='cv1', skip_bias_names=[], verbose: bool=False):
+def read_wham_input(fn: str, trajectory_readers, trajectory_path_templates, bias_potential: str='None', order_2D: str='q01 q02 kappa1 kappa2', q01_unit: str='au', kappa1_unit: str='au', q02_unit: str='au', kappa2_unit: str='au', inverse_cv1: bool=False, inverse_cv2: bool=False, additional_bias=None, additional_bias_dimension=None, skip_bias_names=[], verbose: bool=False):
     '''
         Read a WHAM input file (metadata file) to read the simulation temperature, trajectories (CV samples) and bias potentials.
 
@@ -423,8 +423,8 @@ def read_wham_input(fn: str, trajectory_readers, trajectory_path_templates, bias
         :param additional_bias: Additional bias potential to be added for each simulation on top of the  bias potential defined in fn
         :type additional_bias: object or None, optional, default=None
 
-        :param additional_bias_dimension: The dimension in which the additional bias potential operates ('cv1'/'q1' or 'cv2'/'q2').
-        :type additional_bias_dimension: str, optional, default='cv1'
+        :param additional_bias_dimension: The dimension in which the additional bias potential operates, if one dimensional ('cv1'/'q1' or 'cv2'/'q2').
+        :type additional_bias_dimension: str, optional, default=None
 
         :param skip_bias_names: A list of bias names to be skipped during processing.
         :type skip_bias_names: list, optional, default=[]
